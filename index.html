@@ -915,8 +915,8 @@
         if (infoObj && infoObj.id === 'rem') {
           // Reduce rem explícitamente en móvil
           // usa fracción pequeña del ancho/alto de ventana y topes bajos
-          maxW = Math.min(window.innerWidth * 0.30, 180); // 30% ancho o hasta 180px
-          maxH = Math.min(window.innerHeight * 0.30, 200); // 30% alto o hasta 200px
+          maxW = Math.min(window.innerWidth * 0.62, 380); 
+          maxH = Math.min(window.innerHeight * 0.62, 520); 
         } else if (infoObj && infoObj.id === 'hola') {
           // mantenemos el comportamiento anterior para 'hola' (si lo deseas)
           maxW = Math.min(window.innerWidth * 0.62, 380);
