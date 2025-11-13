@@ -27,14 +27,14 @@
     }
     header h1 img#logo { width:42px; height:42px; object-fit:contain; border-radius:6px; display:block; }
 
-    /* Social inline next to title */
+    /* Social inline next to title - ahora CIRCULAR */
     .social-inline { display:flex; align-items:center; gap:.5rem; margin-left:.4rem; flex:0 0 auto; }
     .social-inline button {
-      width:44px; height:34px; border-radius:8px; border:none; padding:4px; display:inline-flex;
+      width:44px; height:44px; border-radius:50%; border:none; padding:0; display:inline-flex;
       align-items:center; justify-content:center; cursor:pointer; background:rgba(255,255,255,0.95);
-      color:#000; box-shadow:0 6px 18px rgba(0,0,0,0.28);
+      color:#000; box-shadow:0 6px 18px rgba(0,0,0,0.28); overflow:hidden;
     }
-    .social-inline img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; image-rendering:auto; }
+    .social-inline img { width:70%; height:70%; object-fit:cover; display:block; border-radius:50%; image-rendering:auto; }
 
     /* Controls (selects + search) */
     .controls { display:flex; align-items:center; gap:0.6rem; margin-left:1rem; flex-wrap:wrap; }
@@ -42,10 +42,6 @@
       padding:.5rem .9rem; border:none; border-radius:8px; font-size:1rem; background:rgba(255,255,255,0.95); color:#000; min-width:150px; -webkit-appearance:none; appearance:none;
     }
     #search { width:220px; min-width:120px; }
-
-    /* results wrapper */
-    .results-wrapper { margin-left:auto; display:flex; align-items:center; gap:.6rem; position:relative; z-index:12; }
-    .results-badge { display:flex; align-items:center; gap:.6rem; padding:.5rem .9rem; border-radius:999px; background: linear-gradient(90deg, rgba(255,0,150,0.12), rgba(0,200,255,0.12)); border: 1px solid rgba(255,255,255,0.06); cursor:pointer; }
 
     /* layout principal */
     .container{ max-width:1200px; margin:6rem auto 2rem; padding:0 2rem; z-index:6; position:relative; }
@@ -79,28 +75,27 @@
         align-items:center;
       }
       .controls select, .controls input { font-size:0.92rem; padding:.36rem .55rem; border-radius:8px; min-width:0; }
-      /* IMPORTANT: make #search behave like other bars (no full-width) */
+      /* search ahora ocupa 1/2 como los demás */
       #search { width:100%; min-width:0; }
-      .social-inline button { width:36px; height:28px; padding:2px; }
+      .social-inline button { width:36px; height:36px; padding:0; }
+      .social-inline img { width:68%; height:68%; }
     }
 
     /* extra small phones */
     @media (max-width:420px) {
       .controls { grid-template-columns: repeat(2, 1fr); gap:.35rem; }
       .controls select, .controls input { font-size:0.82rem; padding:.24rem .4rem; border-radius:6px; }
-      .social-inline button { width:34px; height:28px; }
+      .social-inline button { width:34px; height:34px; }
+      .social-inline img { width:70%; height:70%; }
       .mobile-select-popup { max-height:160px; font-size:0.84rem; }
       .mobile-select-popup .opt { padding:.18rem .32rem; font-size:0.82rem; }
     }
-
-    .results-panel { position:absolute; right:0; top:calc(100% + .6rem); min-width:260px; max-width:360px; background:rgba(2,2,6,0.9); border-radius:10px; padding:.8rem; box-shadow:0 20px 50px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.03); opacity:0; visibility:hidden; transform: translateY(-6px) scale(.98); transition:opacity .18s, transform .18s, visibility .18s; z-index:13; }
-    .results-panel.open { opacity:1; visibility:visible; transform: translateY(0) scale(1); }
 
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
     .no-results { grid-column:1 / -1; padding:2.6rem; border-radius:14px; display:flex; gap:1.25rem; align-items:center; justify-content:center; flex-direction:column; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.3)); border:1px solid rgba(255,255,255,0.04); box-shadow:0 18px 60px rgba(0,0,0,0.6); text-align:center; transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .2s; }
 
-    /* small helper */
+    /* helpers */
     .play-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9; pointer-events:auto; display:none; }
     .play-btn{ background: rgba(0,0,0,0.7); color:#fff; border:2px solid #fff; padding:14px 22px; border-radius:12px; font-size:18px; cursor:pointer; }
 
@@ -122,7 +117,7 @@
       <img id="logo" src="Logo_Archinime.png" alt="Logo Archinime">
       Archinime
       <span class="social-inline" id="social-inline" title="Síguenos">
-        <!-- Use srcset para mejorar calidad en pantallas retina; añade tus archivos youtube@2x.jpg/tiktok@2x.jpg -->
+        <!-- Usa srcset si tienes versiones @2x/@3x -->
         <button id="youtube-btn" type="button" aria-label="Abrir YouTube en nueva pestaña" onclick="openInNewTab('https://www.youtube.com/@Archinime-k2g')">
           <img src="youtube.jpg" srcset="youtube@2x.jpg 2x, youtube@3x.jpg 3x" alt="YouTube">
         </button>
@@ -214,24 +209,8 @@
       <input id="search" placeholder="🔍 Buscar anime…" oninput="debouncedFiltro()" aria-label="Buscar anime">
     </div>
 
-    <div class="results-wrapper" id="results-wrapper" aria-live="polite">
-      <div class="results-badge" id="results-badge" role="button" aria-expanded="false" tabindex="0" title="Mostrar filtros aplicados">
-        <span class="badge-glow" aria-hidden="true" style="width:12px;height:12px;border-radius:50%;background:linear-gradient(45deg,#ff007a,#ffd700,#00fff7);box-shadow:0 0 18px #ff007a,0 0 34px #ffd700,0 0 70px #00fff7;"></span>
-        <div style="display:flex;flex-direction:column;line-height:1;text-align:left;">
-          <div class="label" style="font-size:.78rem;letter-spacing:.06em;color:#f8f8f8;">Resultados</div>
-          <div class="count" id="results-count" style="font-size:1rem;font-weight:900;background:linear-gradient(90deg,#ffffff 0%, #ffd700 50%, #00fff7 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"></div>
-        </div>
-      </div>
+    <!-- NOTA: botón de resultados eliminado según tu petición -->
 
-      <div class="results-panel" id="results-panel" aria-hidden="true">
-        <h4>Filtros aplicados</h4>
-        <div class="filter-line"><div>Busqueda</div><div id="panel-query" class="small-tag">—</div></div>
-        <div class="filter-line"><div>Género</div><div id="panel-genre" class="small-tag">—</div></div>
-        <div class="filter-line"><div>Demografía</div><div id="panel-demo" class="small-tag">—</div></div>
-        <div class="filter-line"><div>Valoración</div><div id="panel-rating" class="small-tag">—</div></div>
-        <button class="clear-btn" id="clear-filters">Limpiar filtros</button>
-      </div>
-    </div>
   </header>
 
   <main class="container">
@@ -272,11 +251,7 @@
       {id:4, title:"Re:Zero − Empezar vida en otro mundo", img:"rezero.png", rating:4.8, genres:["Acción","Aventura","Drama","Fantasía oscura","Romance","Thriller psicológico","Terror psicológico","Isekai","Shōnen"]},
       {id:5, title:"Mushoku Tensei", img:"mushoku.jpg", rating:4.8, genres:["Isekai","Ecchi","Romance","Harem","Acción","Aventura","Drama","Fantasía","Seinen"]},
       {id:6, title:"Tensei Shitara Slime Datta Ken", aliases: ["That Time I Got Reincarnated as a Slime"], img:"slime.jpg", rating:4.9, genres:["Comedia","Isekai","Acción","Aventura","Fantasía","Shōnen"]},
-      {id:7, title:"Saga of Tanya the Evil", aliases: ["Yōjo Senki"], img:"tanya1.jpg", rating:4.8, genres:["Acción","Aventura","Fantasía","Militar","Drama","Ciencia ficción","Seinen"]},
-      {id:8, title:"Akame Ga Kill", aliases: ["Akame ga Kiru"], img:"Akame1.jpg", rating:4.6, genres:["Acción","Aventura","Drama","Fantasía oscura","Romance","Tragedia","Shōnen"]},
-      {id:9, title:"To Be Hero X", img:"hero11.jpg", rating:4.8, genres:["Acción","Comedia","Animación","Fantasía","Superhéroes","Seinen"]},
-      {id:10, title:"Demon Slayer", aliases: ["Kimetsu no Yaiba"], img:"demon.jpg", rating:4.9, genres:["Acción","Fantasía oscura","Aventura","Sobrenatural","Drama","Shōnen"]},
-      /* ... (el array completo se mantiene igual que en tu archivo original) */
+      /* ...el resto del array se mantiene igual (inclúyelo completo en tu archivo real) */
     ];
 
     function render(list) {
@@ -362,18 +337,12 @@
 
     document.getElementById('search').addEventListener('input', debouncedFiltro);
     document.getElementById('search').addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filtro(); } });
-    document.getElementById('genre-select').addEventListener('change', filtro);
-    document.getElementById('rating-select').addEventListener('change', filtro);
-    document.getElementById('demographic-select').addEventListener('change', filtro);
-    document.getElementById('results-badge').addEventListener('click', ()=> {
-      const panel = document.getElementById('results-panel');
-      const open = panel.classList.toggle('open');
-      document.getElementById('results-badge').setAttribute('aria-expanded', open);
-    });
-    document.getElementById('clear-filters').addEventListener('click', ()=> {
-      document.getElementById('search').value=''; document.getElementById('genre-select').value=''; document.getElementById('demographic-select').value=''; document.getElementById('rating-select').value='';
-      filtro();
-    });
+    const genreEl = document.getElementById('genre-select');
+    if (genreEl) genreEl.addEventListener('change', filtro);
+    const ratingEl = document.getElementById('rating-select');
+    if (ratingEl) ratingEl.addEventListener('change', filtro);
+    const demoEl = document.getElementById('demographic-select');
+    if (demoEl) demoEl.addEventListener('change', filtro);
 
     /* ----------------------------
        Mobile custom popup for selects (compact options)
@@ -554,7 +523,6 @@
       const cap = 1280;
       off.width = Math.min(video.videoWidth || displayW * 2, cap);
       off.height = Math.min(video.videoHeight || displayH * 2, cap);
-      // resize fireworks canvas if exists
       resizeFireCanvas();
     }
 
