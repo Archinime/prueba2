@@ -20,12 +20,12 @@
 
     /* título y logo */
     header h1{
-      cursor:pointer; display:flex; align-items:center; gap:.6rem; font-size:1.8rem; font-weight:800;
+      cursor:default; display:flex; align-items:center; gap:.6rem; font-size:1.8rem; font-weight:800;
       background: linear-gradient(135deg, #00fff7, #ff00cc, #ffd700);
       -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
       white-space:nowrap; flex:0 0 auto; animation: gradientMove 6s ease infinite;
     }
-    header h1 img#logo { width:42px; height:42px; object-fit:contain; border-radius:6px; display:block; }
+    header h1 img#logo { width:42px; height:42px; object-fit:contain; border-radius:6px; display:block; cursor:pointer; }
 
     /* Social inline next to title - ahora CIRCULAR */
     .social-inline { display:flex; align-items:center; gap:.5rem; margin-left:.4rem; flex:0 0 auto; }
@@ -91,6 +91,14 @@
       .mobile-select-popup .opt { padding:.18rem .32rem; font-size:0.82rem; }
     }
 
+    /* show 3 cards per row on mobile phones (<= 767px) */
+    @media (max-width:767px) {
+      .container { padding: 0 1rem; margin-top:5.2rem; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap:0.9rem; }
+      .card { min-height: 0; }
+      .card img { height: auto; }
+    }
+
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
     .no-results { grid-column:1 / -1; padding:2.6rem; border-radius:14px; display:flex; gap:1.25rem; align-items:center; justify-content:center; flex-direction:column; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.3)); border:1px solid rgba(255,255,255,0.04); box-shadow:0 18px 60px rgba(0,0,0,0.6); text-align:center; transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .2s; }
@@ -113,16 +121,16 @@
   <audio id="bg-music" autoplay></audio>
 
   <header>
-    <h1 onclick="location.reload()">
-      <img id="logo" src="Logo_Archinime.png" alt="Logo Archinime">
+    <h1>
+      <img id="logo" src="Logo_Archinime.png" alt="Logo Archinime" onclick="location.reload()" title="Recargar página">
       Archinime
       <span class="social-inline" id="social-inline" title="Síguenos">
-        <!-- Usa srcset si tienes versiones @2x/@3x -->
-        <button id="youtube-btn" type="button" aria-label="Abrir YouTube en nueva pestaña" onclick="openInNewTab('https://www.youtube.com/@Archinime-k2g')">
-          <img src="youtube.jpg" srcset="youtube@2x.jpg 2x, youtube@3x.jpg 3x" alt="YouTube">
+        <!-- Botones: abrimos en nueva pestaña y evitamos que la pulsación burbujee al header -->
+        <button id="youtube-btn" type="button" aria-label="Abrir YouTube en nueva pestaña" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.youtube.com/@Archinime-k2g'); })(event)">
+          <img src="youtube.jpg" alt="YouTube" loading="lazy" decoding="async">
         </button>
-        <button id="tiktok-btn" type="button" aria-label="Abrir TikTok en nueva pestaña" onclick="openInNewTab('https://www.tiktok.com/@archinime?_t=ZS-8zGoKE4IqLw&_r=1')">
-          <img src="tiktok.jpg" srcset="tiktok@2x.jpg 2x, tiktok@3x.jpg 3x" alt="TikTok">
+        <button id="tiktok-btn" type="button" aria-label="Abrir TikTok en nueva pestaña" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.tiktok.com/@archinime?_t=ZS-8zGoKE4IqLw&_r=1'); })(event)">
+          <img src="tiktok.jpg" alt="TikTok" loading="lazy" decoding="async">
         </button>
       </span>
     </h1>
@@ -131,6 +139,7 @@
     <div class="controls" id="controls">
       <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
         <option value="">Todos los géneros</option>
+        <!-- ... tus opciones ... -->
         <option>Acción</option>
         <option>Animación</option>
         <option>Aventura</option>
@@ -232,14 +241,24 @@
 
   <script>
     /* ----------------------------
-       FUNCIONES Y DATOS (lógica conservada)
+       FUNCIONES Y DATOS (lógica conservada, con optimizaciones)
        ---------------------------- */
     function openInNewTab(url) {
       const win = window.open(url, '_blank', 'noopener,noreferrer');
-      try { setTimeout(() => { if (typeof window.focus === 'function') window.focus(); }, 100); } catch(e){ console.warn(e); }
+      try { setTimeout(() => { if (typeof window.focus === 'function') win && win.focus(); }, 100); } catch(e){ console.warn(e); }
       return win;
     }
     function normalizeText(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+
+    /* --- Añadí sólo esta función para mostrar en orden aleatorio --- */
+    function shuffleArray(arr){
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
 
     /* ----------------------------
        Datos de animes (igual que antes)
@@ -251,9 +270,58 @@
       {id:4, title:"Re:Zero − Empezar vida en otro mundo", img:"rezero.png", rating:4.8, genres:["Acción","Aventura","Drama","Fantasía oscura","Romance","Thriller psicológico","Terror psicológico","Isekai","Shōnen"]},
       {id:5, title:"Mushoku Tensei", img:"mushoku.jpg", rating:4.8, genres:["Isekai","Ecchi","Romance","Harem","Acción","Aventura","Drama","Fantasía","Seinen"]},
       {id:6, title:"Tensei Shitara Slime Datta Ken", aliases: ["That Time I Got Reincarnated as a Slime"], img:"slime.jpg", rating:4.9, genres:["Comedia","Isekai","Acción","Aventura","Fantasía","Shōnen"]},
-      /* ...el resto del array se mantiene igual (inclúyelo completo en tu archivo real) */
+      {id:7, title:"Saga of Tanya the Evil", aliases: ["Yōjo Senki"], img:"tanya1.jpg", rating:4.8, genres:["Acción","Aventura","Fantasía","Militar","Drama","Ciencia ficción","Seinen"]},
+      {id:8, title:"Akame Ga Kill", aliases: ["Akame ga Kiru"], img:"Akame1.jpg", rating:4.6, genres:["Acción","Aventura","Drama","Fantasía oscura","Romance","Tragedia","Shōnen"]},
+      {id:9, title:"To Be Hero X", img:"hero11.jpg", rating:4.8, genres:["Acción","Comedia","Animación","Fantasía","Superhéroes","Seinen"]},
+      {id:10, title:"Demon Slayer", aliases: ["Kimetsu no Yaiba"], img:"demon.jpg", rating:4.9, genres:["Acción","Fantasía oscura","Aventura","Sobrenatural","Drama","Shōnen"]},
+      {id:11, title:"Maou 2099", img:"maou2099portada.jpg", rating:4.7, genres:["Ciencia ficción","Isekai Inverso","Acción","Fantasía","Cyberpunk","Shōnen"]},
+      {id:12, title:"Wistoria: Wand and Sword", img:"wistoria.jpg", rating:4.8, genres:["Fantasía","Aventura","Shōnen"]},
+      {id:13, title:"Izure Saikyou no Renkinjutsushi", aliases: ["Possibly the Greatest Alchemist of All Time"], img:"Izure.jpg", rating:4.6, genres:["Aventura","Comedia","Fantasía","Isekai","Shōnen"]},
+      {id:14, title:"Alya Sometimes Hides Her Feelings in Russian", aliases: ["Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san"], img:"alia.jpg", rating:4.8, genres:["Comedia","Romance","Romance escolar","Escolar","Josei"]},
+      {id:15, title:"Reborn as a Vending Machine, I Now Wander the Dungeon", aliases: ["Jidōhanbaiki ni Umarekawatta Ore wa Meikyū ni Samayō"], img:"jidou.jpg", rating:4.1, genres:["Fantasía","Isekai","Shōnen"]},
+      {id:16, title:"kimi to boku no saigo no senjou", aliases: ["Our Last Crusade or the Rise of a New World"], img:"kimi22222.jpg", rating:4.5, genres:["Acción","Fantasía","Romance","Militar","Seinen"]},
+      {id:17, title:"The Gorilla God's Go- To Girl", aliases: ["Gorilla no Kami Kara Kago Sareta Reijō wa Ōritsu Kishidan de Kawaiigareru"], img:"gorila11.jpg", rating:4.5, genres:["Fantasía","Comedia","Escolar","Romance","Shōjo"]},
+      {id:18, title:"Chainsaw Man", img:"chaiportada.jpg", rating:4.9, genres:["Fantasía oscura","Acción","Comedia oscura","Shōnen"]},
+      {id:19, title:"The Rising of the Shield Hero", aliases: ["Tate no Yuusha no Nariagari","El Héroe del Escudo"], img:"heroedelescudoportada.jpg", rating:4.7, genres:["Aventura","Drama","Fantasía","Acción","Romance","Isekai","Seinen"]},
+      {id:20, title:"Overflow", img:"overflow.jpg", rating:4.6, genres:["Hentai","Escolar","Romance","Harem","Incesto","Seijin"]},
+      {id:21, title:"Shiunji-ke no Kodomotachi", img:"Shiux.jpg", rating:4.6, genres:["Comedia","Romance","Drama","Harem","Slice of Life","Seinen"]},
+      {id:22, title:"Goblin Slayer", img:"goblinslayerportada.jpg", rating:4.7, genres:["Fantasía oscura","Horror","Aventura","Fantasía","Seinen"]},
+      {id:23, title:"Kanchigai no Atelier Meister", img:"atelier1.jpg", rating:4.6, genres:["Aventura","Comedia","Fantasía","Acción","Shōnen"]},
+      {id:24, title:"Definitivamente. ¡No me gusta mi hermano para nada!", img:"Oni.jpg", rating:4.1, genres:["Comedia","Romance","Slice of Life","Harem","Ecchi","Seinen"]},
+      {id:25, title:"Kaiju No. 8", img:"kaijuportada.jpg", rating:4.9, genres:["Sobrenatural","Fantasía oscura","Acción","Ciencia ficción","Aventura","Comedia","Kaiju","Shōnen"]},
+      {id:26, title:"Zootopia", img:"zootopiaportada.jpg", rating:4.7, genres:["Aventura","Comedia","Policial","Infantil","Familiar","Misterio","Animación","Dibujo Animado","Kodomo"]},
+      {id:27, title:"Clevatess -Majuu no Ou to Akago", img:"Clevatessportada.jpg", rating:4.8, genres:["Acción","Fantasía","Drama","Seinen"]},
+      {id:28, title:"Dr. Stone", img:"Dr._Stoneportada.jpg", rating:4.8, genres:["Ciencia ficción","Aventura","Comedia","Post-apocalíptico","Shōnen"]},
+      {id:29, title:"One Piece (Live Action)", img:"onepieceportada.jpg", rating:4.8, genres:["Aventura","Comedia","Acción","Fantasía","Drama","Shōnen"]},
+      {id:30, title:"Shoujo Ramune", img:"shoujoramuneportada.jpg", rating:4.3, genres:["Hentai","Harem","Incesto","Seijin"]},
+      {id:31, title:"To Your Eternity", aliases: ["Fumetsu no Anata e"], img:"fumetsuportada.jpg", rating:4.8, genres:["Fantasía","Drama","Aventura","Sobrenatural","Shōnen"]},
+      {id:32, title:"Tsugunai Subbed", img:"TsugunaiSubbed.jpg", rating:4.8, genres:["Hentai","Harem","Escolar","Seijin"]},
+      {id:33, title:"Blue Lock", aliases: ["Yoichi Isagi"], img:"Bluelockportada.jpg", rating:4.8, genres:["Thriller","Psicológico","Deportivo","Survival Game","Shōnen"]},
+      {id:34, title:"Magic Maker: Isekai Mahou no Tsukurikata", aliases: ["Magic Maker: How to Make Magic in Another World"], img:"magic maker.jpg", rating:4.4, genres:["Fantasía","Isekai","Aventura","Slice of Life","Shōnen"]},
+      {id:35, title:"Tsuyokute New Saga", aliases: ["New Saga"], img:"New Saga.jpg", rating:4.5, genres:["Fantasía","Isekai","Aventura","Comedia","Acción","Drama","Slice of Life","Shōnen"]},
+      {id:36, title:"Gachiakuta", img:"Gachiakuta.jpg", rating:4.9, genres:["Fantasía","Aventura","Acción","Fantasía oscura","Shōnen"]},
+      {id:37, title:"Shinsei Kourin Dacryon Luna", img:"Shinsei Kourin Dacryon Luna portada.jpg", rating:4.0, genres:["Tentáculos","Hentai","Fantasía","Fantasía oscura","Seijin"]},
+      {id:38, title:"Kami-tachi ni Hirowareta Otoko", aliases: ["By the Grace of the Gods"], img:"Kamitachi.jpg", rating:4.7, genres:["Fantasía","Aventura","Slice of Life","Isekai","Shōnen"]},
+      {id:39, title:"Ore dake Haireru Kakushi Dungeon", aliases: ["The Hidden Dungeon Only I Can Enter"], img:"oredake.jpg", rating:4.5, genres:["Fantasía","Comedia","Harem","Ecchi","Acción","Romance","Shōnen"]},
+      {id:40, title:"One Punch-Man", aliases: ["One-Punch Man"], img:"onepunch.jpg", rating:4.8, genres:["Comedia","Acción","Fantasía","Ciencia ficción","Superhéroes","Seinen"]},
+      {id:41, title:"Mashle", aliases: ["Mash Burnedead"], img:"mashle1.jpg", rating:4.8, genres:["Comedia","Acción","Fantasía","Aventura","Shōnen"]},
+      {id:42, title:"Los Diarios de la Boticaria", aliases: ["Kusuriya no Hitorigoto","The Apothecary Diaries"], img:"maomaot1.jpg", rating:4.9, genres:["Drama","Misterio","Romance","Shōjo"]},
+      {id:43, title:"Maplestar", img:"pm.png", rating:5.0, genres:["Hentai","Animación","Seijin"]},
+      {id:44, title:"Uzumaki", img:"uzumakii.jpg", rating:4.2, genres:["Horror","Seinen"]},
+      {id:45, title:"Tondemo Skill de Isekai Hourou Meshi", aliases: ["Campfire Cooking in Another World with My Absurd Skills"], img:"todemo.jpg", rating:4.9, genres:["Comedia","Fantasía","Slice of Life","Cocina","Aventura","Shōnen","Isekai"]},
+      {id:46, title:"My Dress-Up Darling", aliases: ["Sono Bisque Doll wa Koi wo Suru"], img:"muneca.jpg", rating:4.9, genres:["Comedia","Romance","Slice of Life","Escolar","Cosplay","Seinen"]},
+      {id:47, title:"Hazbin Hotel", aliases: ["Hotel Hazbin"], img:"hhzz.jpg", rating:4.8, genres:["Comedia","Musical","Drama","Animación","Policial","Seijin"]},
+      {id:48, title:"The Eminence in Shadow", aliases: ["Kage no Jitsuryokusha ni Naritakute!"], img:"shadow.jpg", rating:4.8, genres:["Comedia","Acción","Fantasía","Isekai","Harem","Steampunk","Shōnen"]},
+      {id:49, title:"Spy × Family", img:"spy.jpg", rating:4.9, genres:["Comedia","Drama","Fantasía","Familiar","Espionaje","Shōnen"]},
+      {id:50, title:"Black Clover", img:"portbla.jpg", rating:4.8, genres:["Comedia","Acción","Fantasía","Aventura","Shōnen"]},
+      {id:51, title:"My Hero Academia", aliases: ["Boku no Hero"], img:"sgsgsdseg.jpg", rating:4.7, genres:["Superhéroes","Ciencia ficción","Comedia","Drama","Acción","Fantasía","Escolar","Aventura","Shōnen"]},
+      {id:52, title:"Kakkou no Linazuke", aliases: ["A Couple of Cuckoos"], img:"pordf.jpg", rating:4.5, genres:["Romance","Comedia","Escolar","Harem","Shōnen"]},
     ];
 
+
+    /* ----------------------------
+       Renderizado: conservador pero mejorando carga de imágenes
+       ---------------------------- */
     function render(list) {
       const grid = document.getElementById('grid');
       if (!list || list.length === 0) {
@@ -275,12 +343,16 @@
         });
         return;
       }
+
+      // Usamos atributos de carga diferida para evitar picos de memoria/CPU
       grid.innerHTML = list.map(a => `
         <div class="card" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0">
-          <img src="${a.img}" alt="${a.title}">
+          <img src="${a.img}" alt="${a.title}" loading="lazy" decoding="async">
           <div class="info"><strong>${a.title}</strong><span>⭐ ${a.rating ? (a.rating.toFixed? a.rating.toFixed(1): a.rating) : '—'}</span></div>
         </div>
       `).join('');
+
+      // IntersectionObserver para animar aparición (tiene impacto mínimo)
       const observer = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
       }, {threshold:0.2});
@@ -331,8 +403,8 @@
       updateResultsCount(resultList.length);
     }
 
-    // inicial
-    render(animes);
+    // inicial -> ahora en orden ALEATORIO
+    render(shuffleArray(animes));
     updateResultsCount(animes.length);
 
     document.getElementById('search').addEventListener('input', debouncedFiltro);
@@ -345,28 +417,45 @@
     if (demoEl) demoEl.addEventListener('change', filtro);
 
     /* ----------------------------
-       Mobile custom popup for selects (compact options)
+       Mobile custom popup for selects (compact)
+       - Mejoras aplicadas:
+         * toggle al pulsar la misma barra
+         * no cerrar el popup cuando el usuario hace scroll dentro del propio popup
+         * manejo de touch/pointer para evitar cierres indeseados
        ---------------------------- */
     function isMobileScreen(){ return window.matchMedia && window.matchMedia('(max-width:780px)').matches; }
 
     (function setupMobileSelectPopups(){
       const selects = ['genre-select','demographic-select','rating-select'].map(id=>document.getElementById(id)).filter(Boolean);
       let activePopup = null;
-      function closePopup(){ if (activePopup && activePopup.popup) { activePopup.popup.remove(); activePopup = null; } }
+      let popupInteracting = false; // true cuando el usuario toca/está interactuando dentro del popup
+      function closePopup(){ if (activePopup && activePopup.popup) { try { activePopup.popup.remove(); } catch(e){}; activePopup = null; } }
       function onOutsideClick(e){ if (!activePopup) return; if (!activePopup.popup.contains(e.target) && e.target !== activePopup.el) closePopup(); }
-      window.addEventListener('resize', closePopup);
-      document.addEventListener('scroll', closePopup, true);
+
+      window.addEventListener('resize', closePopup, {passive:true});
+
+      // Cambié el comportamiento: sólo cerramos por scroll si no estamos interactuando dentro del popup
+      document.addEventListener('scroll', (ev) => {
+        if (!activePopup) return;
+        if (popupInteracting) return; // el usuario está desplazando dentro del popup -> no cerrar
+        // si el usuario hace scroll en la página (fuera del popup) cerramos
+        closePopup();
+      }, {passive:true, capture:true});
+
       document.addEventListener('click', onOutsideClick);
 
       selects.forEach(sel => {
+        // Toggle: si está abierto y es el mismo select, lo cerramos
         sel.addEventListener('touchstart', function(ev){
           if (!isMobileScreen()) return;
           ev.preventDefault();
+          if (activePopup && activePopup.el === sel) { closePopup(); return; }
           openMobilePopupFor(sel);
         }, {passive:false});
         sel.addEventListener('mousedown', function(ev){
           if (!isMobileScreen()) return;
           ev.preventDefault();
+          if (activePopup && activePopup.el === sel) { closePopup(); return; }
           openMobilePopupFor(sel);
         });
       });
@@ -377,6 +466,7 @@
         const popup = document.createElement('div');
         popup.className = 'mobile-select-popup';
         popup.setAttribute('role','listbox');
+        // si la opción es larga y excede pantalla, el CSS max-height + overflow:auto hará el scroll interno
         Array.from(selectEl.options).forEach((opt,i) => {
           const item = document.createElement('div');
           item.className = 'opt';
@@ -390,13 +480,23 @@
             selectEl.dispatchEvent(ev);
             popup.querySelectorAll('.opt').forEach(o=>o.removeAttribute('aria-selected'));
             item.setAttribute('aria-selected','true');
+            // cerramos de forma inmediata al seleccionar (experiencia de usuario)
             setTimeout(()=> closePopup(), 60);
           });
           popup.appendChild(item);
         });
 
+        // manejo de interacción dentro del popup: evitamos que un scroll interno cierre el popup
+        popup.addEventListener('touchstart', ()=> { popupInteracting = true; });
+        popup.addEventListener('pointerdown', ()=> { popupInteracting = true; });
+        // cuando termina la interacción (touchend/pointerup) limpiamos flag tras un pequeño delay
+        popup.addEventListener('touchend', ()=> { setTimeout(()=> { popupInteracting = false; }, 180); });
+        popup.addEventListener('pointerup', ()=> { setTimeout(()=> { popupInteracting = false; }, 100); });
+
         document.body.appendChild(popup);
         const popupRect = popup.getBoundingClientRect();
+
+        // posicionamiento: preferimos debajo del select, pero si no cabe lo colocamos arriba.
         let top = rect.bottom + 6;
         let left = rect.left;
         if (left + popupRect.width > window.innerWidth - 8) { left = Math.max(8, window.innerWidth - popupRect.width - 8); }
@@ -404,12 +504,65 @@
           top = rect.top - popupRect.height - 6;
           if (top < 8) top = 8;
         }
+        // si aún no cabe verticalmente (muy alto), fijamos top/left para que el popup se ajuste con scroll interno
         popup.style.position = 'fixed';
         popup.style.left = left + 'px';
         popup.style.top = top + 'px';
+
+        // guardamos referencia activa
         activePopup = { el: selectEl, popup };
       }
     })();
+
+
+    /* ----------------------------
+       Ajuste dinámico del espacio entre header y la grid en móviles
+       - Ahora, en pantallas móviles, el margen top de .container se ajusta
+         para que la distancia entre las barras de opciones y la primera fila
+         sea igual al gap entre tarjetas.
+       ---------------------------- */
+    function isMobileScreenSmall(){ return window.matchMedia && window.matchMedia('(max-width:767px)').matches; }
+
+    function adjustMobileSpacing(){
+      try {
+        const container = document.querySelector('.container');
+        const header = document.querySelector('header');
+        const grid = document.querySelector('.grid');
+        if (!container || !header || !grid) return;
+        if (!isMobileScreenSmall()) {
+          container.style.marginTop = ''; // restaurar estilo por defecto en pantallas grandes
+          return;
+        }
+        // calcular alto del header
+        const headerH = Math.ceil(header.getBoundingClientRect().height);
+        // obtener gap de la grid (row gap)
+        const gridCS = getComputedStyle(grid);
+        let gap = gridCS.gap || gridCS.rowGap || '0.9rem';
+        // convertir gap a px (soportamos rem y px)
+        let gapPx = 0;
+        if (typeof gap === 'string') {
+          gap = gap.trim();
+          if (gap.endsWith('rem')) gapPx = parseFloat(gap) * parseFloat(getComputedStyle(document.documentElement).fontSize || '16');
+          else if (gap.endsWith('px')) gapPx = parseFloat(gap);
+          else gapPx = parseFloat(gap) || 14;
+        } else {
+          gapPx = Number(gap) || 14;
+        }
+        // establecer margin-top igual a header height + gap
+        container.style.marginTop = (headerH + Math.round(gapPx)) + 'px';
+      } catch(e){
+        // si algo falla, no romper el layout
+        console.warn('adjustMobileSpacing error', e);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', ()=> {
+      adjustMobileSpacing();
+      // ejecutamos también cuando se carguen imágenes o cambie tamaño
+      setTimeout(adjustMobileSpacing, 180);
+    });
+    window.addEventListener('resize', ()=> { adjustMobileSpacing(); }, {passive:true});
+
 
     /* ----------------------------
        Fondo y audio
@@ -431,7 +584,13 @@
       const musicList = [
         'Nightcore - When You Leave (Numa Numa).mp3',
         'Nightcore  - How Do You Do (Remix) ✕.mp3',
-        'Nightcore  Sweet Little Bumblebee (lyric video).mp3'
+        'Nightcore  Sweet Little Bumblebee (lyric video).mp3',
+        'Nightcore - PLAY x Unity x Faded  Alan Walker (Mashup  Switching Vocals) Lyrics.mp3',
+        'Nightcore - Thunder (Gabry Ponte, LUM!X, Prezioso) - (Lyrics).mp3',
+        'Nightcore - Battlecry (Heart of Courage) (Lyrics).mp3',
+        'Nightcore - Monster [NMV].mp3',
+        'Caramella Girls - Caramelldansen HD Version (Swedish Original) Official.mp3',
+        'Yo y los que tuvieron etapa Vocaloid cuando suena 😼✨.mp3',
       ];
       let currentMusicIndex = -1;
       function pickRandomMusic(exclude){
@@ -455,7 +614,7 @@
     });
 
     /* ----------------------------
-       Chroma + FG logic + fuegos artificiales (completo)
+       Chroma + FG logic + fuegos artificiales (mejoras de rendimiento)
        ---------------------------- */
     const fgContainer = document.getElementById('fgContainer');
     const fgCanvas = document.getElementById('fgCanvas');
@@ -472,6 +631,7 @@
     let currentVideoObj = null;
     let lastObjectUrl = null;
     let isAnimatingExplosion = false;
+    let visibilityPaused = false;
 
     const videoList = [
       { id: 'hola', src: 'hola.mp4', preset: { threshold: 0.25, diff: 0, soft: 100 } },
@@ -561,7 +721,7 @@
     }
 
     function processLoop(video, infoObj){
-      if (!usingChroma) return;
+      if (!usingChroma || visibilityPaused) { animationId = requestAnimationFrame(()=>processLoop(video, infoObj)); return; }
       if (video.paused || video.ended) { animationId = requestAnimationFrame(()=>processLoop(video, infoObj)); return; }
       if (video.videoWidth && video.videoHeight && (off.width !== Math.min(video.videoWidth,1280) || off.height !== Math.min(video.videoHeight,1280))) {
         off.width = Math.min(video.videoWidth,1280); off.height = Math.min(video.videoHeight,1280);
@@ -622,7 +782,7 @@
         fctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
       }
     }
-    window.addEventListener('resize', resizeFireCanvas);
+    window.addEventListener('resize', resizeFireCanvas, {passive:true});
     setTimeout(resizeFireCanvas, 120);
 
     function random(min, max){ return Math.random()*(max-min)+min; }
@@ -728,7 +888,7 @@
         fgVideo.style.display = 'none';
         fgVideo.play().catch(()=>{});
         bgVideo.play().catch(()=>{});
-        if (!animationId && usingChroma) animationId = requestAnimationFrame(()=>processLoop(fgVideo, infoObj));
+        if (!animationId && usingChroma && !visibilityPaused) animationId = requestAnimationFrame(()=>processLoop(fgVideo, infoObj));
         showContainer();
       };
 
@@ -764,24 +924,45 @@
       try { bgMusic.play().catch(()=>{}); } catch(e){}
     });
 
+    // Throttled resize para evitar trabajo repetido
+    let resizeRaf = null;
+    window.addEventListener('resize', ()=> {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(()=> {
+        resizeFireCanvas();
+        if (currentVideoObj && fgVideo.videoWidth && fgVideo.videoHeight) {
+          adjustContainerToVideo(fgVideo, currentVideoObj);
+        }
+        resizeRaf = null;
+      });
+    }, {passive:true});
+
+    // Pausar procesamiento pesado cuando pestaña no visible para evitar lag
+    document.addEventListener('visibilitychange', ()=> {
+      if (document.hidden) {
+        visibilityPaused = true;
+        if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+        // dejamos los vídeos en segundo plano (opción: pausar si quieres)
+      } else {
+        visibilityPaused = false;
+        if (usingChroma && fgVideo && !animationId) {
+          animationId = requestAnimationFrame(()=>processLoop(fgVideo, currentVideoObj));
+        }
+      }
+    }, {passive:true});
+
     function init(){
       fgContainer.style.display = 'none'; fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
       const first = pickRandomVideo(null);
       if (!first) return;
       playVideoClip(first);
-
-      window.addEventListener('resize', ()=>{
-        resizeFireCanvas();
-        if (currentVideoObj && fgVideo.videoWidth && fgVideo.videoHeight) {
-          adjustContainerToVideo(fgVideo, currentVideoObj);
-        }
-      });
     }
 
     init();
 
     window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){}; });
 
+    /* FIN del script */
   </script>
 </body>
 </html>
