@@ -19,15 +19,24 @@
         --neon-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
     }
 
-    /* --- CORRECCIÓN 1: QUITAR AZUL AL TOCAR --- */
+    /* --- CORRECCIÓN AGRESIVA: ADIÓS BORDES AZULES (PC Y MÓVIL) --- */
+    
+    /* 1. Elimina el color de toque en móviles (Android/iOS) */
     * {
-        /* Elimina el parche azul/gris al tocar en móviles */
-        -webkit-tap-highlight-color: transparent; 
+        -webkit-tap-highlight-color: transparent !important;
         box-sizing: border-box;
     }
+
+    /* 2. Elimina el recuadro de enfoque en PC (Chrome/Firefox/Edge) */
     *:focus {
-        /* Elimina el borde azul de selección del navegador */
-        outline: none; 
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 3. Asegura que el contenedor de Disqus no se ilumine */
+    #disqus_thread {
+        outline: none !important;
+        box-shadow: none !important;
     }
 
     /* --- ESTILOS GENERALES --- */
@@ -40,7 +49,7 @@
         min-height: 100vh;
     }
    
-    /* --- FONDO DE VIDEO (OPTIMIZADO PARA NO LAGEAR) --- */
+    /* --- FONDO DE VIDEO (OPTIMIZADO PARA GPU) --- */
     #bg-video { 
         position: fixed;
         top: 0;
@@ -50,12 +59,9 @@
         z-index: -10; 
         opacity: 1;
         
-        /* TRUCOS PARA REDUCIR LAG EN CELULAR */
-        /* Mueve el video a una capa separada de la GPU */
-        transform: translate3d(0, 0, 0); 
-        -webkit-transform: translate3d(0, 0, 0);
-        will-change: transform; 
-        backface-visibility: hidden;
+        /* TRUCO ANTI-LAG: Fuerza a la GPU a manejar el video aparte */
+        transform: translateZ(0);
+        will-change: transform;
     }
 
     /* --- OVERLAY LIGERO --- */
@@ -67,8 +73,6 @@
       z-index: -5;
       background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.7) 100%);
       pointer-events: none;
-      /* Optimización también para el overlay */
-      transform: translate3d(0,0,0);
     }
     
     /* --- CONTENEDOR PRINCIPAL --- */
@@ -83,6 +87,9 @@
         border: none;
         box-shadow: none;
         backdrop-filter: none;
+        
+        /* Optimización de renderizado para scroll suave */
+        transform: translateZ(0);
     }
     
     /* NAVEGACIÓN SUPERIOR */
@@ -113,7 +120,7 @@
       border: 2px solid var(--primary-color);
       white-space: nowrap;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      user-select: none; /* Evita que se seleccione el texto al tocar rápido */
+      user-select: none;
     }
    
     .back-btn:hover, .back-btn:active {
@@ -172,7 +179,7 @@
         text-decoration: none; 
         border-radius: 50px; 
         cursor: pointer; 
-        transition: 0.2s; /* Transición más rápida para respuesta táctil */
+        transition: 0.2s;
         font-weight: 700;
         font-size: 1.1rem;
         text-shadow: 1px 1px 2px #000;
@@ -194,13 +201,13 @@
         box-shadow: 0 0 20px #ff1493;
     }
    
-    /* Estilos Active para simular el toque en celular sin poner azul */
+    /* Efecto visual al tocar (sin ponerse azul) */
     .btn:hover, .btn:active { 
         background: var(--primary-color);
         color: #000;
         box-shadow: 0 0 20px var(--primary-color);
         text-shadow: none;
-        transform: scale(0.98); /* Efecto ligero de presionar */
+        transform: scale(0.98);
     }
    
     .btn-hidden { display: none; }
@@ -235,7 +242,6 @@
         color: #fff;
     }
   
-    /* Active class controlada por JS */
     .opt-btn.active { 
         border-color: var(--primary-color);
         color: #000;
@@ -289,7 +295,6 @@
         filter: drop-shadow(0 0 5px var(--primary-color));
     }
     
-    /* El estilo .utterances ya no es necesario pero no estorba */
     .utterances {
         max-width: 100%;
         width: 100%;
@@ -361,7 +366,7 @@
             <div id="disqus_thread"></div>
             <script>
                 /**
-                * RECOMMENDED CONFIGURATION VARIABLES
+                * CONFIGURACIÓN DISQUS
                 */
                 var disqus_config = function () {
                     // 1. Obtener parámetros de la URL para identificar el episodio único
