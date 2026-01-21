@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reproductor - Archinime</title>
+  <link rel="icon" href="Logo_Archinime.png" type="image/png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* --- VARIABLES --- */
+    :root {
+        --primary-color: #00fff7; /* Cian Neón */
+        --secondary-color: #7b2cbf; /* Morado */
+        --text-color: #ffffff;
+        --neon-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+    }
+
+    /* --- ESTILOS GENERALES --- */
+    body { 
+        margin: 0;
+        background: #000; 
+        color: var(--text-color); 
+        font-family: 'Poppins', sans-serif; 
+        overflow-x: hidden; 
+        min-height: 100vh;
+    }
+   
+    /* --- FONDO DE VIDEO (Background) --- */
+    #bg-video { 
+        position: fixed;
+        top: 0;
+        left: 0; 
+        width: 100%; height: 100%; 
+        object-fit: cover;
+        z-index: -10; 
+        opacity: 1;
+    }
+
+    /* --- OVERLAY LIGERO --- */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0; 
+      width: 100%; height: 100%; 
+      z-index: -5;
+      background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.7) 100%);
+      pointer-events: none;
+    }
+    
+    /* --- CONTENEDOR PRINCIPAL --- */
+    .container { 
+        width: 100%;
+        max-width: none; 
+        margin: 0;
+        padding: 10px 0; 
+        position: relative; 
+        z-index: 10;
+        background: transparent; 
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+    
+    /* NAVEGACIÓN SUPERIOR */
+    .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 20px; 
+        flex-wrap: nowrap; 
+        gap: 15px;
+    }
+
+    /* BOTÓN GENÉRICO ESTILO NEÓN */
+    .back-btn { 
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color:#0ff;
+      text-decoration:none;
+      font-weight:bold;
+      font-size: 1rem; 
+      transition:all .3s;
+      cursor:pointer;
+      background: rgba(0, 0, 0, 0.6); 
+      padding: 10px 20px;
+      border-radius: 30px;
+      border: 2px solid var(--primary-color);
+      white-space: nowrap;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+   
+    .back-btn:hover {
+        background: rgba(0, 255, 247, 0.2);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.5);
+    }
+   
+    /* REPRODUCTOR (FULL WIDTH) */
+    .player-wrapper { 
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 */
+        height: 0; 
+        width: 100%; 
+        background: #000; 
+        overflow: hidden;
+        z-index: 50;
+        border-radius: 0; 
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+   
+    .player-wrapper iframe, .player-wrapper video { 
+        position: absolute;
+        top: 0;
+        left: 0; width: 100%;
+        height: 100%; border: none;
+    }
+
+    /* TEXTOS */
+    h1 { 
+        color: #fff;
+        font-size: 2rem; 
+        margin-top: 25px;
+        text-align: center;
+        text-shadow: 2px 2px 4px #000, 0 0 20px var(--primary-color);
+        padding: 0 15px;
+    }
+    
+    /* CONTROLES */
+    .controls { 
+        margin-top: 30px;
+        display: flex; 
+        justify-content: center; 
+        gap: 20px; 
+        flex-wrap: wrap; 
+        padding: 0 10px;
+    }
+    
+    /* BOTONES DE CONTROL */
+    .btn { 
+        padding: 12px 35px;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid var(--primary-color);
+        color: #fff;
+        text-decoration: none; 
+        border-radius: 50px; 
+        cursor: pointer; 
+        transition: 0.3s;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-shadow: 1px 1px 2px #000;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    #downloadBtn {
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid #ff1493;
+        color: #ffffff;
+    }
+
+    #downloadBtn:hover {
+        background: #ff1493;
+        color: #fff;
+        box-shadow: 0 0 20px #ff1493;
+    }
+   
+    .btn:hover { 
+        background: var(--primary-color);
+        color: #000;
+        box-shadow: 0 0 20px var(--primary-color);
+        text-shadow: none;
+    }
+   
+    .btn-hidden { display: none; }
+    
+    /* Opciones de Servidor */
+    .options { 
+        margin-top: 25px;
+        display: flex; 
+        gap: 15px;
+        justify-content: center; 
+        flex-wrap: wrap;
+        padding: 0 10px;
+    }
+    
+    .opt-btn { 
+        font-size: 1rem;
+        padding: 10px 20px;
+        border: 2px solid #555; 
+        background: rgba(0,0,0,0.8);
+        color: #ddd;
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.3s;
+        font-family: 'Poppins', sans-serif;
+        font-weight: bold;
+    }
+   
+    .opt-btn:hover {
+        background: #333;
+        border-color: #fff;
+        color: #fff;
+    }
+  
+    .opt-btn.active { 
+        border-color: var(--primary-color);
+        color: #000;
+        background: var(--primary-color); 
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.6);
+    }
+
+    /* --- COMENTARIOS --- */
+    .comments-section { 
+        margin-top: 60px;
+        border-top: 1px solid rgba(255,255,255,0.2); 
+        padding: 40px 20px; 
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .comments-box {
+        background: transparent; 
+        border-radius: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--primary-color);
+        width: 100%;
+    }
+
+    .comments-header h3 {
+        color: #fff;
+        margin: 0;
+        font-size: 1.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 4px #000, 0 0 10px var(--primary-color);
+    }
+
+    .comment-icon {
+        font-size: 1.8rem; 
+        color: var(--primary-color);
+        filter: drop-shadow(0 0 5px var(--primary-color));
+    }
+    
+    /* El estilo .utterances ya no es necesario pero no estorba */
+    .utterances {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    /* Estilo para Disqus */
+    #disqus_thread {
+        width: 100%;
+        min-height: 200px;
+    }
+
+    /* MEDIA QUERIES */
+    @media (max-width: 550px) {
+        .comments-section {
+            padding: 20px 0;
+        }
+        
+        .comments-box {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto;
+            margin-left: 0;
+            transform: none; 
+            margin-bottom: 0;
+        }
+        
+        .comments-header h3 {
+            font-size: 1.5rem;
+        }
+        .comment-icon {
+            font-size: 1.5rem;
+        }
+    }
+  </style>
+</head>
+<body>
+
+  <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
+    <source src="galaxia.mp4" type="video/mp4">
+  </video>
+
+  <div id="overlay"></div>
+
+  <div class="container">
+   
+    <div class="top-nav">
+       <a href="#" id="backLink" class="back-btn">← Volver</a>
+    </div>
+
+    <div class="player-wrapper" id="playerContainer"></div>
+
+    <div class="options" id="serverOptions"></div>
+
+    <h1 id="epTitle">Cargando episodio...</h1>
+
+    <div class="controls">
+        <a id="prevBtn" class="btn btn-hidden">⏮ Anterior</a>
+        <a id="downloadBtn" class="btn" href="#" target="_blank" download>⬇ Descargar</a>
+        <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
+    </div>
+
+    <div class="comments-section">
+        <div class="comments-box">
+            <div class="comments-header">
+                <span class="comment-icon">💬</span>
+                <h3>Comentarios</h3>
+            </div>
+            
+            <div id="disqus_thread"></div>
+            <script>
+                /**
+                * RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+                * LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+                
+                var disqus_config = function () {
+                    // 1. Obtener parámetros de la URL para identificar el episodio único
+                    const params = new URLSearchParams(window.location.search);
+                    const animeId = params.get('anime');
+                    const season = params.get('s');
+                    const episode = params.get('e');
+
+                    // 2. Definir la URL Canónica
+                    this.page.url = window.location.href;  
+                    
+                    // 3. Definir el ID Único (para que los comentarios no se mezclen entre caps)
+                    if(animeId && season && episode) {
+                        this.page.identifier = `${animeId}-s${season}-e${episode}`; 
+                    } else {
+                        // ID por defecto si faltan datos
+                        this.page.identifier = 'archinime-player-general';
+                    }
+                };
+                
+                (function() { // DON'T EDIT BELOW THIS LINE
+                var d = document, s = d.createElement('script');
+                s.src = 'https://archinime.disqus.com/embed.js';
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+            </div>
+    </div>
+
+  </div>
+
+  <script src="video-player-data.js"></script>
+
+  <script>
+    // -----------------------------------------------------------
+    // ARREGLO PRINCIPAL: Asignar 'players' a 'DB'
+    // -----------------------------------------------------------
+    const DB = (typeof players !== 'undefined') ? players : {};
+    
+    // -----------------------------------------------------------
+    // 2. LÓGICA DE REPRODUCTOR Y NAVEGACIÓN
+    // -----------------------------------------------------------
+    const params = new URLSearchParams(location.search);
+    const animeId = params.get('anime');
+    const season = params.get('s');
+    const episode = params.get('e');
+    
+    // Intenta obtener los datos del episodio de forma segura
+    const epData = DB[animeId]?.[season]?.[episode];
+    
+    // Asignar link de volver
+    const backLink = document.getElementById('backLink');
+    if (backLink) {
+       backLink.href = `anime-detail.html?id=${animeId}`;
+    }
+
+    if (epData) {
+        document.title = `Ver ${epData.title} - Archinime`;
+        document.getElementById('epTitle').innerText = epData.title;
+
+        // Prioridad de enlaces: Link 1 -> Link 2
+        const initialLink = epData.link || epData.link2;
+
+        // Cargar video inicial
+        loadVideo(initialLink);
+        
+        // Generar botones de servidores
+        if(epData.link) createOptionBtn("Latino", epData.link, true);
+        if(epData.link2) createOptionBtn("Subtitulado", epData.link2, false);
+        
+        // Actualizar botón de descarga inicial
+        updateDownloadButton(initialLink);
+        
+        // Navegación (Anterior / Siguiente)
+        setupNavigation();
+    } else {
+        console.error("No se encontraron datos para:", animeId, season, episode);
+        document.getElementById('epTitle').innerText = "Episodio no encontrado.";
+    }
+
+    function generateDirectDownloadLink(url) {
+        if (!url) return "#";
+        // Manejo especial para Google Drive
+        if (url.includes("drive.google.com")) {
+            const match = url.match(/\/d\/(.+?)\//);
+            if (match && match[1]) {
+               return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            }
+        }
+        
+        // Manejo básico para Dropbox (si termina en dl=0)
+        if (url.includes("dropbox.com") && url.includes("dl=0")) {
+             return url.replace('dl=0', 'dl=1');
+        }
+        
+        // Retornar URL original si no hay transformaciones
+        return url;
+    }
+
+    function updateDownloadButton(url) {
+        const dlBtn = document.getElementById('downloadBtn');
+        const directLink = generateDirectDownloadLink(url);
+        dlBtn.href = directLink;
+    }
+
+    function createOptionBtn(label, url, isActive) {
+        const optContainer = document.getElementById('serverOptions');
+        const btn = document.createElement('button');
+        
+        // Si es el primer botón y isActive es true, ponle la clase active
+        const isFirst = optContainer.children.length === 0;
+        btn.className = 'opt-btn' + (isActive && isFirst ? ' active' : '');
+        
+        btn.innerText = label;
+        btn.onclick = () => {
+            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadVideo(url);
+            updateDownloadButton(url);
+        };
+        optContainer.appendChild(btn);
+    }
+
+     function loadVideo(url) {
+        const container = document.getElementById('playerContainer');
+        container.innerHTML = ''; 
+        
+        if (!url) return;
+
+        // Detección para Google Drive (Preview usa iframe)
+        const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        if (isDrive) {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute("allow", "autoplay; fullscreen");
+            iframe.setAttribute("allowfullscreen", "true");
+            iframe.style.position = "absolute";
+            iframe.style.top = "0"; iframe.style.left = "0";
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.border = "none";
+            container.appendChild(iframe);
+        } else {
+             // Reproductor nativo (Para Dropbox raw=1 o MP4 directos)
+            const video = document.createElement('video');
+            video.src = url;
+            video.controls = true;
+            video.autoplay = false; 
+            video.playsInline = true; 
+            video.style.width = "100%";
+            video.style.height = "100%";
+            // Manejo de errores en el video
+            video.onerror = function() {
+                console.log("Error al cargar video nativo, intentando iframe como respaldo.");
+                container.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.setAttribute("allow", "autoplay; fullscreen");
+                iframe.setAttribute("allowfullscreen", "true");
+                iframe.style.position = "absolute";
+                iframe.style.top = "0"; iframe.style.left = "0";
+                iframe.style.width = "100%";
+                iframe.style.height = "100%";
+                iframe.style.border = "none";
+                container.appendChild(iframe);
+            };
+
+            container.appendChild(video);
+        }
+    }
+
+    function setupNavigation() {
+        try {
+            if (DB[animeId]) {
+                let flatList = [];
+                // Ordenar temporadas numéricamente
+                const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
+                seasons.forEach(sKey => {
+                    // Ordenar episodios numéricamente
+                    const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
+                    episodes.forEach(eKey => {
+                         flatList.push({ s: sKey, e: eKey });
+                    });
+                });
+                const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                if (currentIndex > 0) {
+                    const prevItem = flatList[currentIndex - 1];
+                    prevBtn.classList.remove('btn-hidden');
+                    prevBtn.style.display = 'inline-flex';
+                    prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
+                }
+
+                if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
+                    const nextItem = flatList[currentIndex + 1];
+                    nextBtn.classList.remove('btn-hidden');
+                    nextBtn.style.display = 'inline-flex'; 
+                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
+                }
+            }
+        } catch (e) { 
+            console.error("Error en navegación:", e);
+        }
+    }
+  </script>
+  
+  <script id="dsq-count-scr" src="//archinime.disqus.com/count.js" async></script>
+</body>
+</html>
