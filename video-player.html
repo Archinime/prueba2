@@ -31,6 +31,8 @@
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
+        /* IMPORTANTE: Espacio al final para que el banner no tape el contenido de abajo */
+        padding-bottom: 120px; 
     }
    
     /* --- FONDO DE VIDEO --- */
@@ -227,19 +229,22 @@
     .btn-hidden { display: none !important;
     }
 
-    /* --- ESTILO PARA CONTENEDOR DE PUBLICIDAD --- */
+    /* --- ESTILO PARA CONTENEDOR DE PUBLICIDAD (STICKY FOOTER) --- */
     .ad-container {
-        margin: 40px auto 20px auto;
-        padding: 15px;
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
+        position: fixed; /* Fijo en pantalla */
+        bottom: 0;       /* Pegado abajo */
+        left: 0;
+        width: 100%;     /* Ancho completo */
+        margin: 0;
+        padding: 10px 0;
+        background: rgba(0, 0, 0, 0.95); /* Fondo oscuro solido */
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;   /* Por encima de todo */
         display: flex;
         justify-content: center;
         align-items: center;
-        max-width: 1000px;
-        overflow: hidden; 
         backdrop-filter: blur(5px);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
     }
     
     /* --- COMENTARIOS --- */
@@ -316,7 +321,9 @@
         font-size: 0.9rem; }
         .comments-header h3 { font-size: 1.2rem;
         }
-        .ad-container { padding: 5px; margin: 25px 0;
+        /* Ajuste publicidad en móvil */
+        .ad-container { 
+            padding: 5px 0; 
         }
     }
   </style>
@@ -339,7 +346,7 @@
     </div>
 
     <div class="player-wrapper" id="playerContainer">
-      </div>
+        </div>
 
     <div class="options" id="serverOptions"></div>
 
@@ -353,19 +360,6 @@
         <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
     </div>
 
-    <div class="ad-container">
-        <script type="text/javascript">
-             atOptions = {
-                'key' : '1f072201cddab551b2b65315f6c1643e',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-              };
-        </script>
-        <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
-    </div>
-
     <div class="comments-section">
         <div class="comments-box">
             <div class="comments-header">
@@ -373,7 +367,7 @@
                 <h3>Comentarios</h3>
             </div>
             
-           <div id="disqus_thread"></div>
+            <div id="disqus_thread"></div>
             
             <script>
                 var disqus_config = function () {
@@ -399,6 +393,17 @@
         </div>
     </div>
 
+  </div> <div class="ad-container">
+    <script type="text/javascript">
+      atOptions = {
+            'key' : '1f072201cddab551b2b65315f6c1643e',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
   </div>
 
   <script src="video-player-data.js"></script>
@@ -549,6 +554,7 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
