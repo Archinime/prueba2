@@ -31,8 +31,6 @@
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
-        /* Espacio extra abajo para que el banner social no tape contenido vital al final */
-        padding-bottom: 80px; 
     }
    
     /* --- FONDO DE VIDEO --- */
@@ -66,7 +64,14 @@
         z-index: 10;
         box-sizing: border-box;
     }
-    
+    /* Intento de forzar el Social Bar abajo */
+div[id^="aswift"], 
+iframe[id^="aswift"], 
+.social-bar-container { 
+    top: auto !important; 
+    bottom: 0 !important; 
+    position: fixed !important;
+}
     /* NAVEGACIÓN SUPERIOR */
     .top-nav {
         display: flex;
@@ -229,8 +234,7 @@
     .btn-hidden { display: none !important;
     }
 
-    /* --- ESTILO PARA EL BANNER NORMAL (Dentro del contenido) --- */
-    /* Este es el que dijiste que está bien como estaba */
+    /* --- ESTILO PARA CONTENEDOR DE PUBLICIDAD --- */
     .ad-container {
         margin: 40px auto 20px auto;
         padding: 15px;
@@ -243,24 +247,6 @@
         max-width: 1000px;
         overflow: hidden; 
         backdrop-filter: blur(5px);
-    }
-
-    /* --- ESTILO NUEVO: BANNER SOCIAL (Siempre Abajo) --- */
-    /* Este contenedor forzará al script social a quedarse abajo */
-    .social-sticky-bottom {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        z-index: 9999; /* Muy alto para estar encima de todo */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none; /* Permite clicks a través de las áreas vacías */
-    }
-    
-    .social-sticky-bottom > * {
-        pointer-events: auto; /* Reactiva clicks en el banner mismo */
     }
     
     /* --- COMENTARIOS --- */
@@ -360,7 +346,7 @@
     </div>
 
     <div class="player-wrapper" id="playerContainer">
-        </div>
+      </div>
 
     <div class="options" id="serverOptions"></div>
 
@@ -376,7 +362,7 @@
 
     <div class="ad-container">
         <script type="text/javascript">
-          atOptions = {
+             atOptions = {
                 'key' : '1f072201cddab551b2b65315f6c1643e',
                 'format' : 'iframe',
                 'height' : 90,
@@ -394,7 +380,7 @@
                 <h3>Comentarios</h3>
             </div>
             
-            <div id="disqus_thread"></div>
+           <div id="disqus_thread"></div>
             
             <script>
                 var disqus_config = function () {
@@ -420,8 +406,6 @@
         </div>
     </div>
 
-  </div> <div class="social-sticky-bottom">
-      <script src="https://pl28550806.effectivegatecpm.com/95/55/e0/9555e05baca9d79e63c772d7ebc5bdf3.js"></script>
   </div>
 
   <script src="video-player-data.js"></script>
@@ -572,7 +556,6 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
@@ -597,6 +580,8 @@
   </script>
   
   <script id="dsq-count-scr" src="//archinime.disqus.com/count.js" async></script>
+
+  <script src="https://pl28550806.effectivegatecpm.com/95/55/e0/9555e05baca9d79e63c772d7ebc5bdf3.js"></script>
 
 </body>
 </html>
