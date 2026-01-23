@@ -64,14 +64,7 @@
         z-index: 10;
         box-sizing: border-box;
     }
-    /* Intento de forzar el Social Bar abajo */
-div[id^="aswift"], 
-iframe[id^="aswift"], 
-.social-bar-container { 
-    top: auto !important; 
-    bottom: 0 !important; 
-    position: fixed !important;
-}
+    
     /* NAVEGACIÓN SUPERIOR */
     .top-nav {
         display: flex;
@@ -314,7 +307,7 @@ iframe[id^="aswift"],
         }
         #downloadBtn { 
             grid-column: 1 / span 2;
-            order: 3; 
+        order: 3; 
             width: 100%;
             margin-top: 5px;
             box-sizing: border-box;
@@ -361,18 +354,10 @@ iframe[id^="aswift"],
     </div>
 
     <div class="ad-container">
-        <script type="text/javascript">
-             atOptions = {
-                'key' : '1f072201cddab551b2b65315f6c1643e',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-              };
-        </script>
-        <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+        <script async="async" data-cfasync="false" src="https://pl28551391.effectivegatecpm.com/9cef0d62800a6a4f5bd25c7a50157dba/invoke.js"></script>
+        <div id="container-9cef0d62800a6a4f5bd25c7a50157dba"></div>
     </div>
-
+    
     <div class="comments-section">
         <div class="comments-box">
             <div class="comments-header">
@@ -415,7 +400,8 @@ iframe[id^="aswift"],
     // LÓGICA DEL REPRODUCTOR (CORREGIDA Y ACTUALIZADA)
     // -----------------------------------------------------------
     
-    const DB = (typeof players !== 'undefined') ? players : {};
+    const DB = (typeof players !== 'undefined') ?
+    players : {};
     
     // Obtener parámetros URL
     const params = new URLSearchParams(location.search);
@@ -556,6 +542,7 @@ iframe[id^="aswift"],
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
@@ -580,8 +567,6 @@ iframe[id^="aswift"],
   </script>
   
   <script id="dsq-count-scr" src="//archinime.disqus.com/count.js" async></script>
-
-  <script src="https://pl28550806.effectivegatecpm.com/95/55/e0/9555e05baca9d79e63c772d7ebc5bdf3.js"></script>
 
 </body>
 </html>
