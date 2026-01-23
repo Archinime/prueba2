@@ -31,8 +31,8 @@
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
-        /* IMPORTANTE: Espacio al final para que el banner no tape el contenido de abajo */
-        padding-bottom: 120px; 
+        /* Espacio extra abajo para que el banner social no tape contenido vital al final */
+        padding-bottom: 80px; 
     }
    
     /* --- FONDO DE VIDEO --- */
@@ -229,22 +229,38 @@
     .btn-hidden { display: none !important;
     }
 
-    /* --- ESTILO PARA CONTENEDOR DE PUBLICIDAD (STICKY FOOTER) --- */
+    /* --- ESTILO PARA EL BANNER NORMAL (Dentro del contenido) --- */
+    /* Este es el que dijiste que está bien como estaba */
     .ad-container {
-        position: fixed; /* Fijo en pantalla */
-        bottom: 0;       /* Pegado abajo */
-        left: 0;
-        width: 100%;     /* Ancho completo */
-        margin: 0;
-        padding: 10px 0;
-        background: rgba(0, 0, 0, 0.95); /* Fondo oscuro solido */
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        z-index: 1000;   /* Por encima de todo */
+        margin: 40px auto 20px auto;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
         display: flex;
         justify-content: center;
         align-items: center;
+        max-width: 1000px;
+        overflow: hidden; 
         backdrop-filter: blur(5px);
-        box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
+    }
+
+    /* --- ESTILO NUEVO: BANNER SOCIAL (Siempre Abajo) --- */
+    /* Este contenedor forzará al script social a quedarse abajo */
+    .social-sticky-bottom {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999; /* Muy alto para estar encima de todo */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none; /* Permite clicks a través de las áreas vacías */
+    }
+    
+    .social-sticky-bottom > * {
+        pointer-events: auto; /* Reactiva clicks en el banner mismo */
     }
     
     /* --- COMENTARIOS --- */
@@ -321,9 +337,7 @@
         font-size: 0.9rem; }
         .comments-header h3 { font-size: 1.2rem;
         }
-        /* Ajuste publicidad en móvil */
-        .ad-container { 
-            padding: 5px 0; 
+        .ad-container { padding: 5px; margin: 25px 0;
         }
     }
   </style>
@@ -360,6 +374,19 @@
         <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
     </div>
 
+    <div class="ad-container">
+        <script type="text/javascript">
+          atOptions = {
+                'key' : '1f072201cddab551b2b65315f6c1643e',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+              };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+    </div>
+
     <div class="comments-section">
         <div class="comments-box">
             <div class="comments-header">
@@ -393,17 +420,8 @@
         </div>
     </div>
 
-  </div> <div class="ad-container">
-    <script type="text/javascript">
-      atOptions = {
-            'key' : '1f072201cddab551b2b65315f6c1643e',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-          };
-    </script>
-    <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+  </div> <div class="social-sticky-bottom">
+      <script src="https://pl28550806.effectivegatecpm.com/95/55/e0/9555e05baca9d79e63c772d7ebc5bdf3.js"></script>
   </div>
 
   <script src="video-player-data.js"></script>
@@ -579,8 +597,6 @@
   </script>
   
   <script id="dsq-count-scr" src="//archinime.disqus.com/count.js" async></script>
-
-  <script src="https://pl28550806.effectivegatecpm.com/95/55/e0/9555e05baca9d79e63c772d7ebc5bdf3.js"></script>
 
 </body>
 </html>
