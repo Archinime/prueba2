@@ -64,7 +64,14 @@
         z-index: 10;
         box-sizing: border-box;
     }
-    
+    /* Intento de forzar el Social Bar abajo */
+div[id^="aswift"], 
+iframe[id^="aswift"], 
+.social-bar-container { 
+    top: auto !important; 
+    bottom: 0 !important; 
+    position: fixed !important;
+}
     /* NAVEGACIÓN SUPERIOR */
     .top-nav {
         display: flex;
