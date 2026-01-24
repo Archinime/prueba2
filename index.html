@@ -115,7 +115,7 @@
   .search-input:focus { width: 280px; border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 0.8rem;}
   
-  /* MEJORA DE LAS BARRAS DE OPCIONES (SELECTS CYBERPUNK) */
+  /* --- MEJORA SELECTORES CYBERPUNK --- */
   .cyber-select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-color: rgba(10, 10, 15, 0.9);
@@ -157,6 +157,12 @@
   }
   .nav-icon-btn:hover { color: var(--neon-cyan); transform: scale(1.1); text-shadow: 0 0 10px var(--neon-cyan); }
   
+  /* Botón Instalar (Solo visible en móvil) */
+  #installBtn { display: none; }
+  @media (max-width: 780px) {
+      #installBtn { display: flex; }
+  }
+
   /* Animación Pulso PWA */
   .install-pulse { animation: pulse-green 2s infinite; color: var(--neon-cyan) !important; text-shadow: 0 0 10px var(--neon-cyan); }
   @keyframes pulse-green {
@@ -233,7 +239,7 @@
   #fgVideo { display: none; }
 
   /* =========================================
-     NOTIFICACIONES Y POPUP (MEJORADO)
+     NOTIFICACIONES Y POPUP (CORREGIDO)
      ========================================= */
   .notif-badge {
     position: absolute; top: -5px; right: -5px;
@@ -276,12 +282,12 @@
       box-shadow: 0 0 50px rgba(188, 19, 254, 0.3); position: relative;
   }
   
-  /* CORRECCIÓN BOTÓN CERRAR (X) */
+  /* BOTÓN CERRAR (X) CORREGIDO */
   .event-close { 
       position: absolute; top: 10px; right: 10px; 
       background: rgba(0,0,0,0.7); border: 1px solid white; color: #fff; 
       width: 30px; height: 30px; border-radius: 50%;
-      font-size: 1.2rem; cursor: pointer; z-index: 100; /* Z-index alto para asegurar clic */
+      font-size: 1.2rem; cursor: pointer; z-index: 999; 
       display: flex; align-items: center; justify-content: center;
       transition: 0.3s;
   }
@@ -307,7 +313,7 @@
       width: 80%; z-index: 10; pointer-events: none; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8));
   }
   
-  /* ETIQUETA DE IDIOMA */
+  /* ETIQUETA IDIOMA */
   .lang-badge {
       position: absolute; bottom: 10px; right: 10px;
       background: rgba(0,0,0,0.8); 
@@ -382,7 +388,7 @@
     </div>
 
     <div class="control-group">
-        <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App">
+        <button id="installBtn" class="nav-icon-btn install-pulse" title="Instalar App">
             <i class="fas fa-download"></i>
         </button>
 
@@ -508,15 +514,14 @@ const iosModal = document.getElementById('iosInstallModal');
 
 const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
+// Función para checar visibilidad
 function checkInstallButtonVisibility() {
-    // Si es móvil y NO está instalada, mostramos el botón
-    if (isMobile() && !isInStandaloneMode()) {
-        installBtn.style.display = 'flex';
-    } else {
+    // Si ya está instalado, ocultamos siempre
+    if (isInStandaloneMode()) {
         installBtn.style.display = 'none';
-    }
+    } 
+    // Si no está instalado, dejamos que el CSS media query decida (flex en movil, none en pc)
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -538,7 +543,6 @@ installBtn.addEventListener('click', () => {
     }
 });
 window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
-window.addEventListener('resize', checkInstallButtonVisibility);
 </script>
 
 <script>
@@ -591,7 +595,7 @@ function checkForNewUpdates() {
                 date: anime.lastUpdate,
                 seen: false,
                 isFinal: anime.isFinal || false,
-                langs: anime.langs || [] // Leer idiomas del Index si existen
+                langs: anime.langs || [] // Leer idiomas generados por el CMS
             };
             notificationsHistory.unshift(newNotif); 
             newItemsFound.push(newNotif);
@@ -627,12 +631,12 @@ function createPopupHTML(notif) {
         infoString = `${notif.blockName} - ${notif.epTitle}`;
     }
 
-    // LÓGICA DE IDIOMA CORRECTA
+    // LÓGICA DE DETECCIÓN DE IDIOMA CORREGIDA
+    // Lee lo que el CMS guardó en 'langs'
     let langLabel = "SUB";
     let langColor = "var(--neon-purple)";
     
-    // Usamos el array "langs" que guardaremos desde el CMS
-    if(notif.langs && notif.langs.length > 0) {
+    if (notif.langs && notif.langs.length > 0) {
         const hasLat = notif.langs.includes('lat');
         const hasSub = notif.langs.includes('sub');
         
@@ -644,18 +648,19 @@ function createPopupHTML(notif) {
             langLabel = "LATINO"; 
             langColor = "var(--neon-pink)"; 
         }
-        else if (hasSub) {
+        else {
+             // Si solo tiene 'sub'
              langLabel = "SUB";
              langColor = "var(--neon-purple)";
         }
     } else {
-        // Fallback por si acaso: Si el título dice Latino
+        // FALLBACK ANTIGUO: Si no existe el dato 'langs' (animes viejos)
         if (infoString.toLowerCase().includes("latino") || notif.title.toLowerCase().includes("latino")) {
             langLabel = "LATINO"; langColor = "var(--neon-pink)";
         }
     }
 
-    // LÓGICA DE COLORES DE ESTADO (Nuevo, Estreno, Prox)
+    // COLORES DE ESTADO
     let statusColor = "var(--neon-purple)"; // Default Nuevo
     if (notif.type.includes("ESTRENO")) statusColor = "var(--neon-red)";
     else if (notif.type.includes("PRÓXIMAMENTE")) statusColor = "var(--neon-yellow)";
@@ -756,7 +761,7 @@ function renderNotificationList() {
 
         let finalBadge = item.isFinal ? `<img src="final.png" class="notif-final-badge">` : '';
         
-        // Detección idioma en lista (Igual que Popup)
+        // Detección idioma en lista
         let langSmall = "SUB";
         let langColor = "#bc13fe";
         
@@ -766,7 +771,7 @@ function renderNotificationList() {
             if (hasLat && hasSub) { langSmall = "DUAL"; langColor = "#00f0ff"; }
             else if (hasLat) { langSmall = "LAT"; langColor = "#ff0055"; }
         } else {
-             // Fallback
+             // Fallback antiguo
              if (infoString.toLowerCase().includes("latino") || item.title.toLowerCase().includes("latino")) {
                  langSmall = "LAT"; langColor = "#ff0055";
              }
