@@ -7,504 +7,521 @@
   
   <link rel="icon" href="Logo_Archinime.avif" type="image/png">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#050505">
+  <meta name="theme-color" content="#8c52ff">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-<style>
-  /* =========================================
-     1. ESTILOS BASE (DISEÑO CYBERPUNK)
-     ========================================= */
-  :root {
-    --neon-cyan: #00f3ff;
-    --neon-purple: #bc13fe;
-    --neon-pink: #ff0055;
-    --dark-bg: #050505;
-    --glass-bg: rgba(20, 20, 30, 0.6);
-    --text: #ffffff;
-  }
+  <style>
+    /* --- ESTILOS CYBERPUNK GENERALES --- */
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-purple: #bc13fe;
+      --neon-pink: #ff0055;
+      --dark-bg: #050505;
+      --glass-bg: rgba(20, 20, 30, 0.6);
+      --text: #ffffff;
+    }
 
-  body { 
-    margin: 0; padding: 0;
-    background-color: var(--dark-bg); 
-    font-family: 'Poppins', sans-serif; 
-    overflow-x: hidden;
-    color: white;
-  }
-  
-  a { text-decoration: none; transition: 0.3s; color: inherit; }
-  
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #000; }
-  ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 4px; }
+    body { 
+      margin: 0; padding: 0;
+      background-color: var(--dark-bg); 
+      font-family: 'Poppins', sans-serif; 
+      overflow-x: hidden;
+      color: white;
+    }
 
-  /* LOADER */
-  #page-loader {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; z-index: 9999;
-    display: flex; justify-content: center; align-items: center; flex-direction: column;
-    transition: opacity 0.5s ease-out, visibility 0.5s;
-  }
-  .loader-glitch {
-    font-family: 'Orbitron', sans-serif; font-size: 2rem; color: white;
-    position: relative; animation: glitch 1s infinite;
-  }
-  .loader-line {
-    width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
-    animation: loadLine 2s forwards ease-in-out;
-  }
+    a { text-decoration: none; transition: 0.3s; color: inherit; }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 4px; }
 
-  /* FONDO */
-  #bg-video {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover; z-index: -5; opacity: 0.4;
-    filter: contrast(1.2) saturate(1.2);
-  }
-  #overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(82, 0, 255, 0.1) 0%, #000 90%);
-    z-index: -4; pointer-events: none;
-  }
-  #scanlines {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-    background-size: 100% 4px;
-    z-index: -3; pointer-events: none; opacity: 0.7;
-  }
-
-  /* NAVBAR */
-  .cyber-nav {
-    position: sticky; top: 0; z-index: 1000;
-    background: rgba(5, 5, 5, 0.7);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 15px 5%;
-    display: flex; justify-content: space-between; align-items: center;
-    transition: 0.3s;
-  }
-  .cyber-nav.scrolled {
-    background: rgba(0,0,0,0.95);
-    box-shadow: 0 5px 20px rgba(0, 243, 255, 0.1);
-  }
-  .nav-logo { 
-    display: flex; align-items: center; gap: 10px; 
-    font-family: 'Orbitron', sans-serif; font-weight: 800; 
-    font-size: 1.5rem; color: white; letter-spacing: 2px; cursor: pointer;
-  }
-  .nav-logo img { height: 40px; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
-  .nav-center { display: flex; gap: 20px; align-items: center;}
-
-  /* CONTROLES Y BUSCADOR */
-  .control-group { display: flex; gap: 10px; align-items: center; }
-  .cyber-select {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; color: #ccc; padding: 8px 15px;
-    font-family: 'Poppins'; font-size: 0.85rem; outline: none; cursor: pointer; transition: 0.3s;
-  }
-  .cyber-select:hover { border-color: var(--neon-cyan); color: white; background: rgba(0,0,0,0.8); }
-
-  .search-container { position: relative; }
-  .search-input {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; padding: 8px 15px 8px 35px; color: white; outline: none;
-    width: 180px; transition: 0.3s; font-family: 'Poppins';
-  }
-  .search-input:focus { width: 280px; border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); }
-  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 0.8rem;}
-
-  /* HERO SECTION */
-  .hero-container {
-    padding: 80px 20px 40px; text-align: center; max-width: 1200px; margin: 0 auto;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .hero-badge {
-    padding: 6px 20px; border-radius: 50px;
-    background: rgba(0, 243, 255, 0.05); border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan); font-size: 0.8rem; font-weight: 700; margin-bottom: 25px;
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1); text-transform: uppercase; letter-spacing: 2px;
-  }
-  .glitch-title {
-    font-size: 4rem; line-height: 1; margin-bottom: 20px; text-transform: uppercase;
-    font-family: 'Orbitron', sans-serif; position: relative;
-    text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan);
-  }
-  .hero-desc { font-size: 1.1rem; color: #aaa; max-width: 600px; margin-bottom: 40px; line-height: 1.6; }
-  
-  .cta-btn {
-    padding: 14px 35px; border-radius: 50px;
-    background: var(--neon-cyan); color: #000; font-weight: 800;
-    text-transform: uppercase; font-size: 0.9rem;
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; border: none;
-    transition: 0.3s;
-  }
-  .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(0, 243, 255, 0.6); }
-
-  /* FILTROS CONTAINER */
-  .advanced-filters {
-    display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
-    margin-bottom: 40px; padding: 20px;
-    background: rgba(255,255,255,0.02); border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-
-  /* GRID */
-  .grid-section { padding: 0 5%; max-width: 1400px; margin: 0 auto 80px; }
-  .section-header { 
-    display: flex; justify-content: space-between; align-items: end;
-    margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; 
-  }
-  .section-title { font-size: 1.8rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; }
-
-  #grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; width: 100%;
-  }
-  /* Estilos para las tarjetas generadas por JS */
-  #grid > div, #grid > a {
-    position: relative; border-radius: 16px; overflow: hidden;
-    aspect-ratio: 2/3; cursor: pointer; 
-    transition: transform 0.3s ease-out, box-shadow 0.3s;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5); display: block;
-  }
-  #grid img { 
-    width: 100%; height: 100%; object-fit: cover;
-    transition: 0.5s; transform: scale(1.01);
-  }
-  #grid > div:hover, #grid > a:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); z-index: 10;
-  }
-
-  /* ANIMACIONES */
-  @keyframes glitch {
-    0% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
-    25% { text-shadow: -2px 2px 0px var(--neon-purple), 2px -2px 0px var(--neon-cyan); }
-    50% { text-shadow: 2px -2px 0px var(--neon-purple), -2px 2px 0px var(--neon-cyan); }
-    75% { text-shadow: -2px -2px 0px var(--neon-purple), 2px 2px 0px var(--neon-cyan); }
-    100% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
-  }
-  @keyframes loadLine { to { width: 100%; } }
-
-  /* =========================================
-     2. ESTILOS FALTANTES (POPUP Y ANIMACIONES)
-     ========================================= */
-
-  /* BOTONES DE ICONO (Nav) */
-  .nav-icon-btn {
-    background: transparent; border: none; color: white;
-    font-size: 1.2rem; cursor: pointer; position: relative;
-    transition: 0.3s; margin-left: 10px;
-  }
-  .nav-icon-btn:hover { color: var(--neon-cyan); transform: scale(1.1); text-shadow: 0 0 10px var(--neon-cyan); }
-  
-  .notif-badge {
-    position: absolute; top: -5px; right: -5px;
-    background: var(--neon-pink); color: white;
-    font-size: 0.6rem; padding: 2px 5px; border-radius: 50%;
-    font-weight: bold;
-  }
-
-  /* MENU DESPLEGABLE DE NOTIFICACIONES */
-  .notif-dropdown {
-    position: absolute; top: 60px; right: 0;
-    width: 320px; background: rgba(15, 15, 20, 0.95);
-    border: 1px solid var(--neon-purple); border-radius: 12px;
-    backdrop-filter: blur(10px); display: none; z-index: 2000;
-    box-shadow: 0 0 30px rgba(188, 19, 254, 0.2);
-    overflow: hidden;
-  }
-  .notif-dropdown.active { display: block; }
-  .notif-header { padding: 15px; background: rgba(255,255,255,0.05); font-weight: bold; text-align: center; color: var(--neon-cyan); border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .notif-list { max-height: 400px; overflow-y: auto; }
-  
-  /* Items dentro de la lista de notificaciones */
-  .notif-item {
-      display: flex; gap: 10px; padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      cursor: pointer; transition: 0.2s;
-  }
-  .notif-item:hover { background: rgba(255,255,255,0.05); }
-  .notif-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 4px; }
-  .notif-item-content { display: flex; flex-direction: column; justify-content: center; }
-  .notif-item-title { font-size: 0.9rem; font-weight: 600; color: white; }
-  .notif-item-info { font-size: 0.75rem; margin-top: 2px; }
-  .notif-item-date { font-size: 0.7rem; color: #aaa; margin-top: 2px; }
-  .empty-notif { padding: 20px; text-align: center; color: #888; font-size: 0.9rem; }
-
-  /* POPUP MODAL (El aviso de Nuevo Capítulo) */
-  #eventModal {
+    /* --- LOADER --- */
+    #page-loader {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); z-index: 10000;
-      display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: 0.3s;
-  }
-  #eventModal.show { opacity: 1; pointer-events: all; }
-  
-  .event-card {
-      background: #111; width: 90%; max-width: 800px;
-      display: flex; border-radius: 20px; overflow: hidden;
-      border: 1px solid var(--neon-purple);
-      box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
-      position: relative; flex-direction: row;
-  }
-  .event-close {
-      position: absolute; top: 15px; right: 15px;
-      background: rgba(0,0,0,0.5); border: none; color: white;
-      font-size: 1.5rem; cursor: pointer; z-index: 10;
-      width: 40px; height: 40px; border-radius: 50%;
-  }
-  .event-visuals {
-      width: 40%; position: relative; overflow: hidden;
-  }
-  .bg-blur-cover {
-      width: 100%; height: 100%; object-fit: cover;
-      filter: blur(10px) brightness(0.5); transform: scale(1.2);
-  }
-  .covers-wrapper {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 100%; text-align: center;
-  }
-  .main-cover-img { width: 140px; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative; z-index: 2; }
-  .season-cover-img { 
-      position: absolute; width: 100px; opacity: 0.6; 
-      top: 20px; right: 20px; transform: rotate(10deg); z-index: 1; 
-  }
-  .event-badge {
-      position: absolute; top: 20px; left: 20px;
-      padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;
-      z-index: 5;
-  }
-  .event-inner {
-      width: 60%; padding: 40px; display: flex; flex-direction: column; justify-content: center;
-      background: linear-gradient(to right, #111, #1a1a20);
-  }
-  .event-title { font-family: 'Orbitron'; font-size: 2rem; margin-bottom: 10px; color: white; line-height: 1.2; }
-  .event-chapter-info { color: var(--neon-cyan); font-weight: 600; margin-bottom: 15px; font-size: 1.1rem; }
-  .event-desc { color: #ccc; margin-bottom: 30px; line-height: 1.6; }
-  .event-btn {
-      padding: 12px 30px; background: var(--neon-purple); border: none;
-      color: white; font-weight: bold; border-radius: 30px; cursor: pointer;
-      font-size: 1rem; width: fit-content; transition: 0.3s;
-      box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
-  }
-  .event-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(188, 19, 254, 0.6); }
+      background: #000; z-index: 9999;
+      display: flex; justify-content: center; align-items: center; flex-direction: column;
+      transition: opacity 0.5s ease-out, visibility 0.5s;
+    }
+    .loader-glitch {
+      font-family: 'Orbitron', sans-serif; font-size: 2rem; color: white;
+      animation: glitch 1s infinite;
+    }
+    .loader-line {
+      width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
+      animation: loadLine 2s forwards ease-in-out;
+    }
 
-  /* ESTRELLAS FUGACES (ANIMACIONES) */
-  #decorations {
+    /* --- FONDOS --- */
+    #bg-video {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: -1; display: block;
-  }
-  .shooting-star {
-      position: absolute;
-      width: 50px; height: 50px;
-      filter: drop-shadow(0 0 5px #fff);
-  }
+      object-fit: cover; z-index: -5; opacity: 0.6;
+      filter: contrast(1.2) saturate(1.2);
+    }
+    #overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, rgba(82, 0, 255, 0.1) 0%, #000 90%);
+      z-index: -4; pointer-events: none;
+    }
+    #scanlines {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+      background-size: 100% 4px; z-index: -3; pointer-events: none; opacity: 0.7;
+    }
 
-  /* RESPONSIVE POPUP */
-  @media (max-width: 768px) {
-      .cyber-nav { flex-direction: column; gap: 15px; }
-      .nav-center { flex-direction: column; width: 100%; }
-      .search-input { width: 100%; }
-      .advanced-filters { flex-direction: column; align-items: stretch; }
-      
-      .event-card { flex-direction: column; height: 90vh; overflow-y: auto; }
-      .event-visuals, .event-inner { width: 100%; }
-      .event-visuals { height: 250px; }
-      .event-inner { padding: 20px; }
-  }
-</style>
+    /* --- NAVBAR --- */
+    .cyber-nav {
+      position: sticky; top: 0; z-index: 1000;
+      background: rgba(5, 5, 5, 0.7);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 15px 5%;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: 0.3s;
+    }
+    .nav-logo { 
+      display: flex; align-items: center; gap: 10px; 
+      font-family: 'Orbitron', sans-serif; font-weight: 800; 
+      font-size: 1.5rem; color: white; letter-spacing: 2px; cursor: pointer;
+    }
+    .nav-logo img { height: 40px; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+
+    /* --- BOTONES DE ICONO (NOTIFICACIONES / INSTALL / YOUTUBE) --- */
+    .header-actions {
+        display: flex; align-items: center; gap: 20px;
+    }
+
+    /* Estilo corregido para que se vea grande y bien como en el original */
+    .nav-icon-btn {
+        background: transparent; 
+        border: none; 
+        color: #fff; 
+        font-size: 1.6rem; /* Tamaño aumentado para corregir el error */
+        cursor: pointer; 
+        padding: 5px;
+        position: relative; 
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .nav-icon-btn:hover { 
+        color: var(--neon-cyan); 
+        transform: scale(1.1);
+        text-shadow: 0 0 10px var(--neon-cyan); 
+    }
+    
+    .install-pulse { animation: pulseBtn 2s infinite; color: var(--neon-cyan); }
+    @keyframes pulseBtn { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+
+    /* Wrapper de notificación para posicionamiento relativo */
+    .notif-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Badge de notificación */
+    .notif-badge {
+        position: absolute; top: 0; right: 0;
+        background: var(--neon-pink); color: white;
+        font-size: 0.7rem; padding: 2px 5px; border-radius: 50%;
+        box-shadow: 0 0 10px var(--neon-pink);
+        font-weight: bold;
+    }
+
+    /* Menú de Notificaciones (Estilo corregido) */
+    .notif-dropdown {
+        display: none; /* Se activa con JS (display: block) */
+        position: absolute; 
+        top: 150%; /* Justo debajo del botón */
+        right: -10px; /* Alineado a la derecha */
+        width: 280px; 
+        background: rgba(15, 15, 20, 0.98); /* Fondo oscuro sólido */
+        border: 1px solid var(--neon-purple); 
+        border-radius: 8px;
+        z-index: 9999; /* Z-index alto para que aparezca SIEMPRE encima */
+        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+    
+    /* Clase que usa tu script original para mostrarlo, si aplica toggle de clase */
+    .notif-dropdown.show { display: block; } 
+
+    .notif-header {
+        padding: 12px; 
+        background: rgba(188, 19, 254, 0.15);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-align: center; 
+        font-family: 'Poppins'; 
+        font-weight: 600;
+        color: var(--neon-cyan);
+    }
+    .notif-list { max-height: 300px; overflow-y: auto; }
+    .notif-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #ddd; }
+    .notif-item:hover { background: rgba(255,255,255,0.1); }
+    .empty-notif { padding: 20px; text-align: center; color: #aaa; font-style: italic; }
+
+    /* --- CONTROLES Y FILTROS --- */
+    .controls-container {
+        display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
+        padding: 20px 5%; max-width: 1200px; margin: 0 auto;
+        position: relative; z-index: 10;
+    }
+    
+    select {
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border: 1px solid var(--neon-purple);
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-family: 'Poppins';
+        outline: none; cursor: pointer;
+        backdrop-filter: blur(5px);
+        transition: 0.3s;
+    }
+    select:hover, select:focus {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    #search {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px; padding: 10px 20px 10px 40px; 
+        color: white; outline: none; width: 200px; transition: 0.3s;
+        font-family: 'Poppins';
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: 10px center;
+        background-size: 15px;
+    }
+    #search:focus { width: 300px; border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
+
+    /* --- GRID --- */
+    .grid {
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 20px;
+        padding: 20px 5%;
+        max-width: 1400px; margin: 0 auto 80px;
+    }
+
+    .card, .anime-card { 
+        border-radius: 12px; overflow: hidden; position: relative;
+        transition: transform 0.3s; border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(20,20,30,0.5); aspect-ratio: 2/3;
+    }
+    .card img, .anime-card img { width: 100%; height: 100%; object-fit: cover; }
+    .card:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(188, 19, 254, 0.4); z-index: 2; }
+
+    /* --- STAGE (ANIMACIONES) --- */
+    .stage {
+        position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 990; overflow: hidden;
+    }
+    #fgContainer { width: 100%; height: 100%; position: relative; }
+    #fgCanvas { position: absolute; bottom: 0; right: 0; max-height: 80vh; width: auto; }
+    #fgVideo { display: none; }
+
+    .play-overlay { position: fixed; bottom: 20px; right: 20px; z-index: 1002; }
+    .play-btn {
+        background: var(--neon-cyan); border: none; padding: 10px 20px;
+        border-radius: 20px; font-weight: bold; cursor: pointer;
+        box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    #decorations { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+    .shooting-star { position: absolute; animation: shoot 3s linear infinite; }
+    @keyframes shoot { 0% {transform: translate(-100px, -100px) rotate(45deg); opacity: 1;} 100% {transform: translate(100vw, 100vh) rotate(45deg); opacity: 0;} }
+
+    /* --- MODAL IOS --- */
+    .ios-modal {
+        display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+        background: rgba(20, 20, 30, 0.95); backdrop-filter: blur(10px);
+        border-top: 1px solid var(--neon-cyan); z-index: 2000;
+        padding: 20px; box-sizing: border-box; text-align: center;
+        animation: slideUp 0.5s ease;
+    }
+    .ios-content { max-width: 600px; margin: 0 auto; position: relative; }
+    .ios-close { position: absolute; top: -10px; right: 0; font-size: 1.5rem; cursor: pointer; }
+    
+    @keyframes glitch {
+      0% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
+      50% { text-shadow: 2px -2px 0px var(--neon-purple), -2px 2px 0px var(--neon-cyan); }
+      100% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
+    }
+    @keyframes loadLine { to { width: 100%; } }
+    @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+
+    .hero-container { text-align: center; margin-top: 40px; margin-bottom: 20px; }
+    .glitch-title {
+        font-family: 'Orbitron', sans-serif; font-size: 3rem; 
+        text-transform: uppercase; margin: 0;
+        text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan);
+    }
+
+    @media (max-width: 768px) {
+        .controls-container { flex-direction: column; align-items: stretch; }
+        #search { width: 100%; }
+        select { width: 100%; }
+        .glitch-title { font-size: 2rem; }
+    }
+  </style>
 </head>
 <body>
 
-<div id="page-loader">
-  <div class="loader-glitch">ARCHINIME_OS</div>
-  <div style="width: 200px; height: 2px; background: #333; margin-top: 10px; overflow: hidden;">
-    <div class="loader-line"></div>
-  </div>
-</div>
-
-<video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
-  <source src="galaxia.mp4" type="video/mp4">
-</video>
-<div id="overlay"></div>
-<div id="scanlines"></div>
-<audio id="bg-music" autoplay></audio>
-
-<div id="decorations">
-    <svg id="star-template" class="shooting-star" viewBox="0 0 32 32" style="display:none;">
-      <g><circle cx="4" cy="4" r="4" fill="#fff9e0"></circle><rect x="8" y="3" width="160" height="4"></rect></g>
-    </svg>
-</div>
-
-<nav class="cyber-nav" id="navbar">
-  <div class="nav-logo" onclick="window.open('https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html', '_blank')">
-    <img src="Logo_Archinime.avif" alt="Archinime">
-    ARCHINIME
-  </div>
-  
-  <div class="nav-center" id="navMenu">
-    <div class="search-container">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="search" class="search-input" placeholder="Buscar anime..." oninput="if(typeof debouncedFiltro === 'function') debouncedFiltro();">
+  <div id="page-loader">
+    <div class="loader-glitch">ARCHINIME</div>
+    <div style="width: 200px; height: 2px; background: #333; margin-top: 10px; overflow: hidden;">
+      <div class="loader-line"></div>
     </div>
+  </div>
 
-    <div class="control-group">
-        <button id="installBtn" class="nav-icon-btn" style="display:none; color: var(--neon-cyan);" title="Instalar App">
+  <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="metadata">
+    <source src="galaxia.mp4" type="video/mp4">
+  </video>
+  <div id="overlay" aria-hidden="true"></div>
+  <div id="scanlines"></div>
+
+  <audio id="bg-music" autoplay></audio>
+
+  <nav class="cyber-nav" id="navbar">
+    <a href="#" class="nav-logo" onclick="openInNewTab('https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html'); return false;" title="Ir al Creador CMS">
+      <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
+      ARCHINIME
+    </a>
+
+    <div class="header-actions">
+        <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App">
             <i class="fas fa-download"></i>
         </button>
 
-        <div class="notif-wrapper" style="position:relative;">
+        <div class="notif-wrapper">
             <button id="notifBtn" class="nav-icon-btn" onclick="toggleNotifMenu()">
                 <i class="fas fa-bell"></i>
                 <span id="notifBadge" class="notif-badge" style="display:none"></span>
             </button>
+    
             <div id="notifMenu" class="notif-dropdown">
-                <div class="notif-header">Sistema de Novedades</div>
+                <div class="notif-header">
+                    <span style="width: 100%; text-align: center;">Notificaciones</span>
+                </div>
                 <div id="notifList" class="notif-list">
-                    <div class="empty-notif">Cargando datos...</div>
+                     <div class="empty-notif">Sin novedades por ahora.</div>
                 </div>
             </div>
         </div>
-        
-        <button class="nav-icon-btn" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')">
-            <i class="fab fa-youtube"></i>
+
+        <button id="youtube-btn" class="nav-icon-btn" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.youtube.com/@Archinime-k2g'); })(event)" aria-label="Abrir YouTube">
+           <img src="youtube.avif" alt="YouTube" style="height: 25px; width: auto; vertical-align: middle;">
         </button>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<header class="hero-container reveal">
-  <span class="hero-badge"><i class="fas fa-bolt"></i> Sistema V 2.0 Online</span>
-  <h1 class="glitch-title">REALIDAD <br> AUMENTADA</h1>
-  <p class="hero-desc">
-    Accede a la base de datos de animación japonesa más avanzada.
-  </p>
+  <header class="hero-container reveal">
+    <h1 class="glitch-title">BIENVENIDO A <br> ARCHINIME</h1>
+    <p style="color: #aaa; margin-top: 10px;">Base de datos de animación japonesa actualizada.</p>
+  </header>
 
-  <button class="cta-btn" onclick="iniciarExperiencia()">
-      <i class="fas fa-play"></i> Iniciar Sistema
-  </button>
-
-  <div class="advanced-filters reveal" style="margin-top: 30px;">
-      <select id="genre-select" onchange="filtro()" class="cyber-select">
-        <option value="">♾️ Todos los géneros</option>
+  <div class="controls-container" id="controls">
+      <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
+        <option value="">🔮 Todos los géneros</option>
         <option>Acción</option>
+        <option>Animación</option>
         <option>Aventura</option>
         <option>Ciencia ficción</option>
+        <option>Cocina</option>
         <option>Comedia</option>
+        <option>Comedia oscura</option>
+        <option>Cosplay</option>
+        <option>Cyberpunk</option>
+        <option>Deducción Social</option>
+        <option>Deportivo</option>
+        <option>Divulgación Científica</option>
         <option>Drama</option>
         <option>Ecchi</option>
+        <option>Espionaje</option>
         <option>Escolar</option>
         <option>Fantasía</option>
+        <option>Fantasía oscura</option>
+        <option>Familiar</option>
+        <option>Gag</option>
+        <option>Gore</option>
         <option>Harem</option>
+        <option>Hentai</option>
+        <option>Histórico</option>
+        <option>Horror</option>
+        <option>Incesto</option>
+        <option>Infantil</option>
         <option>Isekai</option>
+        <option>Isekai Inverso</option>
+        <option>Kaiju</option>
+        <option>Mahō Shōjo</option>
+        <option>Mecha</option>
+        <option>Militar</option>
+        <option>Mitología</option>
         <option>Misterio</option>
+        <option>Musical</option>
+        <option>Nekketsu</option>
+        <option>Parodia</option>
+        <option>Policial</option>
+        <option>Post-apocalíptico</option>
+        <option>Psicológico</option>
+        <option>Reverse Harem</option>
         <option>Romance</option>
-        <option>Seinen</option>
-        <option>Shōnen</option>
+        <option>RPG</option>
         <option>Slice of Life</option>
         <option>Sobrenatural</option>
+        <option>Steampunk</option>
+        <option>Superhéroes</option>
+        <option>Survival</option>
+        <option>Survival Game</option>
+        <option>Suspenso</option>
+        <option>Tentáculos</option>
         <option>Terror</option>
+        <option>Terror psicológico</option>
+        <option>Thriller</option>
+        <option>Thriller psicológico</option>
+        <option>Tokusatsu</option>
+        <option>Tragedia</option>
+        <option>Yaoi</option>
+        <option>Yuri</option>
       </select>
 
-      <select id="demographic-select" onchange="filtro()" class="cyber-select">
+      <select id="demographic-select" onchange="filtro()" aria-label="Seleccionar demografía">
         <option value="">👥 Todas las demografías</option>
+        <option>Josei</option>
+        <option>Kodomo</option>
+        <option>Seijin</option>
         <option>Seinen</option>
         <option>Shōjo</option>
         <option>Shōnen</option>
       </select>
 
-      <select id="rating-select" onchange="filtro()" class="cyber-select">
+      <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
         <option value="">⭐ Todas las valoraciones</option>
         <option value="excellent">⭐ Excelente (4.8+)</option>
         <option value="good">⭐ Buena (4.6+)</option>
+        <option value="regular">⭐ Regular (&lt;4.5)</option>
       </select>
+
+      <input id="search" placeholder="🔍 Buscar anime…" oninput="debouncedFiltro()" aria-label="Buscar anime">
   </div>
-</header>
 
-<section class="grid-section">
-  <div class="section-header reveal">
-    <h2 class="section-title"><i class="fas fa-layer-group"></i> Catálogo Global</h2>
+  <main class="container">
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="stage" aria-hidden="true">
+    <div id="fgContainer" aria-label="Vídeo frontal">
+      <canvas id="fgCanvas"></canvas>
+      <video id="fgVideo" muted loop playsinline></video>
+    </div>
+
+    <div class="play-overlay" id="playOverlay" style="display:none;">
+      <button class="play-btn" id="playBtn"><i class="fas fa-play"></i> Iniciar Audio</button>
+    </div>
   </div>
-  <div id="grid"></div>
-</section>
 
-<section class="grid-section reveal">
-  <div style="background: linear-gradient(135deg, rgba(20,20,30,0.9), rgba(5,5,5,0.95)); border: 1px solid var(--neon-purple); border-radius: 20px; padding: 40px; display: flex; align-items: center; gap: 30px;">
-     <div style="font-size: 3rem; color: var(--neon-cyan);"><i class="fas fa-server"></i></div>
-     <div>
-       <h3 style="color:white; margin:0 0 10px 0; font-size:1.5rem;">Estado Operativo</h3>
-       <p style="color:#aaa;">Base de datos sincronizada con Archinime OS.</p>
-     </div>
+  <div id="decorations" aria-hidden="true">
+    <svg id="star-template" class="shooting-star decor-hidden-mobile" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:none;" aria-hidden="true">
+      <g>
+        <circle cx="4" cy="4" r="4" fill="#fff9e0" opacity="0.98"></circle>
+        <rect class="shooting-tail" x="8" y="3" width="160" height="4"></rect>
+      </g>
+    </svg>
   </div>
-</section>
 
-<footer>
-  <p>&copy; 2026 Archinime Network.</p>
-</footer>
-
-<div id="iosInstallModal" class="ios-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:5000; align-items:center; justify-content:center;">
-  <div style="background:#1a1a1a; padding:20px; border-radius:15px; border:1px solid var(--neon-purple); text-align:center; color:white;">
-      <span onclick="document.getElementById('iosInstallModal').style.display='none'" style="float:right; cursor:pointer;">&times;</span>
-      <p>Instalar en iPhone: Pulsa Compartir <i class="fas fa-share-square"></i> y luego "Agregar a Inicio".</p>
+  <div id="iosInstallModal" class="ios-modal">
+      <div class="ios-content">
+          <span class="ios-close" onclick="closeIosModal()">&times;</span>
+          <p>Para instalar <strong>Archinime</strong> en tu iPhone/iPad:</p>
+          <p>1. Pulsa el botón <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
+          <p>2. Selecciona <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
+      </div>
   </div>
-</div>
 
-<script>
-  // Loader
-  window.addEventListener('load', () => {
-    const loader = document.getElementById('page-loader');
-    loader.style.opacity = '0';
-    setTimeout(() => { loader.style.visibility = 'hidden'; }, 500);
-    const video = document.getElementById('bg-video');
-    if(video) video.play().catch(e => console.log("Autoplay bloqueado"));
-  });
+  <footer style="text-align: center; padding: 40px; color: #666; font-size: 0.8rem; border-top: 1px solid #222; margin-top: 50px;">
+    <p>&copy; 2026 Archinime Network. <br> Powered by Archinime OS.</p>
+  </footer>
 
-  // Reveal Animation
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting) entry.target.classList.add('active');
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+  </script>
+
+  <script src="animaciones.js"></script>
+  <script src="musica_fondo.js"></script>
+  <script src="notification-system.js"></script>
+  <script src="script-index.js"></script>
+
+  <script>
+    // --- UI: LOADER & SW ---
+    window.addEventListener('load', () => {
+        const loader = document.getElementById('page-loader');
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.visibility = 'hidden'; }, 500);
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registrado: ', registration.scope))
+                .catch(err => console.log('SW fallo: ', err));
+        }
     });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // Función para INICIAR la experiencia (Música + Animaciones)
-  function iniciarExperiencia() {
-      // Intentar reproducir música
-      const audio = document.getElementById('bg-music');
-      if(audio) {
-          audio.volume = 0.3;
-          audio.play().then(() => {
-              console.log("Música iniciada");
-          }).catch(e => console.log("Interacción requerida para audio"));
-      }
-      // Las animaciones de estrellas deberían iniciarse solas si animaciones.js carga bien,
-      // pero por si acaso, hacemos scroll hacia el contenido.
-      document.querySelector('.advanced-filters').scrollIntoView({ behavior: 'smooth' });
-  }
-</script>
+    // --- UI: NAVBAR ---
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (window.scrollY > 50) nav.style.background = 'rgba(0,0,0,0.9)';
+        else nav.style.background = 'rgba(5,5,5,0.7)';
+    });
 
-<script>
-  var version = new Date().getTime();
-  document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-</script>
+    // --- HELPER OPEN TAB ---
+    function openInNewTab(url) {
+        window.open(url, '_blank');
+    }
+    
+    // --- HELPER IOS ---
+    function closeIosModal() {
+        document.getElementById('iosInstallModal').style.display = 'none';
+    }
 
-<script src="animaciones.js"></script>
-<script src="notification-system.js"></script>
-<script src="musica_fondo.js"></script>
-<script src="script-index.js"></script>
+    // --- EFECTO 3D EN CARDS (OPCIONAL, PERO MANTIENE ESTILO CYBER) ---
+    const observerGrid = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) { 
+                        addTiltEffect(node);
+                        node.classList.add('anime-card');
+                    }
+                });
+            }
+        });
+    });
+    const gridContainer = document.getElementById('grid');
+    if(gridContainer) observerGrid.observe(gridContainer, { childList: true });
 
-<script>
-  // Service Worker
-  if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fallo: ', err));
-      });
-  }
-</script>
+    function addTiltEffect(card) {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = ((y - centerY) / centerY) * -5;
+            const rotateY = ((x - centerX) / centerX) * 5;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+    }
+  </script>
 
 </body>
 </html>
