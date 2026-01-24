@@ -22,12 +22,12 @@
     --neon-cyan: #00f3ff;
     --neon-purple: #bc13fe;
     --neon-pink: #ff0055;
-    --neon-yellow: #f1c40f; 
-    --neon-red: #ff0000;
+    --neon-red: #ff0000;      /* ESTRENO */
+    --neon-yellow: #f1c40f;   /* PRÓXIMAMENTE */
     --dark-bg: #050505;
     --glass-bg: rgba(20, 20, 30, 0.6);
     --text: #ffffff;
- }
+  }
 
   body { 
     margin: 0; padding: 0;
@@ -115,12 +115,12 @@
   .search-input:focus { width: 280px; border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 0.8rem;}
   
-  /* MEJORA DE LAS BARRAS DE OPCIONES (SELECTS) */
+  /* MEJORA DE LAS BARRAS DE OPCIONES (SELECTS CYBERPUNK) */
   .cyber-select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-color: rgba(10, 10, 15, 0.9);
     border: 1px solid rgba(0, 243, 255, 0.3);
-    border-radius: 8px; /* Bordes más cuadrados tipo tech */
+    border-radius: 8px;
     color: #e0e0e0;
     padding: 10px 35px 10px 15px;
     font-family: 'Orbitron', sans-serif; 
@@ -232,7 +232,9 @@
   #fgCanvas { width: 100%; height: 100%; display: block; }
   #fgVideo { display: none; }
 
-  /* NOTIFICACIONES Y POPUP */
+  /* =========================================
+     NOTIFICACIONES Y POPUP (MEJORADO)
+     ========================================= */
   .notif-badge {
     position: absolute; top: -5px; right: -5px;
     background: var(--neon-pink); color: white;
@@ -274,21 +276,23 @@
       box-shadow: 0 0 50px rgba(188, 19, 254, 0.3); position: relative;
   }
   
-  /* Arreglo Botón Cerrar (X) */
+  /* CORRECCIÓN BOTÓN CERRAR (X) */
   .event-close { 
       position: absolute; top: 10px; right: 10px; 
       background: rgba(0,0,0,0.7); border: 1px solid white; color: #fff; 
       width: 30px; height: 30px; border-radius: 50%;
-      font-size: 1.2rem; cursor: pointer; z-index: 100; /* Z-index alto */
+      font-size: 1.2rem; cursor: pointer; z-index: 100; /* Z-index alto para asegurar clic */
       display: flex; align-items: center; justify-content: center;
       transition: 0.3s;
   }
   .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); }
 
   .event-visuals { width: 40%; position: relative; overflow: hidden; background: #000; }
-  /* Fondo borroso (Imagen Anime) */
+  
+  /* IMAGEN 1: FONDO BORROSO (Portada Anime) */
   .bg-blur-cover { width: 100%; height: 100%; object-fit: cover; filter: blur(4px) brightness(0.4); transform: scale(1.1); }
-  /* Portada Temporada (Pequeña) */
+  
+  /* IMAGEN 2: FLOTANTE (Portada Temporada) */
   .covers-wrapper { 
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
       width: 100%; text-align: center; z-index: 2;
@@ -302,6 +306,8 @@
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
       width: 80%; z-index: 10; pointer-events: none; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8));
   }
+  
+  /* ETIQUETA DE IDIOMA */
   .lang-badge {
       position: absolute; bottom: 10px; right: 10px;
       background: rgba(0,0,0,0.8); 
@@ -410,7 +416,6 @@
   </button>
 
   <div class="advanced-filters reveal" style="margin-top: 30px;">
-   
     <select id="genre-select" onchange="filtro()" class="cyber-select">
         <option value="">♾️ Géneros</option>
         <option>Acción</option><option>Aventura</option><option>Ciencia ficción</option>
@@ -529,8 +534,7 @@ installBtn.addEventListener('click', () => {
              deferredPrompt = null;
         });
     } else {
-        // Fallback por si el navegador no dispara el evento pero es movil
-        alert("Para instalar: Busca la opción 'Instalar aplicación' o 'Agregar a pantalla de inicio' en tu navegador.");
+        alert("Para instalar: Busca la opción 'Instalar aplicación' o 'Agregar a pantalla de inicio' en el menú de tu navegador.");
     }
 });
 window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
@@ -587,7 +591,7 @@ function checkForNewUpdates() {
                 date: anime.lastUpdate,
                 seen: false,
                 isFinal: anime.isFinal || false,
-                langs: anime.langs || [] // Leer idiomas del Index
+                langs: anime.langs || [] // Leer idiomas del Index si existen
             };
             notificationsHistory.unshift(newNotif); 
             newItemsFound.push(newNotif);
@@ -627,27 +631,34 @@ function createPopupHTML(notif) {
     let langLabel = "SUB";
     let langColor = "var(--neon-purple)";
     
-    // Si el CMS envió la info de idiomas
+    // Usamos el array "langs" que guardaremos desde el CMS
     if(notif.langs && notif.langs.length > 0) {
         const hasLat = notif.langs.includes('lat');
         const hasSub = notif.langs.includes('sub');
-        if (hasLat && hasSub) { langLabel = "DUAL"; langColor = "#00f0ff"; }
-        else if (hasLat) { langLabel = "LATINO"; langColor = "var(--neon-pink)"; }
-        else { langLabel = "SUB"; langColor = "var(--neon-purple)"; }
+        
+        if (hasLat && hasSub) { 
+            langLabel = "DUAL"; 
+            langColor = "var(--neon-cyan)"; 
+        }
+        else if (hasLat) { 
+            langLabel = "LATINO"; 
+            langColor = "var(--neon-pink)"; 
+        }
+        else if (hasSub) {
+             langLabel = "SUB";
+             langColor = "var(--neon-purple)";
+        }
     } else {
-        // Fallback antiguo si no hay datos nuevos
-        const lowerInfo = infoString.toLowerCase();
-        const lowerTitle = notif.title.toLowerCase();
-        if (lowerInfo.includes("latino") || lowerTitle.includes("latino") || notif.type.includes("LATINO")) {
+        // Fallback por si acaso: Si el título dice Latino
+        if (infoString.toLowerCase().includes("latino") || notif.title.toLowerCase().includes("latino")) {
             langLabel = "LATINO"; langColor = "var(--neon-pink)";
         }
     }
 
-    // LÓGICA DE COLORES DE ESTADO
-    let statusColor = "var(--neon-cyan)";
+    // LÓGICA DE COLORES DE ESTADO (Nuevo, Estreno, Prox)
+    let statusColor = "var(--neon-purple)"; // Default Nuevo
     if (notif.type.includes("ESTRENO")) statusColor = "var(--neon-red)";
     else if (notif.type.includes("PRÓXIMAMENTE")) statusColor = "var(--neon-yellow)";
-    else if (notif.type.includes("NUEVO")) statusColor = "var(--neon-purple)";
 
     // IMAGEN FINAL
     let finalImgHTML = '';
@@ -762,10 +773,9 @@ function renderNotificationList() {
         }
         
         // Color Estado en Lista
-        let statusColor = "#00f3ff";
+        let statusColor = "#bc13fe";
         if (item.type.includes("ESTRENO")) statusColor = "#ff0000";
         else if (item.type.includes("PRÓXIMAMENTE")) statusColor = "#f1c40f";
-        else if (item.type.includes("NUEVO")) statusColor = "#bc13fe";
 
         div.innerHTML = `
             <div style="position:relative;">
