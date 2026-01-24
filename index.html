@@ -7,275 +7,307 @@
   
   <link rel="icon" href="Logo_Archinime.avif" type="image/png">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#8c52ff">
+  <meta name="theme-color" content="#050505">
   
+  <link rel="preload" as="image" href="videoframe.jpg">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <style>
-    /* --- ESTILOS CYBERPUNK GENERALES --- */
-    :root {
-      --neon-cyan: #00f3ff;
-      --neon-purple: #bc13fe;
-      --neon-pink: #ff0055;
-      --dark-bg: #050505;
-      --glass-bg: rgba(20, 20, 30, 0.6);
-      --text: #ffffff;
-    }
+<style>
+  /* --- VARIABLES CYBERPUNK --- */
+  :root {
+    --neon-cyan: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-pink: #ff0055;
+    --dark-bg: #050505;
+    --glass-bg: rgba(20, 20, 30, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text: #ffffff;
+  }
 
-    body { 
-      margin: 0; padding: 0;
-      background-color: var(--dark-bg); 
-      font-family: 'Poppins', sans-serif; 
-      overflow-x: hidden;
-      color: white;
-    }
+  /* --- BASICS --- */
+  body { 
+    margin: 0; padding: 0;
+    background-color: var(--dark-bg) !important; 
+    font-family: 'Poppins', sans-serif; 
+    overflow-x: hidden;
+    color: white;
+  }
+  a { text-decoration: none; transition: 0.3s; color: inherit; }
+  
+  /* --- SCROLLBAR --- */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 4px; }
 
-    a { text-decoration: none; transition: 0.3s; color: inherit; }
-    
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #000; }
-    ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 4px; }
+  /* --- LOADER --- */
+  #page-loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 9999;
+    display: flex; justify-content: center; align-items: center; flex-direction: column;
+    transition: opacity 0.5s ease-out, visibility 0.5s;
+  }
+  .loader-glitch {
+    font-family: 'Orbitron', sans-serif; font-size: 2rem; color: white;
+    position: relative; animation: glitch 1s infinite;
+  }
+  .loader-line {
+    width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
+    animation: loadLine 2s forwards ease-in-out;
+  }
 
-    /* --- LOADER --- */
-    #page-loader {
+  /* --- FONDO --- */
+  #bg-video {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: -5; opacity: 0.4;
+    filter: contrast(1.2) saturate(1.2);
+  }
+  #overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, rgba(82, 0, 255, 0.1) 0%, #000 90%);
+    z-index: -4; pointer-events: none;
+  }
+  #scanlines {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+    background-size: 100% 4px;
+    z-index: -3; pointer-events: none; opacity: 0.7;
+  }
+
+  /* --- NAVBAR GLASS (Diseño Nuevo + Funciones Viejas) --- */
+  .cyber-nav {
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(5, 5, 5, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 15px 5%;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: 0.3s;
+  }
+  .cyber-nav.scrolled {
+    background: rgba(0,0,0,0.95);
+    box-shadow: 0 5px 20px rgba(0, 243, 255, 0.1);
+  }
+  
+  .nav-logo { 
+    display: flex; align-items: center; gap: 10px; 
+    font-family: 'Orbitron', sans-serif; font-weight: 800; 
+    font-size: 1.5rem; color: white; letter-spacing: 2px;
+    cursor: pointer;
+  }
+  .nav-logo img { height: 40px; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+  
+  .header-actions {
+      display: flex; align-items: center; gap: 15px;
+  }
+
+  /* BOTONES REDONDOS (Estilo Cyberpunk) */
+  .nav-icon-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white; width: 42px; height: 42px;
+      border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.3s; position: relative; font-size: 1.1rem;
+  }
+  .nav-icon-btn:hover {
+      background: rgba(188, 19, 254, 0.2);
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px var(--neon-purple);
+      transform: scale(1.1);
+  }
+  .install-pulse { animation: pulse 2s infinite; }
+
+  /* =========================================
+     ESTILOS DE NOTIFICACIONES (INTEGRADOS)
+     ========================================= */
+  .notif-wrapper { position: relative; }
+  
+  /* Badge rojo */
+  .notif-badge {
+      position: absolute; top: -2px; right: -2px;
+      background: var(--neon-pink); color: white;
+      font-size: 0px; /* Solo mostrar punto */
+      width: 10px; height: 10px; border-radius: 50%;
+      box-shadow: 0 0 8px var(--neon-pink);
+      border: 1px solid white;
+  }
+
+  /* Menú desplegable */
+  .notif-dropdown {
+      display: none; /* JS lo cambia a block */
+      position: absolute; top: 60px; right: 0; width: 320px;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--neon-purple);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      z-index: 2000; overflow: hidden;
+      animation: slideDown 0.3s ease forwards;
+  }
+  .notif-dropdown.active { display: block; }
+
+  .notif-header {
+      padding: 15px; text-align: center;
+      background: linear-gradient(90deg, rgba(188,19,254,0.1), transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+      text-transform: uppercase; letter-spacing: 1px; color: var(--neon-cyan);
+  }
+  
+  .notif-list { max-height: 350px; overflow-y: auto; }
+  .notif-item {
+      display: flex; gap: 12px; padding: 12px 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: 0.2s;
+  }
+  .notif-item:hover { background: rgba(255,255,255,0.05); }
+  .notif-item img { width: 45px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #333; }
+  .notif-item-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .notif-item-title { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 2px; }
+  .notif-item-info { font-size: 0.75rem; color: var(--neon-purple); }
+  .notif-item-date { font-size: 0.7rem; color: #888; font-style: italic; margin-top: 4px; }
+  .empty-notif { padding: 20px; text-align: center; color: #777; font-style: italic; }
+
+  /* =========================================
+     ESTILOS DEL POPUP MODAL (Evento Inicial)
+     ========================================= */
+  #eventModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #000; z-index: 9999;
-      display: flex; justify-content: center; align-items: center; flex-direction: column;
-      transition: opacity 0.5s ease-out, visibility 0.5s;
-    }
-    .loader-glitch {
-      font-family: 'Orbitron', sans-serif; font-size: 2rem; color: white;
-      animation: glitch 1s infinite;
-    }
-    .loader-line {
-      width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
-      animation: loadLine 2s forwards ease-in-out;
-    }
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+      z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+  }
+  #eventModal.show { opacity: 1; pointer-events: auto; }
 
-    /* --- FONDOS --- */
-    #bg-video {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: -5; opacity: 0.6;
-      filter: contrast(1.2) saturate(1.2);
-    }
-    #overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at center, rgba(82, 0, 255, 0.1) 0%, #000 90%);
-      z-index: -4; pointer-events: none;
-    }
-    #scanlines {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-      background-size: 100% 4px; z-index: -3; pointer-events: none; opacity: 0.7;
-    }
+  .event-card {
+      background: #0b0c10; width: 90%; max-width: 420px;
+      border-radius: 16px; overflow: hidden; position: relative;
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+      transform: scale(0.9); transition: transform 0.3s;
+  }
+  #eventModal.show .event-card { transform: scale(1); }
 
-    /* --- NAVBAR --- */
-    .cyber-nav {
-      position: sticky; top: 0; z-index: 1000;
-      background: rgba(5, 5, 5, 0.7);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 15px 5%;
-      display: flex; justify-content: space-between; align-items: center;
-      transition: 0.3s;
-    }
-    .nav-logo { 
-      display: flex; align-items: center; gap: 10px; 
-      font-family: 'Orbitron', sans-serif; font-weight: 800; 
-      font-size: 1.5rem; color: white; letter-spacing: 2px; cursor: pointer;
-    }
-    .nav-logo img { height: 40px; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+  .event-visuals { position: relative; height: 220px; background: #000; overflow: hidden; }
+  .bg-blur-cover { position: absolute; width: 100%; height: 100%; opacity: 0.4; filter: blur(15px); transform: scale(1.2); object-fit: cover; }
+  .covers-wrapper { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding-bottom: 15px; gap: 15px; }
+  .main-cover-img { width: 100px; height: 150px; border-radius: 6px; transform: rotate(-3deg); border: 1px solid rgba(255,255,255,0.3); }
+  .season-cover-img { width: 120px; height: 170px; border-radius: 8px; transform: rotate(3deg) translateY(10px); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4); }
 
-    /* --- BOTONES DE ICONO (NOTIFICACIONES / INSTALL / YOUTUBE) --- */
-    .header-actions {
-        display: flex; align-items: center; gap: 20px;
-    }
+  .event-details { padding: 20px; text-align: center; background: linear-gradient(to bottom, #101014, #050507); border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 5; }
+  .event-title { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 5px; text-shadow: 0 0 10px rgba(188,19,254,0.8); }
+  .event-chapter-info { color: var(--neon-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; font-size: 0.9rem; }
+  .event-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 20px; font-style: italic; }
+  
+  .event-btn {
+      width: 100%; padding: 12px; border-radius: 50px; border: none;
+      background: white; color: black; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2); transition: 0.3s;
+  }
+  .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan); }
+  
+  .event-close {
+      position: absolute; top: 10px; right: 10px; z-index: 50;
+      background: rgba(0,0,0,0.5); border: 1px solid white; color: white;
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  }
 
-    /* Estilo corregido para que se vea grande y bien como en el original */
-    .nav-icon-btn {
-        background: transparent; 
-        border: none; 
-        color: #fff; 
-        font-size: 1.6rem; /* Tamaño aumentado para corregir el error */
-        cursor: pointer; 
-        padding: 5px;
-        position: relative; 
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .nav-icon-btn:hover { 
-        color: var(--neon-cyan); 
-        transform: scale(1.1);
-        text-shadow: 0 0 10px var(--neon-cyan); 
-    }
-    
-    .install-pulse { animation: pulseBtn 2s infinite; color: var(--neon-cyan); }
-    @keyframes pulseBtn { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+  /* --- HERO & FILTROS --- */
+  .hero-container {
+    padding: 60px 20px 20px; text-align: center;
+  }
+  .glitch-title {
+    font-size: 3rem; margin-bottom: 10px; text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan);
+  }
+  
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    padding: 20px; max-width: 1200px; margin: 0 auto;
+  }
+  select, #search {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 50px;
+    padding: 10px 20px; color: white; outline: none; cursor: pointer;
+    backdrop-filter: blur(5px); font-family: 'Poppins';
+  }
+  option { background: #000; }
+  #search { width: 200px; border-color: var(--neon-purple); }
 
-    /* Wrapper de notificación para posicionamiento relativo */
-    .notif-wrapper {
-        position: relative;
-        display: inline-block;
-    }
+  /* --- GRID --- */
+  .container { padding: 20px 5%; min-height: 60vh; }
+  .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px;
+  }
+  /* Estilo Card antigua adaptada a grid CSS */
+  .card {
+      border-radius: 16px; overflow: hidden; position: relative; cursor: pointer;
+      transition: transform 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      aspect-ratio: 2/3;
+  }
+  .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+  .card:hover { transform: translateY(-10px); box-shadow: 0 0 20px var(--neon-purple); }
+  .card:hover img { transform: scale(1.1); }
+  .info {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      padding: 60px 15px 15px; transform: translateY(20px); opacity: 0; transition: 0.3s;
+  }
+  .card:hover .info { transform: translateY(0); opacity: 1; }
+  .info strong { display: block; color: white; font-size: 1.1rem; }
+  .info span { color: var(--neon-cyan); font-size: 0.9rem; font-weight: bold; }
 
-    /* Badge de notificación */
-    .notif-badge {
-        position: absolute; top: 0; right: 0;
-        background: var(--neon-pink); color: white;
-        font-size: 0.7rem; padding: 2px 5px; border-radius: 50%;
-        box-shadow: 0 0 10px var(--neon-pink);
-        font-weight: bold;
-    }
+  /* --- FOOTER --- */
+  footer {
+    background: rgba(0,0,0,0.95); border-top: 1px solid #333;
+    padding: 40px 20px; text-align: center; color: #666; margin-top: 50px;
+  }
 
-    /* Menú de Notificaciones (Estilo corregido) */
-    .notif-dropdown {
-        display: none; /* Se activa con JS (display: block) */
-        position: absolute; 
-        top: 150%; /* Justo debajo del botón */
-        right: -10px; /* Alineado a la derecha */
-        width: 280px; 
-        background: rgba(15, 15, 20, 0.98); /* Fondo oscuro sólido */
-        border: 1px solid var(--neon-purple); 
-        border-radius: 8px;
-        z-index: 9999; /* Z-index alto para que aparezca SIEMPRE encima */
-        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-        overflow: hidden;
-    }
-    
-    /* Clase que usa tu script original para mostrarlo, si aplica toggle de clase */
-    .notif-dropdown.show { display: block; } 
+  /* --- ANIMATIONS & STAGE --- */
+  .stage { position: fixed; bottom: 0; right: 0; pointer-events: none; z-index: 5000; }
+  #fgContainer { width: 300px; height: auto; position: relative; }
+  canvas#fgCanvas { width: 100%; height: auto; display: block; }
+  video#fgVideo { display: none; }
+  .play-overlay { position: fixed; bottom: 20px; right: 20px; z-index: 5001; pointer-events: auto; }
+  .play-btn { background: var(--neon-pink); border: none; padding: 10px 20px; color: white; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-    .notif-header {
-        padding: 12px; 
-        background: rgba(188, 19, 254, 0.15);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        text-align: center; 
-        font-family: 'Poppins'; 
-        font-weight: 600;
-        color: var(--neon-cyan);
-    }
-    .notif-list { max-height: 300px; overflow-y: auto; }
-    .notif-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #ddd; }
-    .notif-item:hover { background: rgba(255,255,255,0.1); }
-    .empty-notif { padding: 20px; text-align: center; color: #aaa; font-style: italic; }
+  /* iOS Modal */
+  .ios-modal { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 320px; background: rgba(30,30,30,0.95); border: 1px solid #444; border-radius: 12px; padding: 20px; z-index: 10000; text-align: center; }
+  .ios-close { position: absolute; top: 5px; right: 10px; font-size: 1.5rem; cursor: pointer; }
 
-    /* --- CONTROLES Y FILTROS --- */
-    .controls-container {
-        display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
-        padding: 20px 5%; max-width: 1200px; margin: 0 auto;
-        position: relative; z-index: 10;
-    }
-    
-    select {
-        background: rgba(0, 0, 0, 0.6);
-        color: #fff;
-        border: 1px solid var(--neon-purple);
-        padding: 10px 15px;
-        border-radius: 20px;
-        font-family: 'Poppins';
-        outline: none; cursor: pointer;
-        backdrop-filter: blur(5px);
-        transition: 0.3s;
-    }
-    select:hover, select:focus {
-        border-color: var(--neon-cyan);
-        box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-    }
+  @keyframes glitch {
+    0% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
+    25% { text-shadow: -2px 2px 0px var(--neon-purple), 2px -2px 0px var(--neon-cyan); }
+    50% { text-shadow: 2px -2px 0px var(--neon-purple), -2px 2px 0px var(--neon-cyan); }
+    75% { text-shadow: -2px -2px 0px var(--neon-purple), 2px 2px 0px var(--neon-cyan); }
+    100% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
+  }
+  @keyframes loadLine { to { width: 100%; } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); } }
 
-    #search {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 20px; padding: 10px 20px 10px 40px; 
-        color: white; outline: none; width: 200px; transition: 0.3s;
-        font-family: 'Poppins';
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
-        background-repeat: no-repeat;
-        background-position: 10px center;
-        background-size: 15px;
-    }
-    #search:focus { width: 300px; border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
-
-    /* --- GRID --- */
-    .grid {
-        display: grid; 
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 20px;
-        padding: 20px 5%;
-        max-width: 1400px; margin: 0 auto 80px;
-    }
-
-    .card, .anime-card { 
-        border-radius: 12px; overflow: hidden; position: relative;
-        transition: transform 0.3s; border: 1px solid rgba(255,255,255,0.1);
-        background: rgba(20,20,30,0.5); aspect-ratio: 2/3;
-    }
-    .card img, .anime-card img { width: 100%; height: 100%; object-fit: cover; }
-    .card:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(188, 19, 254, 0.4); z-index: 2; }
-
-    /* --- STAGE (ANIMACIONES) --- */
-    .stage {
-        position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none; z-index: 990; overflow: hidden;
-    }
-    #fgContainer { width: 100%; height: 100%; position: relative; }
-    #fgCanvas { position: absolute; bottom: 0; right: 0; max-height: 80vh; width: auto; }
-    #fgVideo { display: none; }
-
-    .play-overlay { position: fixed; bottom: 20px; right: 20px; z-index: 1002; }
-    .play-btn {
-        background: var(--neon-cyan); border: none; padding: 10px 20px;
-        border-radius: 20px; font-weight: bold; cursor: pointer;
-        box-shadow: 0 0 10px var(--neon-cyan);
-    }
-
-    #decorations { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-    .shooting-star { position: absolute; animation: shoot 3s linear infinite; }
-    @keyframes shoot { 0% {transform: translate(-100px, -100px) rotate(45deg); opacity: 1;} 100% {transform: translate(100vw, 100vh) rotate(45deg); opacity: 0;} }
-
-    /* --- MODAL IOS --- */
-    .ios-modal {
-        display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-        background: rgba(20, 20, 30, 0.95); backdrop-filter: blur(10px);
-        border-top: 1px solid var(--neon-cyan); z-index: 2000;
-        padding: 20px; box-sizing: border-box; text-align: center;
-        animation: slideUp 0.5s ease;
-    }
-    .ios-content { max-width: 600px; margin: 0 auto; position: relative; }
-    .ios-close { position: absolute; top: -10px; right: 0; font-size: 1.5rem; cursor: pointer; }
-    
-    @keyframes glitch {
-      0% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
-      50% { text-shadow: 2px -2px 0px var(--neon-purple), -2px 2px 0px var(--neon-cyan); }
-      100% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
-    }
-    @keyframes loadLine { to { width: 100%; } }
-    @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
-
-    .hero-container { text-align: center; margin-top: 40px; margin-bottom: 20px; }
-    .glitch-title {
-        font-family: 'Orbitron', sans-serif; font-size: 3rem; 
-        text-transform: uppercase; margin: 0;
-        text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan);
-    }
-
-    @media (max-width: 768px) {
-        .controls-container { flex-direction: column; align-items: stretch; }
-        #search { width: 100%; }
-        select { width: 100%; }
-        .glitch-title { font-size: 2rem; }
-    }
-  </style>
+  /* Responsivo */
+  @media (max-width: 768px) {
+      .header-actions { margin-left: auto; }
+      .notif-dropdown { position: fixed; top: 70px; left: 5%; width: 90%; }
+      .controls { flex-direction: column; width: 100%; }
+      select, #search { width: 100%; }
+  }
+</style>
 </head>
 <body>
 
   <div id="page-loader">
-    <div class="loader-glitch">ARCHINIME</div>
+    <div class="loader-glitch">ARCHINIME_OS</div>
     <div style="width: 200px; height: 2px; background: #333; margin-top: 10px; overflow: hidden;">
       <div class="loader-line"></div>
     </div>
@@ -290,12 +322,16 @@
   <audio id="bg-music" autoplay></audio>
 
   <nav class="cyber-nav" id="navbar">
-    <a href="#" class="nav-logo" onclick="openInNewTab('https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html'); return false;" title="Ir al Creador CMS">
+    <div class="nav-logo" onclick="openInNewTab('https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html')" title="Ir al Creador CMS">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       ARCHINIME
-    </a>
+    </div>
 
     <div class="header-actions">
+        <button id="youtube-btn" class="nav-icon-btn" type="button" aria-label="Abrir YouTube" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.youtube.com/@Archinime-k2g'); })(event)">
+          <i class="fab fa-youtube"></i>
+        </button>
+
         <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App">
             <i class="fas fa-download"></i>
         </button>
@@ -308,28 +344,22 @@
     
             <div id="notifMenu" class="notif-dropdown">
                 <div class="notif-header">
-                    <span style="width: 100%; text-align: center;">Notificaciones</span>
+                    <span>CENTRO DE MANDO</span>
                 </div>
                 <div id="notifList" class="notif-list">
-                     <div class="empty-notif">Sin novedades por ahora.</div>
+                     <div class="empty-notif">Sin novedades en el sistema.</div>
                 </div>
             </div>
         </div>
-
-        <button id="youtube-btn" class="nav-icon-btn" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.youtube.com/@Archinime-k2g'); })(event)" aria-label="Abrir YouTube">
-           <img src="youtube.avif" alt="YouTube" style="height: 25px; width: auto; vertical-align: middle;">
-        </button>
     </div>
   </nav>
 
-  <header class="hero-container reveal">
-    <h1 class="glitch-title">BIENVENIDO A <br> ARCHINIME</h1>
-    <p style="color: #aaa; margin-top: 10px;">Base de datos de animación japonesa actualizada.</p>
-  </header>
-
-  <div class="controls-container" id="controls">
+  <header class="hero-container">
+    <h1 class="glitch-title">DATABASE</h1>
+    
+    <div class="controls" id="controls">
       <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
-        <option value="">🔮 Todos los géneros</option>
+        <option value="">♾️ Todos los géneros</option>
         <option>Acción</option>
         <option>Animación</option>
         <option>Aventura</option>
@@ -403,14 +433,15 @@
       </select>
 
       <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
-        <option value="">⭐ Todas las valoraciones</option>
+        <option value="">⭐ Calificación Global</option>
         <option value="excellent">⭐ Excelente (4.8+)</option>
         <option value="good">⭐ Buena (4.6+)</option>
         <option value="regular">⭐ Regular (&lt;4.5)</option>
       </select>
 
       <input id="search" placeholder="🔍 Buscar anime…" oninput="debouncedFiltro()" aria-label="Buscar anime">
-  </div>
+    </div>
+  </header>
 
   <main class="container">
     <div class="grid" id="grid"></div>
@@ -421,12 +452,11 @@
       <canvas id="fgCanvas"></canvas>
       <video id="fgVideo" muted loop playsinline></video>
     </div>
-
     <div class="play-overlay" id="playOverlay" style="display:none;">
-      <button class="play-btn" id="playBtn"><i class="fas fa-play"></i> Iniciar Audio</button>
+      <button class="play-btn" id="playBtn">Pulsar para iniciar</button>
     </div>
   </div>
-
+  
   <div id="decorations" aria-hidden="true">
     <svg id="star-template" class="shooting-star decor-hidden-mobile" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:none;" aria-hidden="true">
       <g>
@@ -445,83 +475,50 @@
       </div>
   </div>
 
-  <footer style="text-align: center; padding: 40px; color: #666; font-size: 0.8rem; border-top: 1px solid #222; margin-top: 50px;">
-    <p>&copy; 2026 Archinime Network. <br> Powered by Archinime OS.</p>
+  <footer>
+    <img src="Logo_Archinime.avif" width="60" style="opacity:0.8; margin-bottom:20px; filter: grayscale(100%); transition:0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
+    <p>&copy; 2026 Archinime Network. <br> <span style="color:#444">Designed for the Anime Community.</span></p>
   </footer>
 
-  <script>
-    var version = new Date().getTime();
-    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-  </script>
+<script>
+  var version = new Date().getTime();
+  // 1. Cargamos los DATOS primero
+  document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+</script>
 
-  <script src="animaciones.js"></script>
-  <script src="musica_fondo.js"></script>
-  <script src="notification-system.js"></script>
-  <script src="script-index.js"></script>
+<script src="animaciones.js"></script>
+<script src="musica_fondo.js"></script>
 
-  <script>
-    // --- UI: LOADER & SW ---
+<script src="notification-system.js"></script>
+
+<script src="script-index.js"></script>
+
+<script>
+    // --- SCRIPTS VISUALES CYBERPUNK ---
+    
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('SW registrado: ', registration.scope))
+                .catch(err => console.log('SW fallo: ', err));
+        });
+    }
+
+    // Loader Effect
     window.addEventListener('load', () => {
         const loader = document.getElementById('page-loader');
         loader.style.opacity = '0';
         setTimeout(() => { loader.style.visibility = 'hidden'; }, 500);
-        
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('SW registrado: ', registration.scope))
-                .catch(err => console.log('SW fallo: ', err));
-        }
     });
 
-    // --- UI: NAVBAR ---
+    // Navbar Glass Effect
     window.addEventListener('scroll', () => {
         const nav = document.getElementById('navbar');
-        if (window.scrollY > 50) nav.style.background = 'rgba(0,0,0,0.9)';
-        else nav.style.background = 'rgba(5,5,5,0.7)';
+        if (window.scrollY > 50) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
     });
-
-    // --- HELPER OPEN TAB ---
-    function openInNewTab(url) {
-        window.open(url, '_blank');
-    }
-    
-    // --- HELPER IOS ---
-    function closeIosModal() {
-        document.getElementById('iosInstallModal').style.display = 'none';
-    }
-
-    // --- EFECTO 3D EN CARDS (OPCIONAL, PERO MANTIENE ESTILO CYBER) ---
-    const observerGrid = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.addedNodes.length) {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) { 
-                        addTiltEffect(node);
-                        node.classList.add('anime-card');
-                    }
-                });
-            }
-        });
-    });
-    const gridContainer = document.getElementById('grid');
-    if(gridContainer) observerGrid.observe(gridContainer, { childList: true });
-
-    function addTiltEffect(card) {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -5;
-            const rotateY = ((x - centerX) / centerX) * 5;
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-        });
-    }
-  </script>
+</script>
 
 </body>
 </html>
