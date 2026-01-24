@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Archinime OS | Next Gen Platform</title>
+  <title>Archinime | Next Gen Platform</title>
   
   <link rel="icon" href="Logo_Archinime.avif" type="image/png">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#050505">
-  
-  <link rel="preload" as="image" href="videoframe.jpg">
+  <meta name="theme-color" content="#8c52ff">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
@@ -24,20 +22,21 @@
     --neon-pink: #ff0055;
     --dark-bg: #050505;
     --glass-bg: rgba(20, 20, 30, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
     --text: #ffffff;
+    --header-height: 80px;
   }
 
-  /* --- BASICS --- */
-  body { 
-    margin: 0; padding: 0;
-    background-color: var(--dark-bg) !important; 
-    font-family: 'Poppins', sans-serif; 
-    overflow-x: hidden;
-    color: white;
-  }
-  a { text-decoration: none; transition: 0.3s; color: inherit; }
+  /* --- RESET & BASICOS --- */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   
+  body { 
+    background-color: var(--dark-bg);
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
   /* --- SCROLLBAR --- */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: #000; }
@@ -46,261 +45,297 @@
   /* --- LOADER --- */
   #page-loader {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; z-index: 9999;
+    background: #000; z-index: 99999;
     display: flex; justify-content: center; align-items: center; flex-direction: column;
     transition: opacity 0.5s ease-out, visibility 0.5s;
   }
   .loader-glitch {
     font-family: 'Orbitron', sans-serif; font-size: 2rem; color: white;
-    position: relative; animation: glitch 1s infinite;
+    animation: glitch 1s infinite;
   }
   .loader-line {
     width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
     animation: loadLine 2s forwards ease-in-out;
   }
 
-  /* --- FONDO --- */
+  /* --- FONDO (Video y Overlay) --- */
   #bg-video {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover; z-index: -5; opacity: 0.4;
+    object-fit: cover; z-index: -5; opacity: 0; /* Se maneja con script-index.js */
     filter: contrast(1.2) saturate(1.2);
+    transition: opacity 1s ease;
   }
   #overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(82, 0, 255, 0.1) 0%, #000 90%);
+    background: radial-gradient(circle at center, rgba(82, 0, 255, 0.15) 0%, #000 90%);
     z-index: -4; pointer-events: none;
+    transition: opacity 0.6s ease;
   }
   #scanlines {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
     background-size: 100% 4px;
-    z-index: -3; pointer-events: none; opacity: 0.7;
+    z-index: -3; pointer-events: none; opacity: 0.6;
   }
 
-  /* --- NAVBAR GLASS --- */
+  /* --- NAVBAR CYBERPUNK (Reemplaza al cuadrado opaco) --- */
   .cyber-nav {
     position: sticky; top: 0; z-index: 1000;
-    background: rgba(5, 5, 5, 0.7);
+    background: rgba(5, 5, 5, 0.6); /* Transparente/Glass */
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 15px 5%;
+    padding: 10px 5%;
     display: flex; justify-content: space-between; align-items: center;
     transition: 0.3s;
+    height: var(--header-height);
   }
   .cyber-nav.scrolled {
     background: rgba(0,0,0,0.95);
     box-shadow: 0 5px 20px rgba(0, 243, 255, 0.1);
   }
-  
+
+  /* LOGO */
   .nav-logo { 
     display: flex; align-items: center; gap: 10px; 
     font-family: 'Orbitron', sans-serif; font-weight: 800; 
     font-size: 1.5rem; color: white; letter-spacing: 2px;
-    cursor: pointer;
+    text-decoration: none; cursor: pointer;
   }
-  .nav-logo img { height: 40px; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+  .nav-logo img { height: 45px; filter: drop-shadow(0 0 5px var(--neon-cyan)); border-radius: 8px;}
+
+  /* BARRA DE BÚSQUEDA CYBERPUNK */
+  .search-wrapper { position: relative; margin: 0 20px; flex-grow: 1; max-width: 400px; }
+  .search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px; padding: 10px 20px 10px 45px;
+    color: white; outline: none; transition: 0.3s;
+    font-family: 'Poppins'; font-size: 0.95rem;
+  }
+  .search-input:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    background: rgba(0,0,0,0.4);
+  }
+  .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); }
+
+  /* BOTONES DE ACCIÓN (Instalar, Notificaciones, Social) */
+  .nav-actions { display: flex; align-items: center; gap: 15px; }
   
-  .header-actions {
-      display: flex; align-items: center; gap: 15px;
+  .cyber-btn-icon {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.3s; position: relative;
+    font-size: 1.1rem;
   }
+  .cyber-btn-icon:hover {
+    background: var(--neon-purple); border-color: var(--neon-purple);
+    box-shadow: 0 0 15px var(--neon-purple); transform: scale(1.1);
+  }
+  
+  /* Botón Instalar (PWA) */
+  #installBtn { display: none; } /* Controlado por JS */
+  .install-pulse { animation: pulseGlow 2s infinite; color: var(--neon-cyan); border-color: var(--neon-cyan); }
 
-  /* BOTONES REDONDOS */
-  .nav-icon-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white; width: 42px; height: 42px;
-      border-radius: 50%; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: 0.3s; position: relative; font-size: 1.1rem;
-  }
-  .nav-icon-btn:hover {
-      background: rgba(188, 19, 254, 0.2);
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 15px var(--neon-purple);
-      transform: scale(1.1);
-  }
-  .install-pulse { animation: pulse 2s infinite; }
-
-  /* --- NOTIFICACIONES --- */
-  .notif-wrapper { position: relative; }
+  /* Notificaciones Badge */
   .notif-badge {
-      position: absolute; top: -2px; right: -2px;
-      background: var(--neon-pink); color: white;
-      font-size: 0px; width: 10px; height: 10px; border-radius: 50%;
-      box-shadow: 0 0 8px var(--neon-pink);
-      border: 1px solid white;
+    position: absolute; top: 0; right: 0;
+    background: var(--neon-pink); width: 12px; height: 12px;
+    border-radius: 50%; box-shadow: 0 0 8px var(--neon-pink);
   }
+
+  /* --- CONTROLES / FILTROS (Debajo del Header) --- */
+  .controls-container {
+    padding: 20px 5%;
+    display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    margin-bottom: 20px;
+  }
+  
+  /* Selects estilo Cyberpunk */
+  select {
+    background: rgba(0, 0, 0, 0.6);
+    color: #ccc;
+    border: 1px solid var(--neon-purple);
+    padding: 8px 15px;
+    border-radius: 12px;
+    font-family: 'Poppins'; font-size: 0.9rem;
+    cursor: pointer; outline: none;
+    backdrop-filter: blur(5px);
+    transition: 0.3s;
+    appearance: none; /* Quita estilo por defecto */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 35px;
+  }
+  select:hover, select:focus {
+    color: white;
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+    background-color: rgba(20, 20, 30, 0.9);
+  }
+
+  /* --- GRID DE ANIME (Lógica de index, Estilo de Move) --- */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 20px 80px; }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 25px;
+  }
+
+  /* ESTILO DE TARJETA (Adaptando la clase .card que genera el JS antiguo al estilo 3D nuevo) */
+  .card {
+    position: relative; border-radius: 16px; overflow: hidden;
+    aspect-ratio: 2/3; cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+    border-color: var(--neon-cyan);
+  }
+  .card img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: 0.5s;
+  }
+  .card:hover img { transform: scale(1.1); }
+
+  /* Info superpuesta (Generada por JS como .info) */
+  .card .info {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    background: linear-gradient(to top, #000 10%, rgba(0,0,0,0.8) 80%, transparent 100%);
+    padding: 60px 15px 15px;
+    transform: translateY(0); /* Siempre visible o animado según gusto */
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .card .info strong {
+    font-size: 1rem; color: white; line-height: 1.2;
+    text-shadow: 0 2px 4px black;
+  }
+  .card .info span {
+    font-size: 0.8rem; color: var(--neon-cyan); font-weight: 600;
+  }
+
+  /* --- PANTALLA VERDE / ANIMACIONES (Lógica Index) --- */
+  #fgContainer {
+    position: fixed; z-index: 8; pointer-events: auto;
+    display: flex; align-items: center; justify-content: center;
+    right: 20px; bottom: 20px; overflow: hidden;
+    min-width: 120px; min-height: 80px; max-width: 360px; max-height: 640px;
+    background: transparent; border-radius: 10px;
+  }
+  #fgCanvas, #fgVideo { width: 100%; height: 100%; display: block; pointer-events: none; object-fit: contain; }
+  .play-overlay { 
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9; background: rgba(0,0,0,0.8); 
+  }
+  .play-btn {
+    padding: 15px 40px; border-radius: 50px; border: none;
+    background: var(--neon-cyan); color: #000; font-weight: 800;
+    cursor: pointer; box-shadow: 0 0 20px var(--neon-cyan);
+    font-family: 'Orbitron'; text-transform: uppercase;
+  }
+
+  /* --- NOTIFICACIONES DROPDOWN (Estilo adaptado) --- */
+  .notif-wrapper { position: relative; }
   .notif-dropdown {
-      display: none; position: absolute; top: 60px; right: 0; width: 320px;
-      background: rgba(10, 10, 15, 0.95);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--neon-purple);
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-      z-index: 2000; overflow: hidden;
-      animation: slideDown 0.3s ease forwards;
+    position: absolute; top: 60px; right: -10px; width: 320px;
+    background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-purple);
+    border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    opacity: 0; pointer-events: none; transform: translateY(-10px);
+    transition: 0.2s; z-index: 2000; overflow: hidden;
+    backdrop-filter: blur(10px);
   }
-  .notif-dropdown.active { display: block; }
-  .notif-header {
-      padding: 15px; text-align: center;
-      background: linear-gradient(90deg, rgba(188,19,254,0.1), transparent);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
-      text-transform: uppercase; letter-spacing: 1px; color: var(--neon-cyan);
+  .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .notif-header { 
+    padding: 15px; background: rgba(188, 19, 254, 0.1); 
+    color: var(--neon-cyan); font-family: 'Orbitron'; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
   }
   .notif-list { max-height: 350px; overflow-y: auto; }
-  .notif-item {
-      display: flex; gap: 12px; padding: 12px 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      cursor: pointer; transition: 0.2s;
+  .notif-item { 
+    padding: 12px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); 
+    transition: 0.2s; cursor: pointer; color: #ddd;
   }
   .notif-item:hover { background: rgba(255,255,255,0.05); }
-  .notif-item img { width: 45px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #333; }
-  .notif-item-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  .notif-item-title { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 2px; }
-  .notif-item-info { font-size: 0.75rem; color: var(--neon-purple); }
-  .notif-item-date { font-size: 0.7rem; color: #888; font-style: italic; margin-top: 4px; }
-  .empty-notif { padding: 20px; text-align: center; color: #777; font-style: italic; }
-
-  /* --- EVENT MODAL --- */
+  .notif-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 4px; }
+  
+  /* --- MODAL DE NOTIFICACION (POPUP) --- */
   #eventModal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
-      z-index: 99999;
-      display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+    z-index: 99999; display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: 0.3s;
   }
   #eventModal.show { opacity: 1; pointer-events: auto; }
   .event-card {
-      background: #0b0c10; width: 90%; max-width: 420px;
-      border-radius: 16px; overflow: hidden; position: relative;
-      border: 1px solid var(--neon-cyan);
-      box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
-      transform: scale(0.9); transition: transform 0.3s;
+    background: #0b0c10; width: 90%; max-width: 400px;
+    border: 1px solid var(--neon-cyan); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+    position: relative;
   }
-  #eventModal.show .event-card { transform: scale(1); }
-  .event-visuals { position: relative; height: 220px; background: #000; overflow: hidden; }
-  .bg-blur-cover { position: absolute; width: 100%; height: 100%; opacity: 0.4; filter: blur(15px); transform: scale(1.2); object-fit: cover; }
-  .covers-wrapper { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding-bottom: 15px; gap: 15px; }
-  .main-cover-img { width: 100px; height: 150px; border-radius: 6px; transform: rotate(-3deg); border: 1px solid rgba(255,255,255,0.3); }
-  .season-cover-img { width: 120px; height: 170px; border-radius: 8px; transform: rotate(3deg) translateY(10px); border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4); }
-  .event-details { padding: 20px; text-align: center; background: linear-gradient(to bottom, #101014, #050507); border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 5; }
-  .event-title { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 5px; text-shadow: 0 0 10px rgba(188,19,254,0.8); }
-  .event-chapter-info { color: var(--neon-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; font-size: 0.9rem; }
-  .event-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 20px; font-style: italic; }
+  /* Estilos internos del modal definidos en notification-system.js pero forzamos CSS aquí para asegurar */
+  .event-visuals { position: relative; height: 220px; overflow: hidden; }
+  .bg-blur-cover { width: 100%; height: 100%; object-fit: cover; filter: blur(10px); opacity: 0.5; }
+  .covers-wrapper { position: absolute; bottom: 0; width: 100%; display: flex; justify-content: center; gap: 10px; padding-bottom: 10px; }
+  .main-cover-img { width: 100px; height: 150px; border-radius: 6px; border: 1px solid white; transform: rotate(-5deg); }
+  .season-cover-img { width: 110px; height: 160px; border-radius: 6px; border: 1px solid var(--neon-cyan); transform: rotate(5deg) translateY(10px); z-index: 2; }
+  .event-close { 
+    position: absolute; top: 10px; right: 10px; z-index: 100;
+    background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;
+  }
+  .event-inner { padding: 20px; text-align: center; background: linear-gradient(to bottom, #101014, #000); }
+  .event-title { font-family: 'Orbitron'; font-size: 1.2rem; color: white; margin-bottom: 5px; }
   .event-btn {
-      width: 100%; padding: 12px; border-radius: 50px; border: none;
-      background: white; color: black; font-weight: 800; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2); transition: 0.3s;
-  }
-  .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan); }
-  .event-close {
-      position: absolute; top: 10px; right: 10px; z-index: 50;
-      background: rgba(0,0,0,0.5); border: 1px solid white; color: white;
-      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    margin-top: 15px; width: 100%; padding: 12px; border-radius: 30px;
+    background: var(--neon-purple); color: white; font-weight: bold; border: none;
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.5); cursor: pointer;
   }
 
-  /* --- HERO & FILTROS --- */
-  .hero-container {
-    padding: 60px 20px 20px; text-align: center;
-    position: relative; z-index: 10; /* FIX MÓVIL: Para que los selects funcionen */
-  }
-  .glitch-title {
-    font-size: 3rem; margin-bottom: 10px; text-transform: uppercase;
-    font-family: 'Orbitron', sans-serif;
-    text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan);
-  }
-  
-  .controls {
-    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-    padding: 20px; max-width: 1200px; margin: 0 auto;
-    position: relative; z-index: 20; /* FIX MÓVIL */
-  }
-  select, #search {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--neon-cyan);
-    border-radius: 50px;
-    padding: 10px 20px; color: white; outline: none; cursor: pointer;
-    backdrop-filter: blur(5px); font-family: 'Poppins';
-  }
-  option { background: #000; }
-  #search { width: 200px; border-color: var(--neon-purple); }
-
-  /* --- GRID --- */
-  .container { padding: 20px 5%; min-height: 60vh; }
-  .grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px;
-  }
-  .card {
-      border-radius: 16px; overflow: hidden; position: relative; cursor: pointer;
-      transition: transform 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-      aspect-ratio: 2/3;
-  }
-  .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-  .card:hover { transform: translateY(-10px); box-shadow: 0 0 20px var(--neon-purple); }
-  .card:hover img { transform: scale(1.1); }
-  .info {
-      position: absolute; bottom: 0; left: 0; width: 100%;
-      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-      padding: 60px 15px 15px; transform: translateY(20px); opacity: 0; transition: 0.3s;
-  }
-  .card:hover .info { transform: translateY(0); opacity: 1; }
-  .info strong { display: block; color: white; font-size: 1.1rem; }
-  .info span { color: var(--neon-cyan); font-size: 0.9rem; font-weight: bold; }
-
-  /* --- FOOTER --- */
-  footer {
-    background: rgba(0,0,0,0.95); border-top: 1px solid #333;
-    padding: 40px 20px; text-align: center; color: #666; margin-top: 50px;
-  }
-
-  /* --- ANIMATIONS & STAGE --- */
-  .stage { position: fixed; bottom: 0; right: 0; pointer-events: none; z-index: 5000; }
-  #fgContainer { width: 300px; height: auto; position: relative; }
-  canvas#fgCanvas { width: 100%; height: auto; display: block; }
-  video#fgVideo { display: none; }
-  .play-overlay { position: fixed; bottom: 20px; right: 20px; z-index: 5001; pointer-events: auto; }
-  .play-btn { background: var(--neon-pink); border: none; padding: 10px 20px; color: white; border-radius: 20px; font-weight: bold; cursor: pointer; }
-
-  /* iOS Modal */
-  .ios-modal { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 320px; background: rgba(30,30,30,0.95); border: 1px solid #444; border-radius: 12px; padding: 20px; z-index: 10000; text-align: center; }
+  /* --- MODAL iOS --- */
+  .ios-modal { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 320px; background: rgba(30,30,30,0.95); border: 1px solid #444; border-radius: 12px; padding: 20px; z-index: 10000; text-align: center; color: #fff; }
   .ios-close { position: absolute; top: 5px; right: 10px; font-size: 1.5rem; cursor: pointer; }
 
+  /* --- ANIMACIONES GLITCH --- */
   @keyframes glitch {
     0% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
-    25% { text-shadow: -2px 2px 0px var(--neon-purple), 2px -2px 0px var(--neon-cyan); }
-    50% { text-shadow: 2px -2px 0px var(--neon-purple), -2px 2px 0px var(--neon-cyan); }
-    75% { text-shadow: -2px -2px 0px var(--neon-purple), 2px 2px 0px var(--neon-cyan); }
+    50% { text-shadow: -2px 2px 0px var(--neon-purple), 2px -2px 0px var(--neon-cyan); }
     100% { text-shadow: 2px 2px 0px var(--neon-purple), -2px -2px 0px var(--neon-cyan); }
   }
   @keyframes loadLine { to { width: 100%; } }
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); } }
-
-  /* --- RESPONSIVO --- */
-  @media (max-width: 768px) {
-      .header-actions { margin-left: auto; }
-      .notif-dropdown { position: fixed; top: 70px; left: 5%; width: 90%; }
-      .controls { flex-direction: column; width: 100%; gap: 15px; }
-      
-      /* FIX PARA BARRAS DE OPCIONES EN MOVIL */
-      select, #search { 
-          width: 100%; 
-          font-size: 16px; /* Evita zoom automático en iPhone */
-          padding: 14px 20px; /* Área táctil más grande */
-          background-color: rgba(20, 20, 30, 0.95); /* Menos transparencia para legibilidad */
-      }
-      
-      .glitch-title { font-size: 2.2rem; } /* Ajuste tamaño título */
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); }
   }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 768px) {
+    .cyber-nav { flex-wrap: wrap; height: auto; padding: 15px; gap: 10px; }
+    .nav-logo { order: 1; flex: 1; }
+    .nav-actions { order: 2; }
+    .search-wrapper { order: 3; width: 100%; max-width: 100%; margin: 10px 0 0; }
+    .controls-container { flex-direction: column; padding: 10px 20px; }
+    select { width: 100%; }
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .notif-dropdown { position: fixed; top: 70px; left: 10px; right: 10px; width: auto; }
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
 </style>
 </head>
 <body>
 
   <div id="page-loader">
-    <div class="loader-glitch">ARCHINIME</div>
+    <div class="loader-glitch">ARCHINIME_OS</div>
     <div style="width: 200px; height: 2px; background: #333; margin-top: 10px; overflow: hidden;">
       <div class="loader-line"></div>
     </div>
@@ -311,48 +346,46 @@
   </video>
   <div id="overlay" aria-hidden="true"></div>
   <div id="scanlines"></div>
-
-  <audio id="bg-music" autoplay></audio>
-
-  <nav class="cyber-nav" id="navbar">
-    <div class="nav-logo" onclick="openInNewTab('https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html')" title="Ir al Creador CMS">
+  <audio id="bg-music"></audio> <nav class="cyber-nav">
+    <a href="https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html" target="_blank" class="nav-logo" title="Ir al Creador CMS">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
-      ARCHINIME
+      <span>ARCHINIME</span>
+    </a>
+
+    <div class="search-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input id="search" class="search-input" placeholder="Buscar anime en la base de datos..." aria-label="Buscar anime">
     </div>
 
-    <div class="header-actions">
-        <button id="youtube-btn" class="nav-icon-btn" type="button" aria-label="Abrir YouTube" onclick="(function(e){ e.stopPropagation(); openInNewTab('https://www.youtube.com/@Archinime-k2g'); })(event)">
-          <i class="fab fa-youtube"></i>
-        </button>
+    <div class="nav-actions header-actions">
+      <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
+        <i class="fas fa-download"></i>
+      </button>
 
-        <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App">
-            <i class="fas fa-download"></i>
+      <div class="notif-wrapper">
+        <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Notificaciones">
+          <i class="fas fa-bell"></i>
+          <span id="notifBadge" class="notif-badge" style="display:none"></span>
         </button>
-
-        <div class="notif-wrapper">
-            <button id="notifBtn" class="nav-icon-btn" onclick="toggleNotifMenu()">
-                <i class="fas fa-bell"></i>
-                <span id="notifBadge" class="notif-badge" style="display:none"></span>
-            </button>
-    
-            <div id="notifMenu" class="notif-dropdown">
-                <div class="notif-header">
-                    <span>CENTRO DE MANDO</span>
-                </div>
-                <div id="notifList" class="notif-list">
-                     <div class="empty-notif">Sin novedades en el sistema.</div>
-                </div>
+        <div id="notifMenu" class="notif-dropdown">
+            <div class="notif-header">
+                <span>CENTRO DE CONTROL</span>
+            </div>
+            <div id="notifList" class="notif-list">
+                <div class="empty-notif" style="padding:20px; text-align:center; color:#666;">Sin novedades.</div>
             </div>
         </div>
+      </div>
+      
+      <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
+        <img src="youtube.avif" alt="YT" style="width:24px; border-radius:50%;">
+      </button>
     </div>
   </nav>
 
-  <header class="hero-container">
-    <h1 class="glitch-title">¡Bienvenido!</h1>
-    
-    <div class="controls" id="controls">
-      <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
-        <option value="">♾️ Todos los géneros</option>
+  <div class="controls-container controls" id="controls">
+    <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
+        <option value="">🔮 Todos los géneros</option>
         <option>Acción</option>
         <option>Animación</option>
         <option>Aventura</option>
@@ -413,31 +446,29 @@
         <option>Tragedia</option>
         <option>Yaoi</option>
         <option>Yuri</option>
-      </select>
+    </select>
 
-      <select id="demographic-select" onchange="filtro()" aria-label="Seleccionar demografía">
-        <option value="">👥 Todas las demografías</option>
-        <option>Josei</option>
-        <option>Kodomo</option>
-        <option>Seijin</option>
-        <option>Seinen</option>
-        <option>Shōjo</option>
-        <option>Shōnen</option>
-      </select>
+    <select id="demographic-select" onchange="filtro()" aria-label="Seleccionar demografía">
+      <option value="">👥 Todas las demografías</option>
+      <option>Josei</option>
+      <option>Kodomo</option>
+      <option>Seijin</option>
+      <option>Seinen</option>
+      <option>Shōjo</option>
+      <option>Shōnen</option>
+    </select>
 
-      <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
-        <option value="">⭐ Calificación Global</option>
-        <option value="excellent">⭐ Excelente (4.8+)</option>
-        <option value="good">⭐ Buena (4.6+)</option>
-        <option value="regular">⭐ Regular (&lt;4.5)</option>
-      </select>
-
-      <input id="search" placeholder="🔍 Buscar anime…" oninput="debouncedFiltro()" aria-label="Buscar anime">
-    </div>
-  </header>
+    <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
+      <option value="">⭐ Valoración: Todas</option>
+      <option value="excellent">⭐ Excelente (4.8+)</option>
+      <option value="good">⭐ Buena (4.6+)</option>
+      <option value="regular">⭐ Regular (&lt;4.5)</option>
+    </select>
+  </div>
 
   <main class="container">
-    <div class="grid" id="grid"></div>
+    <div class="grid" id="grid">
+      </div>
   </main>
 
   <div class="stage" aria-hidden="true">
@@ -445,48 +476,34 @@
       <canvas id="fgCanvas"></canvas>
       <video id="fgVideo" muted loop playsinline></video>
     </div>
-    <div class="play-overlay" id="playOverlay" style="display:none;">
-      <button class="play-btn" id="playBtn">Pulsar para iniciar</button>
+    <div class="play-overlay" id="playOverlay">
+      <button class="play-btn" id="playBtn">INICIAR SISTEMA</button>
     </div>
   </div>
-  
-  <div id="decorations" aria-hidden="true">
-    <svg id="star-template" class="shooting-star decor-hidden-mobile" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:none;" aria-hidden="true">
-      <g>
-        <circle cx="4" cy="4" r="4" fill="#fff9e0" opacity="0.98"></circle>
-        <rect class="shooting-tail" x="8" y="3" width="160" height="4"></rect>
-      </g>
-    </svg>
-  </div>
+
+  <div id="decorations" aria-hidden="true" style="position:fixed; inset:0; pointer-events:none; z-index:1;"></div>
 
   <div id="iosInstallModal" class="ios-modal">
       <div class="ios-content">
           <span class="ios-close" onclick="closeIosModal()">&times;</span>
-          <p>Para instalar <strong>Archinime</strong> en tu iPhone/iPad:</p>
-          <p>1. Pulsa el botón <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
+          <p>Para instalar <strong>Archinime</strong> en iOS:</p>
+          <p>1. Pulsa <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
           <p>2. Selecciona <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
       </div>
   </div>
 
-  <footer>
-    <img src="Logo_Archinime.avif" width="60" style="opacity:0.8; margin-bottom:20px; filter: grayscale(100%); transition:0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <p>&copy; 2026 Archinime Network. <br> <span style="color:#444">Designed for the Anime Community.</span></p>
-  </footer>
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+  </script>
 
-<script>
-  var version = new Date().getTime();
-  document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-</script>
-
-<script src="animaciones.js"></script>
-<script src="musica_fondo.js"></script>
-<script src="notification-system.js"></script>
-<script src="script-index.js"></script>
-
-<script>
-    // --- SCRIPTS VISUALES CYBERPUNK ---
-    
-    // Service Worker
+  <script src="animaciones.js"></script>
+  <script src="musica_fondo.js"></script>
+  <script src="notification-system.js"></script>
+  <script src="script-index.js"></script>
+  
+  <script>
+    // --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
@@ -495,21 +512,80 @@
         });
     }
 
-    // Loader Effect
-    window.addEventListener('load', () => {
-        const loader = document.getElementById('page-loader');
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.style.visibility = 'hidden'; }, 500);
+    // --- LOGICA DE INSTALACION (PWA HANDLER) ---
+    // (Integrada aquí para no depender de archivo externo extra)
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const iosModal = document.getElementById('iosInstallModal');
+    
+    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+    const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+
+    function checkInstallButtonVisibility() {
+        if (isMobile() && !isInStandaloneMode()) {
+            installBtn.style.display = 'flex';
+        } else {
+            installBtn.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      checkInstallButtonVisibility();
     });
 
-    // Navbar Glass Effect
-    window.addEventListener('scroll', () => {
-        const nav = document.getElementById('navbar');
-        if (window.scrollY > 50) nav.classList.add('scrolled');
-        else nav.classList.remove('scrolled');
+    installBtn.addEventListener('click', () => {
+        if (isIos()) {
+            iosModal.style.display = 'block';
+        } else if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                deferredPrompt = null;
+            });
+        } else {
+            alert("¡Ya la tienes! 😄\nLa app ya está instalada o tu navegador no soporta instalación directa.");
+        }
     });
-</script>
+
+    function closeIosModal() { iosModal.style.display = 'none'; }
+    window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
+
+    // --- LOADER HIDE ---
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('page-loader');
+      setTimeout(() => { 
+        loader.style.opacity = '0'; 
+        setTimeout(() => loader.style.visibility = 'hidden', 500);
+      }, 800);
+    });
+
+    // --- FUNCION EXTRA PARA EFECTO TILT EN CARTAS GENERADAS POR JS ---
+    // Como el script-index.js inserta las cards dinámicamente, observamos el grid
+    const gridObserver = new MutationObserver(() => {
+       document.querySelectorAll('.card').forEach(card => {
+          if(card.dataset.tiltInitialized) return;
+          card.dataset.tiltInitialized = "true";
+          
+          card.addEventListener('mousemove', (e) => {
+             const rect = card.getBoundingClientRect();
+             const x = e.clientX - rect.left;
+             const y = e.clientY - rect.top;
+             const centerX = rect.width / 2;
+             const centerY = rect.height / 2;
+             const rotateX = ((y - centerY) / centerY) * -10;
+             const rotateY = ((x - centerX) / centerX) * 10;
+             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+          });
+          card.addEventListener('mouseleave', () => {
+             card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+          });
+       });
+    });
+    const gridEl = document.getElementById('grid');
+    if(gridEl) gridObserver.observe(gridEl, { childList: true });
+  </script>
 
 </body>
 </html>
-[cite_start]```[cite: 1012, 1013, 1014]
