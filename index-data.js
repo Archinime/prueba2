@@ -5,14 +5,21 @@ const animes = [
         "img": "dan.avif",
         "rating": 4.9,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
             "Acción",
-            "Sobrenatural",
             "Comedia",
-            "Romance",
             "Comedia oscura",
+            "Romance",
+            "Sobrenatural",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1768745863080,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "dan2.jpg",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": false
     },
     {
         "id": 2,
@@ -27,7 +34,13 @@ const animes = [
             "Nekketsu",
             "Sobrenatural",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1769090404782,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 3",
+        "isFinal": false
     },
     {
         "id": 3,
@@ -80,7 +93,13 @@ const animes = [
             "Isekai",
             "Romance",
             "Seinen"
-        ]
+        ],
+        "lastUpdate": 1768680725366,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "mushoku22.jpg",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 24",
+        "isFinal": false
     },
     {
         "id": 6,
@@ -98,6 +117,12 @@ const animes = [
             "Slice of Life",
             "Shōnen"
         ],
+        "lastUpdate": 1769090734634,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "tensura3.jpg",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 24",
+        "isFinal": false,
         "aliases": [
             "That Time I Got Reincarnated as a Slime"
         ]
@@ -388,7 +413,12 @@ const animes = [
             "Romance",
             "Slice of Life",
             "Seinen"
-        ]
+        ],
+        "lastUpdate": 1768622729150,
+        "updateType": "ACTUALIZACIÓN 🛠️",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/1ds4mocfv035zgs7brobv/Definitivamente1.jpg?rlkey=xurw5jdgzeeww66ly0vmhiy6k&st=o8jyfz4c&raw=1",
+        "latestBlockName": "Ova 1",
+        "latestEpTitle": "Capítulo 1"
     },
     {
         "id": 25,
@@ -495,6 +525,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
+        "lastUpdate": 1768671992864,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 14",
         "aliases": [
             "Fumetsu no Anata e"
         ]
@@ -579,7 +614,12 @@ const animes = [
             "Fantasía",
             "Fantasía oscura",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1768672095349,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/xlkbrayxyel3kiyepr1r2/Gachiakuta1.jpg?rlkey=q5g6jlo0cv4e5z7znj70vtyor&st=uh2bwp30&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 24"
     },
     {
         "id": 37,
@@ -646,6 +686,12 @@ const animes = [
             "Superhéroes",
             "Seinen"
         ],
+        "lastUpdate": 1768943974219,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/1r0djgkxmptdfe2ltkbk1/onepunch3.jpg?rlkey=4e2i0r1cvl5ufsh5f41fa2sqm&st=woghk9gy&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 8",
+        "isFinal": false,
         "aliases": [
             "One-Punch Man"
         ]
@@ -747,19 +793,26 @@ const animes = [
     {
         "id": 47,
         "title": "Hazbin Hotel",
-        "aliases": [
-            "Hotel Hazbin"
-        ],
         "img": "hhzz.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
-            "Comedia",
-            "Musical",
-            "Drama",
             "Animación",
+            "Comedia",
+            "Drama",
+            "Musical",
             "Policial",
             "Seijin"
+        ],
+        "lastUpdate": 1769033282341,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/iz2jt0avm2d625tjb8trq/Airbrush-Image-Enhancer-1761697102126.jpg?rlkey=isj2usvel3oh22io1o620lfoi&st=8laf3wdv&raw=1",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 8",
+        "isFinal": false,
+        "aliases": [
+            "Hotel Hazbin"
         ]
     },
     {
@@ -793,7 +846,13 @@ const animes = [
             "Drama",
             "Fantasía",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1768755673346,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/mtki74k5zzzywfdegb4ir/dfffffg.jpg?rlkey=g563wasphqjhhyep83qnq548r&st=9uw7j6kq&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": false
     },
     {
         "id": 50,
@@ -827,6 +886,12 @@ const animes = [
             "Superhéroes",
             "Shōnen"
         ],
+        "lastUpdate": 1768755604711,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/1udlgl7s87fdvmwi7mp2l/Airbrush-IMAGE-ENHANCER-1762698551862-1762698551862.jpg?rlkey=e8rdhex2nwtlhyl6nume5oq9t&st=ojvzr0lg&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 11",
+        "isFinal": true,
         "aliases": [
             "Boku no Hero"
         ]
@@ -861,6 +926,12 @@ const animes = [
             "Slice of Life",
             "Seinen"
         ],
+        "lastUpdate": 1768678787339,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/tmonp4atoj90k87ojxtdf/Airbrush-IMAGE-ENHANCER-1763472470283-1763472470284.jpg?rlkey=ctc7gslr2ttsotj67parqf8ai&st=n96z3g28&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 24",
+        "isFinal": false,
         "aliases": [
             "Solo Camping for Two"
         ]
@@ -868,17 +939,24 @@ const animes = [
     {
         "id": 54,
         "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai",
-        "aliases": [
-            "Tojima Wants to Be a Kamen Rider"
-        ],
         "img": "tojima1.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
-            "Comedia",
             "Acción",
+            "Comedia",
             "Tokusatsu",
             "Seinen"
+        ],
+        "lastUpdate": 1768755501390,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": false,
+        "aliases": [
+            "Tojima Wants to Be a Kamen Rider"
         ]
     },
     {
@@ -894,6 +972,11 @@ const animes = [
             "Romance",
             "Seinen"
         ],
+        "lastUpdate": 1768672215669,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/en905hoqulm0ih9epmjcf/almachan1.jpg?rlkey=dm7s8l0lhplo8eshfsgj7fdyk&st=ji8mmsmi&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 11",
         "aliases": [
             "Alma-chan Wants to Be a Family!"
         ]
@@ -964,6 +1047,12 @@ const animes = [
             "Romance",
             "Shōjo"
         ],
+        "lastUpdate": 1768678905514,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "akujiki1.jpg",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
         "aliases": [
             "Pass the Monster Meat, Milady!"
         ]
@@ -1054,7 +1143,13 @@ const animes = [
             "Drama",
             "Misterio",
             "Seinen"
-        ]
+        ],
+        "lastUpdate": 1768945911848,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "gnosia1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": false
     },
     {
         "id": 65,
@@ -1077,18 +1172,25 @@ const animes = [
     },
     {
         "id": 66,
-        "title": "Frieren",
-        "aliases": [
-            "Sōsō no Frieren"
-        ],
+        "title": "Frieren: Más allá del final del viaje",
         "img": "ff.avif",
         "rating": 4.9,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
-            "Fantasía",
             "Aventura",
             "Drama",
+            "Fantasía",
             "Shōnen"
+        ],
+        "lastUpdate": 1769090494470,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false,
+        "aliases": [
+            "Sōsō no Frieren"
         ]
     },
     {
@@ -1166,6 +1268,12 @@ const animes = [
             "Slice of Life",
             "Shōjo"
         ],
+        "lastUpdate": 1769089782779,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "kimitokoete1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 10",
+        "isFinal": false,
         "aliases": [
             "With You, Our Love Will Make It Through"
         ]
@@ -1202,11 +1310,12 @@ const animes = [
             "Slice of Life",
             "Shōnen"
         ],
-        "lastUpdate": 1768574115561,
-        "updateType": "ESTRENO 🔥",
+        "lastUpdate": 1768944384687,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 1",
+        "latestEpTitle": "Capítulo 2",
+        "isFinal": false,
         "aliases": [
             "You And I Are Polar Opposites"
         ]
@@ -1231,6 +1340,228 @@ const animes = [
         "latestEpTitle": "Capítulo 2",
         "aliases": [
             "Yuusha-kei ni Shosu"
+        ]
+    },
+    {
+        "id": 74,
+        "title": "SHIBOYUGI: Me gano el pan participando de juegos mortales",
+        "img": "https://www.dropbox.com/scl/fi/fx5zw1358e8zykeh8qku1/ImageToStl.com_MV5BMzVmOTUyMTktZjg1ZC00ZjljLWE3MjEtNTRjMDc2Yjg1NzZiXkEyXkFqcGc._V1_-1.avif?rlkey=ejl6szzppyol14lq9nvcjgw4m&st=ipj0pclp&raw=1",
+        "rating": 4.5,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Drama",
+            "Misterio",
+            "Psicológico",
+            "Survival",
+            "Thriller",
+            "Seinen"
+        ],
+        "lastUpdate": 1769089640876,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 3",
+        "isFinal": false,
+        "aliases": [
+            "Shibou Yuugi de Meshi wo Kuu"
+        ]
+    },
+    {
+        "id": 75,
+        "title": "Date a Live",
+        "img": "https://www.dropbox.com/scl/fi/0p0mfy5af83b1u0au9ebb/datealive-1.jpg?rlkey=6cft8w0ibv4j60iqcz4bdip00&st=4i66ch8r&raw=1",
+        "rating": 4.6,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Ciencia ficción",
+            "Comedia",
+            "Drama",
+            "Fantasía",
+            "Harem",
+            "Romance",
+            "Shōnen"
+        ],
+        "lastUpdate": 1768713497317,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/twsfyhd59flqcld6hx8kf/datealive5.avif?rlkey=szzmialnfoz4pvtbb0ee84bvg&st=uptlajf8&raw=1",
+        "latestBlockName": "Temporada 5",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 76,
+        "title": "Let's Play",
+        "img": "https://www.dropbox.com/scl/fi/p8ym5q7jf3n25bh2x2aok/letsplay.avif?rlkey=byvltt6ghhpit0mutgbogn9qi&st=j3sx3sfp&raw=1",
+        "rating": 4.2,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Drama",
+            "Romance",
+            "Slice of Life",
+            "Shōnen"
+        ],
+        "lastUpdate": 1768753115346,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/hy1r4mrzb32etx0b34i65/letsplay1.avif?rlkey=ium82ha2azfcozjljkipa7iwi&st=0tdmrzz8&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 77,
+        "title": "Fire Force",
+        "img": "https://www.dropbox.com/scl/fi/yb4ceq87w77dc9tfv6hck/fireforce.avif?rlkey=vqtcwroglk2w1xksclu3fzy6k&st=x4wng0o2&raw=1",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Ciencia ficción",
+            "Comedia",
+            "Drama",
+            "Fantasía",
+            "Misterio",
+            "Sobrenatural",
+            "Shōnen"
+        ],
+        "lastUpdate": 1768920378577,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 14",
+        "isFinal": false
+    },
+    {
+        "id": 78,
+        "title": "Hana-Kimi",
+        "img": "https://www.dropbox.com/scl/fi/pjimk877gp2f1gq1fur0f/ImageToStl.com_Hana-Kimi-1.avif?rlkey=e0wi3l2w6v5vjy753cyag3sup&st=89tv9fxr&raw=1",
+        "rating": 4.6,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Drama",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Shōjo"
+        ],
+        "lastUpdate": 1768944926256,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 4",
+        "isFinal": false,
+        "aliases": [
+            "Hanazakari no kimitachi e"
+        ]
+    },
+    {
+        "id": 79,
+        "title": "Dark Moon: The Blood Altar",
+        "img": "https://www.dropbox.com/scl/fi/ypv720n8l5jvhd47c77ei/68HcRvCpiajsPhKn1MnV4hqeCAN.avif?rlkey=yulou1xyoa1ocvhu9nd0pfjxk&st=cswxzs4u&raw=1",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Escolar",
+            "Fantasía oscura",
+            "Misterio",
+            "Reverse Harem",
+            "Romance",
+            "Sobrenatural",
+            "Shōjo"
+        ],
+        "lastUpdate": 1768945828059,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 2",
+        "isFinal": false
+    },
+    {
+        "id": 80,
+        "title": "Hell's Paradise",
+        "img": "https://www.dropbox.com/scl/fi/vpt0m3tswyu0uzjsu7f1w/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769090129026-1769090129026-1.avif?rlkey=4s8i5bmu32nk7mbghl593q6h0&st=1349sffw&raw=1",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Fantasía oscura",
+            "Histórico",
+            "Sobrenatural",
+            "Suspenso",
+            "Terror",
+            "Thriller",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769099807990,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/w5est8ffkgk3w7af0c4i0/ImageToStl.com_MV5BZjhmMjhkNjUtMGU2MC00N2IzLTg1YzItZDk5ODMxMDYxODc0XkEyXkFqcGc._V1.avif?rlkey=ytkpz6jwh00o8ikvdyf95l4pq&st=9mxw44sm&raw=1",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 13",
+        "isFinal": false,
+        "aliases": [
+            "Jigokuraku."
+        ]
+    },
+    {
+        "id": 81,
+        "title": "NieR: Automata Ver1.1a",
+        "img": "https://www.dropbox.com/scl/fi/54c7obrwsgh12oojlpvkx/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769098432658-1769098432658-1.avif?rlkey=md3jxz8n24z6i6ube8locfa9o&st=1kc4iygy&raw=1",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Ciencia ficción",
+            "Drama",
+            "Post-apocalíptico",
+            "Psicológico",
+            "Seinen"
+        ],
+        "lastUpdate": 1769105148079,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/8r1nblzvbi56izp0v7kog/ImageToStl.com_sadfsf.avif?rlkey=dqr0neuyaiwp4tnhc9t8e2jcf&st=2ij9738d&raw=1",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
+        "aliases": [
+            "Automata"
+        ]
+    },
+    {
+        "id": 82,
+        "title": "TSUKIMICHI -Moonlit Fantasy-",
+        "img": "https://www.dropbox.com/scl/fi/e56h2qp9qlauoosf1h7hk/ImageToStl.com_1726486-1.avif?rlkey=ib1bvbj4pprxe9kvqcado5n9e&st=y5m4yxqn&raw=1",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Comedia",
+            "Fantasía",
+            "Harem",
+            "Isekai",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769140612459,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/v8bqukkk1hnrttxesdelv/aSdasd.avif?rlkey=6mvurri42mf2tl9vzjq7akzj9&st=3pyfls2p&raw=1",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 25",
+        "isFinal": true,
+        "aliases": [
+            "Tsuki ga Michibiku Isekai Dōchū"
         ]
     }
 ];
