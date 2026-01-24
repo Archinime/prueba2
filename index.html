@@ -249,6 +249,49 @@
   .tag-final { background: #ff0000; color: white; padding: 1px 4px; border-radius: 2px; font-size: 0.6em; }
   .empty-notif { padding: 30px; text-align: center; color: #666; font-style: italic; }
 
+  /* =======================================================
+     POPUP SELECT MÓVIL (Corrección: Estilo Cyberpunk añadido)
+     ======================================================= */
+  .mobile-select-popup {
+      position: fixed; /* Fixed es más seguro para asegurar que flote sobre todo */
+      z-index: 10000;
+      background: #0b0c10;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.95);
+      max-height: 250px;
+      min-width: 160px;
+      overflow-y: auto;
+      padding: 5px;
+      font-family: 'Poppins', sans-serif;
+      animation: fadeInPopup 0.2s ease-out;
+  }
+  @keyframes fadeInPopup { from{opacity:0; transform: translateY(5px);} to{opacity:1; transform:translateY(0);} }
+
+  .mobile-select-popup .opt {
+      padding: 10px 15px;
+      border-radius: 4px;
+      margin: 2px 0;
+      color: #ddd;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+  }
+  .mobile-select-popup .opt:hover {
+      background: rgba(255,255,255,0.05);
+  }
+  .mobile-select-popup .opt[aria-selected="true"],
+  .mobile-select-popup .opt.selected {
+      background: rgba(188, 19, 254, 0.15);
+      color: white;
+      font-weight: 700;
+      border-left: 2px solid var(--neon-purple);
+  }
+  
+  /* Scrollbar para el popup móvil */
+  .mobile-select-popup::-webkit-scrollbar { width: 4px; }
+  .mobile-select-popup::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 2px; }
+
   /* --- BARRA DE FILTROS --- */
   .controls-container {
     padding: 15px 3%;
