@@ -22,10 +22,12 @@
     --neon-cyan: #00f3ff;
     --neon-purple: #bc13fe;
     --neon-pink: #ff0055;
+    --neon-yellow: #f1c40f; 
+    --neon-red: #ff0000;
     --dark-bg: #050505;
     --glass-bg: rgba(20, 20, 30, 0.6);
     --text: #ffffff;
-  }
+ }
 
   body { 
     margin: 0; padding: 0;
@@ -43,7 +45,8 @@
 
   /* LOADER */
   #page-loader {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
     background: #000; z-index: 9999;
     display: flex; justify-content: center; align-items: center; flex-direction: column;
     transition: opacity 0.5s ease-out, visibility 0.5s;
@@ -53,13 +56,15 @@
     position: relative; animation: glitch 1s infinite;
   }
   .loader-line {
-    width: 0; height: 2px; background: var(--neon-cyan); margin-top: 10px;
+    width: 0; height: 2px; background: var(--neon-cyan);
+    margin-top: 10px;
     animation: loadLine 2s forwards ease-in-out;
   }
 
   /* FONDO */
   #bg-video {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
     object-fit: cover; z-index: -5; opacity: 0.4;
     filter: contrast(1.2) saturate(1.2);
   }
@@ -91,7 +96,8 @@
     box-shadow: 0 5px 20px rgba(0, 243, 255, 0.1);
   }
   .nav-logo { 
-    display: flex; align-items: center; gap: 10px; 
+    display: flex; align-items: center;
+    gap: 10px; 
     font-family: 'Orbitron', sans-serif; font-weight: 800; 
     font-size: 1.5rem; color: white; letter-spacing: 2px; cursor: pointer;
   }
@@ -109,18 +115,45 @@
   .search-input:focus { width: 280px; border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 0.8rem;}
   
+  /* MEJORA DE LAS BARRAS DE OPCIONES (SELECTS) */
   .cyber-select {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; color: #ccc; padding: 8px 15px;
-    font-family: 'Poppins'; font-size: 0.85rem; outline: none; cursor: pointer; transition: 0.3s;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-color: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 8px; /* Bordes más cuadrados tipo tech */
+    color: #e0e0e0;
+    padding: 10px 35px 10px 15px;
+    font-family: 'Orbitron', sans-serif; 
+    font-size: 0.8rem; letter-spacing: 1px;
+    outline: none; cursor: pointer; transition: 0.3s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    min-width: 160px;
   }
-  .cyber-select:hover { border-color: var(--neon-cyan); color: white; background: rgba(0,0,0,0.8); }
+  .cyber-select:hover { 
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    color: white; 
+  }
+  .cyber-select:focus {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 20px rgba(188, 19, 254, 0.3);
+  }
+  .cyber-select option {
+    background-color: #050505;
+    color: white;
+    padding: 10px;
+  }
 
   /* BOTONES NAV E INSTALAR */
   .nav-icon-btn {
-    background: transparent; border: none; color: white;
+    background: transparent;
+    border: none; color: white;
     font-size: 1.2rem; cursor: pointer; position: relative;
     transition: 0.3s; margin-left: 10px;
+    display: flex; align-items: center; justify-content: center;
   }
   .nav-icon-btn:hover { color: var(--neon-cyan); transform: scale(1.1); text-shadow: 0 0 10px var(--neon-cyan); }
   
@@ -134,14 +167,17 @@
 
   /* HERO */
   .hero-container {
-    padding: 80px 20px 40px; text-align: center; max-width: 1200px; margin: 0 auto;
+    padding: 80px 20px 40px;
+    text-align: center; max-width: 1200px; margin: 0 auto;
     display: flex; flex-direction: column; align-items: center;
   }
   .hero-badge {
     padding: 6px 20px; border-radius: 50px;
-    background: rgba(0, 243, 255, 0.05); border: 1px solid var(--neon-cyan);
+    background: rgba(0, 243, 255, 0.05);
+    border: 1px solid var(--neon-cyan);
     color: var(--neon-cyan); font-size: 0.8rem; font-weight: 700; margin-bottom: 25px;
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1); text-transform: uppercase; letter-spacing: 2px;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+    text-transform: uppercase; letter-spacing: 2px;
   }
   .glitch-title {
     font-size: 4rem; line-height: 1; margin-bottom: 20px; text-transform: uppercase;
@@ -151,7 +187,8 @@
   .cta-btn {
     padding: 14px 35px; border-radius: 50px;
     background: var(--neon-cyan); color: #000; font-weight: 800;
-    text-transform: uppercase; font-size: 0.9rem;
+    text-transform: uppercase;
+    font-size: 0.9rem;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; border: none;
     transition: 0.3s;
   }
@@ -160,43 +197,42 @@
   /* FILTROS */
   .advanced-filters {
     display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
-    margin-bottom: 40px; padding: 20px;
-    background: rgba(255,255,255,0.02); border-radius: 20px;
+    margin-bottom: 40px; padding: 25px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.4) 100%); 
+    border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
   }
 
   /* GRID */
   .grid-section { padding: 0 5%; max-width: 1400px; margin: 0 auto 80px; }
   .section-header { 
     display: flex; justify-content: space-between; align-items: end;
-    margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; 
+    margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 15px; 
   }
   .section-title { font-size: 1.8rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; }
 
   #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; width: 100%; }
   #grid > div, #grid > a {
     position: relative; border-radius: 16px; overflow: hidden;
-    aspect-ratio: 2/3; cursor: pointer; 
+    aspect-ratio: 2/3;
+    cursor: pointer; 
     transition: transform 0.3s ease-out, box-shadow 0.3s;
     box-shadow: 0 10px 20px rgba(0,0,0,0.5); display: block;
   }
   #grid img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; transform: scale(1.01); }
   #grid > div:hover, #grid > a:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); z-index: 10; }
 
-  /* =========================================
-     2. ELEMENTOS PARA ANIMACIONES VERDES (IMPORTANTE)
-     ========================================= */
+  /* ELEMENTOS PARA ANIMACIONES VERDES */
   #fgContainer {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 9000; pointer-events: none; /* Dejar pasar clics */
-    display: block; /* Debe estar visible para que el canvas pinte */
+    z-index: 9000; pointer-events: none; display: block;
   }
   #fgCanvas { width: 100%; height: 100%; display: block; }
-  #fgVideo { display: none; } /* El video se oculta, se pinta en canvas */
+  #fgVideo { display: none; }
 
-  /* =========================================
-     3. NOTIFICACIONES Y POPUP (ESTILO)
-     ========================================= */
+  /* NOTIFICACIONES Y POPUP */
   .notif-badge {
     position: absolute; top: -5px; right: -5px;
     background: var(--neon-pink); color: white;
@@ -207,10 +243,12 @@
     width: 320px; background: rgba(15, 15, 20, 0.98);
     border: 1px solid var(--neon-purple); border-radius: 12px;
     backdrop-filter: blur(10px); display: none; z-index: 2000;
-    box-shadow: 0 0 30px rgba(188, 19, 254, 0.2); overflow: hidden;
+    box-shadow: 0 0 30px rgba(188, 19, 254, 0.2);
+    overflow: hidden;
   }
   .notif-dropdown.active { display: block; }
-  .notif-header { padding: 12px; background: rgba(255,255,255,0.05); font-weight: bold; text-align: center; color: var(--neon-cyan); border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .notif-header { padding: 12px; background: rgba(255,255,255,0.05); font-weight: bold; text-align: center;
+    color: var(--neon-cyan); border-bottom: 1px solid rgba(255,255,255,0.1); }
   .notif-list { max-height: 400px; overflow-y: auto; }
   .notif-item { display: flex; gap: 10px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; position: relative;}
   .notif-item:hover { background: rgba(255,255,255,0.05); }
@@ -218,10 +256,7 @@
   .notif-item-content { display: flex; flex-direction: column; justify-content: center; }
   .notif-item-title { font-size: 0.9rem; font-weight: 600; color: white; }
   .notif-item-info { font-size: 0.75rem; margin-top: 2px; }
-  .notif-final-badge {
-      position: absolute; bottom: 5px; right: 5px;
-      width: 40px; filter: drop-shadow(0 0 2px red);
-  }
+  .notif-final-badge { position: absolute; bottom: 5px; right: 5px; width: 40px; filter: drop-shadow(0 0 2px red); }
 
   /* POPUP MODAL (AVISO NUEVO CAP) */
   #eventModal {
@@ -238,25 +273,43 @@
       border: 1px solid var(--neon-purple);
       box-shadow: 0 0 50px rgba(188, 19, 254, 0.3); position: relative;
   }
-  .event-visuals { width: 40%; position: relative; overflow: hidden; }
-  .bg-blur-cover { width: 100%; height: 100%; object-fit: cover; filter: blur(8px) brightness(0.4); transform: scale(1.1); }
-  .covers-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; text-align: center; }
-  .main-cover-img { width: 130px; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.8); position: relative; z-index: 2; }
   
-  /* ESTILOS ESPECÍFICOS PARA FINAL.PNG Y BADGES */
+  /* Arreglo Botón Cerrar (X) */
+  .event-close { 
+      position: absolute; top: 10px; right: 10px; 
+      background: rgba(0,0,0,0.7); border: 1px solid white; color: #fff; 
+      width: 30px; height: 30px; border-radius: 50%;
+      font-size: 1.2rem; cursor: pointer; z-index: 100; /* Z-index alto */
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.3s;
+  }
+  .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); }
+
+  .event-visuals { width: 40%; position: relative; overflow: hidden; background: #000; }
+  /* Fondo borroso (Imagen Anime) */
+  .bg-blur-cover { width: 100%; height: 100%; object-fit: cover; filter: blur(4px) brightness(0.4); transform: scale(1.1); }
+  /* Portada Temporada (Pequeña) */
+  .covers-wrapper { 
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+      width: 100%; text-align: center; z-index: 2;
+  }
+  .main-cover-img { 
+      width: 140px; border-radius: 8px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.2);
+  }
+  
   .final-img-overlay {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
       width: 80%; z-index: 10; pointer-events: none; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8));
   }
   .lang-badge {
       position: absolute; bottom: 10px; right: 10px;
-      background: rgba(0,0,0,0.8); color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+      background: rgba(0,0,0,0.8); 
       padding: 3px 8px; font-size: 0.7rem; font-weight: bold; border-radius: 4px;
-      z-index: 5; text-transform: uppercase;
+      z-index: 5; text-transform: uppercase; border: 1px solid;
   }
 
   .event-inner { width: 60%; padding: 30px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(to right, #111, #1a1a20); position: relative; }
-  .event-close { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
   .event-title { font-family: 'Orbitron'; font-size: 1.8rem; margin-bottom: 10px; color: white; line-height: 1.2; }
   .event-chapter-info { color: var(--neon-cyan); font-weight: 600; margin-bottom: 15px; font-size: 1rem; }
   .event-btn {
@@ -267,8 +320,10 @@
   }
 
   /* MODAL iOS */
-  .ios-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; align-items: center; justify-content: center; }
-  .ios-content { background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid var(--neon-cyan); color: white; text-align: center; max-width: 300px; }
+  .ios-modal { display: none; position: fixed; top: 0; left: 0; width: 100%;
+    height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; align-items: center; justify-content: center; }
+  .ios-content { background: #1a1a1a; padding: 25px; border-radius: 15px;
+    border: 1px solid var(--neon-cyan); color: white; text-align: center; max-width: 300px; }
 
   @media (max-width: 768px) {
     .cyber-nav { flex-direction: column; gap: 15px; }
@@ -276,7 +331,7 @@
     .search-input { width: 100%; }
     .event-card { flex-direction: column; height: 85vh; overflow-y: auto; }
     .event-visuals, .event-inner { width: 100%; }
-    .event-visuals { height: 250px; }
+    .event-visuals { height: 300px; flex-shrink: 0; }
   }
   
   @keyframes glitch {
@@ -316,11 +371,12 @@
   <div class="nav-center" id="navMenu">
     <div class="search-container">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="search" class="search-input" placeholder="Buscar anime..." oninput="if(typeof debouncedFiltro === 'function') debouncedFiltro();">
+      <input type="text" id="search" class="search-input" 
+        placeholder="Buscar anime..." oninput="if(typeof debouncedFiltro === 'function') debouncedFiltro();">
     </div>
 
     <div class="control-group">
-        <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App en Escritorio/Móvil">
+        <button id="installBtn" class="nav-icon-btn install-pulse" style="display:none;" title="Instalar App">
             <i class="fas fa-download"></i>
         </button>
 
@@ -329,12 +385,13 @@
                 <i class="fas fa-bell"></i>
                 <span id="notifBadge" class="notif-badge" style="display:none"></span>
             </button>
-            <div id="notifMenu" class="notif-dropdown">
+ 
+           <div id="notifMenu" class="notif-dropdown">
                 <div class="notif-header">Sistema de Novedades</div>
                 <div id="notifList" class="notif-list">
                     <div style="padding:20px; text-align:center; color:#888;">Cargando red...</div>
                 </div>
-            </div>
+           </div>
         </div>
         
         <button class="nav-icon-btn" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')">
@@ -353,8 +410,9 @@
   </button>
 
   <div class="advanced-filters reveal" style="margin-top: 30px;">
-      <select id="genre-select" onchange="filtro()" class="cyber-select">
-        <option value="">♾️ Todos los géneros</option>
+   
+    <select id="genre-select" onchange="filtro()" class="cyber-select">
+        <option value="">♾️ Géneros</option>
         <option>Acción</option><option>Aventura</option><option>Ciencia ficción</option>
         <option>Comedia</option><option>Drama</option><option>Ecchi</option>
         <option>Escolar</option><option>Fantasía</option><option>Harem</option>
@@ -363,11 +421,11 @@
         <option>Sobrenatural</option><option>Terror</option>
       </select>
       <select id="demographic-select" onchange="filtro()" class="cyber-select">
-        <option value="">👥 Todas las demografías</option>
+        <option value="">👥 Demografía</option>
         <option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
       </select>
       <select id="rating-select" onchange="filtro()" class="cyber-select">
-        <option value="">⭐ Todas</option>
+        <option value="">⭐ Calificación</option>
         <option value="excellent">⭐ Excelente (4.8+)</option>
         <option value="good">⭐ Buena (4.6+)</option>
       </select>
@@ -413,7 +471,6 @@
     if(video) video.play().catch(e => console.log("Autoplay bloqueado"));
   });
 
-  // Animación al hacer scroll
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if(entry.isIntersecting) entry.target.classList.add('active');
@@ -421,7 +478,6 @@
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // Función para activar audio y asegurar que el canvas de animaciones cargue
   function iniciarExperiencia() {
       const audio = document.getElementById('bg-music');
       if(audio) {
@@ -439,13 +495,50 @@
 
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
-<script src="pwa-handler.js"></script> <script>
-/* ========================================================
-   NOTIFICATION SYSTEM (Versión Modificada para Index Cyberpunk)
-   - Soporte para final.png
-   - Detección de Latino/Sub
-   ======================================================== */
-let notificationQueue = []; 
+
+<script>
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+const iosModal = document.getElementById('iosInstallModal');
+
+const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+
+function checkInstallButtonVisibility() {
+    // Si es móvil y NO está instalada, mostramos el botón
+    if (isMobile() && !isInStandaloneMode()) {
+        installBtn.style.display = 'flex';
+    } else {
+        installBtn.style.display = 'none';
+    }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  checkInstallButtonVisibility();
+});
+
+installBtn.addEventListener('click', () => {
+    if (isIos()) {
+        iosModal.style.display = 'flex';
+    } else if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+             deferredPrompt = null;
+        });
+    } else {
+        // Fallback por si el navegador no dispara el evento pero es movil
+        alert("Para instalar: Busca la opción 'Instalar aplicación' o 'Agregar a pantalla de inicio' en tu navegador.");
+    }
+});
+window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
+window.addEventListener('resize', checkInstallButtonVisibility);
+</script>
+
+<script>
+let notificationQueue = [];
 let notificationsHistory = []; 
 let isMenuOpen = false;
 
@@ -460,7 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored); } catch (e) { notificationsHistory = []; }
+        try { notificationsHistory = JSON.parse(stored);
+        } catch (e) { notificationsHistory = []; }
     }
 }
 function saveHistoryToStorage() {
@@ -471,8 +565,8 @@ function saveHistoryToStorage() {
 function checkForNewUpdates() {
     const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
     let newItemsFound = [];
+    
     updatedAnimes.forEach(anime => {
         if (anime.updateType.includes("ACTUALIZACIÓN")) return;
         if (anime.updateType === "Ninguna") return; 
@@ -492,7 +586,8 @@ function checkForNewUpdates() {
                 type: anime.updateType,
                 date: anime.lastUpdate,
                 seen: false,
-                isFinal: anime.isFinal || false // Aquí detectamos el FINAL del CMS
+                isFinal: anime.isFinal || false,
+                langs: anime.langs || [] // Leer idiomas del Index
             };
             notificationsHistory.unshift(newNotif); 
             newItemsFound.push(newNotif);
@@ -500,8 +595,10 @@ function checkForNewUpdates() {
     });
 
     if (newItemsFound.length > 0) {
+        // Limite Historial: 50
         if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
+        // Limite Popups Inicio: 5
         if (newItemsFound.length > 5) newItemsFound = newItemsFound.slice(0, 5);
         notificationQueue = newItemsFound;
         showNextPopup();
@@ -520,24 +617,39 @@ function createPopupHTML(notif) {
 
     const modal = document.createElement('div');
     modal.id = 'eventModal';
+    
     let infoString = notif.epTitle;
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString = `${notif.blockName} - ${notif.epTitle}`;
     }
 
-    // LÓGICA DE DETECCIÓN DE IDIOMA (Basado en título o tipo)
-    let langLabel = "SUB ESP"; // Por defecto
+    // LÓGICA DE IDIOMA CORRECTA
+    let langLabel = "SUB";
     let langColor = "var(--neon-purple)";
-    const lowerInfo = infoString.toLowerCase();
-    const lowerTitle = notif.title.toLowerCase();
     
-    // Si dice "Latino" en el título del cap o del anime, o si el usuario puso "Audio Latino" manualmente
-    if (lowerInfo.includes("latino") || lowerTitle.includes("latino") || notif.type.includes("LATINO")) {
-        langLabel = "LATINO";
-        langColor = "var(--neon-pink)";
+    // Si el CMS envió la info de idiomas
+    if(notif.langs && notif.langs.length > 0) {
+        const hasLat = notif.langs.includes('lat');
+        const hasSub = notif.langs.includes('sub');
+        if (hasLat && hasSub) { langLabel = "DUAL"; langColor = "#00f0ff"; }
+        else if (hasLat) { langLabel = "LATINO"; langColor = "var(--neon-pink)"; }
+        else { langLabel = "SUB"; langColor = "var(--neon-purple)"; }
+    } else {
+        // Fallback antiguo si no hay datos nuevos
+        const lowerInfo = infoString.toLowerCase();
+        const lowerTitle = notif.title.toLowerCase();
+        if (lowerInfo.includes("latino") || lowerTitle.includes("latino") || notif.type.includes("LATINO")) {
+            langLabel = "LATINO"; langColor = "var(--neon-pink)";
+        }
     }
 
-    // LÓGICA DE IMAGEN FINAL
+    // LÓGICA DE COLORES DE ESTADO
+    let statusColor = "var(--neon-cyan)";
+    if (notif.type.includes("ESTRENO")) statusColor = "var(--neon-red)";
+    else if (notif.type.includes("PRÓXIMAMENTE")) statusColor = "var(--neon-yellow)";
+    else if (notif.type.includes("NUEVO")) statusColor = "var(--neon-purple)";
+
+    // IMAGEN FINAL
     let finalImgHTML = '';
     if (notif.isFinal) {
         finalImgHTML = `<img src="final.png" class="final-img-overlay" alt="FINAL">`;
@@ -546,20 +658,25 @@ function createPopupHTML(notif) {
     modal.innerHTML = `
         <div class="event-card">
             <button class="event-close" onclick="closePopup()"><i class="fas fa-times"></i></button>
+            
             <div class="event-visuals">
                 <img src="${notif.img}" class="bg-blur-cover">
+                
                 <div class="covers-wrapper">
                     <img src="${notif.seasonCover}" class="main-cover-img">
                 </div>
+                
                 ${finalImgHTML}
                 <div class="lang-badge" style="color:${langColor}; border-color:${langColor}">${langLabel}</div>
             </div>
+            
             <div class="event-inner">
                  <div class="event-details">
-                    <div style="color:var(--neon-cyan); font-weight:bold; margin-bottom:5px;">${notif.type}</div>
+                    <div style="color:${statusColor}; font-weight:800; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">${notif.type}</div>
                     <div class="event-title">${notif.title}</div>
                     <div class="event-chapter-info">${infoString}</div>
                     <p style="color:#aaa; font-size:0.9rem;">Ya disponible en la plataforma.</p>
+              
                     <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
                         <i class="fas fa-play"></i> VER AHORA
                     </button>
@@ -626,13 +743,29 @@ function renderNotificationList() {
         let infoString = item.epTitle;
         if (item.blockName && item.blockName !== "Novedad") infoString = `${item.blockName} - ${item.epTitle}`;
 
-        // Lógica visual pequeña para la lista
         let finalBadge = item.isFinal ? `<img src="final.png" class="notif-final-badge">` : '';
         
-        // Detección idioma en lista
+        // Detección idioma en lista (Igual que Popup)
         let langSmall = "SUB";
-        if (infoString.toLowerCase().includes("latino") || item.title.toLowerCase().includes("latino")) langSmall = "LAT";
-        let langColor = langSmall === "LAT" ? "#ff0055" : "#bc13fe";
+        let langColor = "#bc13fe";
+        
+        if(item.langs && item.langs.length > 0) {
+            const hasLat = item.langs.includes('lat');
+            const hasSub = item.langs.includes('sub');
+            if (hasLat && hasSub) { langSmall = "DUAL"; langColor = "#00f0ff"; }
+            else if (hasLat) { langSmall = "LAT"; langColor = "#ff0055"; }
+        } else {
+             // Fallback
+             if (infoString.toLowerCase().includes("latino") || item.title.toLowerCase().includes("latino")) {
+                 langSmall = "LAT"; langColor = "#ff0055";
+             }
+        }
+        
+        // Color Estado en Lista
+        let statusColor = "#00f3ff";
+        if (item.type.includes("ESTRENO")) statusColor = "#ff0000";
+        else if (item.type.includes("PRÓXIMAMENTE")) statusColor = "#f1c40f";
+        else if (item.type.includes("NUEVO")) statusColor = "#bc13fe";
 
         div.innerHTML = `
             <div style="position:relative;">
@@ -642,9 +775,9 @@ function renderNotificationList() {
             <div class="notif-item-content" onclick="window.location.href='anime-detail.html?id=${item.animeId}'">
                 <div class="notif-item-title">${item.title}</div>
                  <div class="notif-item-info">
-                    <span style="color:${langColor}; font-weight:bold;">${langSmall}</span> • ${item.type}
+                    <span style="color:${langColor}; font-weight:bold;">${langSmall}</span> • <span style="color:${statusColor}">${item.type}</span>
                  </div>
-                <div class="notif-item-date">${infoString}</div>
+                <div class="notif-item-date" style="color:#888;">${infoString}</div>
             </div>
         `;
         listContainer.appendChild(div);
@@ -669,7 +802,6 @@ function markAsRead(notifId) {
 <script src="script-index.js"></script>
 
 <script>
-  // Registrar Service Worker para PWA
   if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fallo: ', err));
