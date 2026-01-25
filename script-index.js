@@ -8,16 +8,18 @@ function render(list) {
     if (!list || list.length === 0) {
         grid.innerHTML = `
         <div class="no-results" role="status" aria-live="polite">
-        <div class="title shimmer">¡Ups! No se encontraron resultados que coincidan con la búsqueda.</div>
-        <div class="subtitle">¿No lo encuentras? Puede que lo hayas escrito con un error o que todavía no lo haya subido.</div>
+        <div class="title shimmer">¡Ups!
+        No se encontraron resultados que coincidan con la búsqueda.</div>
+        <div class="subtitle">¿No lo encuentras?
+        Puede que lo hayas escrito con un error o que todavía no lo haya subido.</div>
         <div class="sparkles"><button class="btn-reset" id="btn-reset">Entiendo</button></div>
         </div>
     `;
-        const btn = document.getElementById('btn-reset');
+    const btn = document.getElementById('btn-reset');
         if (btn) btn.addEventListener('click', () => {
         document.getElementById('search').value = '';
         document.getElementById('genre-select').value = '';
-        document.getElementById('demographic-select') && (document.getElementById('demographic-select').value = '');
+        if(document.getElementById('demographic-select')) document.getElementById('demographic-select').value = '';
         document.getElementById('rating-select').value = '';
         filtro();
         document.getElementById('search').focus();
@@ -36,7 +38,8 @@ function render(list) {
 
 function updateResultsCount(count){ const el = document.getElementById('results-count'); if (el) el.textContent = count; }
 
-function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
+function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t);
+    t=setTimeout(()=>fn(...a), wait); }; }
 
 const debouncedFiltro = debounce(filtro, 200);
 function normalizeText(s){
@@ -47,7 +50,8 @@ function normalizeText(s){
     }
 }
 
-function getBestTitleForSort(a){ const titles = [a.title].concat(a.aliases || []); const norm = titles.map(t=>normalizeText(t)); norm.sort(); return norm[0]; }
+function getBestTitleForSort(a){ const titles = [a.title].concat(a.aliases || []);
+    const norm = titles.map(t=>normalizeText(t)); norm.sort(); return norm[0]; }
 
 function filtro(){
     const qRaw = document.getElementById('search').value || '';
@@ -66,6 +70,7 @@ function filtro(){
     if (cat==='excellent') byRating = a.rating >= 4.8;
     else if (cat==='good') byRating = a.rating >= 4.6 && a.rating < 4.8;
     else if (cat==='regular') byRating = a.rating < 4.6;
+   
     return matchesText && byGenre && byDemo && byRating;
     });
     let resultList = filtrados.slice();
@@ -89,7 +94,8 @@ function filtro(){
 }
 
 // inicial -> orden aleatorio en la grid
-function shuffleArray(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function shuffleArray(arr){ const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 if (typeof animes !== 'undefined') {
     render(shuffleArray(animes));
@@ -129,10 +135,12 @@ window.addEventListener('DOMContentLoaded', () => {
     try { video.preload = video.getAttribute('preload') || 'metadata'; } catch(e){ console.warn(e); }
     video.muted = true; video.playsInline = true;
     const revealVideo = () => { video.style.opacity = '1'; overlay.style.opacity = '0'; };
-    overlay.addEventListener('transitionend', (ev) => { if (ev.propertyName === 'opacity' && getComputedStyle(overlay).opacity === '0') overlay.style.display = 'none'; });
+    overlay.addEventListener('transitionend', (ev) => 
+    { if (ev.propertyName === 'opacity' && getComputedStyle(overlay).opacity === '0') overlay.style.display = 'none'; });
     video.addEventListener('playing', () => { revealVideo(); }, { once: true });
     video.addEventListener('canplaythrough', () => { video.play().catch(()=>{}); }, { once: true });
-    video.addEventListener('loadeddata', () => { video.play().catch(()=>{}); }, { once: true });
+    video.addEventListener('loadeddata', () => { video.play().catch(()=>{});
+    }, { once: true });
     }
 });
 
@@ -159,7 +167,7 @@ window.addEventListener('DOMContentLoaded', () => {
         
         if (hints.processingScale >= 0.6) {
             audio.play().catch(()=> { 
-                document.addEventListener('click', ()=>{ audio.play().catch(()=>{}); }, { once: true }); 
+            document.addEventListener('click', ()=>{ audio.play().catch(()=>{}); }, { once: true }); 
             });
         }
     }
@@ -169,13 +177,13 @@ window.addEventListener('DOMContentLoaded', () => {
         currentMusicIndex = currentMusicIndex + 1; 
         playByIndex(currentMusicIndex); 
     });
-
     // Reproducir la primera (que fue aleatoria)
     playByIndex(currentMusicIndex);
 });
 
 // función utilitaria para abrir en nueva pestaña
-function openInNewTab(url){ try{ const w = window.open(url, '_blank'); if (w) w.focus(); }catch(e){} }
+function openInNewTab(url){ try{ const w = window.open(url, '_blank'); if (w) w.focus();
+}catch(e){} }
 
 /* ----------------------------
     Chroma + FG logic
@@ -331,7 +339,8 @@ function processFrame(video, infoObj){
     if (!offCtx) return;
     try { offCtx.drawImage(video, 0, 0, off.width, off.height);
     } catch (err) {
-    usingChroma = false; fgCanvas.style.display = 'none'; fgVideo.style.display = 'block';
+    usingChroma = false; fgCanvas.style.display = 'none';
+    fgVideo.style.display = 'block';
     fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
     return;
     }
@@ -342,7 +351,8 @@ function processFrame(video, infoObj){
     fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
     return;
     }
-    const settings = infoObj && infoObj.preset ? infoObj.preset : { threshold:0.4, diff:30, soft:30 };
+    const settings = infoObj && infoObj.preset ?
+    infoObj.preset : { threshold:0.4, diff:30, soft:30 };
     const keyColor = infoObj && infoObj.keyColor ? infoObj.keyColor : 'green';
     const processed = applyChromaKey(frame, settings, keyColor);
     offCtx.putImageData(processed, 0, 0);
@@ -404,7 +414,6 @@ function resizeFireCanvas(){
 }
 window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
-
 function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 const hints = getPerformanceHints();
 const rect = fgContainer.getBoundingClientRect();
@@ -436,7 +445,6 @@ particles.push({
 
 const safeTimeoutMs = Math.round(duration + 400);
 const start = performance.now();
-
 return new Promise(resolve => {
 let lastFrameTime = 0;
 let finished = false;
@@ -489,19 +497,21 @@ function frame(now){
         finished = true;
         clearTimeout(safeTimer);
         try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
-        } catch(e){}
+    } catch(e){}
         resolve();
     }
     } catch (err) {
     finished = true;
     clearTimeout(safeTimer);
-    try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height); } catch(e){}
+    try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
+    } catch(e){}
     resolve();
     }
 }
 try { requestAnimationFrame(frame); } catch (err) {
     clearTimeout(safeTimer);
-    try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height); } catch(e){}
+    try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
+    } catch(e){}
     resolve();
 }
 });
@@ -512,7 +522,8 @@ async function doFireworkThenHide(){
     isAnimatingExplosion = true;
     try {
     await new Promise(r => setTimeout(r, 8));
-    try { fgVideo.pause(); } catch(e){}
+    try { fgVideo.pause();
+    } catch(e){}
     const rect = fgContainer.getBoundingClientRect();
     const cx = rect.width / 2;
     const cy = rect.height / 2;
@@ -586,12 +597,14 @@ fgContainer.addEventListener('click', async (ev) => {
     const next = pickRandomVideo(currentId);
     setTimeout(() => { playVideoClip(next); }, 420);
 });
+
 document.getElementById('playBtn').addEventListener('click', ()=>{
     document.getElementById('playOverlay').style.display = 'none';
     bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
     try { bgMusic.play().catch(()=>{}); } catch(e){}
     if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
 });
+
 let resizeRaf = null;
 window.addEventListener('resize', ()=> {
     if (resizeRaf) return;
@@ -603,6 +616,7 @@ window.addEventListener('resize', ()=> {
     resizeRaf = null;
     });
 }, {passive:true});
+
 document.addEventListener('visibilitychange', ()=> {
     if (document.hidden) {
     visibilityPaused = true;
@@ -613,13 +627,13 @@ document.addEventListener('visibilitychange', ()=> {
         startChromaIntervalIfNeeded(currentVideoObj);
     }
     }
-}, 
-{passive:true});
+}, {passive:true});
 
 /* ----------------------------
-    POPUP MÓVIL
+    POPUP MÓVIL (CORREGIDO Y OPTIMIZADO PARA MÓVILES)
     ---------------------------- */
 (function mobileSelectPopups() {
+    // Detectamos si es móvil usando matchMedia, igual que el CSS
     const mobileQ = () => window.matchMedia('(max-width:780px)').matches;
     const SELECT_IDS = ['genre-select','demographic-select','rating-select'];
     let activePopup = null;
@@ -628,141 +642,165 @@ document.addEventListener('visibilitychange', ()=> {
     let scrollListener = null;
 
     function closePopup() {
-    if (activePopup) {
-        try { activePopup.remove(); } catch(e){}
-        activePopup = null;
+        if (activePopup) {
+            try { activePopup.remove(); } catch(e){}
+            activePopup = null;
+        }
+        if (outsideListener) { document.removeEventListener('pointerdown', outsideListener, true); outsideListener = null; }
+        if (resizeListener) { window.removeEventListener('resize', resizeListener); resizeListener = null; }
+        if (scrollListener) { window.removeEventListener('scroll', scrollListener, true); scrollListener = null; }
     }
-    if (outsideListener) { document.removeEventListener('pointerdown', outsideListener, true); outsideListener = null; }
-    if (resizeListener) { window.removeEventListener('resize', resizeListener); resizeListener = null; }
-    if (scrollListener) { window.removeEventListener('scroll', scrollListener, true); scrollListener = null; }
+
+    function togglePopup(selectEl, e) {
+        if (!mobileQ()) return; // Si no es móvil, dejamos que el navegador actúe nativamente
+        
+        // ¡CRUCIAL! Prevenimos el comportamiento nativo inmediatamente
+        e.preventDefault(); 
+        e.stopPropagation();
+
+        // Si ya está abierto ESTE MISMO popup, lo cerramos (toggle)
+        if (activePopup && activePopup.dataset.owner === selectEl.id) {
+            closePopup();
+            return;
+        }
+
+        openPopupFor(selectEl);
     }
 
     function createPopupFor(selectEl) {
-    selectEl.addEventListener('click', function onClick(e){
-        if (!mobileQ()) return; 
-        e.preventDefault();
-        e.stopPropagation();
-        openPopupFor(selectEl);
-    });
-    selectEl.addEventListener('keydown', (e) => {
-        if (!mobileQ()) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openPopupFor(selectEl);
-        }
-    });
+        // Escuchamos 'mousedown' para interceptar ANTES de que el navegador abra el nativo
+        selectEl.addEventListener('mousedown', function(e) {
+            togglePopup(selectEl, e);
+        });
+        
+        // También 'click' por si acaso
+        selectEl.addEventListener('click', function(e) {
+            togglePopup(selectEl, e);
+        });
+
+        // Soporte para teclado (Enter/Espacio) en móvil (accesibilidad básica)
+        selectEl.addEventListener('keydown', (e) => {
+            if (!mobileQ()) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                togglePopup(selectEl, e);
+            }
+        });
     }
 
     function openPopupFor(selectEl) {
-    closePopup();
-    const rect = selectEl.getBoundingClientRect();
-    const docEl = document.documentElement;
-    const winW = Math.max(docEl.clientWidth || 0, window.innerWidth || 0);
-    const winH = Math.max(docEl.clientHeight || 0, window.innerHeight || 0);
-
-    const popup = document.createElement('div');
-    popup.className = 'mobile-select-popup';
-    popup.setAttribute('role','listbox');
-    popup.setAttribute('aria-label', selectEl.getAttribute('aria-label') || 'Opciones');
-
-    const pad = 8;
-    const maxHeight = window.matchMedia('(max-width:420px)').matches ? 120 : 160;
-    popup.style.maxHeight = maxHeight + 'px';
-    const width = Math.min(rect.width, Math.max(120, winW - 24));
-    popup.style.minWidth = Math.max(110, width) + 'px';
-
-    let top = rect.bottom + 6;
-    const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 36 : maxHeight));
-    if (top + estimatedHeight + pad > winH) {
-        top = rect.top - estimatedHeight - 6;
-        if (top < pad) top = pad;
-    }
-    popup.style.left = Math.max(pad, rect.left) + 'px';
-    popup.style.top = Math.max(pad, top) + 'px';
-
-    const opts = Array.from(selectEl.options);
-    opts.forEach((opt, idx) => {
-        const d = document.createElement('div');
-        d.className = 'opt';
-        d.setAttribute('role','option');
-        d.setAttribute('data-value', opt.value || opt.text);
-        d.setAttribute('tabindex','0');
-        if (opt.selected) d.setAttribute('aria-selected','true');
-        d.textContent = opt.textContent || opt.innerText || opt.value;
-
-        d.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        try {
-            selectEl.value = opt.value;
-            Array.from(selectEl.options).forEach(o => o.selected = (o.value === opt.value));
-            const evCh = new Event('change', { bubbles: true });
-            selectEl.dispatchEvent(evCh);
-        } catch(e){}
         closePopup();
-            try { selectEl.focus();
-        } catch(e){}
+        const rect = selectEl.getBoundingClientRect();
+        const docEl = document.documentElement;
+        const winW = Math.max(docEl.clientWidth || 0, window.innerWidth || 0);
+        const winH = Math.max(docEl.clientHeight || 0, window.innerHeight || 0);
+
+        // Crear el DIV del popup
+        const popup = document.createElement('div');
+        popup.className = 'mobile-select-popup';
+        popup.setAttribute('role','listbox');
+        popup.setAttribute('aria-label', selectEl.getAttribute('aria-label') || 'Opciones');
+        popup.dataset.owner = selectEl.id;
+
+        const pad = 8;
+        const maxHeight = window.matchMedia('(max-width:420px)').matches ? 180 : 250;
+        popup.style.maxHeight = maxHeight + 'px';
+        
+        // Ancho
+        const width = Math.min(rect.width, Math.max(160, winW - 24));
+        popup.style.minWidth = Math.max(140, width) + 'px';
+        
+        // Cálculo de posición corregido (considerando scroll global)
+        const scrollY = window.scrollY || window.pageYOffset;
+        let top = rect.bottom + scrollY + 6;
+        
+        const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 42 : maxHeight));
+
+        // Si se sale por abajo, mostrar arriba
+        if ((rect.bottom + estimatedHeight + pad) > winH) {
+            top = (rect.top + scrollY) - estimatedHeight - 6;
+        }
+        
+        popup.style.left = Math.max(pad, rect.left) + 'px';
+        popup.style.top = top + 'px';
+
+        // Llenar opciones
+        const opts = Array.from(selectEl.options);
+        opts.forEach((opt, idx) => {
+            const d = document.createElement('div');
+            d.className = 'opt';
+            d.setAttribute('role','option');
+            d.setAttribute('data-value', opt.value);
+            d.setAttribute('tabindex','0');
+            if (opt.selected) d.setAttribute('aria-selected','true');
+            d.textContent = opt.textContent || opt.innerText || opt.value;
+
+            // Acción al hacer clic en una opción
+            d.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                try {
+                    selectEl.value = opt.value;
+                    Array.from(selectEl.options).forEach(o => o.selected = (o.value === opt.value));
+                    // Disparar evento change manualmente para que filtro() detecte el cambio
+                    const evCh = new Event('change', { bubbles: true });
+                    selectEl.dispatchEvent(evCh);
+                } catch(e){}
+                closePopup();
+            });
+            
+            popup.appendChild(d);
         });
-        d.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-            ev.preventDefault();
-            d.click();
-        } else if (ev.key === 'ArrowDown') {
-            ev.preventDefault();
-            const next = d.nextElementSibling;
-            if (next) next.focus();
-        } else if (ev.key === 'ArrowUp') {
-            ev.preventDefault();
-            const prev = d.previousElementSibling;
-            if (prev) prev.focus();
-        } else if (ev.key === 'Escape') {
+
+        document.body.appendChild(popup);
+        activePopup = popup;
+
+        // Auto-focus en la opción seleccionada
+        const selected = popup.querySelector('.opt[aria-selected="true"]') || popup.querySelector('.opt');
+        if (selected) { 
+            // Pequeño delay para asegurar renderizado
+            requestAnimationFrame(() => {
+                if(popup.contains(selected)) {
+                     popup.scrollTop = selected.offsetTop - 10;
+                }
+            });
+        }
+
+        // Listeners para cerrar al hacer clic fuera
+        outsideListener = function outsideHandler(ev){
+            if (!activePopup) return;
+            if (ev.target === selectEl || activePopup.contains(ev.target)) return;
             closePopup();
-            try { selectEl.focus(); } catch(e){}
-        }
-        });
-        popup.appendChild(d);
-    });
-
-    document.body.appendChild(popup);
-    activePopup = popup;
-    const selected = popup.querySelector('.opt[aria-selected="true"]') || popup.querySelector('.opt');
-    if (selected) { selected.focus(); popup.scrollTop = Math.max(0, selected.offsetTop - 8);
-    }
-
-    outsideListener = function outsideHandler(ev){
-        if (!activePopup) return;
-        if (ev.target === selectEl || activePopup.contains(ev.target)) return;
-        closePopup();
-    };
-    document.addEventListener('pointerdown', outsideListener, true);
-    resizeListener = () => closePopup();
-    window.addEventListener('resize', resizeListener);
-    scrollListener = function scrollHandler(ev) {
-        if (!activePopup) return;
-        if (activePopup.contains(ev.target) || ev.target === selectEl) {
-        return;
-        }
-        closePopup();
-    };
-    window.addEventListener('scroll', scrollListener, true);
+        };
+        document.addEventListener('pointerdown', outsideListener, true);
+        
+        resizeListener = () => closePopup();
+        window.addEventListener('resize', resizeListener);
+        
+        scrollListener = function scrollHandler(ev) {
+            if (!activePopup) return;
+            // Permitir scroll dentro del popup
+            if (activePopup.contains(ev.target)) return;
+            closePopup();
+        };
+        window.addEventListener('scroll', scrollListener, true);
     }
 
     function init() {
         try {
-        SELECT_IDS.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) createPopupFor(el);
-        });
+            SELECT_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) createPopupFor(el);
+            });
         } catch(e) {
-        console.warn('mobileSelectPopups init error', e);
+            console.warn('mobileSelectPopups init error', e);
         }
     }
 
-    window.addEventListener('resize', function(){
-    if (!mobileQ()) closePopup();
-    }, { passive:true });
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window._closeMobileSelectPopup = closePopup;
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
 
 function init(){
