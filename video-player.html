@@ -13,11 +13,10 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7;
-        --secondary-color: #7b2cbf;
-        --accent-color: #ff0055;
+        --primary-color: #00fff7;   /* Celeste Fluorescente */
+        --accent-color: #ff0055;    /* Rosado Fluorescente */
         --text-color: #ffffff;
-        --glass-bg: rgba(0, 0, 0, 0.85); /* Fondo más oscuro para contraste */
+        --glass-bg: rgba(0, 0, 0, 0.85);
         --glass-border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -58,21 +57,23 @@
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 10px 10px; /* Reducido padding */
-        position: relative; 
+        padding: 10px 10px;
+        position: relative;
         z-index: 10;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        gap: 10px; /* Espacio mínimo entre elementos */
+        gap: 10px;
     }
     
-    /* NAVEGACIÓN SUPERIOR */
+    /* NAVEGACIÓN SUPERIOR (MODIFICADA) */
     .top-nav {
         display: flex;
-        justify-content: flex-start;
+        justify-content: space-between; /* Separa Volver a la izq y Opciones a la der */
         align-items: center;
-        margin-bottom: 5px; /* Pegado al reproductor */
+        margin-bottom: 5px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     /* BOTÓN VOLVER */
@@ -84,12 +85,21 @@
       color: #fff;
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.8rem; /* Más pequeño */
+      font-size: 0.8rem;
       background: var(--glass-bg); 
       backdrop-filter: blur(10px);
       padding: 6px 15px;
       border-radius: 50px;
       border: var(--glass-border);
+      transition: all 0.3s ease; /* Transición suave */
+    }
+
+    /* EFECTO HOVER CELESTE (VOLVER) */
+    .back-btn:hover {
+        box-shadow: 0 0 15px var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
     }
    
     /* REPRODUCTOR */
@@ -113,23 +123,22 @@
         border: none;
     }
 
-    /* OPCIONES DE SERVIDOR (COMPACTO) */
+    /* OPCIONES DE SERVIDOR (AHORA EN LA ESQUINA SUPERIOR) */
     .options { 
-        display: flex; 
+        display: flex;
         gap: 8px;
-        justify-content: center; 
+        justify-content: flex-end; /* Alineado a la derecha */
         flex-wrap: wrap;
-        padding: 5px;
-        background: rgba(0,0,0,0.6);
-        border-radius: 10px;
-        margin-bottom: 0; /* Sin margen abajo */
+        padding: 0; /* Sin padding extra */
+        background: transparent; /* Fondo transparente para integrarse arriba */
+        margin-bottom: 0;
     }
     
     .opt-btn { 
         font-size: 0.8rem;
         padding: 6px 12px;
         border: 1px solid rgba(255,255,255,0.2); 
-        background: rgba(255,255,255,0.05);
+        background: rgba(0, 0, 0, 0.6); /* Fondo semi-oscuro para legibilidad */
         color: #ddd;
         cursor: pointer;
         border-radius: 6px;
@@ -142,12 +151,23 @@
         color: #000;
         background: var(--primary-color); 
         font-weight: 700;
+        box-shadow: 0 0 10px var(--primary-color); /* Pequeño brillo al activo */
     }
 
-    /* --- BLOQUE DE PUBLICIDAD (PRIORIDAD ALTA) --- */
+    /* TÍTULO DEL EPISODIO (AHORA DEBAJO DEL PLAYER) */
+    h1 { 
+        color: #fff;
+        font-size: 1.2rem; 
+        margin: 5px 0 10px 0; /* Un poco de margen abajo */
+        text-align: center;
+        font-weight: 600;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    /* --- BLOQUE DE PUBLICIDAD --- */
     .ads-block-container {
-        /* Movido para ocupar menos espacio */
-        margin: 5px 0; 
+        margin: 5px 0;
         padding: 5px 0;
         background: rgba(0, 0, 0, 0.4);
         border-radius: 8px;
@@ -157,7 +177,7 @@
     /* GRID INTELIGENTE PARA ADS */
     .ads-masonry {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* PC: 3 columnas */
+        grid-template-columns: repeat(3, 1fr);
         gap: 5px;
         justify-items: center;
         align-items: center;
@@ -177,9 +197,8 @@
         box-sizing: border-box;
     }
     
-    /* El banner ancho ocupa todo el ancho */
     .span-full {
-        grid-column: 1 / -1; 
+        grid-column: 1 / -1;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -187,106 +206,110 @@
         border-bottom: 1px solid rgba(255,255,255,0.05);
         margin-bottom: 5px;
     }
-
-    /* TÍTULO DEL EPISODIO (MÁS PEQUEÑO) */
-    h1 { 
-        color: #fff;
-        font-size: 1.1rem; /* Reducido para ahorrar espacio */
-        margin: 5px 0;
-        text-align: center;
-        font-weight: 600;
-        line-height: 1.2;
-    }
     
     /* CONTROLES (ABAJO DE LA PUBLICIDAD) */
     .controls { 
-        display: flex; 
+        display: flex;
         justify-content: center; 
-        gap: 8px; 
+        gap: 15px; /* Más espacio para los efectos */
         flex-wrap: wrap;
         margin-top: 5px;
-        padding-bottom: 20px;
+        padding-bottom: 40px;
     }
     
     .btn { 
-        padding: 10px 20px;
+        padding: 10px 25px;
         background: var(--glass-bg);
         border: var(--glass-border);
         color: #fff;
         text-decoration: none; 
         border-radius: 50px; 
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
+        transition: all 0.3s ease; /* Transición suave para el brillo */
+        font-weight: 600;
     }
     
-    #downloadBtn {
-        border-color: var(--accent-color);
-        background: rgba(255, 0, 85, 0.2);
+    /* EFECTO HOVER CELESTE (ANTERIOR / SIGUIENTE) */
+    #prevBtn:hover, #nextBtn:hover {
+        box-shadow: 0 0 20px var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: scale(1.05);
     }
+
+    /* ESTILO ESPECÍFICO DESCARGAR */
+    #downloadBtn {
+        border-color: rgba(255, 0, 85, 0.5);
+        background: rgba(255, 0, 85, 0.1);
+    }
+
+    /* EFECTO HOVER ROSADO (DESCARGAR) */
+    #downloadBtn:hover {
+        box-shadow: 0 0 20px var(--accent-color);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        background: rgba(255, 0, 85, 0.2);
+        transform: scale(1.05);
+    }
+
     .btn-hidden { display: none !important; }
 
-    /* --- MEDIA QUERIES (OPTIMIZACIÓN TOTAL MÓVIL) --- */
-
+    /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { 
-            padding: 8px 5px; 
+        .container { padding: 8px 5px; }
+
+        .top-nav {
+            /* En móvil mantenemos el espacio entre elementos */
+            justify-content: space-between; 
         }
 
-        /* Opciones en scroll horizontal para no ocupar vertical */
         .options {
-            justify-content: flex-start;
+            justify-content: flex-end;
             overflow-x: auto;
             white-space: nowrap;
-            padding: 8px 5px;
-            -ms-overflow-style: none; /* IE */
-            scrollbar-width: none; /* Firefox */
+            /* Scroll oculto pero funcional si hay muchas opciones */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            max-width: 60%; /* Evita que choque con el botón volver */
         }
         .options::-webkit-scrollbar { display: none; }
 
-        /* GRID DE ADS MÓVIL: 2 COLUMNAS PARA COMPACTAR */
         .ads-masonry {
-            grid-template-columns: 1fr 1fr; /* 2 Columnas */
+            grid-template-columns: 1fr 1fr;
             gap: 2px;
         }
 
-        /* EL banner gigante y el móvil ocupan todo el ancho */
         .span-full-mobile {
             grid-column: 1 / -1;
             transform-origin: center top;
         }
 
-        /* Ajuste de escala crítico para que quepan */
         .ad-slot iframe {
             transform-origin: center center;
         }
 
-        /* Banner Gigante (728) - Escalado brutal para móvil */
         .banner-728 {
-            transform: scale(0.42); /* Escala pequeña para que entre */
-            margin: -25px 0; /* Margen negativo para eliminar hueco blanco */
+            transform: scale(0.42);
+            margin: -25px 0;
         }
 
-        /* Banner Mediano (468) */
         .banner-468 {
             transform: scale(0.65);
             margin: -10px 0;
         }
 
-        /* Banner Rectángulo (300) y Skyscraper (160)
-           Al ponerlos en grid de 2 columnas, necesitamos reducirlos un poco
-           para que no se solapen */
         .grid-item-mobile {
-            transform: scale(0.65); /* Reducir al 65% */
-            margin: -30px -10px; /* Reducir huecos */
-            max-height: 180px; /* Forzar altura máxima */
+            transform: scale(0.65);
+            margin: -30px -10px;
+            max-height: 180px;
             display: flex; 
-            align-items: center; 
+            align-items: center;
             justify-content: center;
         }
         
-        /* Banner Móvil (320) - Prioridad Alta */
         .banner-320 {
              transform: scale(0.95);
         }
@@ -296,8 +319,13 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             width: 100%;
+            gap: 10px;
         }
-        #downloadBtn { grid-column: 1 / -1; text-align: center; justify-content: center;}
+        #downloadBtn { 
+            grid-column: 1 / -1;
+            text-align: center; 
+            justify-content: center;
+        }
     }
   </style>
 </head>
@@ -316,11 +344,13 @@
          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
          Volver
        </a>
+
+       <div class="options" id="serverOptions"></div>
     </div>
 
     <div class="player-wrapper" id="playerContainer"></div>
 
-    <div class="options" id="serverOptions"></div>
+    <h1 id="epTitle">Cargando...</h1>
 
     <div class="ads-block-container">
         <div class="ads-masonry">
@@ -371,12 +401,12 @@
             <div class="ad-slot grid-item-mobile">
                 <script type="text/javascript">
                     atOptions = {
-                     'key' : '49281ce83eb56f120e34ad617cfd6996',
+                    'key' : '49281ce83eb56f120e34ad617cfd6996',
                     'format' : 'iframe',
                     'height' : 300,
                     'width' : 160,
                     'params' : {}
-                     };
+                    };
                 </script>
                 <script type="text/javascript" src="https://www.highperformanceformat.com/49281ce83eb56f120e34ad617cfd6996/invoke.js"></script>
             </div>
@@ -403,7 +433,7 @@
                     'format' : 'iframe',
                     'height' : 600,
                     'width' : 160,
-                    'params' : {}
+                     'params' : {}
                      };
                 </script>
                 <script type="text/javascript" src="https://www.highperformanceformat.com/190984de4e16fc6eded87c1cb7a9bc83/invoke.js"></script>
@@ -411,8 +441,6 @@
 
         </div>
     </div>
-
-    <h1 id="epTitle">Cargando...</h1>
 
     <div class="controls">
         <a id="prevBtn" class="btn btn-hidden">⏮ Ant.</a>
@@ -437,7 +465,6 @@
     const animeId = params.get('anime');
     const season = params.get('s');
     const episode = params.get('e');
-
     const backLink = document.getElementById('backLink');
     if (backLink) {
         if (animeId) {
@@ -508,7 +535,6 @@
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
