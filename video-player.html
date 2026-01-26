@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Reproductor - Archinime</title>
-  <link rel="icon" href="Logo_Archinime.avif" type="image/png">
+  <link rel="icon" href="Logo_Archinime.png" type="image/png">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,9 +13,9 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7;
-        --secondary-color: #7b2cbf;
-        --accent-color: #ff0055;
+        --primary-color: #00fff7; /* Cian Neón */
+        --secondary-color: #7b2cbf; /* Morado */
+        --accent-color: #ff0055; /* Rosa Neón */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.6);
         --glass-border: 1px solid rgba(255, 255, 255, 0.1);
@@ -26,8 +26,10 @@
     body { 
         margin: 0;
         background: #050505; 
-        color: var(--text-color); font-family: 'Poppins', sans-serif; 
-        overflow-x: hidden; min-height: 100vh;
+        color: var(--text-color); 
+        font-family: 'Poppins', sans-serif; 
+        overflow-x: hidden; 
+        min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
     }
    
@@ -35,245 +37,286 @@
     #bg-video { 
         position: fixed;
         top: 0; left: 0; 
-        width: 100%; height: 100%; object-fit: cover;
-        z-index: -10; opacity: 0.6;
+        width: 100%; height: 100%; 
+        object-fit: cover;
+        z-index: -10; 
+        opacity: 0.6;
     }
 
-    /* --- OVERLAY --- */
+    /* --- OVERLAY MEJORADO --- */
     #overlay {
       position: fixed;
       top: 0; left: 0; 
-      width: 100%; height: 100%; z-index: -5;
+      width: 100%; height: 100%; 
+      z-index: -5;
       background: radial-gradient(circle at center, rgba(123, 44, 191, 0.1) 0%, #000000 90%);
-      backdrop-filter: blur(3px); pointer-events: none;
+      backdrop-filter: blur(3px);
+      pointer-events: none;
     }
     
-    /* --- CONTENEDOR PRINCIPAL (LAYOUT) --- */
+    /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
-        max-width: 1400px; /* Más ancho para que quepan los anuncios laterales */
-        margin: 0 auto; padding: 20px 15px; 
-        position: relative; z-index: 10; box-sizing: border-box;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 15px; 
+        position: relative; 
+        z-index: 10;
+        box-sizing: border-box;
     }
     
     /* NAVEGACIÓN SUPERIOR */
     .top-nav {
         display: flex;
         justify-content: flex-start;
-        align-items: center; margin-bottom: 20px;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
-    /* BOTÓN VOLVER */
+    /* BOTÓN VOLVER (REPARADO) */
     .back-btn { 
       display: inline-flex;
-      align-items: center; justify-content: center;
-      gap: 8px; color: #fff; text-decoration: none;
-      font-weight: 600; font-size: 0.95rem; 
-      transition: all .3s ease; cursor: pointer;
-      background: var(--glass-bg); backdrop-filter: blur(10px);
-      padding: 10px 25px; border-radius: 50px;
-      border: var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
-    .back-btn:hover {
-        background: rgba(0, 255, 247, 0.15); border-color: var(--primary-color);
-        box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px);
-    }
-   
-    /* =========================================
-       GRID PRINCIPAL: THEATER MODE
-       ========================================= */
-    .main-grid {
-        display: grid;
-        /* Columna Izq (Ad) | Centro (Video) | Columna Der (Ad) */
-        grid-template-columns: 170px 1fr 310px; 
-        gap: 20px;
-        align-items: start;
-    }
-
-    /* ÁREA CENTRAL (Video + Controles) */
-    .center-stage {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        min-width: 0; /* Evita desbordamiento en grid */
-    }
-
-    /* SIDEBARS (ANUNCIOS LATERALES) */
-    .sidebar-left, .sidebar-right {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        align-items: center;
-        margin-top: 0; /* Alinear con la parte superior del video */
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem; 
+      transition: all .3s ease;
+      cursor: pointer;
+      background: var(--glass-bg); 
+      backdrop-filter: blur(10px);
+      padding: 10px 25px;
+      border-radius: 50px;
+      border: var(--glass-border);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     
-    /* REPRODUCTOR */
+    .back-btn:hover {
+        background: rgba(0, 255, 247, 0.15);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px var(--primary-color);
+        transform: translateY(-2px);
+    }
+   
+    /* REPRODUCTOR (Responsive Real) */
     .player-wrapper { 
         position: relative;
         padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-        height: 0; width: 100%; background: #000;
-        overflow: hidden; z-index: 50;
-        border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+        height: 0; 
+        width: 100%; 
+        background: #000;
+        overflow: hidden;
+        z-index: 50;
+        border-radius: 16px; 
+        border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(123, 44, 191, 0.3);
     }
+   
     .player-wrapper iframe, .player-wrapper video { 
         position: absolute;
         top: 0; left: 0; 
-        width: 100%; height: 100%; border: none;
+        width: 100%; height: 100%; 
+        border: none;
     }
 
     /* OPCIONES DE SERVIDOR */
     .options { 
-        margin-top: 15px;
-        display: flex; gap: 10px;
-        justify-content: center; flex-wrap: wrap;
-        padding: 10px; background: rgba(0,0,0,0.3);
-        border-radius: 12px; backdrop-filter: blur(5px);
+        margin-top: 20px;
+        display: flex; 
+        gap: 10px;
+        justify-content: center; 
+        flex-wrap: wrap;
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        backdrop-filter: blur(5px);
     }
+    
     .opt-btn { 
-        font-size: 0.85rem; padding: 6px 15px;
+        font-size: 0.9rem;
+        padding: 8px 18px;
         border: 1px solid rgba(255,255,255,0.2); 
         background: rgba(255,255,255,0.05);
-        color: #ddd; cursor: pointer; border-radius: 6px;
-        transition: all 0.3s; font-family: 'Poppins', sans-serif;
+        color: #ddd;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        font-family: 'Poppins', sans-serif;
         font-weight: 500;
         white-space: nowrap;
     }
+   
     .opt-btn:hover {
-        background: rgba(255,255,255,0.1); color: #fff; border-color: #fff;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: #fff;
     }
+  
     .opt-btn.active { 
-        border-color: var(--primary-color); color: #000;
-        background: var(--primary-color); font-weight: 700;
-        box-shadow: 0 0 10px rgba(0, 255, 247, 0.4);
+        border-color: var(--primary-color);
+        color: #000;
+        background: var(--primary-color); 
+        font-weight: 700;
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
     }
 
     /* TÍTULO DEL EPISODIO */
     h1 { 
         color: #fff;
-        font-size: 1.5rem; 
-        margin: 20px 0 10px 0; text-align: center;
-        font-weight: 700; text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        font-size: 1.8rem; 
+        margin: 25px 0 15px 0;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        line-height: 1.3;
     }
     
     /* CONTROLES */
     .controls { 
-        margin-top: 15px;
+        margin-top: 20px;
         display: flex; 
-        justify-content: center; gap: 15px; 
-        flex-wrap: wrap; align-items: center;
+        justify-content: center; 
+        gap: 15px; 
+        flex-wrap: wrap;
+        align-items: center;
     }
+    
+    /* BOTONES DE CONTROL */
     .btn { 
-        padding: 12px 25px; background: var(--glass-bg);
-        border: var(--glass-border); color: #fff;
-        text-decoration: none; border-radius: 50px; 
-        cursor: pointer; transition: 0.3s;
-        font-weight: 600; font-size: 0.95rem;
-        display: inline-flex; align-items: center;
-        justify-content: center; gap: 8px;
-        backdrop-filter: blur(5px); min-width: 120px;
+        padding: 14px 30px;
+        background: var(--glass-bg);
+        border: var(--glass-border);
+        color: #fff;
+        text-decoration: none; 
+        border-radius: 50px; 
+        cursor: pointer; 
+        transition: 0.3s;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        backdrop-filter: blur(5px);
+        min-width: 140px;
     }
+    
     #downloadBtn {
-        border-color: var(--accent-color); background: rgba(255, 0, 85, 0.1);
+        border-color: var(--accent-color);
+        background: rgba(255, 0, 85, 0.1);
     }
-    #downloadBtn:hover {
-        background: var(--accent-color); color: #fff;
-        box-shadow: 0 0 25px rgba(255, 0, 85, 0.6); transform: translateY(-3px);
-    }
-    .btn:not(#downloadBtn):hover { 
-        background: var(--primary-color); color: #000;
-        box-shadow: 0 0 25px rgba(0, 255, 247, 0.6);
-        border-color: var(--primary-color); transform: translateY(-3px);
-    }
-    .btn-hidden { display: none !important; }
 
-    /* --- ESTILOS DE LOS ANUNCIOS (AD SLOTS) --- */
-    .ad-slot {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 5px;
+    #downloadBtn:hover {
+        background: var(--accent-color);
+        color: #fff;
+        box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+        transform: translateY(-3px);
+    }
+   
+    .btn:not(#downloadBtn):hover { 
+        background: var(--primary-color);
+        color: #000;
+        box-shadow: 0 0 25px rgba(0, 255, 247, 0.6);
+        border-color: var(--primary-color);
+        transform: translateY(-3px);
+    }
+   
+    .btn-hidden { display: none !important;
+    }
+
+    /* --- ESTILO PARA CONTENEDOR DE PUBLICIDAD --- */
+    .ad-container {
+        margin: 40px auto 20px auto;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden;
-        transition: transform 0.3s;
-    }
-    /* Estilos especiales para el contenedor del anuncio superior */
-    .top-banner-container {
-        width: 100%; display: flex; justify-content: center;
-        margin-bottom: 20px;
+        max-width: 1000px;
+        overflow: hidden; 
+        backdrop-filter: blur(5px);
     }
     
-    /* Estilos especiales para anuncios inferiores */
-    .bottom-ads-row {
+    /* --- COMENTARIOS --- */
+    .comments-section { 
         margin-top: 30px;
-        display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
-        background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px;
+        border-top: 1px solid rgba(255,255,255,0.1); 
+        padding-top: 40px;
+        width: 100%;
     }
 
-    /* Permitir que los iframes de anuncios se vean siempre */
-    .ad-slot iframe, .ad-slot > div {
-        display: block !important;
-        max-width: none !important;
+    .comments-box {
+        background: rgba(0,0,0,0.85);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
-    /* Scroll horizontal para móviles en anuncios anchos */
-    .scroll-x {
-        overflow-x: auto;
-        justify-content: flex-start;
-    }
-    .scroll-x::-webkit-scrollbar { height: 4px; }
-    .scroll-x::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
-
-
-    /* =========================================
-       RESPONSIVE / MEDIA QUERIES
-       ========================================= */
-    
-    /* TABLETS Y LAPTOPS PEQUEÑAS (Menos de 1200px) */
-    /* Aquí las columnas laterales desaparecen y los anuncios bajan para no aplastar el video */
-    @media (max-width: 1200px) {
-        .main-grid {
-            display: block; /* Volvemos a bloque estándar */
-        }
-        .sidebar-left, .sidebar-right {
-            flex-direction: row; /* Poner anuncios lado a lado si caben */
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        .container { max-width: 900px; }
+    .comments-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--primary-color);
     }
 
-    /* MÓVILES (Menos de 768px) */
+    .comments-header h3 {
+        color: #fff;
+        margin: 0;
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    /* MEDIA QUERIES (Móvil) */
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        
-        /* Controles Grid en móvil */
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        #prevBtn { grid-column: 1; order: 1; }
-        #nextBtn { grid-column: 2; order: 2; }
-        #downloadBtn { grid-column: 1 / span 2; order: 3; width: 100%; box-sizing: border-box; }
-        
+        .container { padding: 15px 10px;
+        }
+        .player-wrapper { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
         .options {
             justify-content: flex-start;
-            overflow-x: auto; white-space: nowrap; padding-bottom: 5px;
-            -ms-overflow-style: none; scrollbar-width: none;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 15px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .options::-webkit-scrollbar { display: none; }
-        
-        h1 { font-size: 1.2rem; margin: 15px 0; }
-
-        /* Ajustes de Anuncios Móvil */
-        .top-banner-container { margin-bottom: 10px; }
-        
-        /* En móvil, los anuncios laterales se convierten en una pila vertical limpia */
-        .sidebar-left, .sidebar-right, .bottom-ads-row {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
+        .options::-webkit-scrollbar { display: none;
+        }
+        h1 { font-size: 1.3rem; margin: 20px 0;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+        #prevBtn { grid-column: 1;
+        order: 1; min-width: auto; }
+        #nextBtn { grid-column: 2; order: 2; min-width: auto;
+        }
+        #downloadBtn { 
+            grid-column: 1 / span 2;
+            order: 3; 
+            width: 100%;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        .btn { padding: 12px;
+        font-size: 0.9rem; }
+        .comments-header h3 { font-size: 1.2rem;
+        }
+        .ad-container { padding: 5px; margin: 25px 0;
         }
     }
   </style>
@@ -295,227 +338,256 @@
        </a>
     </div>
 
-    <div class="top-banner-container">
-        <div class="ad-slot scroll-x" style="min-height: 90px; width: 100%; max-width: 728px;">
-            <script type="text/javascript">
-                atOptions = { 'key' : '1f072201cddab551b2b65315f6c1643e', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+    <div class="player-wrapper" id="playerContainer">
+      </div>
+
+    <div class="options" id="serverOptions"></div>
+
+    <h1 id="epTitle">Cargando episodio...</h1>
+
+    <div class="controls">
+        <a id="prevBtn" class="btn btn-hidden">⏮ Anterior</a>
+        <a id="downloadBtn" class="btn" href="#" target="_blank" download>
+            ⬇ Descargar
+        </a>
+        <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
+    </div>
+
+    <div class="ad-container">
+        <script type="text/javascript">
+         atOptions = {
+            'key' : '1f072201cddab551b2b65315f6c1643e',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+    </div>
+
+    <div class="ad-container">
+        <script type="text/javascript">
+          atOptions = {
+            'key' : '1904483365c7a7ab9f83e49d32b7d237',
+            'format' : 'iframe',
+            'height' : 60,
+            'width' : 468,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/1904483365c7a7ab9f83e49d32b7d237/invoke.js"></script>
+    </div>
+
+    <div class="comments-section">
+        <div class="comments-box">
+            <div class="comments-header">
+                <span class="comment-icon">💬</span>
+                <h3>Comentarios</h3>
+            </div>
+            
+           <div id="disqus_thread"></div>
+            
+            <script>
+                var disqus_config = function () {
+                    const params = new URLSearchParams(window.location.search);
+                    const animeId = params.get('anime');
+                    const season = params.get('s');
+                    const episode = params.get('e');
+                    this.page.url = window.location.href;
+                    if(animeId && season && episode) {
+                        this.page.identifier = `${animeId}-s${season}-e${episode}`;
+                    } else {
+                        this.page.identifier = 'archinime-player-general';
+                    }
+                };
+                (function() { 
+                var d = document, s = d.createElement('script');
+                s.src = 'https://archinime.disqus.com/embed.js';
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+                })();
             </script>
-            <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+            <noscript>Activa JavaScript para ver los <a href="https://disqus.com/?ref_noscript">comentarios.</a></noscript>
         </div>
     </div>
 
-    <div class="main-grid">
-        
-        <aside class="sidebar-left">
-            <div class="ad-slot" style="min-height: 600px; width: 160px;">
-                <script type="text/javascript">
-                    atOptions = { 'key' : '190984de4e16fc6eded87c1cb7a9bc83', 'format' : 'iframe', 'height' : 600, 'width' : 160, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="https://www.highperformanceformat.com/190984de4e16fc6eded87c1cb7a9bc83/invoke.js"></script>
-            </div>
-        </aside>
+  </div>
 
-        <main class="center-stage">
-            <div class="player-wrapper" id="playerContainer"></div>
-            
-            <div class="options" id="serverOptions"></div>
-            <h1 id="epTitle">Cargando episodio...</h1>
-
-            <div class="controls">
-                <a id="prevBtn" class="btn btn-hidden">⏮ Anterior</a>
-                <a id="downloadBtn" class="btn" href="#" target="_blank" download>⬇ Descargar</a>
-                <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
-            </div>
-            
-            <div class="bottom-ads-row">
-                 <div class="ad-slot scroll-x" style="min-height: 60px;">
-                    <script type="text/javascript">
-                        atOptions = { 'key' : '1904483365c7a7ab9f83e49d32b7d237', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} };
-                    </script>
-                    <script type="text/javascript" src="https://www.highperformanceformat.com/1904483365c7a7ab9f83e49d32b7d237/invoke.js"></script>
-                </div>
-                <div class="ad-slot" style="min-height: 50px;">
-                    <script type="text/javascript">
-                        atOptions = { 'key' : '6ecb40404fef8f9daf755244f9c4d753', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-                    </script>
-                    <script type="text/javascript" src="https://www.highperformanceformat.com/6ecb40404fef8f9daf755244f9c4d753/invoke.js"></script>
-                </div>
-            </div>
-        </main>
-
-        <aside class="sidebar-right">
-            <div class="ad-slot" style="min-height: 250px; width: 300px;">
-                <script type="text/javascript">
-                    atOptions = { 'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
-            </div>
-            
-            <div class="ad-slot" style="min-height: 300px; width: 160px;">
-                <script type="text/javascript">
-                    atOptions = { 'key' : '49281ce83eb56f120e34ad617cfd6996', 'format' : 'iframe', 'height' : 300, 'width' : 160, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="https://www.highperformanceformat.com/49281ce83eb56f120e34ad617cfd6996/invoke.js"></script>
-            </div>
-        </aside>
-
-    </div> </div> <script>
-    // AUTO-VERSIONADO
-    var autoVersion = new Date().getTime();
-    document.write('<script src="video-player-data.js?v=' + autoVersion + '"><\/script>');
-    
-    // SERVICE WORKER
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                reg.update();
-            }).catch(e => console.log('SW Error:', e));
-        });
-    }
-  </script>
+  <script src="video-player-data.js"></script>
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR
+    // LÓGICA DEL REPRODUCTOR (CORREGIDA Y ACTUALIZADA)
     // -----------------------------------------------------------
-    setTimeout(() => {
-        const DB = (typeof players !== 'undefined') ? players : {};
-        
-        const params = new URLSearchParams(location.search);
-        const animeId = params.get('anime');
-        const season = params.get('s');
-        const episode = params.get('e');
+    
+    const DB = (typeof players !== 'undefined') ?
+    players : {};
+    
+    // Obtener parámetros URL
+    const params = new URLSearchParams(location.search);
+    const animeId = params.get('anime');
+    const season = params.get('s');
+    const episode = params.get('e');
 
-        const backLink = document.getElementById('backLink');
-        if (backLink) {
-            if (animeId) {
-                backLink.href = `anime-detail.html?id=${animeId}`;
-            } else {
-                backLink.href = `index.html`;
-            }
-        }
-
-        const epData = DB[animeId]?.[season]?.[episode];
-        if (epData) {
-            document.title = `Ver ${epData.title} - Archinime`;
-            document.getElementById('epTitle').innerText = epData.title;
-            const initialLink = epData.link || epData.link2;
-            loadVideo(initialLink);
-            
-            const optContainer = document.getElementById('serverOptions');
-            optContainer.innerHTML = '';
-            if(epData.link) createOptionBtn("Opción Latino", epData.link, true);
-            if(epData.link2) createOptionBtn("Opción Subtitulado", epData.link2, !epData.link);
-            
-            updateDownloadButton(initialLink);
-            setupNavigation();
+    // --- CORRECCIÓN 1: Lógica del botón Volver ---
+    // Esta parte asegura que si tienes el ID del anime, vuelvas al detalle de ESE anime.
+    const backLink = document.getElementById('backLink');
+    if (backLink) {
+        // Si hay ID de anime, vuelve al detalle, si no, al inicio
+        if (animeId) {
+            backLink.href = `anime-detail.html?id=${animeId}`;
         } else {
-            console.error("No se encontraron datos para:", animeId, season, episode);
-            document.getElementById('epTitle').innerText = "Episodio no encontrado.";
-            document.getElementById('playerContainer').innerHTML = `
-                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;flex-direction:column;gap:10px;">
-                    <span>Video no disponible o enlace roto.</span>
-                    <small style="color:#aaa;">Verifica el archivo video-player-data.js</small>
-                </div>`;
+            backLink.href = `index.html`;
         }
+    }
+
+    // Buscar datos
+    const epData = DB[animeId]?.[season]?.[episode];
+    if (epData) {
+        document.title = `Ver ${epData.title} - Archinime`;
+        document.getElementById('epTitle').innerText = epData.title;
+        // Prioridad de enlaces
+        const initialLink = epData.link || epData.link2;
+        // Cargar video inicial
+        loadVideo(initialLink);
+        // Botones de servidores
+        const optContainer = document.getElementById('serverOptions');
+        optContainer.innerHTML = '';
+        if(epData.link) createOptionBtn("Opción Latino", epData.link, true);
+        if(epData.link2) createOptionBtn("Opción Subtitulado", epData.link2, !epData.link);
+        // Actualizar descarga
+        updateDownloadButton(initialLink);
+        // Navegación
+        setupNavigation();
+    } else {
+        console.error("No se encontraron datos para:", animeId, season, episode);
+        document.getElementById('epTitle').innerText = "Episodio no encontrado.";
+        document.getElementById('playerContainer').innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;flex-direction:column;gap:10px;">
+                <span>Video no disponible o enlace roto.</span>
+                <small style="color:#aaa;">Verifica el archivo video-player-data.js</small>
+            </div>`;
+    }
+
+    function generateDirectDownloadLink(url) {
+        if (!url) return "#";
+        if (url.includes("drive.google.com")) {
+            const match = url.match(/\/d\/(.+?)\//);
+            if (match && match[1]) {
+               return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            }
+        }
+        if (url.includes("dropbox.com") && url.includes("dl=0")) {
+             return url.replace('dl=0', 'dl=1');
+        }
+        return url;
+    }
+
+    function updateDownloadButton(url) {
+        const dlBtn = document.getElementById('downloadBtn');
+        const directLink = generateDirectDownloadLink(url);
+        dlBtn.href = directLink;
+    }
+
+    function createOptionBtn(label, url, isActive) {
+        const optContainer = document.getElementById('serverOptions');
+        const btn = document.createElement('button');
         
-        function generateDirectDownloadLink(url) {
-            if (!url) return "#";
-            if (url.includes("drive.google.com")) {
-                const match = url.match(/\/d\/(.+?)\//);
-                if (match && match[1]) {
-                   return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-                }
-            }
-            if (url.includes("dropbox.com") && url.includes("dl=0")) {
-                 return url.replace('dl=0', 'dl=1');
-            }
-            return url;
-        }
+        const isFirst = optContainer.children.length === 0;
+        const shouldBeActive = isActive || isFirst;
+        btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
+        btn.innerText = label;
+        btn.onclick = () => {
+            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadVideo(url);
+            updateDownloadButton(url);
+        };
+        optContainer.appendChild(btn);
+    }
 
-        function updateDownloadButton(url) {
-            const dlBtn = document.getElementById('downloadBtn');
-            const directLink = generateDirectDownloadLink(url);
-            dlBtn.href = directLink;
-        }
+    // --- CORRECCIÓN 2: Lógica de carga de Video (Soporte Iframes) ---
+    function loadVideo(url) {
+        const container = document.getElementById('playerContainer');
+        container.innerHTML = ''; 
+        
+        if (!url) return;
 
-        function createOptionBtn(label, url, isActive) {
-            const optContainer = document.getElementById('serverOptions');
-            const btn = document.createElement('button');
-            const isFirst = optContainer.children.length === 0;
-            const shouldBeActive = isActive || isFirst;
-            btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
-            btn.innerText = label;
-            btn.onclick = () => {
-                document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                loadVideo(url);
-                updateDownloadButton(url);
-            };
-            optContainer.appendChild(btn);
-        }
-
-        function loadVideo(url) {
-            const container = document.getElementById('playerContainer');
-            container.innerHTML = ''; 
-            if (!url) return;
-            const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-            const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-            if (isVideoFile && !isDrive) {
-                const video = document.createElement('video');
-                video.src = url;
-                video.controls = true; video.autoplay = false; video.playsInline = true; 
-                video.style.width = "100%"; video.style.height = "100%";
-                video.onerror = function() {
-                    console.log("Error nativo, intentando modo iframe...");
-                    loadAsIframe(url, container);
-                };
-                container.appendChild(video);
-            } else {
+        // Detectar si es un archivo de video directo (MP4, MKV, etc)
+        // La mayoría de servidores de streaming NO son archivos directos, son embeds.
+        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+        const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        // Si es un archivo de video REAL y NO es Drive Preview
+        if (isVideoFile && !isDrive) {
+            const video = document.createElement('video');
+            video.src = url;
+            video.controls = true;
+            video.autoplay = false;
+            video.playsInline = true; 
+            video.style.width = "100%";
+            video.style.height = "100%";
+            // Si falla el video nativo, intentar iframe como último recurso
+            video.onerror = function() {
+                console.log("Error nativo, intentando modo iframe...");
                 loadAsIframe(url, container);
-            }
+            };
+            container.appendChild(video);
+        } else {
+            // Para todo lo demás (Fembed, Streamtape, Ok.ru, Drive, etc.) usamos IFRAME
+            loadAsIframe(url, container);
         }
+    }
 
-        function loadAsIframe(url, container) {
-            container.innerHTML = '';
-            const iframe = document.createElement('iframe');
-            iframe.src = url;
-            iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin allow-presentation allow-popups");
-            iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
-            iframe.setAttribute("allowfullscreen", "true");
-            iframe.style.position = "absolute"; iframe.style.top = "0"; iframe.style.left = "0";
-            iframe.style.width = "100%"; iframe.style.height = "100%"; iframe.style.border = "none";
-            container.appendChild(iframe);
-        }
+    function loadAsIframe(url, container) {
+        container.innerHTML = '';
+        // Limpiar por si acaso
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+        iframe.setAttribute("allowfullscreen", "true");
+        iframe.style.position = "absolute";
+        iframe.style.top = "0"; iframe.style.left = "0";
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        container.appendChild(iframe);
+    }
 
-        function setupNavigation() {
-            try {
-                if (DB[animeId]) {
-                    let flatList = [];
-                    const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
-                    seasons.forEach(sKey => {
-                        const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
-                        episodes.forEach(eKey => {
-                            flatList.push({ s: sKey, e: eKey });
-                        });
+    function setupNavigation() {
+        try {
+            if (DB[animeId]) {
+                let flatList = [];
+                const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
+                seasons.forEach(sKey => {
+                    const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
+                    episodes.forEach(eKey => {
+                        flatList.push({ s: sKey, e: eKey });
+          
                     });
-                    const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
-                    const prevBtn = document.getElementById('prevBtn');
-                    const nextBtn = document.getElementById('nextBtn');
-                    if (currentIndex > 0) {
-                        const prevItem = flatList[currentIndex - 1];
-                        prevBtn.classList.remove('btn-hidden');
-                        prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
-                    }
-                    if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
-                        const nextItem = flatList[currentIndex + 1];
-                        nextBtn.classList.remove('btn-hidden');
-                        nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
-                    }
+                });
+                const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                if (currentIndex > 0) {
+                    const prevItem = flatList[currentIndex - 1];
+                    prevBtn.classList.remove('btn-hidden');
+                    prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
                 }
-            } catch (e) { console.error("Error en navegación:", e); }
+
+                if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
+                    const nextItem = flatList[currentIndex + 1];
+                    nextBtn.classList.remove('btn-hidden');
+                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
+                }
+            }
+        } catch (e) { 
+            console.error("Error en navegación:", e);
         }
-    }, 100);
+    }
   </script>
+  
+  <script id="dsq-count-scr" src="//archinime.disqus.com/count.js" async></script>
+
 </body>
 </html>
