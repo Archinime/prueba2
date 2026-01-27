@@ -3,9 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Archinime OS | Next Gen Platform</title>
   
-  <link rel="icon" href="Logo_Archinime.avif" type="image/png">
+  <title>Archinime</title>
+  
+  <meta name="description" content="Explora Archinime, la plataforma definitiva para ver anime online. Disfruta de estrenos de temporada, clásicos y una base de datos actualizada en alta calidad.">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Archinime">
+  <meta property="og:description" content="Únete a la nueva era del streaming de anime con interfaz Cyberpunk. ¡Entra ya!">
+  <meta property="og:image" content="https://archinime.github.io/-Archinime-/Logo_Archinime.png">
+  
+  <link rel="icon" href="Logo_Archinime.png" type="image/png">
+  <link rel="apple-touch-icon" href="Logo_Archinime.png">
+  
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8c52ff">
 
@@ -25,7 +35,7 @@
     --glass-bg: rgba(10, 12, 16, 0.75);
     --text: #ffffff;
     --header-height: 72px;
-    }
+  }
 
   /* --- RESET & BASICOS --- */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,7 +60,7 @@
   ::-webkit-scrollbar-thumb { 
     background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); 
     border-radius: 4px;
-    }
+  }
 
   /* --- LOADER --- */
   #page-loader {
@@ -65,7 +75,7 @@
     text-shadow: 2px 2px 0px var(--neon-pink), -2px -2px 0px var(--neon-cyan);
     animation: glitch 0.8s infinite;
     letter-spacing: 4px;
-    }
+  }
   .loader-line {
     width: 0; height: 3px; background: var(--neon-cyan); margin-top: 15px;
     box-shadow: 0 0 10px var(--neon-cyan);
@@ -81,7 +91,7 @@
     transition: opacity 1.2s ease;
     /* RESPALDO EN EL TAG VIDEO */
     background: url('galaxia-morado1.avif') no-repeat center center / cover;
-    }
+  }
   /* Clase para mostrar el video cuando cargue */
   #bg-video.loaded { opacity: 1; }
 
@@ -90,13 +100,13 @@
     background: radial-gradient(circle at center, rgba(188, 19, 254, 0.08) 0%, rgba(0,0,0,0.85) 90%);
     z-index: -4; pointer-events: none;
     transition: opacity 0.6s ease;
-    }
+  }
   #scanlines {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.5));
     background-size: 100% 3px;
     z-index: -3; pointer-events: none; opacity: 0.15;
-    }
+  }
 
   /* --- NAVBAR CYBERPUNK --- */
   .cyber-nav {
@@ -126,7 +136,7 @@
   }
   .nav-logo:hover img { transform: rotate(10deg) scale(1.1); }
   
-  /* NUEVA ANIMACIÓN DE TEXTO MULTICOLOR */
+  /* ANIMACIÓN DE TEXTO MULTICOLOR */
   @keyframes rainbowNeon {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -136,32 +146,21 @@
   .nav-logo-text {
     font-family: 'Orbitron', sans-serif; font-weight: 900; 
     font-size: 1.4rem; letter-spacing: 1px;
-    /* MODIFICACIÓN: Gradiente multicolor brillante */
     background: linear-gradient(
         90deg, 
-        #ff0055, /* Neon Pink */
-        #ff0000, /* Red */
-        #ff9900, /* Orange */
-        #ffff00, /* Yellow */
-        #33ff00, /* Lime */
-        #00ff99, /* Cyan-Green */
-        #00f3ff, /* Cyan */
-        #0000ff, /* Blue */
-        #9900ff, /* Purple */
-        #ff00cc, /* Magenta */
-        #ff0055  /* Back to Neon Pink */
+        #ff0055, #ff0000, #ff9900, #ffff00, 
+        #33ff00, #00ff99, #00f3ff, #0000ff, 
+        #9900ff, #ff00cc, #ff0055
     );
     background-size: 400% 400%;
-    animation: rainbowNeon 5s ease infinite; /* Animación de movimiento */
-
+    animation: rainbowNeon 5s ease infinite; 
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
   }
 
   /* BUSCADOR */
-  .search-wrapper { position: relative;
-  margin: 0 25px; flex-grow: 1; max-width: 450px; }
+  .search-wrapper { position: relative; margin: 0 25px; flex-grow: 1; max-width: 450px; }
   .search-input {
     width: 100%;
     background: rgba(0, 0, 0, 0.3);
@@ -171,12 +170,12 @@
     font-family: 'Poppins'; font-size: 0.9rem;
     letter-spacing: 0.5px;
     clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    }
+  }
   .search-input:focus {
     background: rgba(0, 0, 0, 0.6); border-color: var(--neon-cyan);
     box-shadow: 0 0 15px rgba(0, 243, 255, 0.15), inset 0 0 10px rgba(0, 243, 255, 0.05);
     transform: scale(1.02);
-    }
+  }
   .search-icon { 
     position: absolute; left: 15px; top: 50%; transform: translateY(-50%); 
     color: rgba(255,255,255,0.5); transition: 0.3s;
@@ -200,7 +199,7 @@
     width: 0%; height: 100%;
     background: var(--neon-purple); z-index: -1; transition: 0.3s; opacity: 0.2;
     border-radius: 8px; overflow: hidden;
-    }
+  }
   .cyber-btn-icon:hover {
     color: white; border-color: var(--neon-purple);
     box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
@@ -213,7 +212,7 @@
   .install-pulse { 
     animation: pulseBorder 2s infinite; 
     color: var(--neon-cyan); border-color: rgba(0, 243, 255, 0.3);
-    }
+  }
 
   /* --- NOTIFICACIONES --- */
   .notif-wrapper { position: relative; overflow: visible; }
@@ -237,7 +236,7 @@
     transform: translateY(-10px) scale(0.95);
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 2000; display: flex; flex-direction: column; overflow: hidden;
-    }
+  }
   .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
 
   .notif-header {
@@ -245,12 +244,11 @@
     background: rgba(188, 19, 254, 0.1);
     color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.85rem;
     text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); letter-spacing: 2px;
-    }
+  }
 
   .notif-list { max-height: 400px; overflow-y: auto; }
   .notif-list::-webkit-scrollbar { width: 5px; }
-  .notif-list::-webkit-scrollbar-thumb { background: #333;
-    border-radius: 4px; }
+  .notif-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
   .notif-item {
     display: flex; gap: 15px; padding: 12px 15px;
@@ -278,8 +276,10 @@
     letter-spacing: 0.5px; margin-bottom: 4px;
     display: flex; align-items: center; gap: 5px; 
   }
-  .n-meta { font-size: 0.75rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  
+  .n-meta { font-size: 0.75rem; color: #aaa; /* Color más claro para leerse mejor */ }
+  .n-block { color: var(--neon-cyan); font-weight: bold; margin-right: 5px; }
+  .n-ep-title { color: #ddd; font-style: italic; }
+
   .tag-final { background: #ff0000; color: white; padding: 1px 4px; border-radius: 2px; font-size: 0.55em; }
   .empty-notif { padding: 30px; text-align: center; color: #666; font-style: italic; }
 
@@ -289,31 +289,73 @@
     gap: 15px; flex-wrap: wrap; justify-content: center;
     background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
     margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
-    }
+  }
   
+  /* ========================================================= */
+  /* DISEÑO CYBERPUNK MEJORADO PARA LOS DROPDOWNS (SELECT)     */
+  /* ========================================================= */
   select {
-    background: rgba(10, 12, 16, 0.8); color: #bbb;
-    border: 1px solid rgba(188, 19, 254, 0.3); padding: 8px 15px;
-    border-radius: 6px; font-family: 'Orbitron', sans-serif; 
-    font-size: 0.8rem; letter-spacing: 0.5px;
-    cursor: pointer; outline: none; backdrop-filter: blur(10px);
-    transition: 0.3s; appearance: none;
+    /* Base */
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(5, 5, 5, 0.98));
+    color: #e0e0e0;
+    font-family: 'Orbitron', sans-serif; 
+    font-size: 0.8rem; 
+    letter-spacing: 1px;
+    cursor: pointer; 
+    outline: none; 
+    appearance: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* Dimensiones y espaciado */
+    padding: 10px 40px 10px 20px;
+    min-width: 160px;
+    
+    /* Borde Cyberpunk */
+    border: 1px solid rgba(188, 19, 254, 0.4);
+    
+    /* Forma recortada tecnológica */
+    clip-path: polygon(
+        10px 0, 100% 0, 
+        100% calc(100% - 10px), calc(100% - 10px) 100%, 
+        0 100%, 0 10px
+    );
+    border-radius: 0; /* Clip path reemplaza el border radius */
+
+    /* Flecha personalizada SVG (Color Morado por defecto) */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 14px; padding-right: 30px; min-width: 140px;
+    background-position: right 12px center;
+    background-size: 16px;
+    
+    box-shadow: 0 0 5px rgba(188, 19, 254, 0.1);
   }
+
+  /* Estado Hover y Focus */
   select:hover, select:focus {
     color: white;
+    background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(10, 10, 15, 0.98));
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.25), inset 0 0 10px rgba(0, 243, 255, 0.05);
+    text-shadow: 0 0 5px var(--neon-cyan);
+    transform: translateY(-2px);
+
+    /* Flecha cambia a Cyan */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    }
+  }
+  
+  /* Opciones dentro del select (en navegadores de escritorio) */
+  select option {
+      background: #0b0c10;
+      color: white;
+      padding: 10px;
+  }
+  /* ========================================================= */
 
   /* --- GRID DE ANIME --- */
   .container { max-width: 1600px; margin: 0 auto;
-  padding: 10px 20px 80px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px; }
+    padding: 10px 20px 80px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px;
+  }
 
   /* TARJETAS 3D */
   .card {
@@ -323,7 +365,7 @@
     transition: transform 0.1s ease-out, box-shadow 0.3s;
     box-shadow: 0 10px 25px rgba(0,0,0,0.6);
     background: #111; transform-style: preserve-3d;
-    }
+  }
   .card::before {
     content: ''; position: absolute; inset: 0;
     border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
@@ -333,7 +375,7 @@
   .card:hover::before {
     border-color: var(--neon-purple);
     box-shadow: 0 0 20px rgba(188, 19, 254, 0.2) inset;
-    }
+  }
 
   .card img {
     width: 100%; height: 100%; object-fit: cover;
@@ -362,14 +404,14 @@
 
   /* --- CHROMA / STAGE --- */
   .stage { pointer-events: none;
-  position: fixed; inset: 0; z-index: 8; }
+    position: fixed; inset: 0; z-index: 8; }
   #fgContainer {
     position: absolute; pointer-events: auto; display: flex;
     align-items: center; justify-content: center;
     right: 20px; bottom: 20px; overflow: hidden;
     background: transparent; border-radius: 10px;
     filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
-    }
+  }
   #fgCanvas, #fgVideo { width: 100%; height: 100%; display: block; object-fit: contain; }
   
   .play-overlay { 
@@ -384,7 +426,7 @@
     cursor: pointer;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
     transition: 0.3s; text-transform: uppercase;
-    }
+  }
   .play-btn:hover {
     background: var(--neon-cyan); color: #000;
     box-shadow: 0 0 40px rgba(0, 243, 255, 0.6);
@@ -415,7 +457,7 @@
     transform: scale(0.9) translateY(40px);
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
     display: flex; flex-direction: column; position: relative;
-    }
+  }
   #eventModal.show .event-card { transform: scale(1) translateY(0); }
 
   .event-visuals {
@@ -423,7 +465,7 @@
     height: 260px;
     overflow: hidden; display: flex; align-items: center; justify-content: center;
     background: #000; border-bottom: 2px solid var(--neon-cyan);
-    }
+  }
   .visual-bg {
     position: absolute; inset: 0; background-size: cover; background-position: center;
     filter: blur(20px) brightness(0.5) saturate(1.2);
@@ -444,44 +486,36 @@
     position: absolute;
     bottom: 25px;
     left: 50%;
-    /* Punto de partida exacto al centro */
-    
-    width: 110px; height: 165px;
+    width: 110px;
+    height: 165px;
     object-fit: cover;
     border-radius: 8px; opacity: 0.8;
-    
-    /* Estado inicial: Centrado (translateX -50% compensa su propio ancho) */
     transform: translateX(-50%) rotate(-10deg) scale(0.95);
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.2);
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 1;
-    }
+  }
   .cover-front {
     position: absolute;
     bottom: 25px;
     left: 50%;
-    /* Punto de partida exacto al centro */
-    
     width: 130px; height: 195px;
     object-fit: cover;
     border-radius: 10px; border: 2px solid var(--neon-cyan);
-    
-    /* Estado inicial: Centrado */
     transform: translateX(-50%) rotate(5deg) scale(1);
     z-index: 5;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+  }
 
   /* Animación de entrada: SEPARACIÓN SIMÉTRICA */
-  /* MODIFICADO: Reducido de 80px a 70px para acercarlas un poco */
   #eventModal.show .cover-back { 
       transform: translateX(calc(-50% + 70px)) rotate(-10deg) scale(0.95);
-    }
+  }
   #eventModal.show .cover-front { 
       transform: translateX(calc(-50% - 70px)) rotate(5deg) scale(1);
-    }
+  }
 
   .event-type-badge {
     position: absolute; top: 15px;
@@ -491,7 +525,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     text-transform: uppercase;
     backdrop-filter: blur(5px);
-    }
+  }
   .badge-default { background: linear-gradient(135deg, #8c52ff, #5e17eb); color: white; border: 1px solid rgba(255,255,255,0.3); }
   .badge-estreno { background: #ff0055;
     color: white; box-shadow: 0 0 15px rgba(255, 0, 85, 0.6); border: 1px solid #ff5588; }
@@ -501,9 +535,8 @@
   /* Final Stamp - Nuevo Estilo */
   .final-stamp {
     position: absolute;
-    top: 60%; /* MODIFICADO: De 50% a 60% (mas abajo) */
+    top: 60%;
     left: 50%;
-    /* MODIFICADO: De -15deg a -25deg (mas inclinado) */
     transform: translate(-50%, -50%) rotate(-25deg) scale(0);
     z-index: 20;
     color: #ff0000;
@@ -516,11 +549,10 @@
     letter-spacing: 2px;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transition-delay: 0.3s;
-    }
+  }
   #eventModal.show .final-stamp { 
-    /* MODIFICADO: Asegurar que el estado activo mantenga la nueva inclinación */
     transform: translate(-50%, -50%) rotate(-25deg) scale(1);
-    }
+  }
 
   .event-close {
     position: absolute;
@@ -545,14 +577,14 @@
     font-weight: 900; 
     color: white; margin-bottom: 8px; line-height: 1.1;
     text-shadow: 0 0 10px rgba(255,255,255,0.3);
-    }
+  }
   .event-meta {
     display: inline-block; color: var(--neon-cyan); font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase; margin-bottom: 20px;
     background: rgba(0, 243, 255, 0.1); padding: 4px 12px; border-radius: 12px;
     border: 1px solid rgba(0, 243, 255, 0.2); letter-spacing: 1px;
-    }
+  }
   .event-desc {
     color: #aaa; font-size: 0.9rem;
     font-style: italic; margin-bottom: 25px;
@@ -569,7 +601,7 @@
     align-items: center; justify-content: center; gap: 10px;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative; overflow: hidden;
-    }
+  }
   .event-btn::before {
     content: '';
     position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
@@ -591,11 +623,9 @@
     border: 1px solid #444; border-radius: 16px; padding: 25px;
     z-index: 10000; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
   }
-  .ios-content p { color: #ddd; margin: 10px 0;
-  font-size: 0.95rem; }
+  .ios-content p { color: #ddd; margin: 10px 0; font-size: 0.95rem; }
   .ios-content i { color: var(--neon-cyan); }
-  .ios-close { position: absolute; top: 10px; right: 15px;
-  font-size: 1.5rem; color: #888; cursor: pointer; }
+  .ios-close { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #888; cursor: pointer; }
 
   /* --- ANIMACIONES --- */
   @keyframes glitch {
@@ -616,26 +646,22 @@
 
   /* --- RESPONSIVE --- */
   @media (max-width: 768px) {
-    .cyber-nav { flex-wrap: wrap;
-    height: auto; padding: 12px 15px; gap: 10px; }
+    .cyber-nav { flex-wrap: wrap; height: auto; padding: 12px 15px; gap: 10px; }
     .nav-logo { order: 1; flex: 1; }
     .nav-actions { order: 2; gap: 8px; }
-    .search-wrapper { order: 3; width: 100%;
-    max-width: 100%; margin: 5px 0 0; }
+    .search-wrapper { order: 3; width: 100%; max-width: 100%; margin: 5px 0 0; }
     .search-input { padding: 8px 15px 8px 40px; font-size: 0.85rem; }
     
     .controls-container { padding: 10px 15px; gap: 8px; justify-content: space-between; }
-    select { flex: 1 1 45%; min-width: 0; font-size: 0.75rem; padding: 6px 10px; }
+    select { flex: 1 1 45%; min-width: 0; font-size: 0.75rem; padding: 8px 15px; }
     
     .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px 80px; }
     
     /* Ajuste Dropdown móvil */
-    .notif-dropdown { position: fixed;
-    top: 65px; left: 10px; right: 10px; width: auto; max-width: none; }
+    .notif-dropdown { position: fixed; top: 65px; left: 10px; right: 10px; width: auto; max-width: none; }
     
     /* Ajuste responsive del popup nuevo */
-    .event-card { width: 90%;
-    max-height: 90vh; overflow-y: auto; }
+    .event-card { width: 90%; max-height: 90vh; overflow-y: auto; }
     
     /* CAMBIO MOVIL: Posicionamiento absoluto centrado */
     .cover-back { transform: translateX(-50%) rotate(0deg) scale(0.8); }
@@ -688,7 +714,6 @@
     <a href="https://archinime.github.io/-Archinime-/Archinime%20CMS%20-%20Creador.html" target="_blank" class="nav-logo" title="Ir al Creador CMS">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       <span class="nav-logo-text">ARCHINIME</span>
-  
     </a>
 
     <div class="search-wrapper">
@@ -712,7 +737,6 @@
                 <i class="fas fa-network-wired"></i> TRANSMISIONES
             </div>
             <div id="notifList" class="notif-list">
-  
               <div class="empty-notif" style="padding:20px; text-align:center; color:#666;">Buscando señal...</div>
             </div>
         </div>
@@ -734,7 +758,6 @@
         <option>Cocina</option>
         <option>Comedia</option>
         <option>Comedia oscura</option>
-     
         <option>Cosplay</option>
         <option>Cyberpunk</option>
         <option>Deducción Social</option>
@@ -747,7 +770,6 @@
         <option>Fantasía</option>
         <option>Fantasía oscura</option>
         <option>Familiar</option>
-      
         <option>Gag</option>
         <option>Gore</option>
         <option>Harem</option>
@@ -760,7 +782,6 @@
         <option>Isekai Inverso</option>
         <option>Kaiju</option>
         <option>Mahō Shōjo</option>
-        
         <option>Mecha</option>
         <option>Militar</option>
         <option>Mitología</option>
@@ -774,7 +795,6 @@
         <option>Reverse Harem</option>
         <option>Romance</option>
         <option>RPG</option>
-   
         <option>Slice of Life</option>
         <option>Sobrenatural</option>
         <option>Steampunk</option>
@@ -787,7 +807,6 @@
         <option>Terror psicológico</option>
         <option>Thriller</option>
         <option>Thriller psicológico</option>
-  
         <option>Tokusatsu</option>
         <option>Tragedia</option>
         <option>Yaoi</option>
@@ -861,7 +880,6 @@
                 console.log('SW Registrado: OK');
                 registration.update(); 
                 registration.onupdatefound = () => {
-          
                   const installingWorker = registration.installing;
                   installingWorker.onstatechange = () => {
                         if (installingWorker.state === 'installed') {
@@ -884,6 +902,7 @@
     const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
     const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+    
     function checkInstallVisibility() {
         if (isMobile() && !isInStandaloneMode()) {
             installBtn.style.display = 'flex';
@@ -905,7 +924,6 @@
             deferredPrompt.userChoice.then((res) => {
                 deferredPrompt = null;
             });
-     
           } else {
             alert("App ya instalada o no soportada en este navegador.");
         }
@@ -913,6 +931,7 @@
     function closeIosModal() { iosModal.style.display = 'none'; }
     window.addEventListener('DOMContentLoaded', checkInstallVisibility);
     window.addEventListener('resize', checkInstallVisibility);
+
     // --- LOADER & VIDEO AUTOPLAY FIX ---
     window.addEventListener('load', () => {
       const loader = document.getElementById('page-loader');
@@ -923,18 +942,15 @@
         if (bgVideo) {
             bgVideo.muted = true; // Crucial para navegadores modernos
             let playPromise = bgVideo.play();
-  
              if (playPromise !== undefined) {
                 playPromise.then(_ => {
                     bgVideo.classList.add('loaded'); 
                 })
                 .catch(error => {
-             
                      console.log("Autoplay bloqueado. Esperando interacción.");
                     // Listener al primer toque/click
                     document.body.addEventListener('click', () => {
                         bgVideo.play();
-                   
                         bgVideo.classList.add('loaded');
                     }, { once: true });
                     document.body.addEventListener('touchstart', () => {
@@ -946,8 +962,8 @@
         }
       };
     forcePlayVideo();
-
-      // Ocultar Loader
+    
+    // Ocultar Loader
       setTimeout(() => { 
         loader.style.opacity = '0'; 
         setTimeout(() => {
@@ -956,8 +972,7 @@
                 window.startNotificationSequence();
             }
         }, 500);
-  
-        }, 800);
+       }, 800);
     });
 
     // --- EFECTO TILT 3D PARA CARDS ---
@@ -968,14 +983,12 @@
           card.dataset.tiltInit = "true";
           
           card.addEventListener('mousemove', (e) => {
-           
-              const rect = card.getBoundingClientRect();
+             const rect = card.getBoundingClientRect();
              const x = e.clientX - rect.left;
              const y = e.clientY - rect.top;
              const centerX = rect.width / 2;
              const centerY = rect.height / 2;
              const rotateX = ((y - centerY) / centerY) * -8;
- 
              const rotateY = ((x - centerX) / centerX) * 8;
              
              card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
