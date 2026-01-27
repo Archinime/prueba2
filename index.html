@@ -276,80 +276,87 @@
     letter-spacing: 0.5px; margin-bottom: 4px;
     display: flex; align-items: center; gap: 5px; 
   }
-  .n-meta { font-size: 0.75rem; color: #aaa; /* Color más claro para leerse mejor */ }
+  .n-meta { font-size: 0.75rem; color: #aaa; }
   .n-block { color: var(--neon-cyan); font-weight: bold; margin-right: 5px; }
   .n-ep-title { color: #ddd; font-style: italic; }
 
   .tag-final { background: #ff0000; color: white; padding: 1px 4px; border-radius: 2px; font-size: 0.55em; }
   .empty-notif { padding: 30px; text-align: center; color: #666; font-style: italic; }
 
-  /* --- BARRA DE FILTROS --- */
+  /* --- BARRA DE FILTROS (CONTENEDOR MEJORADO) --- */
   .controls-container {
-    padding: 15px 3%; display: flex;
-    gap: 15px; flex-wrap: wrap; justify-content: center;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-    margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding: 20px 3%; 
+    display: flex;
+    gap: 20px; 
+    flex-wrap: wrap; 
+    justify-content: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); /* Fondo más limpio */
+    margin-bottom: 10px; 
+    border-bottom: 1px solid rgba(255,255,255,0.03);
   }
   
   /* ========================================================= */
-  /* DISEÑO CYBERPUNK MEJORADO PARA LOS DROPDOWNS (SELECT)     */
+  /* --- DISEÑO CORREGIDO: BARRAS DE OPCIONES (SELECT) --- */
   /* ========================================================= */
   select {
-    /* Base */
-    background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(5, 5, 5, 0.98));
+    /* 1. RESETEAR ESTILOS POR DEFECTO PARA ELIMINAR FLECHA DEL SISTEMA */
+    appearance: none; 
+    -webkit-appearance: none; 
+    -moz-appearance: none; 
+
+    /* 2. DISEÑO VISUAL */
+    background-color: rgba(20, 20, 25, 0.9);
     color: #e0e0e0;
     font-family: 'Orbitron', sans-serif; 
     font-size: 0.8rem; 
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer; 
     outline: none; 
-    appearance: none;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     
-    /* Dimensiones y espaciado */
-    padding: 10px 40px 10px 20px;
-    min-width: 160px;
+    /* 3. DIMENSIONES Y ESPACIADO */
+    padding: 12px 40px 12px 20px; /* Padding derecho grande para la flecha */
+    min-width: 180px;
     
-    /* Borde Cyberpunk */
+    /* 4. BORDE Y FORMA TECH */
     border: 1px solid rgba(188, 19, 254, 0.4);
-    
-    /* Forma recortada tecnológica */
+    border-radius: 0px; /* Importante para el clip-path */
     clip-path: polygon(
         10px 0, 100% 0, 
         100% calc(100% - 10px), calc(100% - 10px) 100%, 
         0 100%, 0 10px
     );
-    border-radius: 0; /* Clip path reemplaza el border radius */
 
-    /* Flecha personalizada SVG (Color Morado por defecto) */
+    /* 5. FLECHA PERSONALIZADA (SVG) - POSICIONADA EXACTAMENTE */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+    background-position: calc(100% - 12px) center; /* A 12px de la derecha */
+    background-size: 14px;
     
-    box-shadow: 0 0 5px rgba(188, 19, 254, 0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
   }
 
-  /* Estado Hover y Focus */
+  /* Eliminar flecha en IE */
+  select::-ms-expand { display: none; }
+
+  /* ESTADO: HOVER Y FOCUS */
   select:hover, select:focus {
     color: white;
-    background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(10, 10, 15, 0.98));
+    background-color: rgba(30, 30, 40, 0.95);
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.25), inset 0 0 10px rgba(0, 243, 255, 0.05);
-    text-shadow: 0 0 5px var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
     transform: translateY(-2px);
-
-    /* Flecha cambia a Cyan */
+    
+    /* Cambiar flecha a Cyan al interactuar */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   }
   
-  /* Opciones dentro del select (en navegadores de escritorio) */
+  /* ESTILOS DE LAS OPCIONES (SOLO DESKTOP) */
   select option {
       background: #0b0c10;
       color: white;
       padding: 10px;
   }
-  /* ========================================================= */
 
   /* --- GRID DE ANIME --- */
   .container { max-width: 1600px; margin: 0 auto;
@@ -652,8 +659,8 @@
     .search-wrapper { order: 3; width: 100%; max-width: 100%; margin: 5px 0 0; }
     .search-input { padding: 8px 15px 8px 40px; font-size: 0.85rem; }
     
-    .controls-container { padding: 10px 15px; gap: 8px; justify-content: space-between; }
-    select { flex: 1 1 45%; min-width: 0; font-size: 0.75rem; padding: 8px 15px; }
+    .controls-container { padding: 15px 20px; gap: 12px; justify-content: center; }
+    select { flex: 1 1 100%; width: 100%; font-size: 0.85rem; }
     
     .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px 80px; }
     
@@ -680,17 +687,41 @@
     .nav-logo-text { font-size: 1.1rem; }
     .event-card { width: 95%; }
   }
-  /* FIX EXTRA PARA EL POPUP DE SELECCIÓN EN ESTILO INLINE POR SI ACASO */
+  
+  /* ESTILOS PARA EL POPUP DE SELECCIÓN EN MÓVIL (Reemplaza el nativo) */
   .mobile-select-popup {
       position: fixed;
-      background: rgba(11, 12, 16, 0.98);
+      background: rgba(15, 15, 20, 0.98);
       border: 1px solid var(--neon-purple);
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 10px rgba(188, 19, 254, 0.2);
+      border-radius: 8px; /* Borde más recto */
+      box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 15px rgba(188, 19, 254, 0.15);
       z-index: 10002;
       overflow-y: auto;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(15px);
       animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .mobile-select-popup .opt {
+      padding: 15px 20px;
+      color: #ccc;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 1rem;
+      font-family: 'Orbitron', sans-serif;
+      transition: background 0.2s;
+  }
+  .mobile-select-popup .opt:last-child { border-bottom: none; }
+  .mobile-select-popup .opt:hover, .mobile-select-popup .opt:active {
+      background: rgba(188, 19, 254, 0.1);
+      color: white;
+  }
+  .mobile-select-popup .opt[aria-selected="true"] {
+      color: var(--neon-cyan);
+      background: rgba(0, 243, 255, 0.05);
+      font-weight: bold;
+      border-left: 3px solid var(--neon-cyan);
+  }
+  @keyframes popIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
   }
 </style>
 </head>
