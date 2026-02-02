@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Descarga - Archinime</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* --- ESTILO NEÓN MANTENIDO --- */
+    :root {
+        --primary-color: #00fff7;
+        --accent-color: #ff0055;
+        --text-color: #ffffff;
+    }
+    body { 
+        margin: 0; 
+        background: #050505; 
+        color: var(--text-color); 
+        font-family: 'Poppins', sans-serif; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    #bg-video { 
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        object-fit: cover; z-index: -10; opacity: 0.5; 
+    }
+    #overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -5;
+      background: radial-gradient(circle at center, rgba(123, 44, 191, 0.2) 0%, #000000 90%);
+    }
+
+    .download-card {
+        background: rgba(0, 0, 0, 0.85);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        backdrop-filter: blur(20px);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 0 60px rgba(0, 255, 247, 0.1);
+        position: relative;
+    }
+
+    h2 { margin: 0 0 10px 0; color: #fff; font-size: 1.5rem; }
+    
+    .status-text { 
+        color: #aaa; margin-bottom: 25px; font-size: 0.9rem; line-height: 1.6; 
+    }
+    
+    .warning-box {
+        background: rgba(255, 200, 0, 0.1);
+        border-left: 3px solid #ffcc00;
+        padding: 10px;
+        text-align: left;
+        font-size: 0.8rem;
+        color: #ddd;
+        margin-bottom: 25px;
+        border-radius: 4px;
+    }
+
+    /* Botón Grande Principal */
+    .btn-main {
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(45deg, var(--accent-color), #bc13fe);
+        border: none;
+        color: #fff; 
+        border-radius: 12px;
+        font-weight: 700; font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    .btn-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 30px var(--accent-color);
+    }
+
+    .btn-secondary {
+        display: inline-block; margin-top: 20px;
+        color: #666; font-size: 0.8rem; text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: 0.3s;
+    }
+    .btn-secondary:hover { color: #fff; border-color: #fff; }
+
+  </style>
+</head>
+<body>
+
+  <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
+    <source src="galaxia.mp4" type="video/mp4">
+  </video>
+  <div id="overlay"></div>
+
+  <div class="download-card">
+    <h2 id="fileName">Archivo Seguro</h2>
+    
+    <p class="status-text">
+       Debido al gran tamaño del archivo (+100MB), Google Drive requiere una confirmación manual de seguridad.
+    </p>
+
+    <div class="warning-box">
+        <strong>⚠ Nota:</strong> Se abrirá una ventana de Google. Debes hacer clic en <b>"Descargar de todos modos"</b> para finalizar.
+    </div>
+    
+    <a id="actionBtn" class="btn-main" href="#">
+       🚀 Abrir Descarga y Confirmar
+    </a>
+
+    <a href="#" onclick="window.close()" class="btn-secondary">Cancelar y cerrar</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const downloadUrl = params.get('url');
+    const btn = document.getElementById('actionBtn');
+
+    if (downloadUrl) {
+        // Al hacer click, abrimos una ventana PEQUEÑA (Popup)
+        // Esto evita que el usuario salga de tu página
+        btn.onclick = (e) => {
+            e.preventDefault();
+            
+            // Calculamos el centro de la pantalla
+            const width = 500;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+
+            // Abrimos la ventana de Google como un "Popup"
+            window.open(
+                downloadUrl, 
+                'GoogleDownload', 
+                `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+            );
+
+            // Cambiamos el texto de tu página para indicar éxito
+            document.querySelector('.status-text').innerText = "Esperando confirmación en la ventana emergente...";
+            btn.innerText = "🔄 ¿No abrió? Click aquí de nuevo";
+        };
+    } else {
+        btn.style.display = 'none';
+        document.querySelector('h2').innerText = "Error de enlace";
+    }
+  </script>
+</body>
+</html>

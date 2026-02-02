@@ -20,7 +20,7 @@
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 6000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -458,10 +458,22 @@
         return url;
     }
 
-    function updateDownloadButton(url) {
+function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
+        // Generamos el link directo de Google Drive como siempre (manteniendo tu lógica)
         const directLink = generateDirectDownloadLink(url);
-        dlBtn.href = directLink;
+        
+        // CAMBIO: En lugar de poner el link directo, ponemos nuestra página nueva
+        // Usamos encodeURIComponent para asegurar que el link viaje bien
+        if (directLink && directLink !== "#") {
+            dlBtn.href = `descargar.html?url=${encodeURIComponent(directLink)}`;
+            // Quitamos el atributo 'download' para que navegue a la página y no intente descargar el HTML
+            dlBtn.removeAttribute('download'); 
+            // Opcional: abrir en pestaña nueva para no cerrar el video
+            dlBtn.target = "_blank"; 
+        } else {
+            dlBtn.href = "#";
+        }
     }
 
     function createOptionBtn(label, url, isActive) {
