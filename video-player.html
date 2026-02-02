@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <meta name="theme-color" content="#8c52ff">
+  
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
   
@@ -22,7 +25,7 @@
 
     /* --- ESTILOS GENERALES --- */
     body { 
-        margin: 0; 
+        margin: 0;
         background: #050505; 
         color: var(--text-color); 
         font-family: 'Poppins', sans-serif; 
@@ -33,7 +36,7 @@
    
     /* --- FONDO DE VIDEO --- */
     #bg-video { 
-        position: fixed; 
+        position: fixed;
         top: 0; left: 0; 
         width: 100%; height: 100%; 
         object-fit: cover;
@@ -43,7 +46,7 @@
 
     /* --- OVERLAY --- */
     #overlay {
-      position: fixed; 
+      position: fixed;
       top: 0; left: 0; 
       width: 100%; height: 100%; 
       z-index: -5;
@@ -54,7 +57,7 @@
     
     /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
-        width: 100%; 
+        width: 100%;
         max-width: 1200px;
         margin: 0 auto;
         padding: 15px;
@@ -67,13 +70,20 @@
     }
     
     /* --- NAVEGACIÓN SUPERIOR --- */
+    /* CAMBIO 2: Fondo degradado para simular efecto en PC */
     .top-nav {
-        display: flex; 
+        display: flex;
         justify-content: space-between; 
         align-items: center;
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
+        
+        /* Efecto visual añadido */
+        background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
+        padding: 10px;
+        border-radius: 0 0 15px 15px;
+        border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
 
     /* BOTÓN VOLVER (ESTILO NEON) */
@@ -106,12 +116,12 @@
    
     /* --- REPRODUCTOR --- */
     .player-wrapper { 
-        position: relative; 
+        position: relative;
         padding-bottom: 56.25%; /* 16:9 */
         height: 0; 
         width: 100%; 
         background: #000;
-        overflow: hidden; 
+        overflow: hidden;
         z-index: 50;
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
@@ -119,7 +129,7 @@
     }
    
     .player-wrapper iframe, .player-wrapper video { 
-        position: absolute; 
+        position: absolute;
         top: 0; left: 0; 
         width: 100%; height: 100%; 
         border: none;
@@ -127,19 +137,19 @@
 
     /* --- OPCIONES DE SERVIDOR --- */
     .options { 
-        display: flex; 
+        display: flex;
         gap: 10px;
         justify-content: flex-end;
     }
     
     .opt-btn { 
-        font-size: 0.8rem; 
+        font-size: 0.8rem;
         padding: 6px 14px;
         border: 1px solid rgba(255,255,255,0.2); 
         background: rgba(0, 0, 0, 0.6);
         color: #ccc;
         cursor: pointer;
-        border-radius: 8px; 
+        border-radius: 8px;
         transition: all 0.3s ease;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -152,7 +162,7 @@
 
     .opt-btn.active { 
         border-color: var(--primary-color);
-        color: #000; 
+        color: #000;
         background: var(--primary-color); 
         font-weight: 700;
         box-shadow: 0 0 15px var(--primary-color);
@@ -160,7 +170,7 @@
 
     /* --- TÍTULO DEL EPISODIO --- */
     h1 { 
-        color: #fff; 
+        color: #fff;
         font-size: 1.3rem; 
         margin: 5px 0 15px 0;
         text-align: center;
@@ -171,7 +181,7 @@
 
     /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
     .controls { 
-        display: grid; 
+        display: grid;
         /* COL 1: Anterior, COL 2: Descargar (Flexible), COL 3: Siguiente */
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
@@ -188,22 +198,23 @@
 
     /* ESTILOS DE LOS BOTONES */
     .btn { 
-        padding: 12px 28px; 
+        padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: #fff;
         text-decoration: none; 
         border-radius: 50px; 
-        font-size: 0.95rem; 
+        font-size: 0.95rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         /* Efecto rebote suave */
         backdrop-filter: blur(5px);
         font-weight: 600;
-        min-width: 100px; /* Tamaño mínimo para consistencia */
+        min-width: 100px;
+        /* Tamaño mínimo para consistencia */
     }
     
     /* EFECTO CELESTE (ANTERIOR / SIGUIENTE) */
@@ -213,10 +224,10 @@
 
     .nav-btn:hover {
         background: rgba(0, 255, 247, 0.15);
-        border-color: var(--primary-color); 
+        border-color: var(--primary-color);
         color: #fff;
         box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
-        transform: scale(1.05); 
+        transform: scale(1.05);
         text-shadow: 0 0 8px var(--primary-color);
     }
 
@@ -250,7 +261,7 @@
         .top-nav { justify-content: space-between; }
 
         .options {
-            overflow-x: auto; 
+            overflow-x: auto;
             white-space: nowrap;
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -267,14 +278,14 @@
 
         /* Fila 1: Anterior (Izq) y Siguiente (Der) */
         #prevBtn { 
-            grid-column: 1; 
+            grid-column: 1;
             grid-row: 1; 
             justify-self: start; 
             width: auto;
         }
         
         #nextBtn { 
-            grid-column: 2; 
+            grid-column: 2;
             grid-row: 1; 
             justify-self: end; 
             width: auto;
@@ -282,7 +293,7 @@
 
         /* Fila 2: Descargar (Ocupa todo el ancho) */
         #downloadBtn { 
-            grid-column: 1 / -1; 
+            grid-column: 1 / -1;
             grid-row: 2;
             width: 100%; /* Botón grande para descargar */
             box-sizing: border-box;
@@ -306,7 +317,6 @@
          Volver
        </a>
        <div class="options" id="serverOptions"></div>
-    
     </div>
 
     <div class="player-wrapper" id="playerContainer"></div>
@@ -364,7 +374,6 @@
         
         const optContainer = document.getElementById('serverOptions');
         optContainer.innerHTML = '';
-        
         if(epData.link) createOptionBtn("Latino", epData.link, true);
         if(epData.link2) createOptionBtn("Sub", epData.link2, !epData.link);
         
@@ -457,7 +466,6 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
