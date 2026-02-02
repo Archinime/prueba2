@@ -23,6 +23,13 @@
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* --- ANIMACIÓN RGB FLUIDA (NUEVO) --- */
+    @keyframes rgbFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
     /* --- ESTILOS GENERALES --- */
     body { 
         margin: 0;
@@ -69,8 +76,7 @@
         gap: 15px;
     }
     
-    /* --- NAVEGACIÓN SUPERIOR --- */
-    /* CAMBIO 2: Fondo degradado para simular efecto en PC */
+    /* --- NAVEGACIÓN SUPERIOR (ACTUALIZADO CON ANIMACIÓN) --- */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -79,11 +85,20 @@
         flex-wrap: wrap;
         gap: 10px;
         
-        /* Efecto visual añadido */
-        background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
+        /* FONDO ANIMADO RGB */
+        background: linear-gradient(-45deg, 
+            rgba(140, 82, 255, 0.4), 
+            rgba(0, 243, 255, 0.4), 
+            rgba(255, 0, 85, 0.4), 
+            rgba(140, 82, 255, 0.4)
+        );
+        background-size: 400% 400%;
+        animation: rgbFlow 6s ease infinite;
+
         padding: 10px;
         border-radius: 0 0 15px 15px;
-        border-bottom: 1px solid rgba(140, 82, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
 
     /* BOTÓN VOLVER (ESTILO NEON) */
