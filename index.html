@@ -10,44 +10,36 @@
   
 <script>
   (function() {
-    // 1. La lista EXACTA de colores de tu CSS (.nav-logo-text)
-    // Coincide con el linear-gradient de tu línea 32
+    // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#ff0055", "#ff0000", "#ff9900", "#ffff00", 
-      "#33ff00", "#00ff99", "#00f3ff", "#0000ff", 
-      "#9900ff", "#ff00cc", "#ff0055" 
+      "#00f3ff", // Cian Neón (Inicio)
+      "#0066ff", // Azul Eléctrico
+      "#bc13fe", // Morado Protagonista
+      "#ff0055", // Rosa Neón (Acento)
+      "#bc13fe", // Morado (Regreso)
+      "#0066ff", // Azul
+      "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    // 2. Configuración de tiempo
-    // Tu animación CSS dura 5s (5000ms).
-    // Tenemos 10 transiciones entre los 11 colores.
-    // 5000ms / 10 transiciones = 500ms para pasar de un color al siguiente.
-    const animationDuration = 5000; 
+    const animationDuration = 6000; // 6 segundos (igual que el CSS nuevo)
+    const intervalTime = 20; 
     const segments = colors.length - 1;
-    const intervalTime = 20; // Actualizamos cada 20ms para ultra-suavidad
-    
-    // Calculamos cuánto avanzar el progreso por cada intervalo
-    // Progreso va de 0 a 1. 
-    // Paso = (intervalo / duración total) * segmentos
     const step = (intervalTime / animationDuration) * segments;
 
-    let currentProgress = 0; // Valor global de 0 a (colors.length - 1)
-
-    // Referencia al meta tag
+    let currentProgress = 0;
     let metaTag = document.querySelector('meta[name="theme-color"]');
+    
     if (!metaTag) {
       metaTag = document.createElement('meta');
       metaTag.name = "theme-color";
       document.head.appendChild(metaTag);
     }
 
-    // Convertir Hex a Array RGB
     const hexToRgb = (hex) => {
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
 
-    // Convertir Array RGB a Hex
     const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
@@ -55,35 +47,24 @@
       }).join('');
     };
 
-    // Interpolación Lineal (Mezcla de colores)
     const lerp = (start, end, t) => start + (end - start) * t;
 
     setInterval(() => {
-      // Avanzar el progreso general
       currentProgress += step;
-      
-      // Si llegamos al final, reiniciar suavemente (ciclo infinito)
       if (currentProgress >= segments) {
         currentProgress = currentProgress % segments;
       }
 
-      // Determinar en qué par de colores estamos
-      // Ejemplo: Si currentProgress es 2.5, estamos entre el color índice 2 y el 3
       const index = Math.floor(currentProgress);
-      const t = currentProgress - index; // El decimal es el porcentaje de mezcla (0.0 a 0.99)
-
-      // Obtener colores RGB
+      const t = currentProgress - index;
       const colorStart = hexToRgb(colors[index]);
       const colorEnd = hexToRgb(colors[index + 1]);
 
-      // Mezclar
       const r = lerp(colorStart[0], colorEnd[0], t);
       const g = lerp(colorStart[1], colorEnd[1], t);
       const b = lerp(colorStart[2], colorEnd[2], t);
 
-      // Aplicar
       metaTag.setAttribute('content', rgbToHex(r, g, b));
-
     }, intervalTime);
   })();
 </script>
