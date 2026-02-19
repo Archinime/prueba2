@@ -218,7 +218,7 @@
         border: none;
     }
 
-    /* --- NUEVO: PARCHES DE INTERFAZ (OVERLAY MASK) MEJORADOS --- */
+    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) MEJORADOS --- */
     .player-patch {
         position: absolute;
         z-index: 60; /* Por encima del iframe pero debajo del botón fullscreen */
@@ -237,7 +237,7 @@
     /* Parche inferior para bloquear la barra de reproducción externa */
     .bottom-patch {
         bottom: 0;
-        height: 25%; /* Un poco más alto para asegurar que cubra bien en Fullscreen */
+        height: 25%; /* Cubre bien en Fullscreen */
     }
 
     /* --- AUTO-OCULTAR CURSOR Y CONTROLES --- */
@@ -563,18 +563,18 @@
         container.innerHTML = '';
         
         let finalUrl = url;
-        if (finalUrl.includes('ok.ru/videoembed') && !finalUrl.includes('autoplay=')) {
-            finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+        
+        // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
+        if (finalUrl.startsWith('http://')) {
+            finalUrl = finalUrl.replace('http://', 'https://');
         }
 
         const iframe = document.createElement('iframe');
         iframe.src = finalUrl;
         
-        // --- CLAVE DEL ÉXITO AQUÍ ---
-        // Se ha eliminado explícitamente el permiso de 'fullscreen' y 'allowfullscreen'.
-        // Esto le prohíbe al reproductor externo usar su doble clic para robar la pantalla.
+        // CORRECCIÓN DOBLE CLIC: Quitamos por completo "fullscreen" y "allowfullscreen".
+        // Esto le corta las alas a OK.ru; al hacer doble clic ya no podrá secuestrar tu pantalla.
         iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
-        // iframe.setAttribute("allowfullscreen", "true"); <-- Eliminado a propósito
         
         iframe.style.position = "absolute";
         iframe.style.top = "0";
@@ -657,14 +657,8 @@
     document.addEventListener('fullscreenchange', updateFsButton);
     document.addEventListener('webkitfullscreenchange', updateFsButton);
 
-    // NUEVO: Prevenir cualquier comportamiento extraño si el usuario hace doble clic en los bordes parcheados
-    wrapper.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-
     // -----------------------------------------------------------
-    // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES
+    // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES (CORREGIDA PARA MÓVIL)
     // -----------------------------------------------------------
     let hideTimeout;
 
@@ -676,15 +670,26 @@
         }, 3000);
     }
 
+    // Eventos normales para desktop
     wrapper.addEventListener('mousemove', resetInactivityTimer);
-    wrapper.addEventListener('touchstart', resetInactivityTimer);
     wrapper.addEventListener('click', resetInactivityTimer);
+
+    // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
+    document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
+    document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
+
+    // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
+    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
+    window.addEventListener('blur', () => {
+        resetInactivityTimer();
+    });
 
     wrapper.addEventListener('mouseleave', () => {
         clearTimeout(hideTimeout);
         wrapper.classList.add('hide-cursor');
     });
 
+    // Iniciar temporizador
     resetInactivityTimer();
 
   </script>
