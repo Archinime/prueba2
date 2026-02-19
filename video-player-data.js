@@ -2,7 +2,7 @@ const players = {
     "1": {
         "1": {
             "1": {
-                "link": "https://drive.google.com/file/d/1IeHj6BHp8S3n8IY2ezkiOj8NrDMbesk-/preview",
+                "link": "https://ok.ru/videoembed/12236932254418?nochat=1&autoplay=1",
                 "link2": "https://www.dropbox.com/scl/fi/91lzoa0pa9tf53qsrq87n/DAN-DA-DAN-Cap-1.mp4?rlkey=br7i2ynaofngd9jbzgtzk255f&st=h8pdnqfz&raw=1",
                 "title": "DAN DA DAN T1 Cap 1"
             },
