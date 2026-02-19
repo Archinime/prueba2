@@ -11,16 +11,16 @@
   (function() {
     // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#00f3ff",
-      "#0066ff",
-      "#bc13fe",
-      "#ff0055",
-      "#bc13fe",
-      "#0066ff",
-      "#00f3ff"
+      "#00f3ff", // Cian Neón (Inicio)
+      "#0066ff", // Azul Eléctrico
+      "#bc13fe", // Morado Protagonista
+      "#ff0055", // Rosa Neón (Acento)
+      "#bc13fe", // Morado (Regreso)
+      "#0066ff", // Azul
+      "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 20000;
+    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -70,14 +70,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
+    /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7;
-        --accent-color: #ff0055;
+        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;  /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* --- ESTILOS GENERALES --- */
     body { 
         margin: 0;
         background: #050505; 
@@ -87,16 +89,18 @@
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
     }
-
+   
+    /* --- FONDO DE VIDEO --- */
     #bg-video { 
         position: fixed;
         top: 0; left: 0; 
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5;
+        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */
     }
 
+    /* --- OVERLAY --- */
     #overlay {
       position: fixed;
       top: 0; left: 0; 
@@ -106,7 +110,8 @@
       backdrop-filter: blur(8px);
       pointer-events: none;
     }
-
+    
+    /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
         max-width: 1200px;
@@ -119,7 +124,8 @@
         flex-direction: column;
         gap: 15px;
     }
-
+    
+    /* --- NAVEGACIÓN SUPERIOR --- */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -127,12 +133,14 @@
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
+        /* Efecto visual añadido */
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
         border-radius: 0 0 15px 15px;
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
 
+    /* BOTÓN VOLVER (ESTILO NEON) */
     .back-btn { 
       display: inline-flex;
       align-items: center;
@@ -146,7 +154,7 @@
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3);
+      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -159,10 +167,11 @@
         transform: translateY(-2px);
         text-shadow: 0 0 5px var(--primary-color);
     }
-
+   
+    /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%;
+        padding-bottom: 56.25%; /* 16:9 */
         height: 0; 
         width: 100%; 
         background: #000;
@@ -171,9 +180,11 @@
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        /* Transición para el auto-ocultado del cursor */
         transition: cursor 0.3s ease;
     }
 
+    /* ESTILOS PARA CUANDO EL WRAPPER ESTÁ EN PANTALLA COMPLETA */
     .player-wrapper:fullscreen {
         padding-bottom: 0 !important;
         height: 100vh !important;
@@ -189,12 +200,13 @@
         border: none !important;
     }
 
+    /* CONTENEDOR INTERNO PARA EL VIDEO/IFRAME */
     #playerContainer {
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
     }
-
+   
     .player-wrapper iframe, .player-wrapper video { 
         position: absolute;
         top: 0; left: 0; 
@@ -202,27 +214,32 @@
         border: none;
     }
 
+    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) --- */
     .player-patch {
         position: absolute;
-        z-index: 60;
-        background: transparent;
-        cursor: default;
+        z-index: 60; /* Por encima del iframe pero debajo del botón fullscreen */
+        background: transparent; /* Invisible */
+        cursor: default; /* Evita que el cursor se vuelva puntero */
     }
 
+    /* Parche principal superior ajustado al 50% */
     .main-patch {
         width: 100%;
         left: 0;
         top: 0;
-        height: 10%;
+        height: 10%; 
     }
 
+    /* Parche inferior derecho expandido para cubrir toda la esquina */
     .corner-patch {
         bottom: 0;
         right: 0; 
-        width: 100px;
-        height: 70px;
+        width: 100px; /* Cubre desde el borde derecho hasta pasar tu botón */
+        height: 70px; /* Cubre desde abajo tapando los controles nativos */
+        /* Al tener z-index: 60 (heredado de .player-patch), bloqueará clics al iframe */
     }
 
+    /* --- AUTO-OCULTAR CURSOR Y CONTROLES --- */
     .player-wrapper.hide-cursor {
         cursor: none;
     }
@@ -231,6 +248,7 @@
         pointer-events: none;
     }
 
+    /* --- BOTÓN DE AMPLIAR (Escritorio) --- */
     .fullscreen-btn {
         position: absolute;
         bottom: 0 !important;
@@ -246,6 +264,7 @@
         transition: all 0.2s ease;
     }
 
+    /* --- CONTROLES INFERIORES --- */
     h1 { color: #fff; font-size: 1.3rem; margin: 5px 0 15px 0;
     text-align: center; font-weight: 700; }
     .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 15px;
@@ -258,22 +277,29 @@
     .btn-hidden { visibility: hidden; pointer-events: none;
     }
 
+    /* --- RESPONSIVE / MÓVIL --- */
     @media (max-width: 768px) {
+        /* Reducir el botón de ampliar en móviles */
         .fullscreen-btn {
-            padding: 10px !important;
+            padding: 10px !important; /* Menos espacio interno */
             border-radius: 6px 0 0 0;
         }
+        /* Reducir el tamaño del icono SVG dentro del botón */
         .fullscreen-btn svg {
             width: 22px !important; height: 22px !important;
         }
+        
+        /* Ajustar escudos para que coincidan con el botón pequeño (ancho reducido a 45px) */
         .corner-blocker-right { width: 45px; height: 50px; }
         .corner-patch-left { right: 45px; width: 45px; height: 50px; }
+        
+        /* Aplica también al parche principal del HTML para asegurar que no exceda el botón */
         .corner-patch { width: 45px; height: 50px; }
 
         .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
         #downloadBtn { grid-column: 1 / -1; width: 100%; }
     }
-
+    
     .fullscreen-btn:hover {
         background: var(--primary-color);
         color: #000;
@@ -281,12 +307,13 @@
         border-color: var(--primary-color);
     }
 
+    /* --- OPCIONES DE SERVIDOR --- */
     .options { 
         display: flex;
         gap: 10px;
         justify-content: flex-end;
     }
-
+    
     .opt-btn { 
         font-size: 0.8rem;
         padding: 6px 14px;
@@ -299,7 +326,7 @@
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
     }
-
+    
     .opt-btn:hover {
         background: rgba(255, 255, 255, 0.1);
         color: #fff;
@@ -313,6 +340,7 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
+    /* --- TÍTULO DEL EPISODIO --- */
     h1 { 
         color: #fff;
         font-size: 1.3rem; 
@@ -323,6 +351,7 @@
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
+    /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
     .controls { 
         display: grid;
         grid-template-columns: 1fr auto 1fr;
@@ -337,6 +366,7 @@
     #nextBtn { justify-self: end; }    
     #downloadBtn { justify-self: center; } 
 
+    /* ESTILOS DE LOS BOTONES */
     .btn { 
         padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
@@ -388,6 +418,7 @@
         pointer-events: none;
     }
 
+    /* --- IFRAME FALLBACK --- */
     .iframe-fallback {
         position: absolute;
         inset: 0;
@@ -417,6 +448,7 @@
         font-size: 0.85rem;
     }
 
+    /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
         .top-nav { justify-content: space-between; }
@@ -569,6 +601,7 @@
 
     function isTablet() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
+        // Detect common tablets (ipad, android tablets, kindle, playbook, silk)
         return /ipad|tablet|(android(?!.*mobile))|silk|playbook|nexus 7|nexus 9|xoom/i.test(ua);
     }
 
@@ -593,50 +626,9 @@
         }
     }
 
-    // --- Versión final de loadAsIframe: carga siempre en la MISMA página ---
-    function loadAsIframe(url, container) {
-        container.innerHTML = '';
-        if (!url) return;
-
-        let finalUrl = url;
-
-        // Forzar HTTPS para evitar bloqueos por contenido mixto
-        if (finalUrl.startsWith('http://')) {
-            finalUrl = finalUrl.replace('http://', 'https://');
-        }
-
-        // FIX DEFINITIVO OK.RU: convertir /videoembed/ a /video/ para que cargue en tablets
-        // (OK.ru suele bloquear embeds con /videoembed/ en algunos navegadores/tablets)
-        try {
-            if (finalUrl.includes("ok.ru/videoembed/")) {
-                finalUrl = finalUrl.replace("videoembed/", "video/");
-            }
-            // Manejo adicional: si viene con parámetros extra que interfieren, mantenerlos.
-        } catch (e) {
-            console.warn("Error transformando URL:", e);
-        }
-
-        const iframe = document.createElement('iframe');
-        iframe.src = finalUrl;
-        iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
-        iframe.setAttribute("allowfullscreen", "");
-        iframe.setAttribute("webkitallowfullscreen", "");
-        iframe.setAttribute("mozallowfullscreen", "");
-        iframe.loading = 'lazy';
-
-        iframe.style.position = "absolute";
-        iframe.style.top = "0";
-        iframe.style.left = "0";
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-
-        // No fallback visible: intentamos cargar directamente dentro del iframe en la misma página.
-        container.appendChild(iframe);
-    }
-
-    // (Opcional) función que dejé por compatibilidad si alguna vez quieres fallback visible.
     function showFallback(container, finalUrl) {
+        // Si el iframe falla (comportamiento típico en tablets por políticas CORS/third-party),
+        // mostramos un fallback con botón para abrir en nueva pestaña.
         container.innerHTML = '';
         const fb = document.createElement('div');
         fb.className = 'iframe-fallback';
@@ -646,10 +638,61 @@
                 <div style="height:8px"></div>
                 <a id="openExtern" href="${finalUrl}" target="_blank" rel="noopener noreferrer">Abrir en nueva pestaña</a>
                 <div style="height:6px"></div>
-                <small>Si el video se reproduce en la nueva pestaña, el host está bloqueando el embed en este navegador/tablet.</small>
+                <small>Si el video se reproduce en la nueva pestaña, el host (ej. OK.ru) está bloqueando el embed en este navegador/tablet.</small>
             </div>
         `;
         container.appendChild(fb);
+    }
+
+    function loadAsIframe(url, container) {
+        container.innerHTML = '';
+        let finalUrl = url;
+        
+        // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
+        if (finalUrl.startsWith('http://')) {
+            finalUrl = finalUrl.replace('http://', 'https://');
+        }
+
+        const iframe = document.createElement('iframe');
+
+        // IMPORTANTE: algunos servicios (OK.ru, Vimeo, etc.) requieren allowfullscreen y permiso para fullscreen
+        // en navegadores de tablets. Lo añadimos aquí para compatibilidad.
+        iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
+        iframe.setAttribute("allowfullscreen", "");
+        iframe.setAttribute("webkitallowfullscreen", "");
+        iframe.setAttribute("mozallowfullscreen", "");
+        iframe.loading = 'lazy';
+        iframe.src = finalUrl;
+        
+        iframe.style.position = "absolute";
+        iframe.style.top = "0";
+        iframe.style.left = "0";
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+
+        // Fallback: si el iframe tarda en cargar o no dispara 'load', mostramos un botón para abrir en nueva pestaña.
+        let loaded = false;
+        const timeoutMs = isTablet() ? 6000 : 4000; // tiempo mayor en tablets
+        const loadTimeout = setTimeout(() => {
+            if (!loaded) {
+                console.warn('Iframe load timeout — mostrando fallback.');
+                showFallback(container, finalUrl);
+            }
+        }, timeoutMs);
+
+        iframe.addEventListener('load', () => {
+            loaded = true;
+            clearTimeout(loadTimeout);
+            // Si hay un fallback visible, lo removemos dejando el iframe.
+            const existingFallback = container.querySelector('.iframe-fallback');
+            if (existingFallback) existingFallback.remove();
+            // Dejar el iframe (ya estará en el DOM).
+        }, { once: true });
+
+        // Hay situaciones en las que 'load' se dispara pero el contenido muestra error gráfico; el fallback
+        // aún puede ayudar si el usuario decide abrir en nueva pestaña manualmente.
+        container.appendChild(iframe);
     }
 
     function setupNavigation() {
@@ -713,6 +756,7 @@
 
     function updateFsButton() {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
+            // Iconos actualizados al tamaño 28x28
             fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
         } else {
             fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
@@ -734,11 +778,15 @@
         }, 3000);
     }
 
+    // Eventos normales para desktop
     wrapper.addEventListener('mousemove', resetInactivityTimer);
     wrapper.addEventListener('click', resetInactivityTimer);
+    // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
     document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
     document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
 
+    // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
+    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
     window.addEventListener('blur', () => {
         resetInactivityTimer();
     });
