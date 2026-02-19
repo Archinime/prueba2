@@ -20,7 +20,7 @@
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; 
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -72,8 +72,8 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055;  /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        --accent-color: #ff0055;
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -97,7 +97,7 @@
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */
+        opacity: 0.5;
     }
 
     /* --- OVERLAY --- */
@@ -133,7 +133,6 @@
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
-        /* Efecto visual añadido */
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
         border-radius: 0 0 15px 15px;
@@ -154,7 +153,7 @@
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */
+      border: 1px solid rgba(0, 255, 247, 0.3);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -180,11 +179,9 @@
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        /* Transición para el auto-ocultado del cursor */
         transition: cursor 0.3s ease;
     }
 
-    /* ESTILOS PARA CUANDO EL WRAPPER ESTÁ EN PANTALLA COMPLETA */
     .player-wrapper:fullscreen {
         padding-bottom: 0 !important;
         height: 100vh !important;
@@ -200,7 +197,6 @@
         border: none !important;
     }
 
-    /* CONTENEDOR INTERNO PARA EL VIDEO/IFRAME */
     #playerContainer {
         position: absolute;
         top: 0; left: 0;
@@ -214,41 +210,22 @@
         border: none;
     }
 
-    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) --- */
+    /* --- PARCHES DE INTERFAZ --- */
     .player-patch {
         position: absolute;
-        z-index: 60; /* Por encima del iframe pero debajo del botón fullscreen */
-        background: transparent; /* Invisible */
-        cursor: default; /* Evita que el cursor se vuelva puntero */
+        z-index: 60;
+        background: transparent;
+        cursor: default;
     }
 
-    /* Parche principal superior ajustado al 50% */
-    .main-patch {
-        width: 100%;
-        left: 0;
-        top: 0;
-        height: 10%; 
-    }
+    .main-patch { width: 100%; left: 0; top: 0; height: 10%; }
+    .corner-patch { bottom: 0; right: 0; width: 100px; height: 70px; }
 
-    /* Parche inferior derecho expandido para cubrir toda la esquina */
-    .corner-patch {
-        bottom: 0;
-        right: 0; 
-        width: 100px; /* Cubre desde el borde derecho hasta pasar tu botón */
-        height: 70px; /* Cubre desde abajo tapando los controles nativos */
-        /* Al tener z-index: 60 (heredado de .player-patch), bloqueará clics al iframe */
-    }
+    /* --- AUTO-OCULTAR CURSOR --- */
+    .player-wrapper.hide-cursor { cursor: none; }
+    .player-wrapper.hide-cursor #customFullscreenBtn { opacity: 0; pointer-events: none; }
 
-    /* --- AUTO-OCULTAR CURSOR Y CONTROLES --- */
-    .player-wrapper.hide-cursor {
-        cursor: none;
-    }
-    .player-wrapper.hide-cursor #customFullscreenBtn {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    /* --- BOTÓN DE AMPLIAR (Escritorio) --- */
+    /* --- BOTÓN DE AMPLIAR --- */
     .fullscreen-btn {
         position: absolute;
         bottom: 0 !important;
@@ -265,211 +242,42 @@
     }
 
     /* --- CONTROLES INFERIORES --- */
-    h1 { color: #fff; font-size: 1.3rem; margin: 5px 0 15px 0;
-    text-align: center; font-weight: 700; }
-    .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 15px;
-    margin-top: 10px; padding-bottom: 40px; width: 100%; }
-    .btn { padding: 12px 28px; background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; text-decoration: none; border-radius: 50px; font-size: 0.95rem; display: inline-flex; align-items: center;
-    justify-content: center; gap: 8px; transition: all 0.3s ease; }
-    .nav-btn:hover { background: rgba(0, 255, 247, 0.15);
-    border-color: var(--primary-color); transform: scale(1.05); }
-    .btn-hidden { visibility: hidden; pointer-events: none;
-    }
+    h1 { color: #fff; font-size: 1.3rem; margin: 5px 0 15px 0; text-align: center; font-weight: 700; }
+    .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 15px; margin-top: 10px; padding-bottom: 40px; width: 100%; }
+    
+    .btn { padding: 12px 28px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; text-decoration: none; border-radius: 50px; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; }
+    .nav-btn:hover { background: rgba(0, 255, 247, 0.15); border-color: var(--primary-color); transform: scale(1.05); }
+    .btn-hidden { visibility: hidden; pointer-events: none; }
 
     /* --- RESPONSIVE / MÓVIL --- */
     @media (max-width: 768px) {
-        /* Reducir el botón de ampliar en móviles */
-        .fullscreen-btn {
-            padding: 10px !important; /* Menos espacio interno */
-            border-radius: 6px 0 0 0;
-        }
-        /* Reducir el tamaño del icono SVG dentro del botón */
-        .fullscreen-btn svg {
-            width: 22px !important; height: 22px !important;
-        }
-        
-        /* Ajustar escudos para que coincidan con el botón pequeño (ancho reducido a 45px) */
-        .corner-blocker-right { width: 45px; height: 50px; }
-        .corner-patch-left { right: 45px; width: 45px; height: 50px; }
-        
-        /* Aplica también al parche principal del HTML para asegurar que no exceda el botón */
+        .fullscreen-btn { padding: 10px !important; border-radius: 6px 0 0 0; }
+        .fullscreen-btn svg { width: 22px !important; height: 22px !important; }
         .corner-patch { width: 45px; height: 50px; }
-
         .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
         #downloadBtn { grid-column: 1 / -1; width: 100%; }
     }
     
-    .fullscreen-btn:hover {
-        background: var(--primary-color);
-        color: #000;
-        box-shadow: 0 0 15px var(--primary-color);
-        border-color: var(--primary-color);
-    }
+    .fullscreen-btn:hover { background: var(--primary-color); color: #000; box-shadow: 0 0 15px var(--primary-color); border-color: var(--primary-color); }
 
     /* --- OPCIONES DE SERVIDOR --- */
-    .options { 
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-    
-    .opt-btn { 
-        font-size: 0.8rem;
-        padding: 6px 14px;
-        border: 1px solid rgba(255,255,255,0.2); 
-        background: rgba(0, 0, 0, 0.6);
-        color: #ccc;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 500;
-    }
-    
-    .opt-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-    }
+    .options { display: flex; gap: 10px; justify-content: flex-end; }
+    .opt-btn { font-size: 0.8rem; padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0, 0, 0, 0.6); color: #ccc; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .opt-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .opt-btn.active { border-color: var(--primary-color); color: #000; background: var(--primary-color); font-weight: 700; box-shadow: 0 0 15px var(--primary-color); }
 
-    .opt-btn.active { 
-        border-color: var(--primary-color);
-        color: #000;
-        background: var(--primary-color); 
-        font-weight: 700;
-        box-shadow: 0 0 15px var(--primary-color);
-    }
+    /* --- BOTONES DE NAVEGACIÓN --- */
+    .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
+    .nav-btn:hover { background: rgba(0, 255, 247, 0.15); border-color: var(--primary-color); color: #fff; box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2); transform: scale(1.05); text-shadow: 0 0 8px var(--primary-color); }
 
-    /* --- TÍTULO DEL EPISODIO --- */
-    h1 { 
-        color: #fff;
-        font-size: 1.3rem; 
-        margin: 5px 0 15px 0;
-        text-align: center;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    }
+    #downloadBtn { border-color: rgba(255, 0, 85, 0.4); background: rgba(255, 0, 85, 0.05); min-width: 140px; }
+    #downloadBtn:hover { background: rgba(255, 0, 85, 0.2); border-color: var(--accent-color); color: #fff; box-shadow: 0 0 30px var(--accent-color), inset 0 0 10px rgba(255, 0, 85, 0.2); transform: scale(1.05); text-shadow: 0 0 8px var(--accent-color); }
 
-    /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
-    .controls { 
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 15px; 
-        margin-top: 10px;
-        padding-bottom: 40px;
-        width: 100%;
-    }
-    
-    #prevBtn { justify-self: start; }  
-    #nextBtn { justify-self: end; }    
-    #downloadBtn { justify-self: center; } 
-
-    /* ESTILOS DE LOS BOTONES */
-    .btn { 
-        padding: 12px 28px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
-        text-decoration: none; 
-        border-radius: 50px; 
-        font-size: 0.95rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        backdrop-filter: blur(5px);
-        font-weight: 600;
-        min-width: 100px;
-    }
-    
-    .nav-btn {
-        border-color: rgba(0, 255, 247, 0.3);
-    }
-
-    .nav-btn:hover {
-        background: rgba(0, 255, 247, 0.15);
-        border-color: var(--primary-color);
-        color: #fff;
-        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
-        transform: scale(1.05);
-        text-shadow: 0 0 8px var(--primary-color);
-    }
-
-    #downloadBtn {
-        border-color: rgba(255, 0, 85, 0.4);
-        background: rgba(255, 0, 85, 0.05);
-        min-width: 140px;
-    }
-
-    #downloadBtn:hover {
-        background: rgba(255, 0, 85, 0.2);
-        border-color: var(--accent-color);
-        color: #fff;
-        box-shadow: 0 0 30px var(--accent-color), inset 0 0 10px rgba(255, 0, 85, 0.2);
-        transform: scale(1.05);
-        text-shadow: 0 0 8px var(--accent-color);
-    }
-
-    .btn-hidden { 
-        visibility: hidden;
-        pointer-events: none;
-    }
-
-    /* --- IFRAME FALLBACK --- */
-    .iframe-fallback {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 12px;
-        padding: 20px;
-        box-sizing: border-box;
-        background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.65));
-        color: #fff;
-        z-index: 90;
-        text-align: center;
-    }
-    .iframe-fallback a {
-        display: inline-block;
-        padding: 10px 18px;
-        border-radius: 8px;
-        background: var(--primary-color);
-        color: #000;
-        text-decoration: none;
-        font-weight: 700;
-    }
-    .iframe-fallback small {
-        color: rgba(255,255,255,0.75);
-        font-size: 0.85rem;
-    }
-
-    /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .top-nav { justify-content: space-between; }
-        .options {
-            overflow-x: auto;
-            white-space: nowrap;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            max-width: 60%;
-        }
+        .options { overflow-x: auto; white-space: nowrap; max-width: 60%; }
         .options::-webkit-scrollbar { display: none; }
-
-        .controls {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 10px;
-        }
-
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
+        #prevBtn { justify-self: start; }
+        #nextBtn { justify-self: end; }
     }
   </style>
 </head>
@@ -482,7 +290,6 @@
   <div id="overlay"></div>
 
   <div class="container">
-   
     <div class="top-nav">
        <a href="#" id="backLink" class="back-btn">
          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -493,10 +300,8 @@
 
     <div class="player-wrapper" id="playerWrapper">
         <div id="playerContainer"></div>
-        
         <div class="player-patch main-patch"></div>
         <div class="player-patch corner-patch"></div>
-
         <button id="customFullscreenBtn" class="fullscreen-btn" title="Pantalla Completa">
             <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -508,14 +313,9 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#" target="_blank" download>
-             ⬇ Descargar
-        </a>
-        
+        <a id="downloadBtn" class="btn" href="#" target="_blank">⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
-
   </div>
 
   <script>
@@ -524,12 +324,16 @@
   </script>
 
   <script>
-    // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR
-    // -----------------------------------------------------------
-    
+    // --- DETECCIÓN DE TABLET ---
+    function isTabletDevice() {
+        const ua = navigator.userAgent.toLowerCase();
+        const isTablet = /(ipad|tablet|(android(?!.*mobile))|kindle|playbook|silk)/i.test(ua);
+        // Detección extra para iPads nuevos que se identifican como Macintosh
+        const isIPadOS = (navigator.maxTouchPoints > 2 && /Macintosh/.test(navigator.userAgent));
+        return isTablet || isIPadOS;
+    }
+
     const DB = (typeof players !== 'undefined') ? players : {};
-    
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
     const season = params.get('s');
@@ -599,18 +403,20 @@
         optContainer.appendChild(btn);
     }
 
-    function isTablet() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        // Detect common tablets (ipad, android tablets, kindle, playbook, silk)
-        return /ipad|tablet|(android(?!.*mobile))|silk|playbook|nexus 7|nexus 9|xoom/i.test(ua);
-    }
-
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
         if (!url) return;
+
+        // --- LÓGICA ESPECIAL PARA TABLETS Y OK.RU ---
+        if (isTabletDevice() && url.includes('ok.ru')) {
+            window.location.href = url; // Se abre el link directamente
+            return;
+        }
+
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -626,72 +432,22 @@
         }
     }
 
-    function showFallback(container, finalUrl) {
-        // Si el iframe falla (comportamiento típico en tablets por políticas CORS/third-party),
-        // mostramos un fallback con botón para abrir en nueva pestaña.
-        container.innerHTML = '';
-        const fb = document.createElement('div');
-        fb.className = 'iframe-fallback';
-        fb.innerHTML = `
-            <div>
-                <strong>El reproductor embebido no cargó en este dispositivo.</strong>
-                <div style="height:8px"></div>
-                <a id="openExtern" href="${finalUrl}" target="_blank" rel="noopener noreferrer">Abrir en nueva pestaña</a>
-                <div style="height:6px"></div>
-                <small>Si el video se reproduce en la nueva pestaña, el host (ej. OK.ru) está bloqueando el embed en este navegador/tablet.</small>
-            </div>
-        `;
-        container.appendChild(fb);
-    }
-
     function loadAsIframe(url, container) {
         container.innerHTML = '';
         let finalUrl = url;
-        
-        // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
         if (finalUrl.startsWith('http://')) {
             finalUrl = finalUrl.replace('http://', 'https://');
         }
 
         const iframe = document.createElement('iframe');
-
-        // IMPORTANTE: algunos servicios (OK.ru, Vimeo, etc.) requieren allowfullscreen y permiso para fullscreen
-        // en navegadores de tablets. Lo añadimos aquí para compatibilidad.
-        iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
-        iframe.setAttribute("allowfullscreen", "");
-        iframe.setAttribute("webkitallowfullscreen", "");
-        iframe.setAttribute("mozallowfullscreen", "");
-        iframe.loading = 'lazy';
         iframe.src = finalUrl;
-        
+        iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
         iframe.style.position = "absolute";
         iframe.style.top = "0";
         iframe.style.left = "0";
         iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
-
-        // Fallback: si el iframe tarda en cargar o no dispara 'load', mostramos un botón para abrir en nueva pestaña.
-        let loaded = false;
-        const timeoutMs = isTablet() ? 6000 : 4000; // tiempo mayor en tablets
-        const loadTimeout = setTimeout(() => {
-            if (!loaded) {
-                console.warn('Iframe load timeout — mostrando fallback.');
-                showFallback(container, finalUrl);
-            }
-        }, timeoutMs);
-
-        iframe.addEventListener('load', () => {
-            loaded = true;
-            clearTimeout(loadTimeout);
-            // Si hay un fallback visible, lo removemos dejando el iframe.
-            const existingFallback = container.querySelector('.iframe-fallback');
-            if (existingFallback) existingFallback.remove();
-            // Dejar el iframe (ya estará en el DOM).
-        }, { once: true });
-
-        // Hay situaciones en las que 'load' se dispara pero el contenido muestra error gráfico; el fallback
-        // aún puede ayudar si el usuario decide abrir en nueva pestaña manualmente.
         container.appendChild(iframe);
     }
 
@@ -716,7 +472,6 @@
                 } else {
                     prevBtn.classList.add('btn-hidden');
                 }
-
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
                     nextBtn.classList.remove('btn-hidden');
@@ -728,9 +483,6 @@
         } catch (e) { console.error(e); }
     }
 
-    // -----------------------------------------------------------
-    // LÓGICA DE PANTALLA COMPLETA PERSONALIZADA
-    // -----------------------------------------------------------
     const wrapper = document.getElementById('playerWrapper');
     const fsBtn = document.getElementById('customFullscreenBtn');
 
@@ -740,23 +492,18 @@
                 wrapper.requestFullscreen();
             } else if (wrapper.webkitRequestFullscreen) {
                 wrapper.webkitRequestFullscreen();
-            } else if (wrapper.msRequestFullscreen) {
-                wrapper.msRequestFullscreen();
             }
         } else {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
             }
         }
     });
 
     function updateFsButton() {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
-            // Iconos actualizados al tamaño 28x28
             fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
         } else {
             fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
@@ -766,9 +513,6 @@
     document.addEventListener('fullscreenchange', updateFsButton);
     document.addEventListener('webkitfullscreenchange', updateFsButton);
 
-    // -----------------------------------------------------------
-    // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES (CORREGIDA PARA MÓVIL)
-    // -----------------------------------------------------------
     let hideTimeout;
     function resetInactivityTimer() {
         wrapper.classList.remove('hide-cursor');
@@ -778,27 +522,19 @@
         }, 3000);
     }
 
-    // Eventos normales para desktop
     wrapper.addEventListener('mousemove', resetInactivityTimer);
     wrapper.addEventListener('click', resetInactivityTimer);
-    // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
     document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
     document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
 
-    // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
-    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
     window.addEventListener('blur', () => {
         resetInactivityTimer();
     });
-    
     wrapper.addEventListener('mouseleave', () => {
         clearTimeout(hideTimeout);
         wrapper.classList.add('hide-cursor');
     });
-    
-    // Iniciar temporizador
     resetInactivityTimer();
-
   </script>
 </body>
 </html>
