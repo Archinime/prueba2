@@ -506,21 +506,22 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR (sin abrir pestañas nuevas)
+    // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
 
-    // Conservamos la función de detección por si más adelante quieres usarla,
-    // pero ya NO se utiliza para abrir pestañas.
+    // -------------- NUEVO: detección de TABLET ---------------
     function isTablet() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const uaL = ua.toLowerCase();
         const isIpad = /ipad/.test(uaL) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isAndroidTablet = /android/.test(uaL) && !/mobile/.test(uaL);
         const isWindowsTablet = /windows/.test(uaL) && /touch/.test(uaL) && !/phone/.test(uaL);
+        // fallback por tamaño de pantalla (landscape/portrait)
         const maxSide = Math.max(screen.width || 0, screen.height || 0);
         const tabletSize = maxSide >= 768 && maxSide <= 1366;
         return isIpad || isAndroidTablet || isWindowsTablet || tabletSize;
     }
+    // --------------------------------------------------------
 
     const DB = (typeof players !== 'undefined') ? players : {};
     
@@ -529,6 +530,9 @@
     const season = params.get('s');
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
+
+    // bandera para evitar abrir muchas veces
+    let openedInTab = false;
 
     if (animeId && season && episode) {
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
@@ -545,9 +549,25 @@
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
 
-        // Ahora siempre cargamos embebido (sin abrir pestañas nuevas)
-        loadVideo(initialLink);
-
+        // Si es TABLET, abrimos el link inicial en nueva pestaña (mejorado: mostramos aviso/fallback)
+        if (initialLink && isTablet()) {
+            try {
+                // Forzamos HTTPS si es http (igual que en loadAsIframe)
+                let tUrl = initialLink;
+                if (tUrl.startsWith('http://')) tUrl = tUrl.replace('http://', 'https://');
+                const newWin = window.open(tUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+                openedInTab = true;
+                showTabletNotice(tUrl);
+            } catch(e) { 
+                console.warn('No se pudo abrir en nueva pestaña:', e);
+                // mostramos el aviso para que el usuario lo intente manualmente
+                showTabletNotice(initialLink);
+            }
+        } else {
+            loadVideo(initialLink);
+        }
+        
         const optContainer = document.getElementById('serverOptions');
         optContainer.innerHTML = '';
         if(epData.link) createOptionBtn("Latino", epData.link, true);
@@ -559,6 +579,52 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
+    // Muestra un mensaje en el contenedor cuando estamos en tablet y abrimos en nueva pestaña.
+    function showTabletNotice(url) {
+        const container = document.getElementById('playerContainer');
+        container.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.style.textAlign = 'center';
+        wrap.style.maxWidth = '100%';
+        wrap.innerHTML = `
+          <div style="font-size:0.95rem; color:#ddd; margin-bottom:10px;">
+            El reproductor se abrió en una nueva pestaña para tu tablet.
+            Si no ves el reproductor, pulsa el botón de abajo.
+          </div>
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <a id="tbOpenBtn" class="btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir reproductor</a>
+            <button id="tbReloadBtn" class="btn">Volver a intentar abrir</button>
+          </div>
+        `;
+        container.appendChild(wrap);
+
+        const tbReloadBtn = document.getElementById('tbReloadBtn');
+        tbReloadBtn.addEventListener('click', () => {
+            try {
+                let openUrl = url;
+                if (openUrl && openUrl.startsWith('http://')) openUrl = openUrl.replace('http://','https://');
+                const newWin = window.open(openUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch (err) { console.warn('Error al reabrir en nueva pestaña:', err); }
+        });
+    }
+
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '#';
+      return (''+unsafe).replace(/[&<>"'`=\/]/g, function (s) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+          '/': '&#x2F;',
+          '`': '&#x60;',
+          '=': '&#x3D;'
+        })[s];
+      });
+    }
+
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -566,6 +632,7 @@
             if (match && match[1]) {
                return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
             }
+            // handle other drive formats
             const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
             if (altMatch && altMatch[1]) {
                return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
@@ -583,16 +650,29 @@
         dlBtn.href = directLink || '#';
     }
 
-    // Siempre crea un botón (no anchors que abran nueva pestaña).
     function createOptionBtn(label, url, isActive) {
         const optContainer = document.getElementById('serverOptions');
-        const btn = document.createElement('button');
+        // Usamos <a> en tablets (para abrir en nueva pestaña) y <button> en otros
+        const elementTag = isTablet() ? 'a' : 'button';
+        const btn = document.createElement(elementTag);
         const isFirst = optContainer.children.length === 0;
         const shouldBeActive = isActive || isFirst;
         btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
         btn.innerText = label;
-        btn.type = 'button';
 
+        // Para anchors, asignamos href y target; para botones, onclick
+        if (isTablet()) {
+            // Forzamos HTTPS si está en http
+            let hrefUrl = url;
+            if (hrefUrl && hrefUrl.startsWith('http://')) hrefUrl = hrefUrl.replace('http://', 'https://');
+            btn.href = hrefUrl || '#';
+            btn.target = '_blank';
+            btn.rel = 'noopener noreferrer';
+        } else {
+            btn.type = 'button';
+        }
+
+        // Comportamiento compartido: marcar active + cargar/actualizar descarga
         btn.addEventListener('click', (e) => {
             // marcar activo visualmente
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
@@ -601,8 +681,21 @@
             // Actualizar botón de descarga con este url
             updateDownloadButton(url);
 
-            // Cargar embebido en la página (siempre)
-            loadVideo(url);
+            // Si no es tablet, cargamos en el iframe/video; si es tablet, el enlace ya se abrirá en nueva pestaña
+            if (!isTablet()) {
+                loadVideo(url);
+            } else {
+                // Si es tablet y se creó como <a>, dejamos que el click abra la nueva pestaña.
+                // (No evitamos el comportamiento por defecto.)
+                // Aun así, intentamos abrir programáticamente si el usuario usó un elemento distinto:
+                if (elementTag !== 'a') {
+                    try {
+                        const openUrl = (url && url.startsWith('http://')) ? url.replace('http://', 'https://') : url;
+                        const newWin = window.open(openUrl, '_blank');
+                        if (newWin) try { newWin.opener = null; } catch(e) {}
+                    } catch (err) { console.warn('Error al abrir en nueva pestaña:', err); }
+                }
+            }
         });
 
         optContainer.appendChild(btn);
@@ -612,6 +705,19 @@
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
         if (!url) return;
+
+        // Si es TABLET, abrimos en nueva pestaña y no cargamos iframe/video embebido
+        if (isTablet()) {
+            try {
+                let tUrl = url;
+                if (tUrl.startsWith('http://')) tUrl = tUrl.replace('http://', 'https://');
+                const newWin = window.open(tUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+            // dejamos el contenedor vacío o mostramos aviso
+            showTabletNotice(url);
+            return;
+        }
 
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
@@ -634,14 +740,12 @@
         container.innerHTML = '';
         let finalUrl = url;
         
-        // Forzamos HTTPS si es http para evitar bloqueos por "contenido mixto"
-        if (finalUrl && finalUrl.startsWith('http://')) {
-            finalUrl = finalUrl.replace('http://', 'https://');
-        }
+
 
         const iframe = document.createElement('iframe');
         iframe.src = finalUrl;
-        // Conservamos permisos necesarios, pero no permitimos fullscreen forzado.
+        // CORRECCIÓN DOBLE CLIC: Quitamos por completo "fullscreen" y "allowfullscreen".
+        // Esto le corta las alas a OK.ru; al hacer doble clic ya no podrá secuestrar tu pantalla.
         iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
         
         iframe.style.position = "absolute";
@@ -715,6 +819,49 @@
 
     function updateFsButton() {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
+            // Iconos actualizados al tamaño 28x28
             fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
         } else {
-            fsBtn.innerHTML = '<svg viewBox="0 0 24 
+            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
+        }
+    }
+
+    document.addEventListener('fullscreenchange', updateFsButton);
+    document.addEventListener('webkitfullscreenchange', updateFsButton);
+
+    // -----------------------------------------------------------
+    // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES (CORREGIDA PARA MÓVIL)
+    // -----------------------------------------------------------
+    let hideTimeout;
+    function resetInactivityTimer() {
+        wrapper.classList.remove('hide-cursor');
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+            wrapper.classList.add('hide-cursor');
+        }, 3000);
+    }
+
+    // Eventos normales para desktop
+    wrapper.addEventListener('mousemove', resetInactivityTimer);
+    wrapper.addEventListener('click', resetInactivityTimer);
+    // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
+    document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
+    document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
+
+    // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
+    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
+    window.addEventListener('blur', () => {
+        resetInactivityTimer();
+    });
+    
+    wrapper.addEventListener('mouseleave', () => {
+        clearTimeout(hideTimeout);
+        wrapper.classList.add('hide-cursor');
+    });
+    
+    // Iniciar temporizador
+    resetInactivityTimer();
+
+  </script>
+</body>
+</html>
