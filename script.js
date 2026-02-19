@@ -336,8 +336,8 @@ function injectFinalBlock() {
 }
 
 const genresList = [
-    "Acción", "Animación", "Aventura", "Ciencia ficción", "Cocina", "Comedia", 
-    "Comedia oscura", "Cosplay", "Cyberpunk", "Deducción Social", "Deportivo", 
+    "Acción", "Animación", "Artes Marciales", "Aventura", "Ciencia ficción", "Cocina", "Comedia", 
+    "Comedia oscura", "Cosplay", "Crimen", "Cyberpunk", "Deducción Social", "Deportivo", 
     "Divulgación Científica", "Drama", "Ecchi", "Espionaje", "Escolar", "Fantasía", 
     "Fantasía oscura", "Familiar", "Gag", "Gore", "Harem", "Hentai", "Histórico", 
     "Horror", "Incesto", "Infantil", "Isekai", "Isekai Inverso", "Kaiju", "Mahō Shōjo", 
@@ -345,7 +345,7 @@ const genresList = [
     "Policial", "Post-apocalíptico", "Psicológico", "Reverse Harem", "Romance", "RPG", 
     "Slice of Life", "Sobrenatural", "Steampunk", "Superhéroes", "Survival", 
     "Survival Game", "Suspenso", "Tentáculos", "Terror", "Terror psicológico", "Thriller", 
-    "Thriller psicológico", "Tokusatsu", "Tragedia", "Yaoi", "Yuri"
+    "Thriller psicológico", "Tokusatsu", "Tragedia", "VRMMO", "Yaoi", "Yuri"
 ];
 
 const gContainer = document.getElementById('genresContainer');
@@ -406,6 +406,13 @@ function log(msg) {
 function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
+    
+    // NUEVO: Reemplazo para enlaces locales de red a Render
+    if (val.includes('http://10.22.7.119:8080')) {
+        input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
+        changed = true;
+        showToast("Link local convertido a Render");
+    }
 
     if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
         input.value = val.replace('&dl=0', '&raw=1');
@@ -421,6 +428,15 @@ function smartLinkConvert(input) {
             showToast("Link Drive convertido a /preview");
         }
     }
+    
+// --- NUEVA LÓGICA PARA OK.RU ---
+    // Busca "https://ok.ru/video/" y lo reemplaza por "https://ok.ru/videoembed/"
+    if (val.includes('https://ok.ru/video/')) {
+        input.value = val.replace('https://ok.ru/video/', 'https://ok.ru/videoembed/');
+        changed = true;
+        showToast("Link ok.ru convertido a /videoembed/");
+    }
+    // -------------------------------
     
     // Si cambió el link, forzamos la re-verificación inmediata
     if(changed) {
