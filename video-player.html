@@ -20,7 +20,7 @@
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; // 20s
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -205,6 +205,13 @@
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#ccc;
+        font-weight:600;
+        padding:12px;
+        box-sizing:border-box;
     }
    
     .player-wrapper iframe, .player-wrapper video { 
@@ -524,6 +531,9 @@
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
 
+    // bandera para evitar abrir muchas veces
+    let openedInTab = false;
+
     if (animeId && season && episode) {
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
         localStorage.setItem(viewedKey, 'true');
@@ -539,7 +549,7 @@
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
 
-        // Si es TABLET, abrimos el link inicial en nueva pestaña
+        // Si es TABLET, abrimos el link inicial en nueva pestaña (mejorado: mostramos aviso/fallback)
         if (initialLink && isTablet()) {
             try {
                 // Forzamos HTTPS si es http (igual que en loadAsIframe)
@@ -547,7 +557,13 @@
                 if (tUrl.startsWith('http://')) tUrl = tUrl.replace('http://', 'https://');
                 const newWin = window.open(tUrl, '_blank');
                 if (newWin) try { newWin.opener = null; } catch(e) {}
-            } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+                openedInTab = true;
+                showTabletNotice(tUrl);
+            } catch(e) { 
+                console.warn('No se pudo abrir en nueva pestaña:', e);
+                // mostramos el aviso para que el usuario lo intente manualmente
+                showTabletNotice(initialLink);
+            }
         } else {
             loadVideo(initialLink);
         }
@@ -563,12 +579,63 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
+    // Muestra un mensaje en el contenedor cuando estamos en tablet y abrimos en nueva pestaña.
+    function showTabletNotice(url) {
+        const container = document.getElementById('playerContainer');
+        container.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.style.textAlign = 'center';
+        wrap.style.maxWidth = '100%';
+        wrap.innerHTML = `
+          <div style="font-size:0.95rem; color:#ddd; margin-bottom:10px;">
+            El reproductor se abrió en una nueva pestaña para tu tablet.
+            Si no ves el reproductor, pulsa el botón de abajo.
+          </div>
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <a id="tbOpenBtn" class="btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir reproductor</a>
+            <button id="tbReloadBtn" class="btn">Volver a intentar abrir</button>
+          </div>
+        `;
+        container.appendChild(wrap);
+
+        const tbReloadBtn = document.getElementById('tbReloadBtn');
+        tbReloadBtn.addEventListener('click', () => {
+            try {
+                let openUrl = url;
+                if (openUrl && openUrl.startsWith('http://')) openUrl = openUrl.replace('http://','https://');
+                const newWin = window.open(openUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch (err) { console.warn('Error al reabrir en nueva pestaña:', err); }
+        });
+    }
+
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '#';
+      return (''+unsafe).replace(/[&<>"'`=\/]/g, function (s) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+          '/': '&#x2F;',
+          '`': '&#x60;',
+          '=': '&#x3D;'
+        })[s];
+      });
+    }
+
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
             if (match && match[1]) {
                return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+            }
+            // handle other drive formats
+            const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (altMatch && altMatch[1]) {
+               return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
             }
         }
         if (url.includes("dropbox.com") && url.includes("dl=0")) {
@@ -580,7 +647,7 @@
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
         const directLink = generateDirectDownloadLink(url);
-        dlBtn.href = directLink;
+        dlBtn.href = directLink || '#';
     }
 
     function createOptionBtn(label, url, isActive) {
@@ -647,7 +714,8 @@
                 const newWin = window.open(tUrl, '_blank');
                 if (newWin) try { newWin.opener = null; } catch(e) {}
             } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
-            // dejamos el contenedor vacío (o podrías añadir un mensaje allí si quieres)
+            // dejamos el contenedor vacío o mostramos aviso
+            showTabletNotice(url);
             return;
         }
 
@@ -683,6 +751,7 @@
                 const newWin = window.open(finalUrl, '_blank');
                 if (newWin) try { newWin.opener = null; } catch(e) {}
             } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+            showTabletNotice(finalUrl);
             return;
         }
 
