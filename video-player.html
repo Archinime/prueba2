@@ -218,26 +218,29 @@
         border: none;
     }
 
-    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) MEJORADOS --- */
+    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) --- */
     .player-patch {
         position: absolute;
         z-index: 60; /* Por encima del iframe pero debajo del botón fullscreen */
+        background: transparent; /* Invisible */
+        cursor: default; /* Evita que el cursor se vuelva puntero */
+    }
+
+    /* Parche principal superior ajustado al 50% */
+    .main-patch {
         width: 100%;
         left: 0;
-        background: transparent; /* Invisible */
-        cursor: default; /* Evita que el cursor se vuelva puntero sobre las zonas bloqueadas */
-    }
-
-    /* Parche superior para bloquear títulos y botones de compartir externos */
-    .top-patch {
         top: 0;
-        height: 15%; 
+        height: 50%; 
     }
 
-    /* Parche inferior para bloquear la barra de reproducción externa */
-    .bottom-patch {
-        bottom: 0;
-        height: 25%; /* Cubre bien en Fullscreen */
+/* Parche inferior derecho expandido para cubrir toda la esquina */
+    .corner-patch {
+        bottom: 0; 
+        right: 0; 
+        width: 100px; /* Cubre desde el borde derecho hasta pasar tu botón */
+        height: 70px; /* Cubre desde abajo tapando los controles nativos */
+        /* Al tener z-index: 60 (heredado de .player-patch), bloqueará clics al iframe */
     }
 
     /* --- AUTO-OCULTAR CURSOR Y CONTROLES --- */
@@ -246,18 +249,18 @@
     }
     .player-wrapper.hide-cursor #customFullscreenBtn {
         opacity: 0;
-        pointer-events: none; 
+        pointer-events: none;
     }
 
     /* BOTÓN PERSONALIZADO DE PANTALLA COMPLETA */
     .fullscreen-btn {
         position: absolute;
-        bottom: 15px;
+        bottom: 10px; /* Ajuste sutil de posición */
         right: 15px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: #000000; /* Color sólido, NO transparente */
+        border: 2px solid rgba(255, 255, 255, 0.3);
         color: #fff;
-        padding: 8px;
+        padding: 12px; /* Relleno aumentado para que sea más grande */
         border-radius: 8px;
         cursor: pointer;
         z-index: 100; /* Siempre por encima de los parches */
@@ -265,7 +268,7 @@
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease; 
-        backdrop-filter: blur(5px);
+        /* Sin backdrop-filter porque ahora el fondo es sólido */
     }
     
     .fullscreen-btn:hover {
@@ -432,11 +435,11 @@
     <div class="player-wrapper" id="playerWrapper">
         <div id="playerContainer"></div>
         
-        <div class="player-patch top-patch"></div>
-        <div class="player-patch bottom-patch"></div>
+        <div class="player-patch main-patch"></div>
+        <div class="player-patch corner-patch"></div>
 
         <button id="customFullscreenBtn" class="fullscreen-btn" title="Pantalla Completa">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
             </svg>
         </button>
@@ -543,7 +546,6 @@
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -561,7 +563,6 @@
 
     function loadAsIframe(url, container) {
         container.innerHTML = '';
-        
         let finalUrl = url;
         
         // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
@@ -571,7 +572,6 @@
 
         const iframe = document.createElement('iframe');
         iframe.src = finalUrl;
-        
         // CORRECCIÓN DOBLE CLIC: Quitamos por completo "fullscreen" y "allowfullscreen".
         // Esto le corta las alas a OK.ru; al hacer doble clic ya no podrá secuestrar tu pantalla.
         iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
@@ -600,7 +600,6 @@
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -633,14 +632,14 @@
             } else if (wrapper.webkitRequestFullscreen) {
                 wrapper.webkitRequestFullscreen();
             } else if (wrapper.msRequestFullscreen) {
-                wrapper.msRequestFullscreen();
+                 wrapper.msRequestFullscreen();
             }
         } else {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
+             } else if (document.msExitFullscreen) {
                 document.msExitFullscreen();
             }
         }
@@ -648,9 +647,10 @@
 
     function updateFsButton() {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
-            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
+            // Iconos actualizados al tamaño 28x28
+            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
         } else {
-            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
+            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
         }
     }
 
@@ -661,7 +661,6 @@
     // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES (CORREGIDA PARA MÓVIL)
     // -----------------------------------------------------------
     let hideTimeout;
-
     function resetInactivityTimer() {
         wrapper.classList.remove('hide-cursor');
         clearTimeout(hideTimeout);
@@ -673,22 +672,21 @@
     // Eventos normales para desktop
     wrapper.addEventListener('mousemove', resetInactivityTimer);
     wrapper.addEventListener('click', resetInactivityTimer);
-
     // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
     document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
     document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
 
     // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
-    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
+    // la ventana principal pierde el "foco" (blur).
+    // Así detectamos que el usuario tocó el video.
     window.addEventListener('blur', () => {
         resetInactivityTimer();
     });
-
     wrapper.addEventListener('mouseleave', () => {
         clearTimeout(hideTimeout);
         wrapper.classList.add('hide-cursor');
     });
-
+    
     // Iniciar temporizador
     resetInactivityTimer();
 
