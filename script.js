@@ -428,9 +428,9 @@ function smartLinkConvert(input) {
     }
     
     // --- NUEVA LÓGICA PARA OK.RU ---
-    // Busca "ok.ru/video/" usando expresiones regulares para capturar variantes (http, https, m.ok.ru, etc.)
-    if (/ok\.ru\/video\//i.test(val)) {
-        input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
+    // Usamos includes y un simple replace textual, es más directo y efectivo que usar regex aquí.
+    if (val.includes('ok.ru/video/')) {
+        input.value = val.replace('ok.ru/video/', 'ok.ru/videoembed/');
         changed = true;
         showToast("Link ok.ru convertido a /videoembed/");
     }
