@@ -325,6 +325,10 @@
         transition: all 0.3s ease;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
+        text-decoration: none; /* para anchors */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .opt-btn:hover {
@@ -497,7 +501,21 @@
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
-    
+
+    // -------------- NUEVO: detección de TABLET ---------------
+    function isTablet() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const uaL = ua.toLowerCase();
+        const isIpad = /ipad/.test(uaL) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isAndroidTablet = /android/.test(uaL) && !/mobile/.test(uaL);
+        const isWindowsTablet = /windows/.test(uaL) && /touch/.test(uaL) && !/phone/.test(uaL);
+        // fallback por tamaño de pantalla (landscape/portrait)
+        const maxSide = Math.max(screen.width || 0, screen.height || 0);
+        const tabletSize = maxSide >= 768 && maxSide <= 1366;
+        return isIpad || isAndroidTablet || isWindowsTablet || tabletSize;
+    }
+    // --------------------------------------------------------
+
     const DB = (typeof players !== 'undefined') ? players : {};
     
     const params = new URLSearchParams(location.search);
@@ -520,7 +538,19 @@
         document.title = `Ver ${epData.title} - Archinime`;
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
-        loadVideo(initialLink);
+
+        // Si es TABLET, abrimos el link inicial en nueva pestaña
+        if (initialLink && isTablet()) {
+            try {
+                // Forzamos HTTPS si es http (igual que en loadAsIframe)
+                let tUrl = initialLink;
+                if (tUrl.startsWith('http://')) tUrl = tUrl.replace('http://', 'https://');
+                const newWin = window.open(tUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+        } else {
+            loadVideo(initialLink);
+        }
         
         const optContainer = document.getElementById('serverOptions');
         optContainer.innerHTML = '';
@@ -555,17 +585,52 @@
 
     function createOptionBtn(label, url, isActive) {
         const optContainer = document.getElementById('serverOptions');
-        const btn = document.createElement('button');
+        // Usamos <a> en tablets (para abrir en nueva pestaña) y <button> en otros
+        const elementTag = isTablet() ? 'a' : 'button';
+        const btn = document.createElement(elementTag);
         const isFirst = optContainer.children.length === 0;
         const shouldBeActive = isActive || isFirst;
         btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
         btn.innerText = label;
-        btn.onclick = () => {
+
+        // Para anchors, asignamos href y target; para botones, onclick
+        if (isTablet()) {
+            // Forzamos HTTPS si está en http
+            let hrefUrl = url;
+            if (hrefUrl && hrefUrl.startsWith('http://')) hrefUrl = hrefUrl.replace('http://', 'https://');
+            btn.href = hrefUrl || '#';
+            btn.target = '_blank';
+            btn.rel = 'noopener noreferrer';
+        } else {
+            btn.type = 'button';
+        }
+
+        // Comportamiento compartido: marcar active + cargar/actualizar descarga
+        btn.addEventListener('click', (e) => {
+            // marcar activo visualmente
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            loadVideo(url);
+
+            // Actualizar botón de descarga con este url
             updateDownloadButton(url);
-        };
+
+            // Si no es tablet, cargamos en el iframe/video; si es tablet, el enlace ya se abrirá en nueva pestaña
+            if (!isTablet()) {
+                loadVideo(url);
+            } else {
+                // Si es tablet y se creó como <a>, dejamos que el click abra la nueva pestaña.
+                // (No evitamos el comportamiento por defecto.)
+                // Aun así, intentamos abrir programáticamente si el usuario usó un elemento distinto:
+                if (elementTag !== 'a') {
+                    try {
+                        const openUrl = (url && url.startsWith('http://')) ? url.replace('http://', 'https://') : url;
+                        const newWin = window.open(openUrl, '_blank');
+                        if (newWin) try { newWin.opener = null; } catch(e) {}
+                    } catch (err) { console.warn('Error al abrir en nueva pestaña:', err); }
+                }
+            }
+        });
+
         optContainer.appendChild(btn);
     }
 
@@ -573,6 +638,19 @@
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
         if (!url) return;
+
+        // Si es TABLET, abrimos en nueva pestaña y no cargamos iframe/video embebido
+        if (isTablet()) {
+            try {
+                let tUrl = url;
+                if (tUrl.startsWith('http://')) tUrl = tUrl.replace('http://', 'https://');
+                const newWin = window.open(tUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+            // dejamos el contenedor vacío (o podrías añadir un mensaje allí si quieres)
+            return;
+        }
+
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         if (isVideoFile && !isDrive) {
@@ -595,8 +673,17 @@
         let finalUrl = url;
         
         // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
-        if (finalUrl.startsWith('http://')) {
+        if (finalUrl && finalUrl.startsWith('http://')) {
             finalUrl = finalUrl.replace('http://', 'https://');
+        }
+
+        // Si por alguna razón estamos en TABLET y llegamos aquí, abrimos nueva pestaña
+        if (isTablet()) {
+            try {
+                const newWin = window.open(finalUrl, '_blank');
+                if (newWin) try { newWin.opener = null; } catch(e) {}
+            } catch(e) { console.warn('No se pudo abrir en nueva pestaña:', e); }
+            return;
         }
 
         const iframe = document.createElement('iframe');
