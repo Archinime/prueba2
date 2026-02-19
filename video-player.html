@@ -3,67 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  
   <title>Reproductor - Archinime</title>
-  <link rel="icon" href="Logo_Archinime.png" type="image/png">
-
-<script>
-  (function() {
-    // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
-    const colors = [
-      "#00f3ff", // Cian Neón (Inicio)
-      "#0066ff", // Azul Eléctrico
-      "#bc13fe", // Morado Protagonista
-      "#ff0055", // Rosa Neón (Acento)
-      "#bc13fe", // Morado (Regreso)
-      "#0066ff", // Azul
-      "#00f3ff"  // Cian (Final para loop perfecto)
-    ];
-
-    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
-    const intervalTime = 20; 
-    const segments = colors.length - 1;
-    const step = (intervalTime / animationDuration) * segments;
-
-    let currentProgress = 0;
-    let metaTag = document.querySelector('meta[name="theme-color"]');
-    if (!metaTag) {
-      metaTag = document.createElement('meta');
-      metaTag.name = "theme-color";
-      document.head.appendChild(metaTag);
-    }
-
-    const hexToRgb = (hex) => {
-      const bigint = parseInt(hex.slice(1), 16);
-      return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-    };
-    const rgbToHex = (r, g, b) => {
-      return "#" + [r, g, b].map(x => {
-        const hex = Math.round(x).toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-      }).join('');
-    };
-
-    const lerp = (start, end, t) => start + (end - start) * t;
-    setInterval(() => {
-      currentProgress += step;
-      if (currentProgress >= segments) {
-        currentProgress = currentProgress % segments;
-      }
-
-      const index = Math.floor(currentProgress);
-      const t = currentProgress - index;
-      const colorStart = hexToRgb(colors[index]);
-      const colorEnd = hexToRgb(colors[index + 1]);
-
-      const r = lerp(colorStart[0], colorEnd[0], t);
-      const g = lerp(colorStart[1], colorEnd[1], t);
-      const b = lerp(colorStart[2], colorEnd[2], t);
-
-      metaTag.setAttribute('content', rgbToHex(r, g, b));
-    }, intervalTime);
-  })();
-</script>
+  <link rel="icon" href="Logo_Archinime.avif" type="image/png">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,404 +13,193 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055;  /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        --secondary-color: #7b2cbf;
+        --accent-color: #ff0055;
         --text-color: #ffffff;
-        --glass-bg: rgba(0, 0, 0, 0.7);
-        --glass-border: 1px solid rgba(255, 255, 255, 0.15);
+        --glass-bg: rgba(0, 0, 0, 0.6);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+        --neon-shadow: 0 0 10px var(--primary-color), 0 0 20px rgba(0, 255, 247, 0.5);
     }
 
     /* --- ESTILOS GENERALES --- */
     body { 
-        margin: 0;
-        background: #050505; 
-        color: var(--text-color); 
-        font-family: 'Poppins', sans-serif; 
-        overflow-x: hidden; 
-        min-height: 100vh;
+        margin: 0; background: #050505; 
+        color: var(--text-color); font-family: 'Poppins', sans-serif; 
+        overflow-x: hidden; min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
     }
    
     /* --- FONDO DE VIDEO --- */
     #bg-video { 
-        position: fixed;
-        top: 0; left: 0; 
-        width: 100%; height: 100%; 
-        object-fit: cover;
-        z-index: -10; 
-        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */
+        position: fixed; top: 0; left: 0; 
+        width: 100%; height: 100%; object-fit: cover;
+        z-index: -10; opacity: 0.6;
     }
 
-    /* --- OVERLAY --- */
+    /* --- OVERLAY MEJORADO --- */
     #overlay {
-      position: fixed;
-      top: 0; left: 0; 
-      width: 100%; height: 100%; 
-      z-index: -5;
-      background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
-      backdrop-filter: blur(8px);
-      pointer-events: none;
+      position: fixed; top: 0; left: 0; 
+      width: 100%; height: 100%; z-index: -5;
+      background: radial-gradient(circle at center, rgba(123, 44, 191, 0.1) 0%, #000000 90%);
+      backdrop-filter: blur(3px); pointer-events: none;
     }
     
     /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 15px;
-        position: relative;
-        z-index: 10;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+        width: 100%; max-width: 1200px;
+        margin: 0 auto; padding: 20px 15px; 
+        position: relative; z-index: 10; box-sizing: border-box;
     }
     
-    /* --- NAVEGACIÓN SUPERIOR --- */
+    /* NAVEGACIÓN SUPERIOR */
     .top-nav {
-        display: flex;
-        justify-content: space-between; 
-        align-items: center;
-        margin-bottom: 5px;
-        flex-wrap: wrap;
-        gap: 10px;
-        /* Efecto visual añadido */
-        background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
-        padding: 10px;
-        border-radius: 0 0 15px 15px;
-        border-bottom: 1px solid rgba(140, 82, 255, 0.2);
+        display: flex; justify-content: flex-start;
+        align-items: center; margin-bottom: 20px;
     }
 
-    /* BOTÓN VOLVER (ESTILO NEON) */
+    /* BOTÓN VOLVER */
     .back-btn { 
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #eee;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      padding: 8px 18px;
-      border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; color: #fff; text-decoration: none;
+      font-weight: 600; font-size: 0.95rem; 
+      transition: all .3s ease; cursor: pointer;
+      background: var(--glass-bg); backdrop-filter: blur(10px);
+      padding: 10px 25px; border-radius: 50px;
+      border: var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
-
     .back-btn:hover {
-        background: rgba(0, 255, 247, 0.15);
-        border-color: var(--primary-color);
-        color: #fff;
-        box-shadow: 0 0 20px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
-        transform: translateY(-2px);
-        text-shadow: 0 0 5px var(--primary-color);
+        background: rgba(0, 255, 247, 0.15); border-color: var(--primary-color);
+        box-shadow: 0 0 15px var(--primary-color); transform: translateY(-2px);
     }
    
-    /* --- REPRODUCTOR --- */
+    /* REPRODUCTOR */
     .player-wrapper { 
-        position: relative;
-        padding-bottom: 56.25%; /* 16:9 */
-        height: 0; 
-        width: 100%; 
-        background: #000;
-        overflow: hidden;
-        z-index: 50;
-        border-radius: 16px; 
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        /* Transición para el auto-ocultado del cursor */
-        transition: cursor 0.3s ease;
+        position: relative; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0; width: 100%; background: #000;
+        overflow: hidden; z-index: 50;
+        border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(123, 44, 191, 0.3);
     }
-
-    /* ESTILOS PARA CUANDO EL WRAPPER ESTÁ EN PANTALLA COMPLETA */
-    .player-wrapper:fullscreen {
-        padding-bottom: 0 !important;
-        height: 100vh !important;
-        width: 100vw !important;
-        border-radius: 0 !important;
-        border: none !important;
-    }
-    .player-wrapper:-webkit-full-screen {
-        padding-bottom: 0 !important;
-        height: 100vh !important;
-        width: 100vw !important;
-        border-radius: 0 !important;
-        border: none !important;
-    }
-
-    /* CONTENEDOR INTERNO PARA EL VIDEO/IFRAME */
-    #playerContainer {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-    }
-   
     .player-wrapper iframe, .player-wrapper video { 
-        position: absolute;
-        top: 0; left: 0; 
-        width: 100%; height: 100%; 
-        border: none;
+        position: absolute; top: 0; left: 0; 
+        width: 100%; height: 100%; border: none;
     }
 
-    /* --- PARCHES DE INTERFAZ (OVERLAY MASK) --- */
-    .player-patch {
-        position: absolute;
-        z-index: 60; /* Por encima del iframe pero debajo del botón fullscreen */
-        background: transparent; /* Invisible */
-        cursor: default; /* Evita que el cursor se vuelva puntero */
-    }
-
-    /* Parche principal superior ajustado al 50% */
-    .main-patch {
-        width: 100%;
-        left: 0;
-        top: 0;
-        height: 10%; 
-    }
-
-    /* Parche inferior derecho expandido para cubrir toda la esquina */
-    .corner-patch {
-        bottom: 0;
-        right: 0; 
-        width: 100px; /* Cubre desde el borde derecho hasta pasar tu botón */
-        height: 70px; /* Cubre desde abajo tapando los controles nativos */
-        /* Al tener z-index: 60 (heredado de .player-patch), bloqueará clics al iframe */
-    }
-
-    /* --- AUTO-OCULTAR CURSOR Y CONTROLES --- */
-    .player-wrapper.hide-cursor {
-        cursor: none;
-    }
-    .player-wrapper.hide-cursor #customFullscreenBtn {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    /* --- BOTÓN DE AMPLIAR (Escritorio) --- */
-    .fullscreen-btn {
-        position: absolute;
-        bottom: 0 !important;
-        right: 0 !important;
-        background: #000000 !important; 
-        border: 1.5px solid rgba(255, 255, 255, 0.4);
-        color: #fff;
-        padding: 16px;
-        border-radius: 10px 0 0 0;
-        cursor: pointer;
-        z-index: 100;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.2s ease;
-    }
-
-    /* --- CONTROLES INFERIORES --- */
-    h1 { color: #fff; font-size: 1.3rem; margin: 5px 0 15px 0;
-    text-align: center; font-weight: 700; }
-    .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 15px;
-    margin-top: 10px; padding-bottom: 40px; width: 100%; }
-    .btn { padding: 12px 28px; background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; text-decoration: none; border-radius: 50px; font-size: 0.95rem; display: inline-flex; align-items: center;
-    justify-content: center; gap: 8px; transition: all 0.3s ease; }
-    .nav-btn:hover { background: rgba(0, 255, 247, 0.15);
-    border-color: var(--primary-color); transform: scale(1.05); }
-    .btn-hidden { visibility: hidden; pointer-events: none;
-    }
-
-    /* --- RESPONSIVE / MÓVIL --- */
-    @media (max-width: 768px) {
-        /* Reducir el botón de ampliar en móviles */
-        .fullscreen-btn {
-            padding: 10px !important; /* Menos espacio interno */
-            border-radius: 6px 0 0 0;
-        }
-        /* Reducir el tamaño del icono SVG dentro del botón */
-        .fullscreen-btn svg {
-            width: 22px !important; height: 22px !important;
-        }
-        
-        /* Ajustar escudos para que coincidan con el botón pequeño (ancho reducido a 45px) */
-        .corner-blocker-right { width: 45px; height: 50px; }
-        .corner-patch-left { right: 45px; width: 45px; height: 50px; }
-        
-        /* Aplica también al parche principal del HTML para asegurar que no exceda el botón */
-        .corner-patch { width: 45px; height: 50px; }
-
-        .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
-        #downloadBtn { grid-column: 1 / -1; width: 100%; }
-    }
-    
-    .fullscreen-btn:hover {
-        background: var(--primary-color);
-        color: #000;
-        box-shadow: 0 0 15px var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* --- OPCIONES DE SERVIDOR --- */
+    /* OPCIONES DE SERVIDOR */
     .options { 
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
+        margin-top: 20px; display: flex; gap: 10px;
+        justify-content: center; flex-wrap: wrap;
+        padding: 10px; background: rgba(0,0,0,0.3);
+        border-radius: 20px; backdrop-filter: blur(5px);
     }
-    
     .opt-btn { 
-        font-size: 0.8rem;
-        padding: 6px 14px;
+        font-size: 0.9rem; padding: 8px 18px;
         border: 1px solid rgba(255,255,255,0.2); 
-        background: rgba(0, 0, 0, 0.6);
-        color: #ccc;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 500;
+        background: rgba(255,255,255,0.05);
+        color: #ddd; cursor: pointer; border-radius: 8px;
+        transition: all 0.3s; font-family: 'Poppins', sans-serif;
+        font-weight: 500; white-space: nowrap;
     }
-    
     .opt-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        background: rgba(255,255,255,0.1); color: #fff; border-color: #fff;
     }
-
     .opt-btn.active { 
-        border-color: var(--primary-color);
-        color: #000;
-        background: var(--primary-color); 
-        font-weight: 700;
-        box-shadow: 0 0 15px var(--primary-color);
+        border-color: var(--primary-color); color: #000;
+        background: var(--primary-color); font-weight: 700;
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
     }
 
-    /* --- TÍTULO DEL EPISODIO --- */
+    /* TÍTULO DEL EPISODIO */
     h1 { 
-        color: #fff;
-        font-size: 1.3rem; 
-        margin: 5px 0 15px 0;
-        text-align: center;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        color: #fff; font-size: 1.8rem; 
+        margin: 25px 0 15px 0; text-align: center;
+        font-weight: 700; letter-spacing: 1px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.8); line-height: 1.3;
     }
-
-    /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
+    
+    /* CONTROLES */
     .controls { 
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 15px; 
-        margin-top: 10px;
-        padding-bottom: 40px;
-        width: 100%;
+        margin-top: 20px; display: flex; 
+        justify-content: center; gap: 15px; 
+        flex-wrap: wrap; align-items: center;
     }
-    
-    #prevBtn { justify-self: start; }  
-    #nextBtn { justify-self: end; }    
-    #downloadBtn { justify-self: center; } 
-
-    /* ESTILOS DE LOS BOTONES */
     .btn { 
-        padding: 12px 28px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
-        text-decoration: none; 
-        border-radius: 50px; 
-        font-size: 0.95rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        backdrop-filter: blur(5px);
-        font-weight: 600;
-        min-width: 100px;
+        padding: 14px 30px; background: var(--glass-bg);
+        border: var(--glass-border); color: #fff;
+        text-decoration: none; border-radius: 50px; 
+        cursor: pointer; transition: 0.3s;
+        font-weight: 600; font-size: 1rem;
+        display: inline-flex; align-items: center;
+        justify-content: center; gap: 8px;
+        backdrop-filter: blur(5px); min-width: 140px;
     }
     
-    .nav-btn {
-        border-color: rgba(0, 255, 247, 0.3);
-    }
-
-    .nav-btn:hover {
-        background: rgba(0, 255, 247, 0.15);
-        border-color: var(--primary-color);
-        color: #fff;
-        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
-        transform: scale(1.05);
-        text-shadow: 0 0 8px var(--primary-color);
-    }
-
     #downloadBtn {
-        border-color: rgba(255, 0, 85, 0.4);
-        background: rgba(255, 0, 85, 0.05);
-        min-width: 140px;
+        border-color: var(--accent-color); background: rgba(255, 0, 85, 0.1);
     }
-
     #downloadBtn:hover {
-        background: rgba(255, 0, 85, 0.2);
-        border-color: var(--accent-color);
-        color: #fff;
-        box-shadow: 0 0 30px var(--accent-color), inset 0 0 10px rgba(255, 0, 85, 0.2);
-        transform: scale(1.05);
-        text-shadow: 0 0 8px var(--accent-color);
+        background: var(--accent-color); color: #fff;
+        box-shadow: 0 0 25px rgba(255, 0, 85, 0.6); transform: translateY(-3px);
     }
+    .btn:not(#downloadBtn):hover { 
+        background: var(--primary-color); color: #000;
+        box-shadow: 0 0 25px rgba(0, 255, 247, 0.6);
+        border-color: var(--primary-color); transform: translateY(-3px);
+    }
+    .btn-hidden { display: none !important; }
 
-    .btn-hidden { 
-        visibility: hidden;
-        pointer-events: none;
+    /* --- BLOQUE DE PUBLICIDAD --- */
+    .ads-block-container {
+        margin: 40px auto 20px auto; padding: 0; 
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px; backdrop-filter: blur(10px);
+        box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        max-width: 1000px; overflow: hidden;
     }
+    .ads-title {
+        text-align: center; color: #888;
+        font-size: 0.7rem; letter-spacing: 2px;
+        text-transform: uppercase; padding: 8px 0;
+        background: rgba(255,255,255,0.03);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .ads-masonry {
+        column-count: 3; column-gap: 0; width: 100%; line-height: 0;
+    }
+    .ad-slot {
+        break-inside: avoid; display: inline-block;
+        width: 100%; margin: 0; padding: 0;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        box-sizing: border-box; text-align: center; position: relative;
+    }
+    .ad-slot > div, .ad-slot iframe { display: inline-block; vertical-align: middle; }
+    .span-all {
+        column-span: all; border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding: 10px 0; display: block;
+    }
+    .ad-slot:hover { background: rgba(255, 255, 255, 0.05); z-index: 2; }
 
-    /* --- IFRAME FALLBACK --- */
-    .iframe-fallback {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 12px;
-        padding: 20px;
-        box-sizing: border-box;
-        background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.65));
-        color: #fff;
-        z-index: 90;
-        text-align: center;
-    }
-    .iframe-fallback a {
-        display: inline-block;
-        padding: 10px 18px;
-        border-radius: 8px;
-        background: var(--primary-color);
-        color: #000;
-        text-decoration: none;
-        font-weight: 700;
-    }
-    .iframe-fallback small {
-        color: rgba(255,255,255,0.75);
-        font-size: 0.85rem;
-    }
-
-    /* --- MEDIA QUERIES --- */
+    @media (max-width: 1024px) { .ads-masonry { column-count: 2; } }
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .top-nav { justify-content: space-between; }
+        .container { padding: 15px 10px; }
+        .player-wrapper { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .options {
-            overflow-x: auto;
-            white-space: nowrap;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            max-width: 60%;
+            justify-content: flex-start; overflow-x: auto;
+            white-space: nowrap; padding: 15px;
+            -ms-overflow-style: none; scrollbar-width: none;
         }
         .options::-webkit-scrollbar { display: none; }
-
-        .controls {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 10px;
-        }
-
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
+        h1 { font-size: 1.3rem; margin: 20px 0; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        #prevBtn { grid-column: 1; order: 1; min-width: auto; }
+        #nextBtn { grid-column: 2; order: 2; min-width: auto; }
+        #downloadBtn { grid-column: 1 / span 2; order: 3; width: 100%; margin-top: 5px; box-sizing: border-box; }
+        .btn { padding: 12px; font-size: 0.9rem; }
+        .ads-masonry { column-count: 1; }
+        .ad-slot { padding: 10px 0; border-left: none; border-right: none; }
     }
   </style>
 </head>
@@ -484,321 +214,228 @@
   <div class="container">
    
     <div class="top-nav">
-       <a href="#" id="backLink" class="back-btn">
-         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+       <a href="index.html" id="backLink" class="back-btn">
+         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
          Volver
        </a>
-       <div class="options" id="serverOptions"></div>
     </div>
 
-    <div class="player-wrapper" id="playerWrapper">
-        <div id="playerContainer"></div>
-        
-        <div class="player-patch main-patch"></div>
-        <div class="player-patch corner-patch"></div>
-
-        <button id="customFullscreenBtn" class="fullscreen-btn" title="Pantalla Completa">
-            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-            </svg>
-        </button>
-    </div>
-
-    <h1 id="epTitle">Cargando...</h1>
+    <div class="player-wrapper" id="playerContainer"></div>
+    <div class="options" id="serverOptions"></div>
+    <h1 id="epTitle">Cargando episodio...</h1>
 
     <div class="controls">
-        <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#" target="_blank" download>
-             ⬇ Descargar
-        </a>
-        
-        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
+        <a id="prevBtn" class="btn btn-hidden">⏮ Anterior</a>
+        <a id="downloadBtn" class="btn" href="#" target="_blank" download>⬇ Descargar</a>
+        <a id="nextBtn" class="btn btn-hidden">Siguiente ⏭</a>
     </div>
 
+    <div class="ads-block-container">
+        <div class="ads-title">Sponsors</div>
+        <div class="ads-masonry">
+            <div class="ad-slot span-all">
+                <script type="text/javascript">
+                    atOptions = { 'key' : '1f072201cddab551b2b65315f6c1643e', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/1f072201cddab551b2b65315f6c1643e/invoke.js"></script>
+            </div>
+            <div class="ad-slot">
+                <script type="text/javascript">
+                    atOptions = { 'key' : '190984de4e16fc6eded87c1cb7a9bc83', 'format' : 'iframe', 'height' : 600, 'width' : 160, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/190984de4e16fc6eded87c1cb7a9bc83/invoke.js"></script>
+            </div>
+            <div class="ad-slot">
+                <script type="text/javascript">
+                    atOptions = { 'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
+            </div>
+            <div class="ad-slot">
+                <script type="text/javascript">
+                    atOptions = { 'key' : '49281ce83eb56f120e34ad617cfd6996', 'format' : 'iframe', 'height' : 300, 'width' : 160, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/49281ce83eb56f120e34ad617cfd6996/invoke.js"></script>
+            </div>
+             <div class="ad-slot">
+                <script type="text/javascript">
+                    atOptions = { 'key' : '1904483365c7a7ab9f83e49d32b7d237', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/1904483365c7a7ab9f83e49d32b7d237/invoke.js"></script>
+            </div>
+            <div class="ad-slot">
+                <script type="text/javascript">
+                    atOptions = { 'key' : '6ecb40404fef8f9daf755244f9c4d753', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/6ecb40404fef8f9daf755244f9c4d753/invoke.js"></script>
+            </div>
+        </div>
+    </div>
   </div>
 
   <script>
-    var version = new Date().getTime();
-    document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
+    // AUTO-VERSIONADO: Fuerza la descarga del JS de datos siempre
+    var autoVersion = new Date().getTime();
+    document.write('<script src="video-player-data.js?v=' + autoVersion + '"><\/script>');
+    
+    // REGISTRO SERVICE WORKER: Para que funcione el Network First incluso aquí
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                reg.update();
+            }).catch(e => console.log('SW Error:', e));
+        });
+    }
   </script>
 
   <script>
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
+    // Esperamos a que video-player-data.js cargue (gracias al document.write es secuencial)
     
-    const DB = (typeof players !== 'undefined') ? players : {};
-    
-    const params = new URLSearchParams(location.search);
-    const animeId = params.get('anime');
-    const season = params.get('s');
-    const episode = params.get('e');
-    const backLink = document.getElementById('backLink');
-
-    if (animeId && season && episode) {
-        const viewedKey = `watched_${animeId}_${season}_${episode}`;
-        localStorage.setItem(viewedKey, 'true');
-    }
-
-    if (backLink && animeId) {
-        backLink.href = `anime-detail.html?id=${animeId}`;
-    }
-
-    const epData = DB[animeId]?.[season]?.[episode];
-    if (epData) {
-        document.title = `Ver ${epData.title} - Archinime`;
-        document.getElementById('epTitle').innerText = epData.title;
-        const initialLink = epData.link || epData.link2;
-        loadVideo(initialLink);
+    setTimeout(() => {
+        const DB = (typeof players !== 'undefined') ? players : {};
         
-        const optContainer = document.getElementById('serverOptions');
-        optContainer.innerHTML = '';
-        if(epData.link) createOptionBtn("Latino", epData.link, true);
-        if(epData.link2) createOptionBtn("Sub", epData.link2, !epData.link);
-        
-        updateDownloadButton(initialLink);
-        setupNavigation();
-    } else {
-        document.getElementById('epTitle').innerText = "No encontrado";
-    }
+        // Obtener parámetros URL
+        const params = new URLSearchParams(location.search);
+        const animeId = params.get('anime');
+        const season = params.get('s');
+        const episode = params.get('e');
 
-    function generateDirectDownloadLink(url) {
-        if (!url) return "#";
-        if (url.includes("drive.google.com")) {
-            const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) {
-               return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+        // Lógica del botón Volver
+        const backLink = document.getElementById('backLink');
+        if (backLink) {
+            if (animeId) {
+                backLink.href = `anime-detail.html?id=${animeId}`;
+            } else {
+                backLink.href = `index.html`;
             }
         }
-        if (url.includes("dropbox.com") && url.includes("dl=0")) {
-             return url.replace('dl=0', 'dl=1');
-        }
-        return url;
-    }
 
-    function updateDownloadButton(url) {
-        const dlBtn = document.getElementById('downloadBtn');
-        const directLink = generateDirectDownloadLink(url);
-        dlBtn.href = directLink;
-    }
-
-    function createOptionBtn(label, url, isActive) {
-        const optContainer = document.getElementById('serverOptions');
-        const btn = document.createElement('button');
-        const isFirst = optContainer.children.length === 0;
-        const shouldBeActive = isActive || isFirst;
-        btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
-        btn.innerText = label;
-        btn.onclick = () => {
-            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadVideo(url);
-            updateDownloadButton(url);
-        };
-        optContainer.appendChild(btn);
-    }
-
-    function isTablet() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        // Detect common tablets (ipad, android tablets, kindle, playbook, silk)
-        return /ipad|tablet|(android(?!.*mobile))|silk|playbook|nexus 7|nexus 9|xoom/i.test(ua);
-    }
-
-    function loadVideo(url) {
-        const container = document.getElementById('playerContainer');
-        container.innerHTML = ''; 
-        if (!url) return;
-        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-        const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        if (isVideoFile && !isDrive) {
-            const video = document.createElement('video');
-            video.src = url;
-            video.controls = true;
-            video.autoplay = false;
-            video.playsInline = true; 
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.onerror = function() { loadAsIframe(url, container); };
-            container.appendChild(video);
+        // Buscar datos
+        const epData = DB[animeId]?.[season]?.[episode];
+        if (epData) {
+            document.title = `Ver ${epData.title} - Archinime`;
+            document.getElementById('epTitle').innerText = epData.title;
+            const initialLink = epData.link || epData.link2;
+            loadVideo(initialLink);
+            
+            const optContainer = document.getElementById('serverOptions');
+            optContainer.innerHTML = '';
+            if(epData.link) createOptionBtn("Opción Latino", epData.link, true);
+            if(epData.link2) createOptionBtn("Opción Subtitulado", epData.link2, !epData.link);
+            
+            updateDownloadButton(initialLink);
+            setupNavigation();
         } else {
-            loadAsIframe(url, container);
+            console.error("No se encontraron datos para:", animeId, season, episode);
+            document.getElementById('epTitle').innerText = "Episodio no encontrado.";
+            document.getElementById('playerContainer').innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;flex-direction:column;gap:10px;">
+                    <span>Video no disponible o enlace roto.</span>
+                    <small style="color:#aaa;">Verifica el archivo video-player-data.js</small>
+                </div>`;
         }
-    }
-
-    function showFallback(container, finalUrl) {
-        // Si el iframe falla (comportamiento típico en tablets por políticas CORS/third-party),
-        // mostramos un fallback con botón para abrir en nueva pestaña.
-        container.innerHTML = '';
-        const fb = document.createElement('div');
-        fb.className = 'iframe-fallback';
-        fb.innerHTML = `
-            <div>
-                <strong>El reproductor embebido no cargó en este dispositivo.</strong>
-                <div style="height:8px"></div>
-                <a id="openExtern" href="${finalUrl}" target="_blank" rel="noopener noreferrer">Abrir en nueva pestaña</a>
-                <div style="height:6px"></div>
-                <small>Si el video se reproduce en la nueva pestaña, el host (ej. OK.ru) está bloqueando el embed en este navegador/tablet.</small>
-            </div>
-        `;
-        container.appendChild(fb);
-    }
-
-    function loadAsIframe(url, container) {
-        container.innerHTML = '';
-        let finalUrl = url;
         
-        // CORRECCIÓN TABLET: Forzamos HTTPS para evitar bloqueos por seguridad de "Contenido Mixto" en tablets
-        if (finalUrl.startsWith('http://')) {
-            finalUrl = finalUrl.replace('http://', 'https://');
-        }
-
-        const iframe = document.createElement('iframe');
-
-        // IMPORTANTE: algunos servicios (OK.ru, Vimeo, etc.) requieren allowfullscreen y permiso para fullscreen
-        // en navegadores de tablets. Lo añadimos aquí para compatibilidad.
-        iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
-        iframe.setAttribute("allowfullscreen", "");
-        iframe.setAttribute("webkitallowfullscreen", "");
-        iframe.setAttribute("mozallowfullscreen", "");
-        iframe.loading = 'lazy';
-        iframe.src = finalUrl;
-        
-        iframe.style.position = "absolute";
-        iframe.style.top = "0";
-        iframe.style.left = "0";
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-
-        // Fallback: si el iframe tarda en cargar o no dispara 'load', mostramos un botón para abrir en nueva pestaña.
-        let loaded = false;
-        const timeoutMs = isTablet() ? 6000 : 4000; // tiempo mayor en tablets
-        const loadTimeout = setTimeout(() => {
-            if (!loaded) {
-                console.warn('Iframe load timeout — mostrando fallback.');
-                showFallback(container, finalUrl);
+        // Helpers
+        function generateDirectDownloadLink(url) {
+            if (!url) return "#";
+            if (url.includes("drive.google.com")) {
+                const match = url.match(/\/d\/(.+?)\//);
+                if (match && match[1]) {
+                   return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+                }
             }
-        }, timeoutMs);
+            if (url.includes("dropbox.com") && url.includes("dl=0")) {
+                 return url.replace('dl=0', 'dl=1');
+            }
+            return url;
+        }
 
-        iframe.addEventListener('load', () => {
-            loaded = true;
-            clearTimeout(loadTimeout);
-            // Si hay un fallback visible, lo removemos dejando el iframe.
-            const existingFallback = container.querySelector('.iframe-fallback');
-            if (existingFallback) existingFallback.remove();
-            // Dejar el iframe (ya estará en el DOM).
-        }, { once: true });
+        function updateDownloadButton(url) {
+            const dlBtn = document.getElementById('downloadBtn');
+            const directLink = generateDirectDownloadLink(url);
+            dlBtn.href = directLink;
+        }
 
-        // Hay situaciones en las que 'load' se dispara pero el contenido muestra error gráfico; el fallback
-        // aún puede ayudar si el usuario decide abrir en nueva pestaña manualmente.
-        container.appendChild(iframe);
-    }
+        function createOptionBtn(label, url, isActive) {
+            const optContainer = document.getElementById('serverOptions');
+            const btn = document.createElement('button');
+            const isFirst = optContainer.children.length === 0;
+            const shouldBeActive = isActive || isFirst;
+            btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
+            btn.innerText = label;
+            btn.onclick = () => {
+                document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                loadVideo(url);
+                updateDownloadButton(url);
+            };
+            optContainer.appendChild(btn);
+        }
 
-    function setupNavigation() {
-        try {
-            if (DB[animeId]) {
-                let flatList = [];
-                const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
-                seasons.forEach(sKey => {
-                    const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
-                    episodes.forEach(eKey => {
-                        flatList.push({ s: sKey, e: eKey });
+        function loadVideo(url) {
+            const container = document.getElementById('playerContainer');
+            container.innerHTML = ''; 
+            if (!url) return;
+            const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+            const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+            if (isVideoFile && !isDrive) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true; video.autoplay = false; video.playsInline = true; 
+                video.style.width = "100%"; video.style.height = "100%";
+                video.onerror = function() {
+                    console.log("Error nativo, intentando modo iframe...");
+                    loadAsIframe(url, container);
+                };
+                container.appendChild(video);
+            } else {
+                loadAsIframe(url, container);
+            }
+        }
+
+        function loadAsIframe(url, container) {
+            container.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin allow-presentation allow-popups");
+            iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+            iframe.setAttribute("allowfullscreen", "true");
+            iframe.style.position = "absolute"; iframe.style.top = "0"; iframe.style.left = "0";
+            iframe.style.width = "100%"; iframe.style.height = "100%"; iframe.style.border = "none";
+            container.appendChild(iframe);
+        }
+
+        function setupNavigation() {
+            try {
+                if (DB[animeId]) {
+                    let flatList = [];
+                    const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
+                    seasons.forEach(sKey => {
+                        const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
+                        episodes.forEach(eKey => {
+                            flatList.push({ s: sKey, e: eKey });
+                        });
                     });
-                });
-                const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
-                const prevBtn = document.getElementById('prevBtn');
-                const nextBtn = document.getElementById('nextBtn');
-                if (currentIndex > 0) {
-                    const prevItem = flatList[currentIndex - 1];
-                    prevBtn.classList.remove('btn-hidden');
-                    prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
-                } else {
-                    prevBtn.classList.add('btn-hidden');
+                    const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
+                    const prevBtn = document.getElementById('prevBtn');
+                    const nextBtn = document.getElementById('nextBtn');
+                    if (currentIndex > 0) {
+                        const prevItem = flatList[currentIndex - 1];
+                        prevBtn.classList.remove('btn-hidden');
+                        prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
+                    }
+                    if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
+                        const nextItem = flatList[currentIndex + 1];
+                        nextBtn.classList.remove('btn-hidden');
+                        nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
+                    }
                 }
-
-                if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
-                    const nextItem = flatList[currentIndex + 1];
-                    nextBtn.classList.remove('btn-hidden');
-                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
-                } else {
-                    nextBtn.classList.add('btn-hidden');
-                }
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    // -----------------------------------------------------------
-    // LÓGICA DE PANTALLA COMPLETA PERSONALIZADA
-    // -----------------------------------------------------------
-    const wrapper = document.getElementById('playerWrapper');
-    const fsBtn = document.getElementById('customFullscreenBtn');
-
-    fsBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            if (wrapper.requestFullscreen) {
-                wrapper.requestFullscreen();
-            } else if (wrapper.webkitRequestFullscreen) {
-                wrapper.webkitRequestFullscreen();
-            } else if (wrapper.msRequestFullscreen) {
-                wrapper.msRequestFullscreen();
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
+            } catch (e) { console.error("Error en navegación:", e); }
         }
-    });
-
-    function updateFsButton() {
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            // Iconos actualizados al tamaño 28x28
-            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
-        } else {
-            fsBtn.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
-        }
-    }
-
-    document.addEventListener('fullscreenchange', updateFsButton);
-    document.addEventListener('webkitfullscreenchange', updateFsButton);
-
-    // -----------------------------------------------------------
-    // LÓGICA PARA AUTO-OCULTAR CURSOR Y CONTROLES (CORREGIDA PARA MÓVIL)
-    // -----------------------------------------------------------
-    let hideTimeout;
-    function resetInactivityTimer() {
-        wrapper.classList.remove('hide-cursor');
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => {
-            wrapper.classList.add('hide-cursor');
-        }, 3000);
-    }
-
-    // Eventos normales para desktop
-    wrapper.addEventListener('mousemove', resetInactivityTimer);
-    wrapper.addEventListener('click', resetInactivityTimer);
-    // CORRECCIÓN MÓVIL: Detectar cualquier toque en el documento
-    document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
-    document.addEventListener('touchmove', resetInactivityTimer, { passive: true });
-
-    // EL TRUCO MAGISTRAL: Cuando haces clic DENTRO del iframe (que bloquea los eventos),
-    // la ventana principal pierde el "foco" (blur). Así detectamos que el usuario tocó el video.
-    window.addEventListener('blur', () => {
-        resetInactivityTimer();
-    });
-    
-    wrapper.addEventListener('mouseleave', () => {
-        clearTimeout(hideTimeout);
-        wrapper.classList.add('hide-cursor');
-    });
-    
-    // Iniciar temporizador
-    resetInactivityTimer();
-
+    }, 100);
   </script>
 </body>
 </html>
