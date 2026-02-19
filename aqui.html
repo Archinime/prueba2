@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reproductor centrado</title>
+  <style>
+    /* Reset mínimo */
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* Contenedor que centra vertical y horizontalmente */
+    .page {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px; /* espacio en móviles */
+    }
+
+    /* Wrapper del vídeo: controla tamaño máximo y evita desbordes.
+       Usamos aspect-ratio cuando está disponible y una solución fallback con padding-top. */
+    .video-wrapper {
+      width: min(90vw, 1200px);   /* nunca más ancho que la ventana (90vw) ni más de 1200px */
+      max-height: 90vh;           /* no sobrepasar 90% de la altura de la ventana */
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;           /* impide que el iframe "salga" del contenedor */
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      position: relative;
+    }
+
+    /* Si el navegador soporta aspect-ratio, lo usamos para mantener 16:9 */
+    @supports (aspect-ratio: 16/9) {
+      .video-wrapper {
+        aspect-ratio: 16 / 9;
+      }
+      .video-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+    }
+
+    /* Fallback para navegadores sin aspect-ratio (padding-top trick) */
+    @supports not (aspect-ratio: 16/9) {
+      .video-wrapper {
+        padding-top: 56.25%; /* 16:9 -> 9/16 = 56.25% */
+      }
+      .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+    }
+
+    /* Texto pequeño debajo (opcional) */
+    .caption {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #cfcfcf;
+    }
+
+    /* Evitar scroll horizontal incluso en tamaños muy pequeños */
+    @media (max-width: 380px) {
+      .video-wrapper { width: 100%; border-radius: 6px; }
+      .page { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div>
+      <!-- Contenedor del video -->
+      <div class="video-wrapper" role="region" aria-label="Reproductor de vídeo">
+        <!-- Iframe con el vídeo (usa la URL que proporcionaste) -->
+        <iframe
+          src="https://ok.ru/videoembed/12236932254418"
+          title="Vídeo embebido"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          scrolling="no"
+        ></iframe>
+      </div>
+
+      <!-- Texto opcional debajo del reproductor -->
+      <div class="caption">Vídeo centrado y contenido dentro del contenedor (no se sale).</div>
+    </div>
+  </div>
+
+  <!-- Fallback si el navegador tiene JavaScript deshabilitado: enlace directo -->
+  <noscript>
+    <div style="text-align:center; padding:20px; color:#f0f0f0;">
+      Tienes JavaScript deshabilitado. Abre el vídeo directamente:
+      <br>
+      <a href="https://ok.ru/videoembed/12236932254418" target="_blank" rel="noopener noreferrer"
+         style="color:#9ad1ff;">Abrir vídeo en OK.ru</a>
+    </div>
+  </noscript>
+</body>
+</html>
