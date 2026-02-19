@@ -27,7 +27,6 @@
 
     let currentProgress = 0;
     let metaTag = document.querySelector('meta[name="theme-color"]');
-    
     if (!metaTag) {
       metaTag = document.createElement('meta');
       metaTag.name = "theme-color";
@@ -38,7 +37,6 @@
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
-
     const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
@@ -47,7 +45,6 @@
     };
 
     const lerp = (start, end, t) => start + (end - start) * t;
-
     setInterval(() => {
       currentProgress += step;
       if (currentProgress >= segments) {
@@ -65,7 +62,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-  })();
+})();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,8 +72,10 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -100,7 +99,8 @@
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */
+        opacity: 0.5;
+        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -137,7 +137,6 @@
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
-        
         /* Efecto visual añadido */
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
@@ -159,7 +158,8 @@
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */
+      border: 1px solid rgba(0, 255, 247, 0.3);
+      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -173,25 +173,47 @@
         text-shadow: 0 0 5px var(--primary-color);
     }
    
-    /* --- REPRODUCTOR --- */
+    /* --- REPRODUCTOR (ACTUALIZADO PARA TABLETS Y MÓVILES) --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 */
-        height: 0; 
         width: 100%; 
+        max-height: 75vh; /* EVITA QUE SE SALGA DE LA PANTALLA EN TABLETS */
         background: #000;
         overflow: hidden;
         z-index: 50;
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        margin: 0 auto;
     }
-   
-    .player-wrapper iframe, .player-wrapper video { 
+
+    /* Si el navegador soporta aspect-ratio, lo usamos para mantener 16:9 */
+    @supports (aspect-ratio: 16/9) {
+      .player-wrapper {
+        aspect-ratio: 16 / 9;
+      }
+      .player-wrapper iframe, .player-wrapper video {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+    }
+
+    /* Fallback para navegadores sin aspect-ratio (padding-top trick) */
+    @supports not (aspect-ratio: 16/9) {
+      .player-wrapper {
+        padding-top: 56.25%; /* 16:9 -> 9/16 = 56.25% */
+      }
+      .player-wrapper iframe, .player-wrapper video {
         position: absolute;
-        top: 0; left: 0; 
-        width: 100%; height: 100%; 
-        border: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -308,8 +330,10 @@
 
     /* CLASE IMPORTANTE: OCULTA PERO MANTIENE EL ESPACIO */
     .btn-hidden { 
-        visibility: hidden; /* No se ve */
-        pointer-events: none; /* No se puede clickear */
+        visibility: hidden;
+        /* No se ve */
+        pointer-events: none;
+        /* No se puede clickear */
         /* NO usamos display: none, para que ocupe espacio en la grid */
     }
 
@@ -330,8 +354,10 @@
 
         /* CONTROLES MÓVIL (2 FILAS) */
         .controls {
-            grid-template-columns: 1fr 1fr; /* 2 columnas iguales */
-            grid-template-rows: auto auto; /* 2 filas */
+            grid-template-columns: 1fr 1fr;
+            /* 2 columnas iguales */
+            grid-template-rows: auto auto;
+            /* 2 filas */
             gap: 10px;
         }
 
@@ -378,7 +404,7 @@
        <div class="options" id="serverOptions"></div>
     </div>
 
-    <div class="player-wrapper" id="playerContainer"></div>
+    <div class="player-wrapper" id="playerContainer" role="region" aria-label="Reproductor de vídeo"></div>
 
     <h1 id="epTitle">Cargando...</h1>
 
@@ -486,14 +512,14 @@
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
             video.controls = true;
             video.autoplay = false;
             video.playsInline = true; 
-            video.style.width = "100%";
-            video.style.height = "100%";
+            // Las dimensiones exactas ahora las controla el CSS
             video.onerror = function() { loadAsIframe(url, container); };
             container.appendChild(video);
         } else {
@@ -505,14 +531,11 @@
         container.innerHTML = '';
         const iframe = document.createElement('iframe');
         iframe.src = url;
+        // Agregamos las etiquetas de aqui.txt para máxima compatibilidad
         iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
         iframe.setAttribute("allowfullscreen", "true");
-        iframe.style.position = "absolute";
-        iframe.style.top = "0";
-        iframe.style.left = "0";
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
+        iframe.setAttribute("scrolling", "no");
+        // El CSS se encarga del tamaño y posición (width, height, border, etc.)
         container.appendChild(iframe);
     }
 
@@ -530,6 +553,7 @@
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 // Configurar Anterior
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
@@ -549,8 +573,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
