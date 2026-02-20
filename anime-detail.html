@@ -20,7 +20,7 @@
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 6000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -438,10 +438,26 @@
   </video>
   <div id="overlay"></div>
 
-  <script src="index-data.js"></script> 
-  <script src="anime-detail-data.js"></script>
-  <script src="musica-data.js"></script>
-  <script src="users-data.js"></script>
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+  </script>
+
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="anime-detail-data.js?v=' + version + '"><\/script>');
+  </script>
+
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="musica-data.js?v=' + version + '"><\/script>');
+  </script>
+
+  <script>
+    var version = new Date().getTime();
+    document.write('<script src="users-data.js?v=' + version + '"><\/script>');
+  </script>
+
 
   <script>
     /* ----------------------------------------------------
