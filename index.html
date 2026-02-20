@@ -80,7 +80,6 @@
     position: fixed; inset: 0;
     background: radial-gradient(circle at center, rgba(188, 19, 254, 0.08) 0%, rgba(0,0,0,0.85) 90%);
     z-index: -4; pointer-events: none; transition: opacity 0.6s ease;
-    will-change: opacity;
   }
 
   #particles-js { position: fixed; inset: 0; z-index: -3; }
@@ -96,7 +95,6 @@
     animation: gridMove 15s linear infinite;
     mask-image: linear-gradient(to bottom, transparent, black 80%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 90%);
-    will-change: transform;
   }
   @keyframes gridMove {
     0% { transform: perspective(600px) rotateX(60deg) translateY(0) translateZ(-200px); }
@@ -108,7 +106,6 @@
     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
                 linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
     background-size: 100% 4px, 3px 100%; opacity: 0.6; mix-blend-mode: overlay;
-    will-change: transform;
   }
 
   /* --- SCROLLBAR FUTURISTA --- */
@@ -128,7 +125,6 @@
     background: #000; z-index: 99999;
     display: flex; justify-content: center; align-items: center; flex-direction: column;
     transition: opacity 0.5s ease-out, visibility 0.5s;
-    will-change: opacity, visibility;
   }
   .loader-line {
     width: 0; height: 3px; background: var(--neon-cyan);
@@ -147,7 +143,6 @@
     margin: 0;
     position: relative; display: inline-block;
     text-shadow: 0 0 10px rgba(0,240,255,0.6);
-    will-change: transform;
   }
   .glitch::before, .glitch::after { 
     content: attr(data-text);
@@ -187,7 +182,6 @@
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-    will-change: background-position;
   }
 
   /* --- PANELES DE NEON CON ESCANER MEJORADOS --- */
@@ -199,22 +193,13 @@
     backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
     position: relative; transition: box-shadow 0.3s ease; overflow: hidden;
   }
-  .panel::before {
-    content: ''; position: absolute; inset: -1px;
-    background: linear-gradient(45deg, var(--neon-cyan), transparent, var(--neon-pink), transparent, var(--neon-purple));
-    background-size: 400%; z-index: -1; filter: blur(5px); opacity: 0.3;
-    animation: border-flow 10s linear infinite; border-radius: var(--radius);
-    will-change: background-position;
-  }
   .panel::after { 
     content:''; position: absolute;
     top: 0; left: 0; width: 30%; height: 2px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); 
     animation: scan-line 4s linear infinite;
-    will-change: left;
   }
   @keyframes scan-line { 0% { left: -30%; } 100% { left: 100%; } }
-  @keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
 
   /* --- NAVBAR OPTIMIZADA --- */
   .cyber-nav {
@@ -224,7 +209,6 @@
     display: flex; justify-content: space-between; align-items: center;
     transition: 0.3s; height: var(--header-height);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    will-change: background-color;
   }
   .nav-logo { 
     display: flex; align-items: center; gap: 12px; 
@@ -235,7 +219,6 @@
     height: 42px; width: 42px; object-fit: contain; border-radius: 8px;
     box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); 
     transition: transform 0.3s;
-    will-change: transform;
   }
   .nav-logo:hover img { transform: rotate(10deg) scale(1.1); }
 
@@ -253,7 +236,6 @@
     transition: var(--transition-base);
     font-family: var(--font-mono); font-size: 0.9rem;
     box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
-    will-change: border-color, box-shadow;
   }
   .search-input:focus {
     border-color: var(--neon-pink);
@@ -278,13 +260,11 @@
     color: #ccc; display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: var(--transition-base); 
     position: relative; font-size: 1.1rem; overflow: visible;
-    will-change: color, box-shadow, transform;
   }
   .cyber-btn-icon::before {
     content: ''; position: absolute; top: 0; left: 0; width: 0%; height: 100%;
     background: var(--neon-purple); z-index: -1; transition: 0.3s; 
     opacity: 0.2; border-radius: 8px;
-    will-change: width;
   }
   .cyber-btn-icon:hover {
     color: white;
@@ -306,7 +286,6 @@
     box-shadow: 0 0 8px var(--neon-pink); border: 1px solid #000; color: #fff;
     display: flex; align-items: center; justify-content: center; 
     font-family: var(--font-mono);
-    will-change: transform;
   }
   .notif-dropdown {
     position: absolute; top: 55px;
@@ -317,7 +296,6 @@
     pointer-events: none; transform: translateY(-10px) scale(0.95);
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 2000; display: flex; flex-direction: column; overflow: hidden;
-    will-change: opacity, transform;
   }
   .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
   .notif-header {
@@ -381,7 +359,6 @@
     background-repeat: no-repeat;
     background-position: calc(100% - 12px) center; 
     background-size: 14px;
-    will-change: color, border-color;
   }
   select:hover, select:focus {
     color: #fff; border-color: var(--neon-pink);
@@ -461,7 +438,6 @@
     );
     pointer-events: none;
     z-index: 1;
-    will-change: background;
   }
 
   .no-results-cyber-panel::after {
@@ -472,7 +448,6 @@
     animation: scanline-vertical 4s linear infinite;
     pointer-events: none;
     z-index: 2;
-    will-change: transform;
   }
 
   .error-icon-container {
@@ -486,7 +461,6 @@
     color: var(--neon-pink);
     filter: drop-shadow(0 0 15px var(--neon-pink));
     animation: error-pulse 1.5s infinite alternate;
-    will-change: transform, filter;
   }
 
   .glitch-error {
@@ -500,7 +474,6 @@
     letter-spacing: 3px;
     text-shadow: 2px 2px 0px var(--neon-pink), -2px -2px 0px var(--neon-cyan);
     animation: glitch-text-subtle 3s infinite linear alternate-reverse;
-    will-change: text-shadow;
   }
 
   .error-message-box {
@@ -523,7 +496,6 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
     animation: err-sweep 3.5s infinite linear;
     pointer-events: none;
-    will-change: left;
   }
 
   .main-err-text {
@@ -559,7 +531,6 @@
     transition: var(--transition-base);
     border-radius: 4px;
     overflow: hidden;
-    will-change: background-color, box-shadow, transform;
   }
 
   .reset-search-btn::before {
@@ -567,7 +538,6 @@
     position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(0,240,255,0.4), transparent);
     transition: 0.5s;
-    will-change: left;
   }
 
   .reset-search-btn:hover {
@@ -605,18 +575,16 @@
 
   .card {
     position: relative; border-radius: 8px; overflow: hidden; 
-    aspect-ratio: 2/3; cursor: crosshair;
+    aspect-ratio: 2/3; cursor: pointer;
     transition: transform 0.1s ease-out, box-shadow 0.3s;
     box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
     background: #111; 
     transform-style: preserve-3d;
-    will-change: transform, box-shadow;
   }
   .card::before {
     content: ''; position: absolute; inset: 0; 
     border: 1px solid var(--border-light); border-radius: 8px;
     z-index: 2; pointer-events: none; transition: 0.3s;
-    will-change: border-color, box-shadow;
   }
   .card:hover { z-index: 10; }
   .card:hover::before { 
@@ -627,7 +595,6 @@
     width: 100%; height: 100%; object-fit: cover;
     transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
     filter: brightness(0.85);
-    will-change: transform, filter;
   }
   .card:hover img { 
     transform: scale(1.08); 
@@ -639,7 +606,6 @@
     padding: 70px 15px 15px; display: flex; flex-direction: column; gap: 4px;
     z-index: 5; transform: translateY(10px); opacity: 0.9; 
     transition: 0.3s;
-    will-change: transform, opacity;
   }
   .card:hover .info { 
     transform: translateY(0); opacity: 1;
@@ -663,7 +629,6 @@
     right: 20px; bottom: 20px; overflow: hidden; background: transparent; 
     border-radius: 10px;
     filter: drop-shadow(0 0 10px rgba(0,240,255,0.2));
-    will-change: right, bottom, transform;
   }
   #fgCanvas, #fgVideo { width: 100%; height: 100%; display: block; object-fit: contain; }
   .play-overlay { 
@@ -681,14 +646,12 @@
     cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
     transition: var(--transition-base); position: relative; overflow: hidden;
     clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-    will-change: color, box-shadow, transform;
   }
   .play-btn::before {
     content: ''; position: absolute; inset: 0; background: var(--neon-gradient);
     background-size: 300% 100%; opacity: 0;
     transition: opacity 0.3s; z-index: -1;
     animation: bg-pan 4s linear infinite;
-    will-change: background-position;
   }
   @keyframes bg-pan { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
   .play-btn:hover { 
@@ -706,7 +669,6 @@
     display: flex; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none;
     transition: all 0.5s ease-in-out; padding: 20px;
-    will-change: opacity;
   }
   #eventModal.show { opacity: 1; pointer-events: auto; }
   .event-card {
@@ -719,7 +681,6 @@
     transform: scale(0.9) translateY(40px);
     transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
     display: flex; flex-direction: column; position: relative;
-    will-change: transform;
   }
   #eventModal.show .event-card { transform: scale(1) translateY(0); }
   .event-visuals { 
@@ -732,7 +693,6 @@
     background-size: cover; background-position: center; 
     filter: blur(20px) brightness(0.5) saturate(1.2); 
     transform: scale(1.2); transition: transform 6s ease;
-    will-change: transform;
   }
   #eventModal.show .visual-bg { transform: scale(1); }
   .covers-container { 
@@ -748,7 +708,6 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.2); 
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1;
-    will-change: transform;
   }
   .cover-front { 
     position: absolute;
@@ -757,7 +716,6 @@
     transform: translateX(-50%) rotate(5deg) scale(1);
     z-index: 5; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); 
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    will-change: transform;
   }
   #eventModal.show .cover-back { transform: translateX(calc(-50% + 70px)) rotate(-10deg) scale(0.95); }
   #eventModal.show .cover-front { transform: translateX(calc(-50% - 70px)) rotate(5deg) scale(1); }
@@ -781,7 +739,6 @@
     letter-spacing: 2px;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     transition-delay: 0.3s;
-    will-change: transform;
   }
   #eventModal.show .final-stamp { transform: translate(-50%, -50%) rotate(-25deg) scale(1); }
   .event-close { 
@@ -791,7 +748,6 @@
     width: 36px; height: 36px; border-radius: 50%; 
     cursor: pointer; display: flex; align-items: center; justify-content: center; 
     transition: all 0.3s ease; backdrop-filter: blur(4px);
-    will-change: background, border-color, transform;
   }
   .event-close:hover { 
     background: var(--neon-pink); border-color: var(--neon-pink); 
@@ -827,14 +783,12 @@
     gap: 10px;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
     position: relative; overflow: hidden;
-    will-change: background, box-shadow, transform;
   }
   .event-btn::before { 
     content: ''; position: absolute;
     top: 0; left: -100%; width: 100%; height: 100%; 
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); 
     transition: 0.5s;
-    will-change: left;
   }
   .event-btn:hover { 
     background: var(--neon-cyan); color: #000; 
@@ -1073,13 +1027,6 @@
     </div>
   </div>
 
-  <div id="decorations" aria-hidden="true" style="position:fixed; inset:0; pointer-events:none; z-index:1;">
-     <svg id="star-template" class="shooting-star" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:none;">
-        <circle cx="4" cy="4" r="4" fill="#fff9e0" opacity="0.9"></circle>
-        <rect class="shooting-tail" x="8" y="3" width="100" height="2"></rect>
-     </svg>
-  </div>
-
   <div id="iosInstallModal" class="ios-modal">
       <div class="ios-content">
           <span class="ios-close" onclick="closeIosModal()" aria-label="Cerrar">&times;</span>
@@ -1090,68 +1037,29 @@
       </div>
   </div>
 
-  <script>
-    /* Color animado en meta theme */
-    (function() {
-      const colors = ["#00f0ff", "#0066ff", "#bc13fe", "#ff005c", "#bc13fe", "#0066ff", "#00f0ff"];
-      const animationDuration = 20000;
-      const intervalTime = 20; 
-      const segments = colors.length - 1;
-      const step = (intervalTime / animationDuration) * segments;
-      let currentProgress = 0;
-      let metaTag = document.querySelector('meta[name="theme-color"]');
-      
-      if (!metaTag) {
-        metaTag = document.createElement('meta');
-        metaTag.name = "theme-color";
-        document.head.appendChild(metaTag);
-      }
-
-      const hexToRgb = (hex) => {
-        const bigint = parseInt(hex.slice(1), 16);
-        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-      };
-      const rgbToHex = (r, g, b) => {
-        return "#" + [r, g, b].map(x => {
-          const hex = Math.round(x).toString(16);
-          return hex.length === 1 ? "0" + hex : hex;
-        }).join('');
-      };
-
-      const lerp = (start, end, t) => start + (end - start) * t;
-      setInterval(() => {
-        currentProgress += step;
-        if (currentProgress >= segments) currentProgress = currentProgress % segments;
-        const index = Math.floor(currentProgress);
-        const t = currentProgress - index;
-        const colorStart = hexToRgb(colors[index]);
-        const colorEnd = hexToRgb(colors[index + 1]);
-        const r = lerp(colorStart[0], colorEnd[0], t);
-        const g = lerp(colorStart[1], colorEnd[1], t);
-        const b = lerp(colorStart[2], colorEnd[2], t);
-        metaTag.setAttribute('content', rgbToHex(r, g, b));
-      }, intervalTime);
-    })();
-  </script>
-
-  <script>
-    var version = new Date().getTime();
-    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-  </script>
-
+  <!-- Cargar index-data.js PRIMERO -->
+  <script src="index-data.js"></script>
+  
+  <!-- Scripts adicionales -->
   <script src="animaciones.js"></script>
   <script src="musica_fondo.js"></script>
   <script src="notification-system.js"></script>
+  
+  <!-- Script principal -->
   <script src="script-index.js"></script>
   
+  <!-- Particles.js para las partículas de fondo -->
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
   <script>
     /* Inicializar Partículas */
     particlesJS('particles-js', {
       particles: {
-        number: { value: 60 }, color: { value: '#00f0ff' }, shape: { type: 'circle' },
-        opacity: { value: 0.5, random: true }, size: { value: 2, random: true },
+        number: { value: 60 }, 
+        color: { value: '#00f0ff' }, 
+        shape: { type: 'circle' },
+        opacity: { value: 0.5, random: true }, 
+        size: { value: 2, random: true },
         line_linked: { enable: true, distance: 150, color: '#bc13fe', opacity: 0.2, width: 1 },
         move: { enable: true, speed: 2, direction: 'none', random: true, out_mode: 'out' }
       }
@@ -1160,10 +1068,15 @@
     /* Terminal typewriter effect */
     function typeWriter(text, element) {
       element.textContent = '';
-      let i = 0; clearInterval(element._tw);
+      let i = 0; 
+      clearInterval(element._tw);
       element._tw = setInterval(() => {
-        if(i < text.length) { element.textContent += text.charAt(i); i++; } 
-        else { clearInterval(element._tw); }
+        if(i < text.length) { 
+          element.textContent += text.charAt(i); 
+          i++; 
+        } else { 
+          clearInterval(element._tw); 
+        }
       }, 30);
     }
 
@@ -1244,18 +1157,17 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(registration => {
-          console.log('SW Registrado: OK');
+          console.log('✓ Service Worker Registrado');
           registration.update(); 
           registration.onupdatefound = () => {
             const installingWorker = registration.installing;
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('Nueva versión encontrada. Recargando...');
-                window.location.reload();
+                console.log('✓ Nueva versión detectada');
               }
             };
           };
-        }).catch(e => console.log('SW Error:', e));
+        }).catch(e => console.log('⚠ SW Error:', e));
       });
     }
 
@@ -1266,6 +1178,7 @@
     const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
     const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+    
     function checkInstallVisibility() {
       if (isMobile() && !isInStandaloneMode()) {
         installBtn.style.display = 'flex';
@@ -1279,6 +1192,7 @@
       deferredPrompt = e;
       checkInstallVisibility();
     });
+    
     installBtn.addEventListener('click', () => {
       if (isIos()) {
         iosModal.style.display = 'block';
@@ -1291,6 +1205,7 @@
         alert("App ya instalada o no soportada en este navegador.");
       }
     });
+    
     function closeIosModal() { iosModal.style.display = 'none'; }
     window.addEventListener('DOMContentLoaded', checkInstallVisibility);
     window.addEventListener('resize', checkInstallVisibility);
@@ -1312,7 +1227,7 @@
               bgVideo.classList.add('loaded'); 
             })
             .catch(error => {
-              console.log("Autoplay bloqueado. Esperando interacción.");
+              console.log("⚠ Autoplay bloqueado");
               document.body.addEventListener('click', () => {
                 bgVideo.play();
                 bgVideo.classList.add('loaded');
@@ -1326,6 +1241,7 @@
         }
       };
       forcePlayVideo();
+      
       setTimeout(() => { 
         loader.style.opacity = '0'; 
         setTimeout(() => {
@@ -1336,30 +1252,6 @@
         }, 500);
       }, 800);
     });
-
-    /* 3D Tilt Hover para Cards */
-    const hoverObserver = new MutationObserver(() => {
-      const cards = document.querySelectorAll('.card');
-      cards.forEach(card => {
-        if(card.dataset.tiltInit) return;
-        card.dataset.tiltInit = "true";
-        
-        card.addEventListener('mousemove', (e) => {
-          const rect = card.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const rotateX = ((y - centerY) / centerY) * -8;
-          const rotateY = ((x - centerX) / centerX) * 8;
-          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-        });
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-        });
-      });
-    });
-    if(gridEl) hoverObserver.observe(gridEl, { childList: true });
   </script>
 
 </body>

@@ -1,206 +1,285 @@
-/* Archivo: script-index.js - Versión Optimizada */
+/* Archivo: script-index.js - Versión CORREGIDA & OPTIMIZADA */
 
-/* ----------------------------
-    Renderizado grid mejorado
-    ---------------------------- */
+// ======== VARIABLES GLOBALES ========
+let animeDatabase = [];
+let filteredAnimes = [];
+
+// ======== FUNCIÓN PRINCIPAL DE RENDERIZADO ========
 function render(list) {
     const grid = document.getElementById('grid');
+    if (!grid) return;
+    
     if (!list || list.length === 0) {
-        grid.innerHTML = `
-        <div class="no-results" role="status" aria-live="polite">
-        <div class="title shimmer">¡Ups!
-        No se encontraron resultados que coincidan con la búsqueda.</div>
-        <div class="subtitle">¿No lo encuentras?
-        Puede que lo hayas escrito con un error o que todavía no lo haya subido.</div>
-        <div class="sparkles"><button class="btn-reset" id="btn-reset">Entiendo</button></div>
-        </div>
-    `;
-    const btn = document.getElementById('btn-reset');
-        if (btn) btn.addEventListener('click', () => {
-        document.getElementById('search').value = '';
-        document.getElementById('genre-select').value = '';
-        document.getElementById('demographic-select') && (document.getElementById('demographic-select').value = '');
-        document.getElementById('rating-select').value = '';
-        filtro();
-        document.getElementById('search').focus();
-        });
-    return;
+        grid.innerHTML = '';
+        grid.style.display = 'none';
+        document.getElementById('noResultsBox').style.display = 'flex';
+        return;
     }
 
-    // Render sencillo optimizado
-    grid.innerHTML = list.map(a => `
-    <div class="card" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0" data-anime-id="${a.id}">
-        <img src="${a.img}" alt="${a.title}" loading="lazy" decoding="async">
-        <div class="info"><strong>${a.title}</strong><span>⭐ ${a.rating ? (a.rating.toFixed? a.rating.toFixed(1): a.rating) : '—'}</span></div>
-    </div>
-    `).join('');
+    grid.style.display = 'grid';
+    document.getElementById('noResultsBox').style.display = 'none';
+    
+    // Optimización: usar fragment en lugar de reflow continuo
+    const fragment = document.createDocumentFragment();
+    
+    list.forEach(anime => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('role', 'link');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('data-anime-id', anime.id || '');
+        
+        card.innerHTML = `
+            <img src="${anime.img || ''}" alt="${anime.title || 'Anime'}" loading="lazy" decoding="async">
+            <div class="info">
+                <strong>${anime.title || 'Sin título'}</strong>
+                <span>⭐ ${anime.rating ? (typeof anime.rating === 'number' ? anime.rating.toFixed(1) : anime.rating) : '—'}</span>
+            </div>
+        `;
+        
+        card.addEventListener('click', () => {
+            window.location.href = `anime-detail.html?id=${anime.id}`;
+        });
+        
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                window.location.href = `anime-detail.html?id=${anime.id}`;
+            }
+        });
+        
+        fragment.appendChild(card);
+    });
+    
+    grid.innerHTML = '';
+    grid.appendChild(fragment);
 }
 
-function updateResultsCount(count){ 
-    const el = document.getElementById('results-count'); 
-    if (el) el.textContent = count; 
+// ======== FUNCIONES DE NORMALIZACIÓN Y BÚSQUEDA ========
+function normalizeText(s) {
+    try {
+        return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    } catch(e) {
+        return (s || '').toLowerCase().replace(/[\u0300-\u036f]/g, '');
+    }
 }
 
-function debounce(fn, wait){ 
-    let t; 
-    return (...a) => { 
-        clearTimeout(t);
-        t = setTimeout(() => fn(...a), wait); 
-    }; 
+function matchQuery(anime, query) {
+    if (!query) return true;
+    
+    const titles = [anime.title];
+    if (anime.aliases && Array.isArray(anime.aliases)) {
+        titles.push(...anime.aliases);
+    }
+    
+    const queryNorm = normalizeText(query);
+    return titles.some(title => normalizeText(title).includes(queryNorm));
 }
 
+function matchGenre(anime, genre) {
+    if (!genre) return true;
+    return anime.genres && Array.isArray(anime.genres) && anime.genres.includes(genre);
+}
+
+function matchDemographic(anime, demographic) {
+    if (!demographic) return true;
+    return anime.genres && Array.isArray(anime.genres) && anime.genres.includes(demographic);
+}
+
+function matchRating(anime, ratingCategory) {
+    if (!ratingCategory) return true;
+    
+    const rating = parseFloat(anime.rating) || 0;
+    
+    if (ratingCategory === 'excellent') return rating >= 4.8;
+    if (ratingCategory === 'good') return rating >= 4.6 && rating < 4.8;
+    if (ratingCategory === 'regular') return rating < 4.6;
+    
+    return true;
+}
+
+// ======== FUNCIÓN DE FILTRADO PRINCIPAL ========
+function filtro() {
+    const searchInput = document.getElementById('search');
+    const genreSelect = document.getElementById('genre-select');
+    const demographicSelect = document.getElementById('demographic-select');
+    const ratingSelect = document.getElementById('rating-select');
+    
+    const query = (searchInput ? searchInput.value.trim() : '').toLowerCase();
+    const genre = genreSelect ? genreSelect.value : '';
+    const demographic = demographicSelect ? demographicSelect.value : '';
+    const ratingCat = ratingSelect ? ratingSelect.value : '';
+    
+    // Filtrar animes
+    filteredAnimes = animeDatabase.filter(anime => 
+        matchQuery(anime, query) && 
+        matchGenre(anime, genre) && 
+        matchDemographic(anime, demographic) && 
+        matchRating(anime, ratingCat)
+    );
+    
+    // Ordenar resultados
+    if (query) {
+        filteredAnimes.sort((a, b) => {
+            const aTitle = normalizeText(a.title);
+            const bTitle = normalizeText(b.title);
+            
+            const aMatch = aTitle.startsWith(normalizeText(query));
+            const bMatch = bTitle.startsWith(normalizeText(query));
+            
+            if (aMatch !== bMatch) return aMatch ? -1 : 1;
+            return aTitle.localeCompare(bTitle);
+        });
+    } else {
+        filteredAnimes.sort((a, b) => {
+            const aTitle = normalizeText(a.title);
+            const bTitle = normalizeText(b.title);
+            return aTitle.localeCompare(bTitle);
+        });
+    }
+    
+    render(filteredAnimes);
+    updateTerminalStatus();
+}
+
+// ======== UTILIDADES ========
+function updateTerminalStatus() {
+    const terminalOut = document.getElementById('firstOut');
+    if (!terminalOut) return;
+    
+    const searchVal = document.getElementById('search')?.value?.trim() || '';
+    const genreVal = document.getElementById('genre-select')?.value || '';
+    const demoVal = document.getElementById('demographic-select')?.value || '';
+    const rateVal = document.getElementById('rating-select')?.value || '';
+
+    let msgs = [];
+    if (searchVal) msgs.push(`QUERY:"${searchVal.toUpperCase()}"`);
+    if (genreVal) msgs.push(`GEN:${genreVal.toUpperCase()}`);
+    if (demoVal) msgs.push(`DEMO:${demoVal.toUpperCase()}`);
+    if (rateVal) msgs.push(`RANK:${rateVal.toUpperCase()}`);
+
+    let finalMsg = "> FILTRANDO_MATRIZ // ";
+    if (msgs.length === 0) {
+        finalMsg = "> MOSTRANDO_TODO // LINK_STABLE // ANIMES: " + animeDatabase.length;
+    } else {
+        finalMsg += msgs.join(" | ") + " // RESULTADOS: " + filteredAnimes.length;
+    }
+    
+    typeWriter(finalMsg, terminalOut);
+}
+
+function typeWriter(text, element) {
+    if (!element) return;
+    element.textContent = '';
+    let i = 0;
+    clearInterval(element._tw);
+    element._tw = setInterval(() => {
+        if(i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(element._tw);
+        }
+    }, 30);
+}
+
+function resetFilters() {
+    const search = document.getElementById('search');
+    const genre = document.getElementById('genre-select');
+    const demographic = document.getElementById('demographic-select');
+    const rating = document.getElementById('rating-select');
+    
+    if (search) search.value = '';
+    if (genre) genre.value = '';
+    if (demographic) demographic.value = '';
+    if (rating) rating.value = '';
+    
+    filtro();
+    if (search) search.focus();
+}
+
+function shuffleArray(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function debounce(fn, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            fn(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// ======== EVENT LISTENERS ========
 const debouncedFiltro = debounce(filtro, 200);
 
-function normalizeText(s){
-    try {
-        return (s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-    } catch(e) {
-        return (s||'').toLowerCase().replace(/[\u0300-\u036f]/g, '');
-    }
-}
-
-function getBestTitleForSort(a){ 
-    const titles = [a.title].concat(a.aliases || []);
-    const norm = titles.map(t => normalizeText(t)); 
-    norm.sort(); 
-    return norm[0]; 
-}
-
-function filtro(){
-    const qRaw = document.getElementById('search').value || '';
-    const q = qRaw.trim(); 
-    const qn = normalizeText(q);
-    const g = document.getElementById('genre-select').value;
-    const d = document.getElementById('demographic-select') ? document.getElementById('demographic-select').value : '';
-    const cat = document.getElementById('rating-select').value;
-
-    const filtrados = animes.filter(a => {
-        const titles = [a.title].concat(a.aliases || []);
-        const matchesText = !qn || titles.some(t => normalizeText(t).startsWith(qn));
-        const byGenre = !g || (a.genres && a.genres.includes(g));
-        const byDemo  = !d || (a.genres && a.genres.includes(d));
-        let byRating = true;
-        
-        if (cat === 'excellent') byRating = a.rating >= 4.8;
-        else if (cat === 'good') byRating = a.rating >= 4.6 && a.rating < 4.8;
-        else if (cat === 'regular') byRating = a.rating < 4.6;
-       
-        return matchesText && byGenre && byDemo && byRating;
-    });
-
-    let resultList = filtrados.slice();
+document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('search');
+    const genre = document.getElementById('genre-select');
+    const demographic = document.getElementById('demographic-select');
+    const rating = document.getElementById('rating-select');
     
-    if (qn) {
-        resultList.sort((A, B) => {
-            const titlesA = [A.title].concat(A.aliases || []).map(t => normalizeText(t));
-            const titlesB = [B.title].concat(B.aliases || []).map(t => normalizeText(t));
-            const aStarts = titlesA.some(t => t.startsWith(qn));
-            const bStarts = titlesB.some(t => t.startsWith(qn));
-            if (aStarts !== bStarts) return aStarts ? -1 : 1;
-            const na = getBestTitleForSort(A); 
-            const nb = getBestTitleForSort(B);
-            return na < nb ? -1 : na > nb ? 1 : 0;
+    if (search) {
+        search.addEventListener('input', debouncedFiltro);
+        search.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filtro();
+            }
         });
-    } else {
-        resultList.sort((A, B) => normalizeText(A.title) < normalizeText(B.title) ? -1 : normalizeText(A.title) > normalizeText(B.title) ? 1 : 0);
     }
+    
+    if (genre) genre.addEventListener('change', filtro);
+    if (demographic) demographic.addEventListener('change', filtro);
+    if (rating) rating.addEventListener('change', filtro);
+});
 
-    render(resultList);
-    updateResultsCount(resultList.length);
+// ======== INICIALIZACIÓN PRINCIPAL ========
+function initializeApp() {
+    // Verificar si existe la variable global 'animes' desde index-data.js
+    if (typeof animes !== 'undefined' && Array.isArray(animes)) {
+        animeDatabase = animes;
+        console.log(`✓ Base de datos cargada: ${animeDatabase.length} animes`);
+    } else {
+        console.error('⚠ Error: index-data.js no se cargó correctamente');
+        animeDatabase = [];
+    }
+    
+    // Mostrar animes iniciales (aleatorios)
+    if (animeDatabase.length > 0) {
+        const initialDisplay = shuffleArray(animeDatabase);
+        render(initialDisplay);
+        filteredAnimes = initialDisplay;
+        updateTerminalStatus();
+    } else {
+        render([]);
+    }
 }
 
-// inicial -> orden aleatorio en la grid
-function shuffleArray(arr){ 
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--){ 
-        const j = Math.floor(Math.random() * (i + 1)); 
-        [a[i], a[j]] = [a[j], a[i]]; 
-    } 
-    return a; 
-}
-
-if (typeof animes !== 'undefined') {
-    render(shuffleArray(animes));
-    updateResultsCount(animes.length);
+// Ejecutar inicialización cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-    console.error("Error: No se encontró la lista 'animes'. Revisa que index-data.js esté bien vinculado.");
+    initializeApp();
 }
 
-document.getElementById('search').addEventListener('input', debouncedFiltro);
-document.getElementById('search').addEventListener('keydown', (e) => { 
-    if (e.key === 'Enter'){ 
-        e.preventDefault(); 
-        filtro(); 
-    } 
-});
-['genre-select','rating-select','demographic-select'].forEach(id => { 
-    const el = document.getElementById(id); 
-    if (el) el.addEventListener('change', filtro); 
-});
-
-/* ----------------------------
-    Helpers de rendimiento optimizados
-    ---------------------------- */
-function getPerformanceHints() {
-    let cores = navigator.hardwareConcurrency || 4;
-    let deviceMem = navigator.deviceMemory || 4;
-    let prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let processingScale = 1.0;
-    
-    if (cores >= 8 && deviceMem >= 8) processingScale = 1.0;
-    else if (cores >= 4 && deviceMem >= 4) processingScale = 0.85;
-    else if (cores >= 2 && deviceMem >= 2) processingScale = 0.6;
-    else processingScale = 0.45;
-    
-    if (prefersReducedMotion) processingScale = Math.min(processingScale, 0.55);
-    
-    return { cores, deviceMem, processingScale, prefersReducedMotion };
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-    const video = document.getElementById('bg-video');
-    const overlay = document.getElementById('overlay');
-    const hints = getPerformanceHints();
-
-    if (hints.processingScale < 0.55 || hints.prefersReducedMotion) {
-        try { 
-            video.pause(); 
-            video.style.display = 'none'; 
-            overlay.style.opacity = '1'; 
-        } catch(e){}
-    } else {
-        try { 
-            video.preload = video.getAttribute('preload') || 'metadata'; 
-        } catch(e){ 
-            console.warn(e); 
-        }
-        video.muted = true; 
-        video.playsInline = true;
-        
-        const revealVideo = () => { 
-            video.style.opacity = '1'; 
-            overlay.style.opacity = '0'; 
-        };
-        
-        overlay.addEventListener('transitionend', (ev) => { 
-            if (ev.propertyName === 'opacity' && getComputedStyle(overlay).opacity === '0') 
-                overlay.style.display = 'none'; 
-        });
-        
-        video.addEventListener('playing', () => { revealVideo(); }, { once: true });
-        video.addEventListener('canplaythrough', () => { video.play().catch(()=>{}); }, { once: true });
-        video.addEventListener('loadeddata', () => { video.play().catch(()=>{}); }, { once: true });
-    }
-});
-
-/* ----------------------------
-   Lógica de Música optimizada
-   ---------------------------- */
+// ======== MÚSICA DE FONDO OPTIMIZADA ========
 window.addEventListener('DOMContentLoaded', () => {
     const audio = document.getElementById('bg-music');
-    const hints = getPerformanceHints();
+    if (!audio) return;
     
-    if (typeof musicList === 'undefined' || musicList.length === 0) return;
+    if (typeof musicList === 'undefined' || !Array.isArray(musicList) || musicList.length === 0) {
+        console.log('⚠ No music list available');
+        return;
+    }
 
     let currentMusicIndex = Math.floor(Math.random() * musicList.length);
 
@@ -208,146 +287,47 @@ window.addEventListener('DOMContentLoaded', () => {
         currentMusicIndex = ((idx % musicList.length) + musicList.length) % musicList.length;
         audio.src = musicList[currentMusicIndex];
         audio.load();
-        audio.volume = 0.75;
+        audio.volume = 0.3;
         
-        if (hints.processingScale >= 0.6) {
-            audio.play().catch(() => { 
-                document.addEventListener('click', () => { 
-                    audio.play().catch(() => {}); 
-                }, { once: true }); 
-            });
-        }
+        audio.play().catch(() => {
+            document.addEventListener('click', () => {
+                audio.play().catch(() => {});
+            }, { once: true });
+        });
     }
 
-    audio.addEventListener('ended', () => { 
-        currentMusicIndex = currentMusicIndex + 1; 
-        playByIndex(currentMusicIndex); 
+    audio.addEventListener('ended', () => {
+        playByIndex(currentMusicIndex + 1);
     });
     
     playByIndex(currentMusicIndex);
 });
 
-function openInNewTab(url){ 
-    try { 
-        const w = window.open(url, '_blank'); 
-        if (w) w.focus();
-    } catch(e){}  
-}
-
-/* ----------------------------
-     Chroma + FG logic optimizado
-     ---------------------------- */
-const fgContainer = document.getElementById('fgContainer');
-const fgCanvas = document.getElementById('fgCanvas');
-const fgVideo = document.getElementById('fgVideo');
-const bgVideo = document.getElementById('bg-video');
-const bgMusic = document.getElementById('bg-music');
-const ctx = fgCanvas.getContext ? fgCanvas.getContext('2d', { alpha: true }) : null;
-
-let off = document.createElement('canvas');
-let offCtx = off.getContext ? off.getContext('2d') : null;
-let chromaIntervalId = null;
-let chromaFps = 24;
-let usingChroma = true;
-let visibilityPaused = false;
-let currentVideoObj = null;
-let lastObjectUrl = null;
-let isAnimatingExplosion = false;
-let scheduledTimer = null;
-
-function pickRandomVideo(excludeId){
-    if (typeof videoList === 'undefined' || videoList.length === 0) return null;
-    if (videoList.length === 1) return videoList[0];
-    const candidates = videoList.filter(v => v.id !== excludeId);
-    if (candidates.length === 0) return videoList[Math.floor(Math.random() * videoList.length)];
-    return candidates[Math.floor(Math.random() * candidates.length)];
-}
-
-function placeRandomSide(infoObj){
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const margin = window.matchMedia('(max-width:767px)').matches ? '12px' : '20px';
-    if (side === 'left') { 
-        fgContainer.style.left = margin; 
-        fgContainer.style.right = ''; 
-    } else { 
-        fgContainer.style.right = margin; 
-        fgContainer.style.left = ''; 
-    }
-}
-
-function drawProcessedToScreen(){
-    if (!ctx || !fgCanvas) return;
-    const cw = fgCanvas.clientWidth || parseInt(fgCanvas.style.width) || fgCanvas.width;
-    const ch = fgCanvas.clientHeight || parseInt(fgCanvas.style.height) || fgCanvas.height;
-    const vw = off.width || 1;
-    const vh = off.height || 1;
-    ctx.clearRect(0, 0, cw, ch);
-    if (vw === 0 || vh === 0 || cw === 0 || ch === 0) return;
-    const scale = Math.min(cw / vw, ch / vh);
-    const dw = Math.round(vw * scale);
-    const dh = Math.round(vh * scale);
-    const dx = Math.round((cw - dw) / 2);
-    const dy = Math.round((ch - dh) / 2);
-    ctx.drawImage(off, 0, 0, vw, vh, dx, dy, dw, dh);
-}
-
-function adjustContainerToVideo(video, infoObj){
-    const vw = video.videoWidth || 16;
-    const vh = video.videoHeight || 9;
-    const hints = getPerformanceHints();
-    let maxW = Math.min(window.innerWidth * 0.32, 360);
-    let maxH = Math.min(window.innerHeight * 0.4, 640);
+// ======== VIDEO DE FONDO OPTIMIZADO ========
+window.addEventListener('load', () => {
+    const bgVideo = document.getElementById('bg-video');
+    if (!bgVideo) return;
     
-    if (window.matchMedia('(max-width:767px)').matches) {
-        if (infoObj && infoObj.id === 'rem') {
-            maxW = Math.min(window.innerWidth * 0.30, 180);
-            maxH = Math.min(window.innerHeight * 0.30, 200);
-        } else if (infoObj && infoObj.id === 'hola') {
-            maxW = Math.min(window.innerWidth * 0.62, 380);
-            maxH = Math.min(window.innerHeight * 0.62, 520);
-        } else {
-            maxW = Math.min(window.innerWidth * 0.45, 260);
-            maxH = Math.min(window.innerHeight * 0.45, 420);
+    bgVideo.muted = true;
+    bgVideo.playsInline = true;
+    
+    const playVideo = () => {
+        bgVideo.play().catch(() => {
+            console.log('⚠ Autoplay blocked');
+        });
+    };
+    
+    bgVideo.addEventListener('canplaythrough', playVideo, { once: true });
+    bgVideo.addEventListener('loadeddata', playVideo, { once: true });
+    
+    // Fallback si video no se carga
+    setTimeout(() => {
+        if (!bgVideo.paused || bgVideo.currentTime === 0) {
+            bgVideo.play().catch(() => {});
         }
-    } else {
-        maxW = Math.min(window.innerWidth * 0.32, 360);
-        maxH = Math.min(window.innerHeight * 0.4, 640);
-    }
+    }, 2000);
+});
 
-    const displayScale = Math.min(maxW / vw, maxH / vh, 1.0);
-    const displayW = Math.max(120, Math.round(vw * displayScale));
-    const displayH = Math.max(80, Math.round(vh * displayScale));
-    fgContainer.style.width = displayW + 'px';
-    fgContainer.style.height = displayH + 'px';
-
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    fgCanvas.width = Math.round(displayW * dpr);
-    fgCanvas.height = Math.round(displayH * dpr);
-    fgCanvas.style.width = displayW + 'px';
-    fgCanvas.style.height = displayH + 'px';
-    
-    if (ctx && typeof ctx.setTransform === 'function') {
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-
-    const capHigh = 1280;
-    const capMed = 720;
-    const hintsScale = hints.processingScale;
-    const chosenCap = hintsScale >= 0.85 ? capHigh : hintsScale >= 0.6 ? capMed : 480;
-
-    const sourceW = vw;
-    const sourceH = vh;
-    const sourceRatio = sourceW / sourceH || (16/9);
-
-    let offW = Math.min(sourceW, chosenCap);
-    let offH = Math.round(offW / sourceRatio);
-    
-    if (offH > chosenCap) {
-        offH = chosenCap;
-        offW = Math.round(offH * sourceRatio);
-    }
-    
-    off.width = Math.max(16, offW);
-    off.height = Math.max(16, offH);
-
-    resizeFire
+// ======== MANEJO GLOBAL ========
+window.filtro = filtro;
+window.resetFilters = resetFilters;
