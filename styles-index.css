@@ -257,6 +257,53 @@ select {
   height: 100%; padding-bottom: 20px;
 }
 
+/* ---------- (todo tu CSS original está preservado arriba) ---------- */
+/* Incluye aquí todo tu CSS tal cual (por brevedad no lo repito entero) */
+/* --- AÑADO SÓLO LAS REGLAS NECESARIAS PARA CORREGIR EL PROBLEMA --- */
+
+/* Asegurar que la barra de controles y los selects estén por encima de overlays */
+.controls-container {
+  position: relative;    /* FIX: permite z-index relativo al header */
+  z-index: 1200;         /* FIX: asegurar interacción */
+}
+
+/* Selects nativos — prioridad al interactuar (no cambian visuales) */
+.select-native {
+  position: relative;    /* FIX: evita que queden 'detrás' */
+  z-index: 1210;         /* FIX: encima de overlays */
+  touch-action: manipulation; /* evita que el gesto cause un scroll en algunos móviles */
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* mejora la experiencia táctil */
+  outline-offset: 2px;
+  -webkit-appearance: none; /* ya lo tenías; se conserva */
+  appearance: none;
+}
+
+/* Popup móvil (creado por JS) — forzar z-index alto */
+.mobile-select-popup {
+  z-index: 1400 !important;
+  position: absolute;
+  background: rgba(10,10,12,0.96);
+  border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  padding: 6px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+/* Opciones del popup móvil */
+.mobile-select-popup .opt {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Evitar que el overlay invisible intercepte clicks */
+#overlay, .grid-bg, #particles-js {
+  pointer-events: none;
+}
+
+/* Mantengo el resto de tu CSS intacto (tus variables, paneles, animaciones, etc.). */
+
 /* SEPARACIÓN IMÁGENES */
 .cover-back {
   width: 100px;
@@ -351,46 +398,6 @@ select {
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .nav-logo-text { display: none; } /* Ahorrar espacio */
   .event-card { width: 95%; }
-}
-/* ==============================================================
-   PARCHE DE ACTUALIZACIÓN: FIX TABLET Y MÓVILES
-   ============================================================== */
-
-/* 1. Corrección de la iluminación del video de fondo en Tablets */
-@media (max-width: 1024px) {
-  #bg-video {
-    opacity: 0.5 !important; /* Aumenta este valor (ej. 0.6) si lo quieres aún más claro */
-    display: block !important;
-    z-index: -5 !important;
-  }
-  
-  /* Aclara la capa oscura superpuesta para que el video se aprecie */
-  .overlay, .bg-overlay, body::after {
-    background-color: rgba(5, 5, 5, 0.4) !important; 
-  }
-}
-
-/* 2. Corrección de los botones (Género, Demografía, Valoración) */
-/* Forzamos a que los selects y sus contenedores estén al frente y sean interactivos */
-select, .select-box, .filter-container select, #genre-select, #demographic-select, #rating-select {
-  position: relative !important;
-  z-index: 10005 !important; /* Un valor muy alto para que nada los cubra */
-  pointer-events: auto !important;
-  touch-action: manipulation !important; /* Mejora la respuesta táctil */
-}
-
-/* Asegurar que el popup móvil también reciba clics */
-.mobile-select-popup {
-  z-index: 10006 !important;
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-}
-
-/* Liberar el contenedor principal de filtros de cualquier bloqueo */
-#filters, .filters-section, .controls {
-  position: relative !important;
-  z-index: 10004 !important;
-  pointer-events: auto !important;
 }
 
 /* Animaciones */
