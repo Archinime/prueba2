@@ -896,363 +896,409 @@
                   > Buscando señal en la matriz...
                 </div>
             </div>
-        </div>
-      </div>
-      
-      <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube" aria-label="Ir a YouTube">
-        <img src="youtube.avif" alt="YT" style="width:20px; border-radius:50%; opacity:0.8;" loading="lazy">
-      </button>
-    </div>
-  </nav>
+         </div>
+       </div>
+       
+       <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube" aria-label="Ir a YouTube">
+         <img src="youtube.avif" alt="YT" style="width:20px; border-radius:50%; opacity:0.8;" loading="lazy">
+       </button>
+     </div>
+   </nav>
 
-  <div class="controls-container panel controls" id="controls">
-    <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
-        <option value="">Todos los géneros</option>
-        <option>Acción</option>
-        <option>Animación</option>
-        <option>Artes Marciales</option>
-        <option>Aventura</option>
-        <option>Ciencia ficción</option>
-        <option>Cocina</option>
-        <option>Comedia</option>
-        <option>Comedia oscura</option>
-        <option>Cosplay</option>
-        <option>Crimen</option>
-        <option>Cyberpunk</option>
-        <option>Deducción Social</option>
-        <option>Deportivo</option>
-        <option>Divulgación Científica</option>
-        <option>Drama</option>
-        <option>Ecchi</option>
-        <option>Espionaje</option>
-        <option>Escolar</option>
-        <option>Fantasía</option>
-        <option>Fantasía oscura</option>
-        <option>Familiar</option>
-        <option>Gag</option>
-        <option>Gore</option>
-        <option>Harem</option>
-        <option>Hentai</option>
-        <option>Histórico</option>
-        <option>Horror</option>
-        <option>Incesto</option>
-        <option>Infantil</option>
-        <option>Isekai</option>
-        <option>Isekai Inverso</option>
-        <option>Kaiju</option>
-        <option>Mahō Shōjo</option>
-        <option>Mecha</option>
-        <option>Militar</option>
-        <option>Mitología</option>
-        <option>Misterio</option>
-        <option>Musical</option>
-        <option>Nekketsu</option>
-        <option>Parodia</option>
-        <option>Policial</option>
-        <option>Post-apocalíptico</option>
-        <option>Psicológico</option>
-        <option>Reverse Harem</option>
-        <option>Romance</option>
-        <option>RPG</option>
-        <option>Slice of Life</option>
-        <option>Sobrenatural</option>
-        <option>Steampunk</option>
-        <option>Superhéroes</option>
-        <option>Survival</option>
-        <option>Survival Game</option>
-        <option>Suspenso</option>
-        <option>Tentáculos</option>
-        <option>Terror</option>
-        <option>Terror psicológico</option>
-        <option>Thriller</option>
-        <option>Thriller psicológico</option>
-        <option>Tokusatsu</option>
-        <option>Tragedia</option>
-        <option>VRMMO</option>
-        <option>Yaoi</option>
-        <option>Yuri</option>
-      </select>
+   <div class="controls-container panel controls" id="controls">
+     <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
+         <option value="">Todos los géneros</option>
+         <option>Acción</option>
+         <option>Animación</option>
+         <option>Artes Marciales</option>
+         <option>Aventura</option>
+         <option>Ciencia ficción</option>
+         <option>Cocina</option>
+         <option>Comedia</option>
+         <option>Comedia oscura</option>
+         <option>Cosplay</option>
+         <option>Crimen</option>
+         <option>Cyberpunk</option>
+         <option>Deducción Social</option>
+         <option>Deportivo</option>
+         <option>Divulgación Científica</option>
+         <option>Drama</option>
+         <option>Ecchi</option>
+         <option>Espionaje</option>
+         <option>Escolar</option>
+         <option>Fantasía</option>
+         <option>Fantasía oscura</option>
+         <option>Familiar</option>
+         <option>Gag</option>
+         <option>Gore</option>
+         <option>Harem</option>
+         <option>Hentai</option>
+         <option>Histórico</option>
+         <option>Horror</option>
+         <option>Incesto</option>
+         <option>Infantil</option>
+         <option>Isekai</option>
+         <option>Isekai Inverso</option>
+         <option>Kaiju</option>
+         <option>Mahō Shōjo</option>
+         <option>Mecha</option>
+         <option>Militar</option>
+         <option>Mitología</option>
+         <option>Misterio</option>
+         <option>Musical</option>
+         <option>Nekketsu</option>
+         <option>Parodia</option>
+         <option>Policial</option>
+         <option>Post-apocalíptico</option>
+         <option>Psicológico</option>
+         <option>Reverse Harem</option>
+         <option>Romance</option>
+         <option>RPG</option>
+         <option>Slice of Life</option>
+         <option>Sobrenatural</option>
+         <option>Steampunk</option>
+         <option>Superhéroes</option>
+         <option>Survival</option>
+         <option>Survival Game</option>
+         <option>Suspenso</option>
+         <option>Tentáculos</option>
+         <option>Terror</option>
+         <option>Terror psicológico</option>
+         <option>Thriller</option>
+         <option>Thriller psicológico</option>
+         <option>Tokusatsu</option>
+         <option>Tragedia</option>
+         <option>VRMMO</option>
+         <option>Yaoi</option>
+         <option>Yuri</option>
+       </select>
 
-      <select id="demographic-select" onchange="filtro()" aria-label="Seleccionar demografía">
-        <option value="">Todas las demografías</option>
-        <option>Josei</option>
-        <option>Kodomo</option>
-        <option>Seijin</option>
-        <option>Seinen</option>
-        <option>Shōjo</option>
-        <option>Shōnen</option>
-      </select>
+       <select id="demographic-select" onchange="filtro()" aria-label="Seleccionar demografía">
+         <option value="">Todas las demografías</option>
+         <option>Josei</option>
+         <option>Kodomo</option>
+         <option>Seijin</option>
+         <option>Seinen</option>
+         <option>Shōjo</option>
+         <option>Shōnen</option>
+       </select>
 
-    <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
-      <option value="">⭐ RANKING GLOBAL</option>
-      <option value="excellent">S-TIER (4.8+)</option>
-      <option value="good">A-TIER (4.6+)</option>
-      <option value="regular">B-TIER (&lt;4.5)</option>
-    </select>
-  </div>
+     <select id="rating-select" onchange="filtro()" aria-label="Seleccionar valoración">
+       <option value="">⭐ RANKING GLOBAL</option>
+       <option value="excellent">S-TIER (4.8+)</option>
+       <option value="good">A-TIER (4.6+)</option>
+       <option value="regular">B-TIER (<4.5)</option>
+     </select>
+   </div>
 
-  <div class="terminal-box">
-    <div id="firstOut">> ESPERANDO_ENLACE_UPLINK...</div>
-  </div>
+   <div class="terminal-box">
+     <div id="firstOut">> ESPERANDO_ENLACE_UPLINK...</div>
+   </div>
 
-  <main class="container">
-    <div class="grid" id="grid"></div>
-    
-    <div class="no-results-wrapper" id="noResultsBox">
-      <div class="no-results-cyber-panel">
-        <div class="error-icon-container">
-          <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <h3 class="glitch-error" data-text="ERROR: ARCHIVO NO ENCONTRADO">ERROR: ARCHIVO NO ENCONTRADO</h3>
-        
-        <div class="error-message-box">
-            <p class="main-err-text">¡Ups! No se encontraron resultados que coincidan con la búsqueda.</p>
-            <p class="sub-err-text">¿No lo encuentras? Puede que lo hayas escrito con un error o que todavía no lo haya subido.</p>
-        </div>
+   <main class="container">
+     <div class="grid" id="grid"></div>
+     
+     <div class="no-results-wrapper" id="noResultsBox">
+       <div class="no-results-cyber-panel">
+         <div class="error-icon-container">
+           <i class="fas fa-exclamation-triangle"></i>
+         </div>
+         <h3 class="glitch-error" data-text="ERROR: ARCHIVO NO ENCONTRADO">ERROR: ARCHIVO NO ENCONTRADO</h3>
+         
+         <div class="error-message-box">
+             <p class="main-err-text">¡Ups! No se encontraron resultados que coincidan con la búsqueda.</p>
+             <p class="sub-err-text">¿No lo encuentras? Puede que lo hayas escrito con un error o que todavía no lo haya subido.</p>
+         </div>
 
-        <button class="reset-search-btn" onclick="resetFilters()" aria-label="Reiniciar búsqueda">
-          <i class="fas fa-redo-alt"></i> REINICIAR BÚSQUEDA
-        </button>
-      </div>
-    </div>
-  </main>
+         <button class="reset-search-btn" onclick="resetFilters()" aria-label="Reiniciar búsqueda">
+           <i class="fas fa-redo-alt"></i> REINICIAR BÚSQUEDA
+         </button>
+       </div>
+     </div>
+   </main>
 
-  <div class="stage" aria-hidden="true">
-    <div id="fgContainer" aria-label="Vídeo frontal">
-      <canvas id="fgCanvas"></canvas>
-      <video id="fgVideo" muted loop playsinline></video>
-    </div>
-    <div class="play-overlay" id="playOverlay">
-      <button class="play-btn" id="playBtn">▶ INICIAR ENLACE</button>
-    </div>
-  </div>
+   <div class="stage" aria-hidden="true">
+     <div id="fgContainer" aria-label="Vídeo frontal">
+       <canvas id="fgCanvas"></canvas>
+       <video id="fgVideo" muted loop playsinline></video>
+     </div>
+     <div class="play-overlay" id="playOverlay">
+       <button class="play-btn" id="playBtn">▶ INICIAR ENLACE</button>
+     </div>
+   </div>
 
-  <div id="iosInstallModal" class="ios-modal">
-      <div class="ios-content">
-          <span class="ios-close" onclick="closeIosModal()" aria-label="Cerrar">&times;</span>
-          <h3 style="color:var(--neon-cyan); font-family:var(--font-hdr); margin-bottom:10px;">INSTALAR SISTEMA</h3>
-          <p>Para añadir <strong>Archinime</strong> a iOS:</p>
-          <p>1. Toca <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
-          <p>2. Elige <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
-      </div>
-  </div>
+   <div id="iosInstallModal" class="ios-modal">
+       <div class="ios-content">
+           <span class="ios-close" onclick="closeIosModal()" aria-label="Cerrar">&times;</span>
+           <h3 style="color:var(--neon-cyan); font-family:var(--font-hdr); margin-bottom:10px;">INSTALAR SISTEMA</h3>
+           <p>Para añadir <strong>Archinime</strong> a iOS:</p>
+           <p>1. Toca <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
+           <p>2. Elige <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
+       </div>
+   </div>
 
-  <!-- Cargar index-data.js PRIMERO -->
-  <script src="index-data.js"></script>
-  
-  <!-- Scripts adicionales -->
-  <script src="animaciones.js"></script>
-  <script src="musica_fondo.js"></script>
-  <script src="notification-system.js"></script>
-  
-  <!-- Script principal -->
-  <script src="script-index.js"></script>
-  
-  <!-- Particles.js para las partículas de fondo -->
-  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+   <!-- Cargar index-data.js PRIMERO -->
+   <script src="index-data.js"></script>
+   
+   <!-- Scripts adicionales -->
+   <script src="animaciones.js"></script>
+   <script src="musica_fondo.js"></script>
+   <script src="notification-system.js"></script>
+   
+   <!-- Script principal -->
+   <script src="script-index.js"></script>
+   
+   <!-- Particles.js para las partículas de fondo -->
+   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
-  <script>
-    /* Inicializar Partículas */
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 60 }, 
-        color: { value: '#00f0ff' }, 
-        shape: { type: 'circle' },
-        opacity: { value: 0.5, random: true }, 
-        size: { value: 2, random: true },
-        line_linked: { enable: true, distance: 150, color: '#bc13fe', opacity: 0.2, width: 1 },
-        move: { enable: true, speed: 2, direction: 'none', random: true, out_mode: 'out' }
-      }
-    });
+   <script>
+     /* ========== SISTEMA DE CACHÉ INTELIGENTE ========== */
+     const CACHE_VERSION = 'archinime-v1.0';
+     const CACHE_KEYS = {
+       data: 'archinime-data-cache',
+       assets: 'archinime-assets-cache'
+     };
 
-    /* Terminal typewriter effect */
-    function typeWriter(text, element) {
-      element.textContent = '';
-      let i = 0; 
-      clearInterval(element._tw);
-      element._tw = setInterval(() => {
-        if(i < text.length) { 
-          element.textContent += text.charAt(i); 
-          i++; 
-        } else { 
-          clearInterval(element._tw); 
-        }
-      }, 30);
-    }
+     // Detectar si es primera carga
+     function isFirstLoad() {
+       const hasLoaded = sessionStorage.getItem('archinime-loaded');
+       if (!hasLoaded) {
+         sessionStorage.setItem('archinime-loaded', 'true');
+         return true;
+       }
+       return false;
+     }
 
-    /* Terminal status y validación */
-    const terminalOut = document.getElementById('firstOut');
-    const noResultsBox = document.getElementById('noResultsBox');
-    const gridEl = document.getElementById('grid');
+     // Guardar datos en cache cuando se carguen
+     async function cacheLoadedData() {
+       try {
+         const cache = await caches.open(CACHE_KEYS.data);
+         // Los datos ya están en memory, simplemente marcamos que están listos
+         localStorage.setItem('archinime-data-ready', Date.now().toString());
+       } catch (e) {
+         console.log('Cache API no disponible:', e);
+       }
+     }
 
-    function updateTerminalStatus() {
-      const searchVal = document.getElementById('search').value.trim();
-      const genreVal = document.getElementById('genre-select').value;
-      const demoVal = document.getElementById('demographic-select').value;
-      const rateVal = document.getElementById('rating-select').value;
+     // Ocultar loader si los datos ya están cacheados
+     function checkCachedData() {
+       const dataReady = localStorage.getItem('archinime-data-ready');
+       const timeSinceCache = dataReady ? Date.now() - parseInt(dataReady) : 0;
+       
+       // Si el cache es reciente (menos de 1 hora), ocultar loader inmediatamente
+       if (dataReady && timeSinceCache < 3600000) {
+         return true;
+       }
+       return false;
+     }
 
-      let msgs = [];
-      if (searchVal) msgs.push(`QUERY:"${searchVal.toUpperCase()}"`);
-      if (genreVal) msgs.push(`GEN:${genreVal.toUpperCase()}`);
-      if (demoVal) msgs.push(`DEMO:${demoVal.toUpperCase()}`);
-      if (rateVal) msgs.push(`RANK:${rateVal.toUpperCase()}`);
+     /* Inicializar Partículas */
+     particlesJS('particles-js', {
+       particles: {
+         number: { value: 60 }, 
+         color: { value: '#00f0ff' }, 
+         shape: { type: 'circle' },
+         opacity: { value: 0.5, random: true }, 
+         size: { value: 2, random: true },
+         line_linked: { enable: true, distance: 150, color: '#bc13fe', opacity: 0.2, width: 1 },
+         move: { enable: true, speed: 2, direction: 'none', random: true, out_mode: 'out' }
+       }
+     });
 
-      let finalMsg = "> FILTRANDO_MATRIZ // ";
-      if (msgs.length === 0) {
-        finalMsg = "> MOSTRANDO_TODO // LINK_STABLE";
-      } else {
-        finalMsg += msgs.join(" | ") + " // BUSCANDO...";
-      }
-      typeWriter(finalMsg, terminalOut);
-    }
+     /* Terminal typewriter effect */
+     function typeWriter(text, element) {
+       element.textContent = '';
+       let i = 0; 
+       clearInterval(element._tw);
+       element._tw = setInterval(() => {
+         if(i < text.length) { 
+           element.textContent += text.charAt(i); 
+           i++; 
+         } else { 
+           clearInterval(element._tw); 
+         }
+       }, 30);
+     }
 
-    function checkEmptyGrid() {
-      const cards = document.querySelectorAll('#grid .card');
-      if (cards.length === 0) return; 
-      
-      let visibleCount = 0;
-      cards.forEach(c => {
-        if (c.style.display !== 'none' && !c.classList.contains('hidden')) {
-          visibleCount++;
-        }
-      });
-      if (visibleCount === 0) {
-        noResultsBox.style.display = 'flex';
-        gridEl.style.display = 'none';
-        typeWriter("> ADVERTENCIA // 0 COINCIDENCIAS_EN_LA_MATRIZ", terminalOut);
-      } else {
-        noResultsBox.style.display = 'none';
-        gridEl.style.display = 'grid';
-      }
-    }
+     /* Terminal status y validación */
+     const terminalOut = document.getElementById('firstOut');
+     const noResultsBox = document.getElementById('noResultsBox');
+     const gridEl = document.getElementById('grid');
 
-    function scheduleCheck() {
-      updateTerminalStatus();
-      setTimeout(checkEmptyGrid, 100);
-    }
+     function updateTerminalStatus() {
+       const searchVal = document.getElementById('search').value.trim();
+       const genreVal = document.getElementById('genre-select').value;
+       const demoVal = document.getElementById('demographic-select').value;
+       const rateVal = document.getElementById('rating-select').value;
 
-    function resetFilters() {
-      document.getElementById('search').value = '';
-      document.getElementById('genre-select').value = '';
-      document.getElementById('demographic-select').value = '';
-      document.getElementById('rating-select').value = '';
-      
-      if (typeof window.filtro === 'function') {
-        window.filtro();
-      }
-      scheduleCheck();
-    }
+       let msgs = [];
+       if (searchVal) msgs.push(`QUERY:"${searchVal.toUpperCase()}"`);
+       if (genreVal) msgs.push(`GEN:${genreVal.toUpperCase()}`);
+       if (demoVal) msgs.push(`DEMO:${demoVal.toUpperCase()}`);
+       if (rateVal) msgs.push(`RANK:${rateVal.toUpperCase()}`);
 
-    document.getElementById('search').addEventListener('input', scheduleCheck);
-    document.getElementById('genre-select').addEventListener('change', scheduleCheck);
-    document.getElementById('demographic-select').addEventListener('change', scheduleCheck);
-    document.getElementById('rating-select').addEventListener('change', scheduleCheck);
+       let finalMsg = "> FILTRANDO_MATRIZ // ";
+       if (msgs.length === 0) {
+         finalMsg = "> MOSTRANDO_TODO // LINK_STABLE";
+       } else {
+         finalMsg += msgs.join(" | ") + " // BUSCANDO...";
+       }
+       typeWriter(finalMsg, terminalOut);
+     }
 
-    const gridMutObserver = new MutationObserver(() => {
-      setTimeout(checkEmptyGrid, 100);
-    });
-    if(gridEl) gridMutObserver.observe(gridEl, { childList: true });
+     function checkEmptyGrid() {
+       const cards = document.querySelectorAll('#grid .card');
+       if (cards.length === 0) return; 
+       
+       let visibleCount = 0;
+       cards.forEach(c => {
+         if (c.style.display !== 'none' && !c.classList.contains('hidden')) {
+           visibleCount++;
+         }
+       });
+       if (visibleCount === 0) {
+         noResultsBox.style.display = 'flex';
+         gridEl.style.display = 'none';
+         typeWriter("> ADVERTENCIA // 0 COINCIDENCIAS_EN_LA_MATRIZ", terminalOut);
+       } else {
+         noResultsBox.style.display = 'none';
+         gridEl.style.display = 'grid';
+       }
+     }
 
-    /* PWA & Service Worker */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(registration => {
-          console.log('✓ Service Worker Registrado');
-          registration.update(); 
-          registration.onupdatefound = () => {
-            const installingWorker = registration.installing;
-            installingWorker.onstatechange = () => {
-              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('✓ Nueva versión detectada');
-              }
-            };
-          };
-        }).catch(e => console.log('⚠ SW Error:', e));
-      });
-    }
+     function scheduleCheck() {
+       updateTerminalStatus();
+       setTimeout(checkEmptyGrid, 100);
+     }
 
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    const iosModal = document.getElementById('iosInstallModal');
-    
-    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-    const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
-    
-    function checkInstallVisibility() {
-      if (isMobile() && !isInStandaloneMode()) {
-        installBtn.style.display = 'flex';
-      } else {
-        installBtn.style.display = 'none';
-      }
-    }
+     function resetFilters() {
+       document.getElementById('search').value = '';
+       document.getElementById('genre-select').value = '';
+       document.getElementById('demographic-select').value = '';
+       document.getElementById('rating-select').value = '';
+       
+       if (typeof window.filtro === 'function') {
+         window.filtro();
+       }
+       scheduleCheck();
+     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      checkInstallVisibility();
-    });
-    
-    installBtn.addEventListener('click', () => {
-      if (isIos()) {
-        iosModal.style.display = 'block';
-      } else if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((res) => {
-          deferredPrompt = null;
-        });
-      } else {
-        alert("App ya instalada o no soportada en este navegador.");
-      }
-    });
-    
-    function closeIosModal() { iosModal.style.display = 'none'; }
-    window.addEventListener('DOMContentLoaded', checkInstallVisibility);
-    window.addEventListener('resize', checkInstallVisibility);
-    
-    window.addEventListener('load', () => {
-      const loader = document.getElementById('page-loader');
-      const bgVideo = document.getElementById('bg-video');
+     document.getElementById('search').addEventListener('input', scheduleCheck);
+     document.getElementById('genre-select').addEventListener('change', scheduleCheck);
+     document.getElementById('demographic-select').addEventListener('change', scheduleCheck);
+     document.getElementById('rating-select').addEventListener('change', scheduleCheck);
 
-      setTimeout(() => {
-        typeWriter("> INICIALIZANDO_SISTEMA_ARCHINIME... // LINK_STABLE // READY", terminalOut);
-      }, 1000);
+     const gridMutObserver = new MutationObserver(() => {
+       setTimeout(checkEmptyGrid, 100);
+     });
+     if(gridEl) gridMutObserver.observe(gridEl, { childList: true });
 
-      const forcePlayVideo = () => {
-        if (bgVideo) {
-          bgVideo.muted = true; 
-          let playPromise = bgVideo.play();
-          if (playPromise !== undefined) {
-            playPromise.then(_ => {
-              bgVideo.classList.add('loaded'); 
-            })
-            .catch(error => {
-              console.log("⚠ Autoplay bloqueado");
-              document.body.addEventListener('click', () => {
-                bgVideo.play();
-                bgVideo.classList.add('loaded');
-              }, { once: true });
-              document.body.addEventListener('touchstart', () => {
-                bgVideo.play();
-                bgVideo.classList.add('loaded');
-              }, { once: true });
-            });
-          }
-        }
-      };
-      forcePlayVideo();
-      
-      setTimeout(() => { 
-        loader.style.opacity = '0'; 
-        setTimeout(() => {
-          loader.style.visibility = 'hidden';
-          if (window.startNotificationSequence) {
-            window.startNotificationSequence();
-          }
-        }, 500);
-      }, 800);
-    });
-  </script>
+     /* PWA & Service Worker */
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+         navigator.serviceWorker.register('sw.js').then(registration => {
+           console.log('✓ Service Worker Registrado');
+           registration.update(); 
+           registration.onupdatefound = () => {
+             const installingWorker = registration.installing;
+             installingWorker.onstatechange = () => {
+               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                 console.log('✓ Nueva versión detectada');
+               }
+             };
+           };
+         }).catch(e => console.log('⚠ SW Error:', e));
+       });
+     }
+
+     let deferredPrompt;
+     const installBtn = document.getElementById('installBtn');
+     const iosModal = document.getElementById('iosInstallModal');
+     
+     const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+     const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+     const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+     
+     function checkInstallVisibility() {
+       if (isMobile() && !isInStandaloneMode()) {
+         installBtn.style.display = 'flex';
+       } else {
+         installBtn.style.display = 'none';
+       }
+     }
+
+     window.addEventListener('beforeinstallprompt', (e) => {
+       e.preventDefault();
+       deferredPrompt = e;
+       checkInstallVisibility();
+     });
+     
+     installBtn.addEventListener('click', () => {
+       if (isIos()) {
+         iosModal.style.display = 'block';
+       } else if (deferredPrompt) {
+         deferredPrompt.prompt();
+         deferredPrompt.userChoice.then((res) => {
+           deferredPrompt = null;
+         });
+       } else {
+         alert("App ya instalada o no soportada en este navegador.");
+       }
+     });
+     
+     function closeIosModal() { iosModal.style.display = 'none'; }
+     window.addEventListener('DOMContentLoaded', checkInstallVisibility);
+     window.addEventListener('resize', checkInstallVisibility);
+     
+     window.addEventListener('load', () => {
+       const loader = document.getElementById('page-loader');
+       const bgVideo = document.getElementById('bg-video');
+
+       /* MEJORA CLAVE: Verificar si hay datos cacheados */
+       const hasCache = checkCachedData();
+       let loaderDuration = hasCache ? 300 : 800; // Loader más rápido si hay cache
+
+       setTimeout(() => {
+         typeWriter("> INICIALIZANDO_SISTEMA_ARCHINIME... // LINK_STABLE // READY", terminalOut);
+       }, hasCache ? 100 : 1000);
+
+       const forcePlayVideo = () => {
+         if (bgVideo) {
+           bgVideo.muted = true; 
+           let playPromise = bgVideo.play();
+           if (playPromise !== undefined) {
+             playPromise.then(_ => {
+               bgVideo.classList.add('loaded'); 
+             })
+             .catch(error => {
+               console.log("⚠ Autoplay bloqueado");
+               document.body.addEventListener('click', () => {
+                 bgVideo.play();
+                 bgVideo.classList.add('loaded');
+               }, { once: true });
+               document.body.addEventListener('touchstart', () => {
+                 bgVideo.play();
+                 bgVideo.classList.add('loaded');
+               }, { once: true });
+             });
+           }
+         }
+       };
+       forcePlayVideo();
+       
+       setTimeout(() => { 
+         loader.style.opacity = '0'; 
+         setTimeout(() => {
+           loader.style.visibility = 'hidden';
+           // Guardar que los datos están listos
+           cacheLoadedData();
+           if (window.startNotificationSequence) {
+             window.startNotificationSequence();
+           }
+         }, 500);
+       }, loaderDuration);
+     });
+   </script>
 
 </body>
 </html>
