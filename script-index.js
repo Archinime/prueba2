@@ -628,7 +628,8 @@ document.addEventListener('visibilitychange', ()=> {
 
 /* ----------------------------
     POPUP MÓVIL (FIX: Estilos aplicados en CSS)
-    ---------------------------- */
+   Reemplazado por versión mejorada
+   ---------------------------- */
 (function mobileSelectPopups() {
     const mobileQ = () => window.matchMedia('(max-width:780px)').matches;
     const SELECT_IDS = ['genre-select','demographic-select','rating-select'];
@@ -638,165 +639,185 @@ document.addEventListener('visibilitychange', ()=> {
     let scrollListener = null;
 
     function closePopup() {
-    if (activePopup) {
-        try { activePopup.remove(); } catch(e){}
-        activePopup = null;
-    }
-    if 
-    (outsideListener) { document.removeEventListener('pointerdown', outsideListener, true); outsideListener = null; }
-    if (resizeListener) { window.removeEventListener('resize', resizeListener); resizeListener = null; }
-    if (scrollListener) { window.removeEventListener('scroll', scrollListener, true); scrollListener = null; }
+        if (activePopup) {
+            try { activePopup.remove(); } catch(e){}
+            activePopup = null;
+        }
+        if (outsideListener) { document.removeEventListener('pointerdown', outsideListener, true); outsideListener = null; }
+        if (resizeListener) { window.removeEventListener('resize', resizeListener); resizeListener = null; }
+        if (scrollListener) { window.removeEventListener('scroll', scrollListener, true); scrollListener = null; }
     }
 
     function createPopupFor(selectEl) {
-    selectEl.addEventListener('click', function onClick(e){
-        if (!mobileQ()) return;
-        e.preventDefault();
-        e.stopPropagation();
-        openPopupFor(selectEl);
-    });
-    // Añadir soporte para Touchend si el click falla en algunos móviles
-    selectEl.addEventListener('touchend', function onTouch(e){
-        if (!mobileQ()) return;
-        // Pequeño delay para no interferir con scroll
-        setTimeout(() => {
-            if (document.activeElement === selectEl) return;
-             e.preventDefault();
-             e.stopPropagation();
-             openPopupFor(selectEl);
-        }, 10);
-    }, {passive:false});
+        selectEl.addEventListener('click', function onClick(e){
+            if (!mobileQ()) return;
+            e.preventDefault();
+            e.stopPropagation();
+            openPopupFor(selectEl);
+        });
+        // Añadir soporte para touchend si el click falla en algunos móviles
+        selectEl.addEventListener('touchend', function onTouch(e){
+            if (!mobileQ()) return;
+            // Pequeño delay para no interferir con scroll
+            setTimeout(() => {
+                if (document.activeElement === selectEl) return;
+                e.preventDefault();
+                e.stopPropagation();
+                openPopupFor(selectEl);
+            }, 10);
+        }, {passive:false});
 
-    selectEl.addEventListener('keydown', (e) => {
-        if (!mobileQ()) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openPopupFor(selectEl);
-        }
-    });
+        selectEl.addEventListener('keydown', (e) => {
+            if (!mobileQ()) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPopupFor(selectEl);
+            }
+        });
     }
 
     function openPopupFor(selectEl) {
-    closePopup();
-    const rect = selectEl.getBoundingClientRect();
-    const docEl = document.documentElement;
-    const winW = Math.max(docEl.clientWidth || 0, window.innerWidth || 0);
-    const winH = Math.max(docEl.clientHeight || 0, window.innerHeight || 0);
-    const popup = document.createElement('div');
-    popup.className = 'mobile-select-popup'; // CLASE IMPORTANTE (Ahora tiene CSS)
-    popup.setAttribute('role','listbox');
-    popup.setAttribute('aria-label', selectEl.getAttribute('aria-label') || 'Opciones');
-
-    const pad = 8;
-    const maxHeight = window.matchMedia('(max-width:420px)').matches ? 200 : 300;
-    popup.style.maxHeight = maxHeight + 'px';
-    const width = Math.min(rect.width, Math.max(120, winW - 24));
-    popup.style.minWidth = Math.max(150, width) + 'px';
-
-    let top = rect.bottom + 6;
-    const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 40 : maxHeight));
-    if (top + estimatedHeight + pad > winH) {
-        top = rect.top - estimatedHeight - 6;
-        if (top < pad) top = pad;
-    }
-    popup.style.left = Math.max(pad, rect.left) + 'px';
-    popup.style.top = Math.max(pad, top) + 'px';
-
-    const opts = Array.from(selectEl.options);
-    opts.forEach((opt, idx) => {
-        const d = document.createElement('div');
-        d.className = 'opt';
-        d.setAttribute('role','option');
-        d.setAttribute('data-value', opt.value || opt.text);
-        d.setAttribute('tabindex','0');
-        if (opt.selected) d.setAttribute('aria-selected','true');
-        d.textContent = opt.textContent || opt.innerText || opt.value;
-
-        d.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-      
-        try {
-            selectEl.value = opt.value;
-            Array.from(selectEl.options).forEach(o => o.selected = (o.value === opt.value));
-            const evCh = new Event('change', { bubbles: true });
-            selectEl.dispatchEvent(evCh);
-        } catch(e){}
         closePopup();
-            try { selectEl.focus();
-  
-        } catch(e){}
+        const rect = selectEl.getBoundingClientRect();
+        const docEl = document.documentElement;
+        const winW = Math.max(docEl.clientWidth || 0, window.innerWidth || 0);
+        const winH = Math.max(docEl.clientHeight || 0, window.innerHeight || 0);
+        const popup = document.createElement('div');
+
+        popup.className = 'mobile-select-popup'; // CLASE IMPORTANTE (Ahora tiene CSS)
+        popup.setAttribute('role','listbox');
+        popup.setAttribute('aria-label', selectEl.getAttribute('aria-label') || 'Opciones');
+
+        // Forzar posicionamiento relativo al viewport (coincide con getBoundingClientRect)
+        popup.style.position = 'fixed';
+        popup.style.boxSizing = 'border-box';
+        popup.style.zIndex = '100050';
+
+        const pad = 8;
+        const maxHeight = window.matchMedia('(max-width:420px)').matches ? 200 : 300;
+        popup.style.maxHeight = maxHeight + 'px';
+        const width = Math.min(rect.width, Math.max(120, winW - 24));
+        popup.style.minWidth = Math.max(150, width) + 'px';
+
+        let top = rect.bottom + 6;
+        const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 40 : maxHeight));
+        if (top + estimatedHeight + pad > winH) {
+            top = rect.top - estimatedHeight - 6;
+            if (top < pad) top = pad;
+        }
+        // left/top en coordenadas de viewport (fixed)
+        popup.style.left = Math.max(pad, rect.left) + 'px';
+        popup.style.top = Math.max(pad, top) + 'px';
+
+        const opts = Array.from(selectEl.options);
+        opts.forEach((opt, idx) => {
+            const d = document.createElement('div');
+            d.className = 'opt';
+            d.setAttribute('role','option');
+            d.setAttribute('data-value', opt.value || opt.text);
+            d.setAttribute('tabindex','0');
+            if (opt.selected) d.setAttribute('aria-selected','true');
+            d.textContent = opt.textContent || opt.innerText || opt.value;
+
+            d.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                try {
+                    selectEl.value = opt.value;
+                    Array.from(selectEl.options).forEach(o => o.selected = (o.value === opt.value));
+                    const evCh = new Event('change', { bubbles: true });
+                    selectEl.dispatchEvent(evCh);
+                } catch(e){}
+                closePopup();
+                try { selectEl.focus(); } catch(e){}
+            });
+
+            d.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                    ev.preventDefault();
+                    d.click();
+                } else if (ev.key === 'ArrowDown') {
+                    ev.preventDefault();
+                    const next = d.nextElementSibling;
+                    if (next) next.focus();
+                } else if (ev.key === 'ArrowUp') {
+                    ev.preventDefault();
+                    const prev = d.previousElementSibling;
+                    if (prev) prev.focus();
+                } else if (ev.key === 'Escape') {
+                    closePopup();
+                    try { selectEl.focus(); } catch(e){}
+                }
+            });
+
+            popup.appendChild(d);
         });
-        d.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-            ev.preventDefault();
-            d.click();
-        } else if (ev.key === 'ArrowDown') {
-            ev.preventDefault();
-            const next = d.nextElementSibling;
-            if (next) next.focus();
-        } else if (ev.key === 'ArrowUp') {
-            ev.preventDefault();
-            const prev = d.previousElementSibling;
-            if (prev) prev.focus();
-        } else if (ev.key === 'Escape') {
+
+        document.body.appendChild(popup);
+        activePopup = popup;
+
+        const selected = popup.querySelector('.opt[aria-selected="true"]') || popup.querySelector('.opt');
+        if (selected) {
+            selected.focus();
+            popup.scrollTop = Math.max(0, selected.offsetTop - 8);
+        }
+
+        outsideListener = function outsideHandler(ev){
+            if (!activePopup) return;
+            if (ev.target === selectEl || activePopup.contains(ev.target)) return;
             closePopup();
-            try { selectEl.focus(); } catch(e){}
-        }
-        });
-    popup.appendChild(d);
-    });
+        };
+        document.addEventListener('pointerdown', outsideListener, true);
 
-    document.body.appendChild(popup);
-    activePopup = popup;
-    const selected = popup.querySelector('.opt[aria-selected="true"]') || popup.querySelector('.opt');
-    if (selected) { selected.focus();
-        popup.scrollTop = Math.max(0, selected.offsetTop - 8);
-    }
+        resizeListener = () => closePopup();
+        window.addEventListener('resize', resizeListener);
 
-    outsideListener = function outsideHandler(ev){
-        if (!activePopup) return;
-        if (ev.target === selectEl || activePopup.contains(ev.target)) return;
-        closePopup();
-    };
-    document.addEventListener('pointerdown', outsideListener, true);
-    resizeListener = () => closePopup();
-    window.addEventListener('resize', resizeListener);
-    scrollListener = function scrollHandler(ev) {
-        if (!activePopup) return;
-        if (activePopup.contains(ev.target) || ev.target === selectEl) {
-        return;
-        }
-        closePopup();
-    };
-    window.addEventListener('scroll', scrollListener, true);
+        scrollListener = function scrollHandler(ev) {
+            if (!activePopup) return;
+            if (activePopup.contains(ev.target) || ev.target === selectEl) return;
+            closePopup();
+        };
+        // escuchar scroll a nivel de captura para cerrar si se desplaza la pantalla
+        window.addEventListener('scroll', scrollListener, true);
     }
 
     function init() {
         try {
-        SELECT_IDS.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) createPopupFor(el);
-        });
-    } catch(e) {
-        console.warn('mobileSelectPopups init error', e);
-    }
+            SELECT_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) createPopupFor(el);
+            });
+        } catch(e) {
+            console.warn('mobileSelectPopups init error', e);
+        }
     }
 
     window.addEventListener('resize', function(){
-    if (!mobileQ()) closePopup();
+        if (!mobileQ()) closePopup();
     }, { passive:true });
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+
+    // Exponer cierre por si hace falta
     window._closeMobileSelectPopup = closePopup;
 })();
 
+/* ----------------------------
+   Resto del script (no tocar)
+   ---------------------------- */
 function init(){
     fgContainer.style.display = 'none';
-    fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
+    fgCanvas.style.display = 'none';
+    fgVideo.style.display = 'none';
     const first = pickRandomVideo(null);
     if (!first) return;
     playVideoClip(first);
 }
 
 init();
-window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){}; });
+
+window.addEventListener('beforeunload', ()=>{
+    if (typeof lastObjectUrl !== 'undefined' && lastObjectUrl) {
+        try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){}
+    }
+});
