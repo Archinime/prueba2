@@ -1,4 +1,4 @@
-window.animes = [
+const animes = [
     {
         "id": 1,
         "title": "DAN DA DAN",
@@ -35,11 +35,11 @@ window.animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1769805217118,
+        "lastUpdate": 1771594235827,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 2",
+        "latestEpTitle": "Capítulo 5",
         "isFinal": false
     },
     {
@@ -525,7 +525,7 @@ window.animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1770068219652,
+        "lastUpdate": 1770072039801,
         "updateType": "Ninguna",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1",
         "latestBlockName": "Temporada 3",
@@ -687,12 +687,12 @@ window.animes = [
             "Superhéroes",
             "Seinen"
         ],
-        "lastUpdate": 1770043165521,
+        "lastUpdate": 1771450440133,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1r0djgkxmptdfe2ltkbk1/onepunch3.jpg?rlkey=4e2i0r1cvl5ufsh5f41fa2sqm&st=woghk9gy&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 10",
-        "isFinal": false,
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
         "aliases": [
             "One-Punch Man"
         ]
@@ -737,11 +737,18 @@ window.animes = [
         "img": "pm.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
-            "Hentai",
             "Animación",
+            "Hentai",
             "Seijin"
-        ]
+        ],
+        "lastUpdate": 1771448463426,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/totid4w011l0ftg088jwf/erisM.jpg?rlkey=bv2zu5u17sst8k4cjct0l0e0u&st=7f5sh8co&raw=1",
+        "latestBlockName": "My Dress-Up Darling",
+        "latestEpTitle": "Capítulo 2",
+        "isFinal": false
     },
     {
         "id": 44,
@@ -950,11 +957,11 @@ window.animes = [
             "Tokusatsu",
             "Seinen"
         ],
-        "lastUpdate": 1769889644015,
+        "lastUpdate": 1771451561987,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 14",
+        "latestEpTitle": "Capítulo 16",
         "isFinal": false,
         "aliases": [
             "Tojima Wants to Be a Kamen Rider"
@@ -1145,11 +1152,11 @@ window.animes = [
             "Misterio",
             "Seinen"
         ],
-        "lastUpdate": 1768945911848,
+        "lastUpdate": 1771331483768,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "gnosia1.avif",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 12",
+        "latestEpTitle": "Capítulo 14",
         "isFinal": false
     },
     {
@@ -1184,11 +1191,11 @@ window.animes = [
             "Fantasía",
             "Shōnen"
         ],
-        "lastUpdate": 1769090494470,
-        "updateType": "ESTRENO 🚨",
+        "lastUpdate": 1771331943637,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 1",
+        "latestEpTitle": "Capítulo 2",
         "isFinal": false,
         "aliases": [
             "Sōsō no Frieren"
@@ -1269,12 +1276,12 @@ window.animes = [
             "Slice of Life",
             "Shōjo"
         ],
-        "lastUpdate": 1769735432170,
+        "lastUpdate": 1770243238332,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "kimitokoete1.avif",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 11",
-        "isFinal": false,
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
         "aliases": [
             "With You, Our Love Will Make It Through"
         ]
@@ -1311,11 +1318,11 @@ window.animes = [
             "Slice of Life",
             "Shōnen"
         ],
-        "lastUpdate": 1770068336880,
+        "lastUpdate": 1771592663674,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 6",
         "isFinal": false,
         "aliases": [
             "You And I Are Polar Opposites"
@@ -1334,11 +1341,11 @@ window.animes = [
             "Fantasía oscura",
             "Seinen"
         ],
-        "lastUpdate": 1769801713891,
+        "lastUpdate": 1771592852542,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/g6gmcpr341z0eav70s8xa/C2P4K6XQ5BBNBAKHMAM5XBFAKE.avif?rlkey=8q1u5gev6iq55ndsts7m6s5ij&st=x46rl6r1&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 7",
         "isFinal": false,
         "aliases": [
             "Yuusha-kei ni Shosu"
@@ -1360,11 +1367,11 @@ window.animes = [
             "Thriller",
             "Seinen"
         ],
-        "lastUpdate": 1769735367777,
+        "lastUpdate": 1771592715258,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 7",
         "isFinal": false,
         "aliases": [
             "Shibou Yuugi de Meshi wo Kuu"
@@ -1432,11 +1439,11 @@ window.animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1770043290924,
+        "lastUpdate": 1771332024542,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 16",
+        "latestEpTitle": "Capítulo 18",
         "isFinal": false
     },
     {
@@ -1454,11 +1461,11 @@ window.animes = [
             "Slice of Life",
             "Shōjo"
         ],
-        "lastUpdate": 1770043204838,
+        "lastUpdate": 1771592467678,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 6",
+        "latestEpTitle": "Capítulo 8",
         "isFinal": false,
         "aliases": [
             "Hanazakari no kimitachi e"
@@ -1480,11 +1487,11 @@ window.animes = [
             "Sobrenatural",
             "Shōjo"
         ],
-        "lastUpdate": 1770043245673,
+        "lastUpdate": 1771331671042,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 5",
         "isFinal": false
     },
     {
@@ -1505,11 +1512,11 @@ window.animes = [
             "Thriller",
             "Shōnen"
         ],
-        "lastUpdate": 1769099807990,
+        "lastUpdate": 1771592768453,
         "updateType": "NUEVO 🔥",
-        "latestSeasonCover": "https://www.dropbox.com/scl/fi/w5est8ffkgk3w7af0c4i0/ImageToStl.com_MV5BZjhmMjhkNjUtMGU2MC00N2IzLTg1YzItZDk5ODMxMDYxODc0XkEyXkFqcGc._V1.avif?rlkey=ytkpz6jwh00o8ikvdyf95l4pq&st=9mxw44sm&raw=1",
-        "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 13",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZz2Pl5ZtIRJpcwNxr5Alrpg7RDymX4RfcJV&size=2000x3000",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 3",
         "isFinal": false,
         "aliases": [
             "Jigokuraku."
@@ -1769,5 +1776,56 @@ window.animes = [
         "latestBlockName": "Temporada 1",
         "latestEpTitle": "Capítulo 12",
         "isFinal": true
+    },
+    {
+        "id": 92,
+        "title": "Roll Over and Die",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZppEK5ZRLLOpgFR0DXqgYFQHwIxaYtakxkk&size=2000x3000",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Fantasía oscura",
+            "Romance",
+            "Survival",
+            "Yuri",
+            "Shōnen"
+        ],
+        "lastUpdate": 1771592889880,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZHpEK5ZDYj1Ggi9U8bycVPaNOxCkQolhpak&size=2000x3000",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 4",
+        "isFinal": false,
+        "aliases": [
+            "Omae Gotoki ga Maō ni Kateru to Omou na"
+        ]
+    },
+    {
+        "id": 93,
+        "title": "Tower of God",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZF6EK5Zvw2rdq5KKMVN0VFcgbLkohPIfQ0k&size=2000x3000",
+        "rating": 4.6,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Drama",
+            "Fantasía oscura",
+            "Misterio",
+            "Shōnen"
+        ],
+        "lastUpdate": 1770137764938,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZR6EK5ZMbtpcgy8H3Ld11AsXGK1V5mXHjRk&size=2000x3000",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 26",
+        "isFinal": true,
+        "aliases": [
+            "Torre de Dios"
+        ]
     }
 ];
