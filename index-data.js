@@ -1,4 +1,4 @@
-const animes = [
+window.animes = [
     {
         "id": 1,
         "title": "DAN DA DAN",
@@ -35,11 +35,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1769090404782,
+        "lastUpdate": 1769805217118,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 3",
+        "latestEpTitle": "Capítulo 2",
         "isFinal": false
     },
     {
@@ -525,11 +525,12 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1768671992864,
-        "updateType": "NUEVO 🔥",
+        "lastUpdate": 1770068219652,
+        "updateType": "Ninguna",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 14",
+        "latestEpTitle": "Capítulo 16",
+        "isFinal": false,
         "aliases": [
             "Fumetsu no Anata e"
         ]
@@ -686,11 +687,11 @@ const animes = [
             "Superhéroes",
             "Seinen"
         ],
-        "lastUpdate": 1768943974219,
+        "lastUpdate": 1770043165521,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1r0djgkxmptdfe2ltkbk1/onepunch3.jpg?rlkey=4e2i0r1cvl5ufsh5f41fa2sqm&st=woghk9gy&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 8",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "One-Punch Man"
@@ -847,12 +848,12 @@ const animes = [
             "Fantasía",
             "Shōnen"
         ],
-        "lastUpdate": 1768755673346,
-        "updateType": "Ninguna",
+        "lastUpdate": 1769402924356,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/mtki74k5zzzywfdegb4ir/dfffffg.jpg?rlkey=g563wasphqjhhyep83qnq548r&st=9uw7j6kq&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 12",
-        "isFinal": false
+        "latestEpTitle": "Capítulo 13",
+        "isFinal": true
     },
     {
         "id": 50,
@@ -949,11 +950,11 @@ const animes = [
             "Tokusatsu",
             "Seinen"
         ],
-        "lastUpdate": 1768755501390,
-        "updateType": "Ninguna",
+        "lastUpdate": 1769889644015,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 12",
+        "latestEpTitle": "Capítulo 14",
         "isFinal": false,
         "aliases": [
             "Tojima Wants to Be a Kamen Rider"
@@ -1268,11 +1269,11 @@ const animes = [
             "Slice of Life",
             "Shōjo"
         ],
-        "lastUpdate": 1769089782779,
+        "lastUpdate": 1769735432170,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "kimitokoete1.avif",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 10",
+        "latestEpTitle": "Capítulo 11",
         "isFinal": false,
         "aliases": [
             "With You, Our Love Will Make It Through"
@@ -1310,11 +1311,11 @@ const animes = [
             "Slice of Life",
             "Shōnen"
         ],
-        "lastUpdate": 1768944384687,
+        "lastUpdate": 1770068336880,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 2",
+        "latestEpTitle": "Capítulo 4",
         "isFinal": false,
         "aliases": [
             "You And I Are Polar Opposites"
@@ -1333,11 +1334,12 @@ const animes = [
             "Fantasía oscura",
             "Seinen"
         ],
-        "lastUpdate": 1768585248933,
-        "updateType": "ESTRENO 🔥",
+        "lastUpdate": 1769801713891,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/g6gmcpr341z0eav70s8xa/C2P4K6XQ5BBNBAKHMAM5XBFAKE.avif?rlkey=8q1u5gev6iq55ndsts7m6s5ij&st=x46rl6r1&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 2",
+        "latestEpTitle": "Capítulo 4",
+        "isFinal": false,
         "aliases": [
             "Yuusha-kei ni Shosu"
         ]
@@ -1358,11 +1360,11 @@ const animes = [
             "Thriller",
             "Seinen"
         ],
-        "lastUpdate": 1769089640876,
+        "lastUpdate": 1769735367777,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 3",
+        "latestEpTitle": "Capítulo 4",
         "isFinal": false,
         "aliases": [
             "Shibou Yuugi de Meshi wo Kuu"
@@ -1430,11 +1432,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1768920378577,
+        "lastUpdate": 1770043290924,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 14",
+        "latestEpTitle": "Capítulo 16",
         "isFinal": false
     },
     {
@@ -1452,11 +1454,11 @@ const animes = [
             "Slice of Life",
             "Shōjo"
         ],
-        "lastUpdate": 1768944926256,
+        "lastUpdate": 1770043204838,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 6",
         "isFinal": false,
         "aliases": [
             "Hanazakari no kimitachi e"
@@ -1478,11 +1480,11 @@ const animes = [
             "Sobrenatural",
             "Shōjo"
         ],
-        "lastUpdate": 1768945828059,
+        "lastUpdate": 1770043245673,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 2",
+        "latestEpTitle": "Capítulo 4",
         "isFinal": false
     },
     {
@@ -1563,5 +1565,209 @@ const animes = [
         "aliases": [
             "Tsuki ga Michibiku Isekai Dōchū"
         ]
+    },
+    {
+        "id": 83,
+        "title": "Mairimashita! Iruma-kun",
+        "img": "https://www.dropbox.com/scl/fi/1jwtfdr7fniisbyk86ufq/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769436697375-1769436697376-1.avif?rlkey=7ykuw4c34w1dkr6wlnt2hmx82&st=nbyyeq8a&raw=1",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Escolar",
+            "Fantasía",
+            "Isekai",
+            "Sobrenatural",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769437840855,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/oqkpyyqku4fr3ghwhzcr0/iruma3.avif?rlkey=g4yh1imo1v86ubsaeb4k541nk&st=2yuirrws&raw=1",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 21",
+        "isFinal": true,
+        "aliases": [
+            "Welcome to Demon School! Iruma-kun"
+        ]
+    },
+    {
+        "id": 84,
+        "title": "Kobayashi-san Chi no Maid Dragon",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZ4jhK5ZV96vwk3dhrfuqylIjMK0SkhV0pyV&size=2000x3000",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Fantasía",
+            "Isekai Inverso",
+            "Romance",
+            "Slice of Life",
+            "Yuri",
+            "Seinen"
+        ],
+        "lastUpdate": 1769785876713,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZjojK5Z0gt6QP9JFsB8waiQNJy5hFX2fF77&size=2000x3000",
+        "latestBlockName": "Película 1",
+        "latestEpTitle": "A Lonely Dragon Wants to Be Loved",
+        "isFinal": true,
+        "aliases": [
+            "Miss Kobayashi’s Dragon Maid"
+        ]
+    },
+    {
+        "id": 85,
+        "title": "Sword Art Online",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZexDK5ZF3sDn1qITuYL1VScYcuknLSBUcDy&size=2000x3000",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Fantasía",
+            "Isekai",
+            "Romance",
+            "Thriller",
+            "VRMMO",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769805090130,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZr1TK5ZWqGs6z8IT6JzKyMNjMbUSH5P9wOk&size=2000x3000",
+        "latestBlockName": "Alternative: Gun Gale Online II",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 86,
+        "title": "Baki",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZ0p9K5Zz7CYJaaP8E4a4o9sBzCkrSwHI6k0&size=2000x3000",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Artes Marciales",
+            "Deportivo",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769789195067,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZ6rMK5ZTji8HdOSHVXg8AlDp46GWV3zzusy&size=2000x3000",
+        "latestBlockName": "Película 1",
+        "latestEpTitle": "Baki Hanma vs. Kengan Ashura",
+        "isFinal": false
+    },
+    {
+        "id": 87,
+        "title": "Death Note",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZC3PK5ZI5e4GKRCk8Xvz6QX7v678Q275LUy&size=2000x3000",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Drama",
+            "Misterio",
+            "Sobrenatural",
+            "Suspenso",
+            "Thriller psicológico",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769889152335,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZd3PK5ZpT0OB7y4ALjU5DNn1jo74HFpQ6FV&size=2000x3000",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 37",
+        "isFinal": true
+    },
+    {
+        "id": 88,
+        "title": "Leviathan",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZtUxK5ZfdVT4R2RN44PbPKssJv7pzlVjzTk&size=2000x3000",
+        "rating": 4.6,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Fantasía",
+            "Militar",
+            "Steampunk",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769958574912,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZUUxK5ZvX1LOxy7ATS77OpaO3KgbbREKVQV&size=2000x3000",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 89,
+        "title": "Bocchi the Rock!",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZ4dxK5ZKlNdhaL1aIHMTyPcgPwmj0xf5tck&size=2000x3000",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Musical",
+            "Slice of Life",
+            "Seinen"
+        ],
+        "lastUpdate": 1769957459671,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZ2dxK5ZgSR67lxGIR7csx2hXKyFnYeBg4M7&size=2000x3000",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 90,
+        "title": "Shangri-La Frontier",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZLEwK5ZcndcdKwL4pftTTY5vsrHUhh3Vkc7&size=2000x3000",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Fantasía",
+            "VRMMO",
+            "Shōnen"
+        ],
+        "lastUpdate": 1769990075138,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZBEwK5ZjV7AT4DkE4YjShvLSJIRlLcMFJHV&size=2000x3000",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 25",
+        "isFinal": true
+    },
+    {
+        "id": 91,
+        "title": "Trigun Stampede",
+        "img": "https://api.pcloud.com/getpubthumb?code=XZswdK5ZPrDr8metTShLGWYpHJjgnJ3OvO3k&size=2000x3000",
+        "rating": 4.5,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Drama",
+            "Seinen"
+        ],
+        "lastUpdate": 1770050435269,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZUwdK5ZW1ksGIIKW0FKoFGnE4sGzRGSoATy&size=2000x3000",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
     }
 ];
