@@ -257,53 +257,6 @@ select {
   height: 100%; padding-bottom: 20px;
 }
 
-/* ---------- (todo tu CSS original está preservado arriba) ---------- */
-/* Incluye aquí todo tu CSS tal cual (por brevedad no lo repito entero) */
-/* --- AÑADO SÓLO LAS REGLAS NECESARIAS PARA CORREGIR EL PROBLEMA --- */
-
-/* Asegurar que la barra de controles y los selects estén por encima de overlays */
-.controls-container {
-  position: relative;    /* FIX: permite z-index relativo al header */
-  z-index: 1200;         /* FIX: asegurar interacción */
-}
-
-/* Selects nativos — prioridad al interactuar (no cambian visuales) */
-.select-native {
-  position: relative;    /* FIX: evita que queden 'detrás' */
-  z-index: 1210;         /* FIX: encima de overlays */
-  touch-action: manipulation; /* evita que el gesto cause un scroll en algunos móviles */
-  -webkit-tap-highlight-color: rgba(0,0,0,0); /* mejora la experiencia táctil */
-  outline-offset: 2px;
-  -webkit-appearance: none; /* ya lo tenías; se conserva */
-  appearance: none;
-}
-
-/* Popup móvil (creado por JS) — forzar z-index alto */
-.mobile-select-popup {
-  z-index: 1400 !important;
-  position: absolute;
-  background: rgba(10,10,12,0.96);
-  border-radius: 6px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-  padding: 6px;
-  max-height: 320px;
-  overflow: auto;
-}
-
-/* Opciones del popup móvil */
-.mobile-select-popup .opt {
-  padding: 10px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-/* Evitar que el overlay invisible intercepte clicks */
-#overlay, .grid-bg, #particles-js {
-  pointer-events: none;
-}
-
-/* Mantengo el resto de tu CSS intacto (tus variables, paneles, animaciones, etc.). */
-
 /* SEPARACIÓN IMÁGENES */
 .cover-back {
   width: 100px;
