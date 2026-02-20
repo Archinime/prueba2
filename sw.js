@@ -1,57 +1,100 @@
-const CACHE_NAME = 'archinime-os-dynamic';
-const urlsToCache = [
-  './',
-  'index.html',
-  'styles-index.css',
-  'Logo_Archinime.avif'
+const CACHE_VERSION = 'archinime-v1.0';
+const CACHE_ASSETS = 'archinime-assets-cache';
+const CACHE_DATA = 'archinime-data-cache';
+
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/styles-index.css',
+  '/script-index.js',
+  '/index-data.js',
+  '/animaciones.js',
+  '/musica_fondo.js',
+  '/notification-system.js',
+  '/pwa-handler.js',
+  '/Logo_Archinime.avif',
+  '/galaxia-morado1.avif',
+  '/manifest.json'
 ];
 
-// 1. INSTALACIÓN: Cachea lo básico, pero no bloquea
+// Instalar y cachear assets
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Forza al SW a activarse de inmediato
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_ASSETS).then(cache => {
+      console.log('✓ Cacheando assets...');
+      return cache.addAll(PRECACHE_URLS).catch(err => {
+        console.log('⚠ Algunos assets no pudieron cachearse:', err);
+      });
+    })
   );
+  self.skipWaiting(); // Activar inmediatamente
 });
 
-// 2. ACTIVACIÓN: Limpia cachés viejas automáticamente
+// Activar y limpiar caches antiguos
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-           // Borra cualquier caché que no sea la actual
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_ASSETS && cacheName !== CACHE_DATA) {
+            console.log('🗑️ Limpiando cache antiguo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  return self.clients.claim(); // Toma control de la página inmediatamente
+  self.clients.claim(); // Tomar control inmediatamente
 });
 
-// 3. FETCH: ESTRATEGIA NETWORK FIRST (La magia)
+// Estrategia: Network First para datos, Cache First para assets
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(networkResponse => {
-        // Si hay internet y respuesta válida:
-        // 1. Clonamos la respuesta (porque se consume al leerla)
-        const responseClone = networkResponse.clone();
-        
-        // 2. Actualizamos la caché con lo NUEVO que acabamos de bajar
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
-        });
+  const { request } = event;
+  const url = new URL(request.url);
 
-        // 3. Entregamos la versión nueva al usuario
-        return networkResponse;
+  // Archivos de datos (JSON, JS de datos)
+  if (url.pathname.includes('-data.js') || url.pathname.includes('.json')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (!response.ok) throw new Error('Network error');
+          const clone = response.clone();
+          caches.open(CACHE_DATA).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then(cached => {
+            return cached || new Response('Offline - data not available', { status: 503 });
+          });
+        })
+    );
+  }
+  // Assets (CSS, imágenes, etc)
+  else if (request.method === 'GET') {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        return cached || fetch(request).then(response => {
+          if (!response.ok) return cached || response;
+          
+          const clone = response.clone();
+          caches.open(CACHE_ASSETS).then(cache => {
+            cache.put(request, clone);
+          });
+          return response;
+        }).catch(() => cached);
       })
-      .catch(() => {
-        // Si falla internet (catch), entregamos lo que haya en caché
-        return caches.match(event.request);
-      })
-  );
+    );
+  }
+});
+
+// Notificar a los clientes cuando hay actualización
+self.addEventListener('controllerchange', () => {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'CACHE_UPDATED',
+        message: 'Datos precargados para carga rápida en próximas visitas'
+      });
+    });
+  });
 });
