@@ -4,51 +4,113 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Archinime - SUPERNOVA EDITION</title>
+  <title>Archinime</title>
   
   <meta name="description" content="Explora Archinime, la plataforma definitiva para ver anime online. Disfruta de estrenos de temporada, clásicos y una base de datos actualizada en alta calidad.">
   
+<script>
+  (function() {
+    // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
+    const colors = [
+      "#00f3ff", // Cian Neón (Inicio)
+      "#0066ff", // Azul Eléctrico
+      "#bc13fe", // Morado Protagonista
+      "#ff0055", // Rosa Neón (Acento)
+      "#bc13fe", // Morado (Regreso)
+      "#0066ff", // Azul
+      "#00f3ff"  // Cian (Final para loop perfecto)
+    ];
+
+    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
+    const intervalTime = 20; 
+    const segments = colors.length - 1;
+    const step = (intervalTime / animationDuration) * segments;
+
+    let currentProgress = 0;
+    let metaTag = document.querySelector('meta[name="theme-color"]');
+    
+    if (!metaTag) {
+      metaTag = document.createElement('meta');
+      metaTag.name = "theme-color";
+      document.head.appendChild(metaTag);
+    }
+
+    const hexToRgb = (hex) => {
+      const bigint = parseInt(hex.slice(1), 16);
+      return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    };
+
+    const rgbToHex = (r, g, b) => {
+      return "#" + [r, g, b].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      }).join('');
+    };
+
+    const lerp = (start, end, t) => start + (end - start) * t;
+
+    setInterval(() => {
+      currentProgress += step;
+      if (currentProgress >= segments) {
+        currentProgress = currentProgress % segments;
+      }
+
+      const index = Math.floor(currentProgress);
+      const t = currentProgress - index;
+      const colorStart = hexToRgb(colors[index]);
+      const colorEnd = hexToRgb(colors[index + 1]);
+
+      const r = lerp(colorStart[0], colorEnd[0], t);
+      const g = lerp(colorStart[1], colorEnd[1], t);
+      const b = lerp(colorStart[2], colorEnd[2], t);
+
+      metaTag.setAttribute('content', rgbToHex(r, g, b));
+    }, intervalTime);
+  })();
+</script>
   <meta property="og:type" content="website">
   <meta property="og:title" content="Archinime">
+
   <meta property="og:description" content="Únete a la nueva era del streaming de anime con interfaz Cyberpunk. ¡Entra ya!">
   <meta property="og:image" content="https://archinime.github.io/-Archinime-/Logo_Archinime.png">
   
-  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%202.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%201.png" sizes="16x16">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%203.png">
-  <link rel="shortcut icon" href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%203.png">
+  <link rel="icon" type="image/png" 
+href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%202.png" sizes="32x32">
+
+  <link rel="icon" type="image/png" 
+href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%201.png" sizes="16x16">
+
+  <link rel="apple-touch-icon" 
+href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%203.png">
+
+  <link rel="shortcut icon" 
+href="https://raw.githubusercontent.com/Archinime/-Archinime-/main/favicon%203.png">
+  
   <link rel="manifest" href="manifest.json">
+
   <meta name="google-adsense-account" content="ca-pub-3917033517052949">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
-  /* --- VARIABLES CYBERPUNK OPTIMIZADAS --- */
+  /* --- VARIABLES CYBERPUNK --- */
   :root {
-    --neon-cyan: #00f0ff;
+    --neon-cyan: #00f3ff;
     --neon-purple: #bc13fe;
-    --neon-pink: #ff005c;
+    --neon-pink: #ff0055;
     --neon-yellow: #f1c40f;
-    --dark-bg: #020305;
-    --glass-bg: rgba(10, 15, 28, 0.75);
-    --bg-panel: rgba(10, 15, 28, 0.85);
-    --text-main: #e0f6ff;
-    --text-muted: #5a7b9e;
-    --border-light: rgba(0, 240, 255, 0.15);
+    --dark-bg: #050505;
+    --glass-bg: rgba(10, 12, 16, 0.75);
+    --text: #ffffff;
     --header-height: 72px;
-    --radius: 4px;
-    --font-mono: 'Share Tech Mono', "Fira Code", monospace;
-    --font-hdr: 'Orbitron', sans-serif;
-    --font-body: 'Poppins', sans-serif;
-    --neon-gradient: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink), var(--neon-cyan));
-    --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+}
 
-  /* --- RESET & BASICOS OPTIMIZADOS --- */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* --- RESET & BASICOS --- */
+  * { margin: 0; padding: 0; box-sizing: border-box;
+}
   
   html { scroll-behavior: smooth; }
   
@@ -126,48 +188,15 @@
     display: flex; justify-content: center; align-items: center; flex-direction: column;
     transition: opacity 0.5s ease-out, visibility 0.5s;
   }
-
-  /* ====== BARRA DE CARGA CON COLORES ANIMADOS ====== */
-  .loader-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
   .loader-line {
-    width: 220px; 
-    height: 3px; 
-    background: rgba(0, 240, 255, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    width: 0; height: 3px; background: var(--neon-cyan);
+    margin-top: 15px;
+    box-shadow: 0 0 10px var(--neon-cyan);
+    animation: loadLine 1.5s forwards ease-in-out;
   }
-
-  .loader-line-fill {
-    width: 0; 
-    height: 100%; 
-    background: linear-gradient(90deg, 
-      #00f3ff 0%,
-      #0066ff 25%,
-      #bc13fe 50%,
-      #ff0055 75%,
-      #00f3ff 100%);
-    background-size: 200% 100%;
-    animation: loadLineFill 2s cubic-bezier(0.4, 0, 0.2, 1) forwards, colorShift 3s ease-in-out infinite;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.3);
-  }
-
-  @keyframes loadLineFill {
-    0% { width: 0%; }
-    100% { width: 100%; }
-  }
-
-  @keyframes colorShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  @keyframes loadLine {
+    0% { width: 0; }
+    100% { width: 220px; }
   }
 
   .glitch { 
@@ -883,13 +912,9 @@
 <body>
 
   <div id="page-loader">
-    <div class="loader-container">
-      <div class="glitch" data-text="ARCHINIME" style="font-size: 2.5rem;">ARCHINIME</div>
-      
-      <!-- BARRA DE CARGA CON COLORES SYNTHWAVE -->
-      <div class="loader-line">
-        <div class="loader-line-fill"></div>
-      </div>
+    <div class="glitch" data-text="ARCHINIME" style="font-size: 2.5rem;">ARCHINIME</div>
+    <div style="width: 220px; height: 3px; background: #222; margin-top: 15px; overflow: hidden; border-radius: 2px;">
+      <div class="loader-line"></div>
     </div>
   </div>
 
@@ -1110,6 +1135,7 @@
      async function cacheLoadedData() {
        try {
          const cache = await caches.open(CACHE_KEYS.data);
+         // Los datos ya están en memory, simplemente marcamos que están listos
          localStorage.setItem('archinime-data-ready', Date.now().toString());
        } catch (e) {
          console.log('Cache API no disponible:', e);
@@ -1121,6 +1147,7 @@
        const dataReady = localStorage.getItem('archinime-data-ready');
        const timeSinceCache = dataReady ? Date.now() - parseInt(dataReady) : 0;
        
+       // Si el cache es reciente (menos de 1 hora), ocultar loader inmediatamente
        if (dataReady && timeSinceCache < 3600000) {
          return true;
        }
@@ -1289,8 +1316,9 @@
        const loader = document.getElementById('page-loader');
        const bgVideo = document.getElementById('bg-video');
 
+       /* MEJORA CLAVE: Verificar si hay datos cacheados */
        const hasCache = checkCachedData();
-       let loaderDuration = hasCache ? 300 : 800;
+       let loaderDuration = hasCache ? 300 : 800; // Loader más rápido si hay cache
 
        setTimeout(() => {
          typeWriter("> INICIALIZANDO_SISTEMA_ARCHINIME... // LINK_STABLE // READY", terminalOut);
@@ -1324,6 +1352,7 @@
          loader.style.opacity = '0'; 
          setTimeout(() => {
            loader.style.visibility = 'hidden';
+           // Guardar que los datos están listos
            cacheLoadedData();
            if (window.startNotificationSequence) {
              window.startNotificationSequence();
