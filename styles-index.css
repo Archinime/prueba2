@@ -352,6 +352,46 @@ select {
   .nav-logo-text { display: none; } /* Ahorrar espacio */
   .event-card { width: 95%; }
 }
+/* ==============================================================
+   PARCHE DE ACTUALIZACIÓN: FIX TABLET Y MÓVILES
+   ============================================================== */
+
+/* 1. Corrección de la iluminación del video de fondo en Tablets */
+@media (max-width: 1024px) {
+  #bg-video {
+    opacity: 0.5 !important; /* Aumenta este valor (ej. 0.6) si lo quieres aún más claro */
+    display: block !important;
+    z-index: -5 !important;
+  }
+  
+  /* Aclara la capa oscura superpuesta para que el video se aprecie */
+  .overlay, .bg-overlay, body::after {
+    background-color: rgba(5, 5, 5, 0.4) !important; 
+  }
+}
+
+/* 2. Corrección de los botones (Género, Demografía, Valoración) */
+/* Forzamos a que los selects y sus contenedores estén al frente y sean interactivos */
+select, .select-box, .filter-container select, #genre-select, #demographic-select, #rating-select {
+  position: relative !important;
+  z-index: 10005 !important; /* Un valor muy alto para que nada los cubra */
+  pointer-events: auto !important;
+  touch-action: manipulation !important; /* Mejora la respuesta táctil */
+}
+
+/* Asegurar que el popup móvil también reciba clics */
+.mobile-select-popup {
+  z-index: 10006 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* Liberar el contenedor principal de filtros de cualquier bloqueo */
+#filters, .filters-section, .controls {
+  position: relative !important;
+  z-index: 10004 !important;
+  pointer-events: auto !important;
+}
 
 /* Animaciones */
 @keyframes borderFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
