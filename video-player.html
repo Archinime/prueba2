@@ -214,7 +214,18 @@
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
         user-select: none; /* Evita que seleccionen el texto */
-        transition: opacity 0.3s ease; /* Transición suave al aparecer/desaparecer */
+        
+        /* Aparece al INSTANTE sin transición para que no se filtre el logo oculto */
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0s, visibility 0s; 
+    }
+
+    .logo-blocker.hidden-strip {
+        /* Desaparece suavemente después del tiempo establecido */
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease, visibility 0s linear 0.4s;
     }
 
     /* Línea sutil de neón debajo del bloqueador */
@@ -445,29 +456,52 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DE INACTIVIDAD (MOSTRAR/OCULTAR TIRA PROTECTORA)
+    // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD (TIRA PROTECTORA)
     // -----------------------------------------------------------
     let activityTimeout;
+    let hasInteracted = false; // Registra si el usuario ya empezó el video
+
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
+        
+        // Aparecer INSTANTÁNEAMENTE, quitando la clase que lo oculta
         blockers.forEach(b => {
-            b.style.opacity = '1';
+            b.classList.remove('hidden-strip');
         });
         
         clearTimeout(activityTimeout);
-        activityTimeout = setTimeout(() => {
-            blockers.forEach(b => {
-                b.style.opacity = '0';
-            });
-        }, 3000); // 3 segundos sin mover el mouse/tocar para ocultarlo
+        
+        // Solo empezamos a esconder la tira si el usuario ya inició o interactuó con el reproductor
+        if (hasInteracted) {
+            activityTimeout = setTimeout(() => {
+                blockers.forEach(b => {
+                    b.classList.add('hidden-strip');
+                });
+            }, 3000); // Se esconde tras 3 segundos de inactividad
+        }
     }
 
-    // Detectar eventos para despertar la interfaz en PC y celular
+    // Eventos generales para despertar la UI (mouse en PC, toques en Celular)
     window.addEventListener('mousemove', wakeUpUI);
-    window.addEventListener('mousedown', wakeUpUI);
-    window.addEventListener('touchstart', wakeUpUI);
+    window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
 
+    // Detectar el primer clic real en la página como "inicio del video"
+    window.addEventListener('mousedown', () => {
+        if (!hasInteracted) {
+            hasInteracted = true;
+            wakeUpUI();
+        }
+    });
+
+    // Truco esencial: Si el video es un iframe, los clics ahí dentro no nos llegan,
+    // pero podemos detectar cuando la ventana principal "pierde el foco" hacia el iframe
+    window.addEventListener('blur', () => {
+        if (!hasInteracted && document.activeElement && document.activeElement.tagName === 'IFRAME') {
+            hasInteracted = true;
+            wakeUpUI();
+        }
+    });
 
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
@@ -520,21 +554,21 @@
                 <span class="blocker-sub">HD</span>
             </div>
         `;
-        // Evitar que un clic o toque en la tira propague el evento al iframe
+        // Evitar clics falsos hacia el reproductor en esa área
         blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
         });
         container.appendChild(blocker);
         
-        // Activar la visibilidad de la tira al instante cuando se crea
+        // Llamar a wakeUpUI al instante. Como `hasInteracted` es falso al cargar la web,
+        // la tira se quedará visible SIN DESAPARECER hasta que el usuario le dé play.
         wakeUpUI();
     }
 
-    // --- LÓGICA DE DESCARGA (ODYSEE, DRIVE, OK.RU) ---
+    // --- LÓGICA DE DESCARGA ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
-        // Google Drive logic
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
             if (match && match[1]) {
@@ -545,28 +579,21 @@
                return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
             }
         }
-        
-        // Dropbox logic
         if (url.includes("dropbox.com") && url.includes("dl=0")) {
              return url.replace('dl=0', 'dl=1');
         }
-
-        // OK.RU logic
         if (url.includes("ok.ru/")) {
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
             if (match && match[1]) {
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-
-        // ODYSEE logic
         if (url.includes("odysee.com")) {
             const match = url.match(/odysee\.com\/\$\/embed\/([^:]+):([^/?]+)/);
             if (match && match[1] && match[2]) {
                 return `https://odysee.com/$/download/${match[1]}/${match[2]}`;
             }
         }
-        
         return url;
     }
 
@@ -592,6 +619,10 @@
         btn.onclick = () => {
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            
+            // Si cambian de servidor, reiniciamos la interacción para que tape de nuevo el video
+            hasInteracted = false; 
+            
             loadVideo(url);
             updateDownloadButton(url);
         };
@@ -604,6 +635,7 @@
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -614,13 +646,18 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            // Si es un video nativo, detectar pausa para mostrar la tira
-            video.addEventListener('pause', wakeUpUI);
-            video.addEventListener('play', wakeUpUI);
+            // Si le dan pausa, mostramos y dejamos anclada la tira (hasInteracted = false momentáneo)
+            video.addEventListener('pause', () => {
+                hasInteracted = false; 
+                wakeUpUI();
+            });
+            // Si le dan play, que inicie la cuenta de 3s para ocultarse
+            video.addEventListener('play', () => {
+                hasInteracted = true;
+                wakeUpUI();
+            });
 
             container.appendChild(video);
-            
-            // Inyectar tira al cargar video
             addLogoBlocker(container);
         } else {
             loadAsIframe(url, container);
@@ -640,7 +677,6 @@
         iframe.style.height = "100%";
         iframe.style.border = "none";
         container.appendChild(iframe);
-        // Inyectar tira encima del iframe
         addLogoBlocker(container);
     }
 
@@ -653,7 +689,6 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
@@ -675,8 +710,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
