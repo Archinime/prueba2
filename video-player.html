@@ -216,15 +216,15 @@
         user-select: none; /* Evita que seleccionen el texto */
         
         /* Aparece al INSTANTE sin transición para que no se filtre el logo oculto */
-        opacity: 1;
-        visibility: visible;
+        opacity: 1 !important;
+        visibility: visible !important;
         transition: opacity 0s, visibility 0s; 
     }
 
     .logo-blocker.hidden-strip {
         /* Desaparece suavemente después del tiempo establecido */
-        opacity: 0;
-        visibility: hidden;
+        opacity: 0 !important;
+        visibility: hidden !important;
         transition: opacity 0.4s ease, visibility 0s linear 0.4s;
     }
 
@@ -459,20 +459,15 @@
     // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD (TIRA PROTECTORA)
     // -----------------------------------------------------------
     let activityTimeout;
-    let hasInteracted = false; // Registra si el usuario ya empezó el video
-    let iframeFocusProtector = false;
-
-    // Permitimos que el "blur" se registre como interacción solo después de 1 segundo
-    // para evitar que iframes de terceros roben el foco automáticamente al cargar la web.
-    setTimeout(() => { iframeFocusProtector = true; }, 1000);
+    let hasInteracted = false; 
+    let canRegisterPlay = false; // Escudo protector contra iframes tramposos
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
-        // Aparecer INSTANTÁNEAMENTE
         blockers.forEach(b => b.classList.remove('hidden-strip'));
         clearTimeout(activityTimeout);
         
-        // Solo escondemos si el usuario ya inició o interactuó intencionalmente
+        // Solo escondemos si el usuario ya inició de verdad
         if (hasInteracted) {
             activityTimeout = setTimeout(() => {
                 blockers.forEach(b => b.classList.add('hidden-strip'));
@@ -480,14 +475,15 @@
         }
     }
 
-    // Eventos generales para despertar la UI (mouse en PC, toques en Celular)
+    // Despierta la interfaz si se mueve el mouse o toca la pantalla
     window.addEventListener('mousemove', wakeUpUI);
     window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
 
-    // Detectamos cuando la ventana pierde el foco hacia el iframe (clic genuino)
+    // Detectamos cuando se le da play al video (la ventana pierde foco hacia el iframe)
     window.addEventListener('blur', () => {
-        if (!hasInteracted && iframeFocusProtector && document.activeElement && document.activeElement.tagName === 'IFRAME') {
+        // canRegisterPlay nos asegura que el iframe no nos engañó robando foco al instante
+        if (!hasInteracted && canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             hasInteracted = true;
             wakeUpUI();
         }
@@ -505,13 +501,11 @@
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
 
-    // -- LOGICA DE GUARDADO DE CAPÍTULO VISTO --
     if (animeId && season && episode) {
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
         localStorage.setItem(viewedKey, 'true');
     }
     
-    // Configurar Botón Volver
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
     }
@@ -534,7 +528,6 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
-    // --- FUNCIÓN PARA INYECTAR LA TIRA PROTECTORA ---
     function addLogoBlocker(container) {
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
@@ -544,14 +537,11 @@
                 <span class="blocker-sub">HD</span>
             </div>
         `;
-        // Evitar clics falsos hacia el reproductor en esa área
         blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
         });
         container.appendChild(blocker);
-        
-        // Despierta la interfaz asegurando que la tira inicie visible
         wakeUpUI();
     }
 
@@ -577,12 +567,9 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
+        // NUEVA LOGICA DE ODYSEE (A prueba de fallos)
         if (url.includes("odysee.com")) {
-            // Captura todo lo que sigue a /$/embed/ (ej. nombre-video/hash)
-            const match = url.match(/odysee\.com\/\$\/embed\/([^?]+)/);
-            if (match && match[1]) {
-                return `https://odysee.com/$/download/${match[1]}`;
-            }
+            return url.replace('/$/embed/', '/$/download/');
         }
         return url;
     }
@@ -610,11 +597,7 @@
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Reiniciamos todo al cambiar de servidor
-            hasInteracted = false;
-            iframeFocusProtector = false;
-            setTimeout(() => { iframeFocusProtector = true; }, 1000);
-            
+            // Cargar el video limpia e inicia todo otra vez
             loadVideo(url);
             updateDownloadButton(url);
         };
@@ -625,6 +608,12 @@
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
         if (!url) return;
+
+        // AQUÍ ESTÁ LA MAGIA: Forzar siempre el estado inicial al cargar o cambiar un video
+        hasInteracted = false;
+        canRegisterPlay = false;
+        setTimeout(() => { canRegisterPlay = true; }, 1500); // 1.5s de bloqueo contra auto-focus
+
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
