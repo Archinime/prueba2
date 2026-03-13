@@ -20,7 +20,7 @@
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; // 20 segundos
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -73,9 +73,7 @@
     /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7;
-        /* Celeste Fluorescente (Cyan) */
         --accent-color: #ff0055;
-        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -100,7 +98,6 @@
         object-fit: cover;
         z-index: -10; 
         opacity: 0.5;
-        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -142,7 +139,6 @@
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
 
-    /* BOTÓN VOLVER (ESTILO NEON) */
     .back-btn { 
       display: inline-flex;
       align-items: center;
@@ -157,7 +153,6 @@
       padding: 8px 18px;
       border-radius: 50px;
       border: 1px solid rgba(0, 255, 247, 0.3);
-      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -192,47 +187,41 @@
         border: none;
     }
 
-    /* --- CAPA INVISIBLE PARA DETECTAR TOQUES --- */
     .touch-overlay {
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
         z-index: 90;
-        /* Encima del video, pero debajo de la tira blocker */
         cursor: pointer;
     }
     .touch-overlay.inactive {
         display: none;
-        /* Desaparece para que puedas tocar el video debajo */
     }
 
-    /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
+    /* --- TIRA PROTECTORA PERMANENTE --- */
     .logo-blocker {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
-        height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
+        height: 14%;
         min-height: 45px;
-        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
-        z-index: 100; /* Siempre encima de todo */
+        z-index: 100;
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding-top: 1.5%; /* Espaciado adaptable */
+        padding-top: 1.5%;
         pointer-events: auto;
-        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
-        user-select: none; /* Evita que seleccionen el texto */
+        user-select: none; 
         opacity: 1 !important;
         visibility: visible !important;
     }
 
-    /* Línea sutil de neón debajo del bloqueador */
     .logo-blocker::after {
         content: '';
         position: absolute;
@@ -253,7 +242,7 @@
     .blocker-text {
         font-family: 'Poppins', sans-serif;
         font-weight: 800;
-        font-size: clamp(1rem, 2.5vw, 1.4rem); /* Texto responsivo */
+        font-size: clamp(1rem, 2.5vw, 1.4rem);
         color: #fff;
         letter-spacing: 5px;
         text-transform: uppercase;
@@ -271,11 +260,75 @@
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8;
-        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1;
-        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
-        }
+        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+    }
+
+    /* --- OVERLAY DE SIGUIENTE EPISODIO (NUEVO) --- */
+    .next-episode-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 200; /* Por encima de todo */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+    }
+
+    .next-episode-overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto; /* Para que se puedan clickear los botones */
+    }
+
+    .next-title {
+        font-size: clamp(1.2rem, 4vw, 2rem);
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 25px;
+        text-shadow: 0 0 15px var(--primary-color);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    .countdown-number {
+        color: var(--accent-color);
+        font-size: 1.2em;
+        text-shadow: 0 0 15px var(--accent-color);
+    }
+
+    .countdown-wrapper {
+        width: 80%;
+        max-width: 400px;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        position: relative;
+        border: 1px solid rgba(0, 255, 247, 0.2);
+    }
+
+    .countdown-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--primary-color);
+        box-shadow: 0 0 15px var(--primary-color);
+        transition: width 0.05s linear;
+    }
+
+    .countdown-actions {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -354,6 +407,7 @@
         backdrop-filter: blur(5px);
         font-weight: 600;
         min-width: 100px;
+        cursor: pointer;
     }
     
     .nav-btn {
@@ -383,10 +437,23 @@
         transform: scale(1.05);
         text-shadow: 0 0 8px var(--accent-color);
     }
+    
+    /* Botón Especial de Siguiente en el Overlay */
+    #playNextNowBtn {
+        background: rgba(0, 255, 247, 0.2);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
+    }
+
+    #playNextNowBtn:hover {
+        background: var(--primary-color);
+        color: #000;
+        box-shadow: 0 0 30px var(--primary-color);
+        text-shadow: none;
+    }
 
     .btn-hidden { 
-        visibility: hidden;
-        pointer-events: none;
+        display: none !important; /* Usamos display none para que no estorbe en la lógica */
     }
 
     /* --- MEDIA QUERIES --- */
@@ -412,11 +479,18 @@
         #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
         #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        /* Ajuste fino para la tira en móviles */
         .logo-blocker {
             height: 18%;
             min-height: 55px; 
             padding-top: 3%;
+        }
+
+        .countdown-actions {
+            flex-direction: column-reverse;
+            width: 80%;
+        }
+        .countdown-actions .btn {
+            width: 100%;
         }
     }
   </style>
@@ -462,36 +536,29 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD Y ESCUDO DE TOQUES
+    // LÓGICA DE INACTIVIDAD Y ESCUDO DE TOQUES
     // -----------------------------------------------------------
     let activityTimeout;
     let hasInteracted = false; 
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
-    // <-- Nuevo estado para rastrear iframes
+    let countdownInterval;
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
-        
-        // Esconder el escudo (para que dejen tocar el video). La tira ya no se esconde.
         overlays.forEach(o => o.classList.add('inactive'));
-
         clearTimeout(activityTimeout);
         
-        // Verificar si hay un video nativo incrustado en el reproductor y si está pausado
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
 
-        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play y NO está pausado
         if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
-                // ACTIVAR el escudo para atrapar el próximo toque (la tira ya no se altera)
                 overlays.forEach(o => o.classList.remove('inactive')); 
             }, 4500);
         }
     }
 
-    // Eventos generales de la página (fuera del video)
     window.addEventListener('mousemove', wakeUpUI);
     window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('touchmove', wakeUpUI, {passive: true});
@@ -501,18 +568,17 @@
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
-            iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
+            iframeIsPlaying = !iframeIsPlaying; 
             hasInteracted = iframeIsPlaying;    
             wakeUpUI();
- 
             setTimeout(() => window.focus(), 100); 
         }
     });
+
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR
+    // LÓGICA DEL REPRODUCTOR Y AUTO-PLAY
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -537,6 +603,8 @@
         document.title = `Ver ${epData.title} - Archinime`;
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
+        
+        setupNavigation(); // Configuramos botones de navegación primero
         loadVideo(initialLink);
         
         const optContainer = document.getElementById('serverOptions');
@@ -545,28 +613,19 @@
         if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
         
         updateDownloadButton(initialLink);
-        setupNavigation();
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
+    // --- CREADOR DE LA TIRA PROTECTORA ---
     function addLogoBlocker(container) {
-        // 1. Añadir el escudo invisible (Touch Overlay)
         const touchOverlay = document.createElement('div');
-        touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
-        
-        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
+        touchOverlay.className = 'touch-overlay inactive'; 
         touchOverlay.addEventListener('mousemove', wakeUpUI);
-        touchOverlay.addEventListener('click', (e) => {
-            e.preventDefault();
-            wakeUpUI();
-        });
-        touchOverlay.addEventListener('touchstart', (e) => {
-            wakeUpUI();
-        }, {passive: true});
+        touchOverlay.addEventListener('click', (e) => { e.preventDefault(); wakeUpUI(); });
+        touchOverlay.addEventListener('touchstart', (e) => { wakeUpUI(); }, {passive: true});
         container.appendChild(touchOverlay);
 
-        // 2. Añadir la tira protectora
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
         blocker.innerHTML = `
@@ -575,45 +634,92 @@
                 <span class="blocker-sub">HD</span>
             </div>
         `;
-        blocker.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            wakeUpUI(); 
-        });
-        blocker.addEventListener('touchstart', (e) => {
-            wakeUpUI(); 
-        }, {passive: true});
+        blocker.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); wakeUpUI(); });
+        blocker.addEventListener('touchstart', (e) => { wakeUpUI(); }, {passive: true});
         container.appendChild(blocker);
         
         wakeUpUI();
     }
 
-    // --- LÓGICA DE DESCARGA ---
+    // --- CREADOR DE PANTALLA AUTO-PLAY ---
+    function addNextEpisodeOverlay(container) {
+        const nextBtn = document.getElementById('nextBtn');
+        // Solo creamos el overlay si hay un siguiente episodio disponible
+        if(nextBtn.classList.contains('btn-hidden')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'nextEpisodeOverlay';
+        overlay.className = 'next-episode-overlay';
+        overlay.innerHTML = `
+            <div class="next-title">Siguiente episodio en <span class="countdown-number" id="countdownSecs">5</span>...</div>
+            <div class="countdown-wrapper">
+                <div class="countdown-bar" id="countdownBar"></div>
+            </div>
+            <div class="countdown-actions">
+                <button class="btn nav-btn" id="cancelNextBtn">Cancelar</button>
+                <button class="btn" id="playNextNowBtn">Siguiente Ahora</button>
+            </div>
+        `;
+        container.appendChild(overlay);
+
+        document.getElementById('cancelNextBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            cancelCountdown();
+        });
+        
+        document.getElementById('playNextNowBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearInterval(countdownInterval);
+            if(nextBtn && nextBtn.href) window.location.href = nextBtn.href;
+        });
+    }
+
+    function showNextEpisodeCountdown() {
+        const overlay = document.getElementById('nextEpisodeOverlay');
+        const nextBtn = document.getElementById('nextBtn');
+        if (!overlay || nextBtn.classList.contains('btn-hidden')) return; // No hace nada si no hay siguiente capítulo
+
+        overlay.classList.add('active'); // Muestra la pantalla de cristal oscuro
+        
+        const duration = 5000; // 5 Segundos
+        let timeLeft = duration;
+        const bar = document.getElementById('countdownBar');
+        const secsDisplay = document.getElementById('countdownSecs');
+
+        countdownInterval = setInterval(() => {
+            timeLeft -= 50; // Se actualiza rápido para que la barra se mueva fluido
+            const percent = ((duration - timeLeft) / duration) * 100;
+            bar.style.width = percent + '%';
+            secsDisplay.innerText = Math.ceil(timeLeft / 1000);
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = nextBtn.href; // Redirige al siguiente episodio
+            }
+        }, 50);
+    }
+
+    function cancelCountdown() {
+        clearInterval(countdownInterval);
+        const overlay = document.getElementById('nextEpisodeOverlay');
+        if (overlay) overlay.classList.remove('active'); // Oculta la pantalla y te deja en el video
+    }
+
+    // --- LÓGICA DE DESCARGA Y ENLACES ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) {
-               return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-            }
+            if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
             const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (altMatch && altMatch[1]) {
-               return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-            }
+            if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
         }
-        if (url.includes("dropbox.com") && url.includes("dl=0")) {
-             return url.replace('dl=0', 'dl=1');
-        }
+        if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
         if (url.includes("ok.ru/")) {
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-            if (match && match[1]) {
-                return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
-            }
+            if (match && match[1]) return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
         }
-        // LÓGICA DE ODYSEE (Descarga directa automática)
-        if (url.includes("odysee.com")) {
-            return url.replace('/$/embed/', '/$/download/');
-        }
+        if (url.includes("odysee.com")) return url.replace('/$/embed/', '/$/download/');
         return url;
     }
 
@@ -624,7 +730,7 @@
         
         if(directLink && directLink !== '#') {
             dlBtn.setAttribute("target", "_blank");
-            dlBtn.setAttribute("download", ""); // Fuerza la descarga en PC y Móvil
+            dlBtn.setAttribute("download", ""); 
         } else {
             dlBtn.removeAttribute("target");
             dlBtn.removeAttribute("download");
@@ -651,15 +757,26 @@
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
         if (!url) return;
+        
+        clearInterval(countdownInterval); // Limpiar cualquier cuenta regresiva activa
 
         hasInteracted = false;
         canRegisterPlay = false;
         iframeIsPlaying = false;
-        // Resetear el estado si el usuario cambia de servidor
         setTimeout(() => { canRegisterPlay = true; }, 1500);
-        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+
+        // --- EL TRUCO PARA ODYSEE ---
+        // Convertimos el link de iframe de Odysee a un link de descarga directa (.mp4)
+        // Esto fuerza a que se use el reproductor nativo limpio y sin publicidad/endscreens
+        let isNativePlayer = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        if (isVideoFile && !isDrive) {
+        
+        if (url.includes("odysee.com")) {
+            url = url.replace('/$/embed/', '/$/download/');
+            isNativePlayer = true; // Forzamos reproductor nativo
+        }
+
+        if (isNativePlayer && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
             video.controls = true;
@@ -667,18 +784,17 @@
             video.playsInline = true; 
             video.style.width = "100%";
             video.style.height = "100%";
-            video.onerror = function() { loadAsIframe(url, container); };
+            video.onerror = function() { loadAsIframe(url, container); }; // Fallback por si acaso
             
-            video.addEventListener('pause', () => {
-                hasInteracted = false; 
-                wakeUpUI();
-            });
-            video.addEventListener('play', () => {
-                hasInteracted = true;
-                wakeUpUI();
-            });
+            video.addEventListener('pause', () => { hasInteracted = false; wakeUpUI(); });
+            video.addEventListener('play', () => { hasInteracted = true; wakeUpUI(); });
+            
+            // EL EVENTO CLAVE: Cuando termina el video, activamos la cuenta regresiva
+            video.addEventListener('ended', showNextEpisodeCountdown);
+
             container.appendChild(video);
             addLogoBlocker(container);
+            addNextEpisodeOverlay(container); // Añadimos el HTML del overlay oculto
         } else {
             loadAsIframe(url, container);
         }
@@ -698,6 +814,8 @@
         iframe.style.border = "none";
         container.appendChild(iframe);
         addLogoBlocker(container);
+        // Nota: No se puede detectar cuándo termina un Iframe de terceros (como Mega u Ok.ru)
+        // por reglas de seguridad de navegadores (Cross-Origin), así que el Auto-Play aplica a Odysee y videos nativos.
     }
 
     function setupNavigation() {
@@ -709,12 +827,12 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -731,8 +849,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
