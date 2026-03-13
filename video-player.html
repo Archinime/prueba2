@@ -11,16 +11,10 @@
   (function() {
     // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#00f3ff", // Cian Neón (Inicio)
-      "#0066ff", // Azul Eléctrico
-      "#bc13fe", // Morado Protagonista
-      "#ff0055", // Rosa Neón (Acento)
-      "#bc13fe", // Morado (Regreso)
-      "#0066ff", // Azul
-      "#00f3ff"  // Cian (Final para loop perfecto)
+      "#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"
     ];
 
-    const animationDuration = 20000; // 20 segundos
+    const animationDuration = 20000; 
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -75,8 +69,6 @@
         --primary-color: #00fff7;
         --accent-color: #ff0055;
         --text-color: #ffffff;
-        --glass-bg: rgba(0, 0, 0, 0.7);
-        --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     /* --- ESTILOS GENERALES --- */
@@ -264,14 +256,14 @@
         100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
     }
 
-    /* --- OVERLAY DE SIGUIENTE EPISODIO (NUEVO) --- */
+    /* --- OVERLAY DE SIGUIENTE EPISODIO (Para videos nativos) --- */
     .next-episode-overlay {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.85);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        z-index: 200; /* Por encima de todo */
+        z-index: 200;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -285,7 +277,7 @@
     .next-episode-overlay.active {
         opacity: 1;
         visibility: visible;
-        pointer-events: auto; /* Para que se puedan clickear los botones */
+        pointer-events: auto; 
     }
 
     .next-title {
@@ -438,7 +430,6 @@
         text-shadow: 0 0 8px var(--accent-color);
     }
     
-    /* Botón Especial de Siguiente en el Overlay */
     #playNextNowBtn {
         background: rgba(0, 255, 247, 0.2);
         border-color: var(--primary-color);
@@ -453,7 +444,7 @@
     }
 
     .btn-hidden { 
-        display: none !important; /* Usamos display none para que no estorbe en la lógica */
+        display: none !important; 
     }
 
     /* --- MEDIA QUERIES --- */
@@ -578,7 +569,7 @@
     });
 
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR Y AUTO-PLAY
+    // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -604,7 +595,7 @@
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
         
-        setupNavigation(); // Configuramos botones de navegación primero
+        setupNavigation(); 
         loadVideo(initialLink);
         
         const optContainer = document.getElementById('serverOptions');
@@ -617,7 +608,6 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
-    // --- CREADOR DE LA TIRA PROTECTORA ---
     function addLogoBlocker(container) {
         const touchOverlay = document.createElement('div');
         touchOverlay.className = 'touch-overlay inactive'; 
@@ -641,10 +631,8 @@
         wakeUpUI();
     }
 
-    // --- CREADOR DE PANTALLA AUTO-PLAY ---
     function addNextEpisodeOverlay(container) {
         const nextBtn = document.getElementById('nextBtn');
-        // Solo creamos el overlay si hay un siguiente episodio disponible
         if(nextBtn.classList.contains('btn-hidden')) return;
 
         const overlay = document.createElement('div');
@@ -677,24 +665,24 @@
     function showNextEpisodeCountdown() {
         const overlay = document.getElementById('nextEpisodeOverlay');
         const nextBtn = document.getElementById('nextBtn');
-        if (!overlay || nextBtn.classList.contains('btn-hidden')) return; // No hace nada si no hay siguiente capítulo
+        if (!overlay || nextBtn.classList.contains('btn-hidden')) return; 
 
-        overlay.classList.add('active'); // Muestra la pantalla de cristal oscuro
+        overlay.classList.add('active'); 
         
-        const duration = 5000; // 5 Segundos
+        const duration = 5000; 
         let timeLeft = duration;
         const bar = document.getElementById('countdownBar');
         const secsDisplay = document.getElementById('countdownSecs');
 
         countdownInterval = setInterval(() => {
-            timeLeft -= 50; // Se actualiza rápido para que la barra se mueva fluido
+            timeLeft -= 50; 
             const percent = ((duration - timeLeft) / duration) * 100;
             bar.style.width = percent + '%';
             secsDisplay.innerText = Math.ceil(timeLeft / 1000);
 
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
-                window.location.href = nextBtn.href; // Redirige al siguiente episodio
+                window.location.href = nextBtn.href; 
             }
         }, 50);
     }
@@ -702,10 +690,9 @@
     function cancelCountdown() {
         clearInterval(countdownInterval);
         const overlay = document.getElementById('nextEpisodeOverlay');
-        if (overlay) overlay.classList.remove('active'); // Oculta la pantalla y te deja en el video
+        if (overlay) overlay.classList.remove('active'); 
     }
 
-    // --- LÓGICA DE DESCARGA Y ENLACES ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -758,25 +745,18 @@
         container.innerHTML = ''; 
         if (!url) return;
         
-        clearInterval(countdownInterval); // Limpiar cualquier cuenta regresiva activa
+        clearInterval(countdownInterval); 
 
         hasInteracted = false;
         canRegisterPlay = false;
         iframeIsPlaying = false;
         setTimeout(() => { canRegisterPlay = true; }, 1500);
 
-        // --- EL TRUCO PARA ODYSEE ---
-        // Convertimos el link de iframe de Odysee a un link de descarga directa (.mp4)
-        // Esto fuerza a que se use el reproductor nativo limpio y sin publicidad/endscreens
-        let isNativePlayer = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
-        if (url.includes("odysee.com")) {
-            url = url.replace('/$/embed/', '/$/download/');
-            isNativePlayer = true; // Forzamos reproductor nativo
-        }
-
-        if (isNativePlayer && !isDrive) {
+        // CORRECCIÓN: Dejamos que Odysee cargue como Iframe para que no se bloquee.
+        if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
             video.controls = true;
@@ -784,17 +764,15 @@
             video.playsInline = true; 
             video.style.width = "100%";
             video.style.height = "100%";
-            video.onerror = function() { loadAsIframe(url, container); }; // Fallback por si acaso
+            video.onerror = function() { loadAsIframe(url, container); }; 
             
             video.addEventListener('pause', () => { hasInteracted = false; wakeUpUI(); });
             video.addEventListener('play', () => { hasInteracted = true; wakeUpUI(); });
-            
-            // EL EVENTO CLAVE: Cuando termina el video, activamos la cuenta regresiva
             video.addEventListener('ended', showNextEpisodeCountdown);
 
             container.appendChild(video);
             addLogoBlocker(container);
-            addNextEpisodeOverlay(container); // Añadimos el HTML del overlay oculto
+            addNextEpisodeOverlay(container); 
         } else {
             loadAsIframe(url, container);
         }
@@ -814,8 +792,6 @@
         iframe.style.border = "none";
         container.appendChild(iframe);
         addLogoBlocker(container);
-        // Nota: No se puede detectar cuándo termina un Iframe de terceros (como Mega u Ok.ru)
-        // por reglas de seguridad de navegadores (Cross-Origin), así que el Auto-Play aplica a Odysee y videos nativos.
     }
 
     function setupNavigation() {
