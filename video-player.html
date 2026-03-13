@@ -72,8 +72,10 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -97,7 +99,8 @@
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */
+        opacity: 0.5;
+        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -153,7 +156,8 @@
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */
+      border: 1px solid rgba(0, 255, 247, 0.3);
+      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -193,11 +197,13 @@
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        z-index: 90; /* Encima del video, pero debajo de la tira blocker */
+        z-index: 90;
+        /* Encima del video, pero debajo de la tira blocker */
         cursor: pointer;
     }
     .touch-overlay.inactive {
-        display: none; /* Desaparece para que puedas tocar el video debajo */
+        display: none;
+        /* Desaparece para que puedas tocar el video debajo */
     }
 
     /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
@@ -207,7 +213,8 @@
         left: 0;
         width: 100%;
         height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
-        min-height: 45px; /* Altura mínima en móviles pequeños */
+        min-height: 45px;
+        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
@@ -216,22 +223,13 @@
         justify-content: center;
         align-items: flex-start;
         padding-top: 1.5%; /* Espaciado adaptable */
-        pointer-events: auto; /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
+        pointer-events: auto;
+        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
         user-select: none; /* Evita que seleccionen el texto */
-        
-        /* Aparece al INSTANTE sin transición para que no se filtre el logo oculto */
         opacity: 1 !important;
         visibility: visible !important;
-        transition: opacity 0s, visibility 0s; 
-    }
-
-    .logo-blocker.hidden-strip {
-        /* Desaparece suavemente después del tiempo establecido */
-        opacity: 0 !important;
-        visibility: hidden !important;
-        transition: opacity 0.4s ease, visibility 0s linear 0.4s;
     }
 
     /* Línea sutil de neón debajo del bloqueador */
@@ -273,8 +271,11 @@
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+        0% { opacity: 0.8;
+        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1;
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+        }
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -464,52 +465,52 @@
     // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD Y ESCUDO DE TOQUES
     // -----------------------------------------------------------
     let activityTimeout;
+    let hasInteracted = false; 
+    let canRegisterPlay = false;
+    let iframeIsPlaying = false;
+    // <-- Nuevo estado para rastrear iframes
 
     function wakeUpUI() {
-        const blockers = document.querySelectorAll('.logo-blocker');
         const overlays = document.querySelectorAll('.touch-overlay');
         
-        // 1. Siempre mostramos la tira al detectar interacción
-        blockers.forEach(b => b.classList.remove('hidden-strip'));
+        // Esconder el escudo (para que dejen tocar el video). La tira ya no se esconde.
         overlays.forEach(o => o.classList.add('inactive'));
 
         clearTimeout(activityTimeout);
         
-        // 2. Evaluamos el estado real del reproductor
+        // Verificar si hay un video nativo incrustado en el reproductor y si está pausado
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
 
-        // 3. Lógica limpia:
-        // Si el video nativo está pausado, NO activamos el temporizador (la tira se queda visible).
-        // Si está reproduciendo (o si es un iframe), activamos el temporizador para ocultarla.
-        if (!isNativePaused) {
+        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play y NO está pausado
+        if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
-                blockers.forEach(b => b.classList.add('hidden-strip'));
+                // ACTIVAR el escudo para atrapar el próximo toque (la tira ya no se altera)
                 overlays.forEach(o => o.classList.remove('inactive')); 
-            }, 4000);
+            }, 4500);
         }
     }
 
-    // Eventos generales para despertar la interfaz
-    ['mousemove', 'touchstart', 'touchmove', 'click', 'keydown', 'scroll', 'focus'].forEach(evt => {
-        window.addEventListener(evt, wakeUpUI, {passive: true});
-    });
+    // Eventos generales de la página (fuera del video)
+    window.addEventListener('mousemove', wakeUpUI);
+    window.addEventListener('touchstart', wakeUpUI, {passive: true});
+    window.addEventListener('touchmove', wakeUpUI, {passive: true});
+    window.addEventListener('touchend', wakeUpUI, {passive: true});
+    window.addEventListener('click', wakeUpUI);
+    window.addEventListener('scroll', wakeUpUI, {passive: true});
+    window.addEventListener('keydown', wakeUpUI);
+    window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos el toque en el IFRAME (cuando la página pierde el foco)
+    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
     window.addEventListener('blur', () => {
-        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+        if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
+            iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
+            hasInteracted = iframeIsPlaying;    
             wakeUpUI();
-            
-            // Fix para móviles: Quitamos suavemente el foco del iframe para asegurarnos 
-            // de que el próximo toque que des volverá a registrarse correctamente,
-            // rompiendo el ciclo de la tira "atascada".
-            setTimeout(() => {
-                window.focus();
-                if(document.activeElement) document.activeElement.blur();
-            }, 300);
+ 
+            setTimeout(() => window.focus(), 100); 
         }
     });
-
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
@@ -550,9 +551,11 @@
     }
 
     function addLogoBlocker(container) {
+        // 1. Añadir el escudo invisible (Touch Overlay)
         const touchOverlay = document.createElement('div');
-        touchOverlay.className = 'touch-overlay inactive'; 
+        touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
         
+        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
             e.preventDefault();
@@ -563,6 +566,7 @@
         }, {passive: true});
         container.appendChild(touchOverlay);
 
+        // 2. Añadir la tira protectora
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
         blocker.innerHTML = `
@@ -648,9 +652,13 @@
         container.innerHTML = ''; 
         if (!url) return;
 
+        hasInteracted = false;
+        canRegisterPlay = false;
+        iframeIsPlaying = false;
+        // Resetear el estado si el usuario cambia de servidor
+        setTimeout(() => { canRegisterPlay = true; }, 1500);
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -661,10 +669,14 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            // Eventos específicos para video nativo (super exactos)
-            video.addEventListener('pause', () => { wakeUpUI(); });
-            video.addEventListener('play', () => { wakeUpUI(); });
-            
+            video.addEventListener('pause', () => {
+                hasInteracted = false; 
+                wakeUpUI();
+            });
+            video.addEventListener('play', () => {
+                hasInteracted = true;
+                wakeUpUI();
+            });
             container.appendChild(video);
             addLogoBlocker(container);
         } else {
@@ -697,13 +709,12 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
-
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -720,7 +731,8 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error(e);
+        }
     }
   </script>
 </body>
