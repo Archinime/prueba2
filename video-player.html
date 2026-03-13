@@ -506,9 +506,25 @@
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
-            hasInteracted = iframeIsPlaying;    // Si está "reproduciendo" se ocultará, si "pausó" se mantendrá la tira
+            hasInteracted = iframeIsPlaying;    // Sincronizamos con el temporizador
             wakeUpUI();
-            setTimeout(() => window.focus(), 100); 
+            
+            // --- FIX AVANZADO PARA MÓVILES ---
+            // Le quitamos el foco al iframe y forzamos a la ventana a recuperarlo usando
+            // un botón invisible. Así, el siguiente toque sobre el reproductor
+            // volverá a disparar este evento 'blur' correctamente.
+            setTimeout(() => {
+                if(document.activeElement) document.activeElement.blur();
+                let tempBtn = document.createElement('button');
+                tempBtn.style.position = 'fixed';
+                tempBtn.style.top = '0';
+                tempBtn.style.left = '0';
+                tempBtn.style.opacity = '0';
+                document.body.appendChild(tempBtn);
+                tempBtn.focus();
+                document.body.removeChild(tempBtn);
+                window.focus();
+            }, 200);
         }
     });
 
@@ -560,24 +576,9 @@
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
             e.preventDefault();
-            
-            // --- FIX PARA MÓVILES (Sincronización de toques) ---
-            // Forzamos el estado a "reproduciendo" al despertar la interfaz.
-            // Así, el siguiente toque (que será para pausar) se registrará correctamente
-            // y la tira protectora se mantendrá visible mientras el video esté en pausa.
-            iframeIsPlaying = true;
-            hasInteracted = true;
-            // ----------------------------------------------------
-            
             wakeUpUI();
         });
         touchOverlay.addEventListener('touchstart', (e) => {
-            
-            // --- FIX PARA MÓVILES ---
-            iframeIsPlaying = true;
-            hasInteracted = true;
-            // ------------------------
-            
             wakeUpUI();
         }, {passive: true});
         container.appendChild(touchOverlay);
