@@ -399,10 +399,10 @@
         #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
         #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        /* Ajuste fino para la tira en móviles - ¡HACERLA MÁS GRANDE! */
+        /* Ajuste fino para la tira en móviles */
         .logo-blocker {
-            height: 22%; /* Aumentado para cubrir mejor en celular */
-            min-height: 65px; /* Altura base asegurada */
+            height: 22%;
+            min-height: 65px; 
             padding-top: 4%;
         }
     }
@@ -432,11 +432,7 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#" target="_blank">
-            ⬇ Descargar
-        </a>
-        
+        <a id="downloadBtn" class="btn" href="#" target="_blank">⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
@@ -462,9 +458,17 @@
         
         // Solo escondemos si el usuario ya inició de verdad
         if (hasInteracted) {
-            // AUMENTADO A 4.5 SEGUNDOS (4500ms) PARA QUE DURE MÁS QUE LOS CONTROLES MÓVILES
             activityTimeout = setTimeout(() => {
                 blockers.forEach(b => b.classList.add('hidden-strip'));
+                
+                // --- EL TRUCO PARA MÓVILES ---
+                // Una vez que ocultamos la tira, le quitamos el foco al iframe (video).
+                // Así, el siguiente toque que haga el usuario sobre el video 
+                // volverá a detectarse como un "blur" y despertará la tira de nuevo.
+                if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+                    document.activeElement.blur();
+                    window.focus();
+                }
             }, 4500);
         }
     }
@@ -477,7 +481,7 @@
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play al video (la ventana pierde foco hacia el iframe)
+    // Detectamos cuando se le da play o se toca el video (la ventana pierde foco hacia el iframe)
     window.addEventListener('blur', () => {
         // canRegisterPlay nos asegura que el iframe no nos engañó robando foco al instante
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
@@ -569,7 +573,6 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // NUEVA LOGICA DE ODYSEE (A prueba de fallos)
         if (url.includes("odysee.com")) {
             return url.replace('/$/embed/', '/$/download/');
         }
@@ -582,9 +585,7 @@
         dlBtn.href = directLink || '#';
         
         if(directLink && directLink !== '#') {
-            // Siempre abrimos en nueva pestaña para que el celular maneje la descarga naturalmente
             dlBtn.setAttribute("target", "_blank");
-            // Nos aseguramos de NO tener el atributo download activo porque rompe en móviles
             dlBtn.removeAttribute("download");
         } else {
             dlBtn.removeAttribute("target");
@@ -601,7 +602,6 @@
         btn.onclick = () => {
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            // Cargar el video limpia e inicia todo otra vez
             loadVideo(url);
             updateDownloadButton(url);
         };
