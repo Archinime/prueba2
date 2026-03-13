@@ -62,7 +62,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-})();
+  })();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -399,11 +399,11 @@
         #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
         #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        /* Ajuste fino para la tira en móviles - ¡HACERLA MÁS GRANDE! */
+        /* Ajuste fino para la tira en móviles - Reducida para que no estorbe */
         .logo-blocker {
-            height: 22%; /* Aumentado para cubrir mejor en celular */
-            min-height: 65px; /* Altura base asegurada */
-            padding-top: 4%;
+            height: 17%; /* Reducido un poquito para móviles */
+            min-height: 52px; /* Altura base un poco menor */
+            padding-top: 3%;
         }
     }
   </style>
@@ -455,10 +455,15 @@
     let hasInteracted = false; 
     let canRegisterPlay = false; // Escudo protector contra iframes tramposos
 
-    function wakeUpUI() {
+    function wakeUpUI(event) {
         const blockers = document.querySelectorAll('.logo-blocker');
         blockers.forEach(b => b.classList.remove('hidden-strip'));
         clearTimeout(activityTimeout);
+        
+        // Si el evento fue una pausa directa del video, nos aseguramos de no ocultar la tira
+        if (event && event.type === 'pause') {
+            hasInteracted = false;
+        }
         
         // Solo escondemos si el usuario ya inició de verdad
         if (hasInteracted) {
@@ -469,12 +474,12 @@
         }
     }
 
-    // Despierta la interfaz con varios eventos para abarcar mejor los móviles
-    window.addEventListener('mousemove', wakeUpUI);
-    window.addEventListener('touchstart', wakeUpUI, {passive: true});
-    window.addEventListener('touchmove', wakeUpUI, {passive: true});
-    window.addEventListener('scroll', wakeUpUI, {passive: true});
-    window.addEventListener('keydown', wakeUpUI);
+    // Despierta la interfaz con varios eventos. 
+    // IMPORTANTE: El tercer parámetro 'true' fuerza la captura del evento antes de que el reproductor lo bloquee.
+    ['mousemove', 'touchstart', 'touchmove', 'scroll', 'keydown', 'click'].forEach(evt => {
+        window.addEventListener(evt, wakeUpUI, true);
+    });
+
     window.addEventListener('focus', wakeUpUI);
 
     // Detectamos cuando se le da play al video (la ventana pierde foco hacia el iframe)
@@ -537,12 +542,11 @@
         blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            wakeUpUI(); // Extra seguridad al tocar la tira
+            wakeUpUI(e); // Extra seguridad al tocar la tira
         });
         blocker.addEventListener('touchstart', (e) => {
-            wakeUpUI(); // Extra seguridad en táctil
+            wakeUpUI(e); // Extra seguridad en táctil
         }, {passive: true});
-        
         container.appendChild(blocker);
         wakeUpUI();
     }
@@ -569,9 +573,16 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // NUEVA LOGICA DE ODYSEE (A prueba de fallos)
+        // NUEVA LOGICA DE ODYSEE (A prueba de fallos y forzada a descarga)
         if (url.includes("odysee.com")) {
-            return url.replace('/$/embed/', '/$/download/');
+            // Reemplaza /embed/ por /download/ y añade un parámetro para servidores estrictos
+            let newUrl = url.replace(/\/(\$)\/embed\//, '/$1/download/');
+            if (!newUrl.includes("?")) {
+                newUrl += "?download=true";
+            } else {
+                newUrl += "&download=true";
+            }
+            return newUrl;
         }
         return url;
     }
@@ -582,10 +593,15 @@
         dlBtn.href = directLink || '#';
         
         if(directLink && directLink !== '#') {
-            // Siempre abrimos en nueva pestaña para que el celular maneje la descarga naturalmente
             dlBtn.setAttribute("target", "_blank");
-            // Nos aseguramos de NO tener el atributo download activo porque rompe en móviles
-            dlBtn.removeAttribute("download");
+            
+            // Forzamos el atributo download ESPECÍFICAMENTE para los links de Odysee
+            if (url.includes("odysee.com")) {
+                dlBtn.setAttribute("download", "Archinime_Video.mp4");
+            } else {
+                // Lo removemos para el resto para no romper móviles
+                dlBtn.removeAttribute("download");
+            }
         } else {
             dlBtn.removeAttribute("target");
         }
@@ -631,13 +647,13 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            video.addEventListener('pause', () => {
+            video.addEventListener('pause', (e) => {
                 hasInteracted = false; 
-                wakeUpUI();
+                wakeUpUI(e);
             });
-            video.addEventListener('play', () => {
+            video.addEventListener('play', (e) => {
                 hasInteracted = true;
-                wakeUpUI();
+                wakeUpUI(e);
             });
             container.appendChild(video);
             addLogoBlocker(container);
@@ -676,6 +692,7 @@
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
