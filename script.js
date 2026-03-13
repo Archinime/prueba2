@@ -428,13 +428,21 @@ function smartLinkConvert(input) {
     }
     
     // --- NUEVA LÓGICA PARA OK.RU ---
-    // Usamos includes y un simple replace textual, es más directo y efectivo que usar regex aquí.
-    if (val.includes('ok.ru/video/')) {
-        input.value = val.replace('ok.ru/video/', 'ok.ru/videoembed/');
+    // Busca "ok.ru/video/" usando expresiones regulares para capturar variantes (http, https, m.ok.ru, etc.)
+    if (/ok\.ru\/video\//i.test(val)) {
+        input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
         changed = true;
         showToast("Link ok.ru convertido a /videoembed/");
-    }
+}
     // -------------------------------
+
+    // --- NUEVA LÓGICA PARA ODYSEE ---
+    if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
+        input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
+        changed = true;
+        showToast("Link Odysee convertido a Embed");
+    }
+    // --------------------------------
     
     // Si cambió el link, forzamos la re-verificación inmediata
     if(changed) {
