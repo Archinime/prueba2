@@ -460,24 +460,23 @@
     // -----------------------------------------------------------
     let activityTimeout;
     let hasInteracted = false; // Registra si el usuario ya empezó el video
+    let iframeFocusProtector = false;
+
+    // Permitimos que el "blur" se registre como interacción solo después de 1 segundo
+    // para evitar que iframes de terceros roben el foco automáticamente al cargar la web.
+    setTimeout(() => { iframeFocusProtector = true; }, 1000);
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
-        
-        // Aparecer INSTANTÁNEAMENTE, quitando la clase que lo oculta
-        blockers.forEach(b => {
-            b.classList.remove('hidden-strip');
-        });
-        
+        // Aparecer INSTANTÁNEAMENTE
+        blockers.forEach(b => b.classList.remove('hidden-strip'));
         clearTimeout(activityTimeout);
         
-        // Solo empezamos a esconder la tira si el usuario ya inició o interactuó con el reproductor
+        // Solo escondemos si el usuario ya inició o interactuó intencionalmente
         if (hasInteracted) {
             activityTimeout = setTimeout(() => {
-                blockers.forEach(b => {
-                    b.classList.add('hidden-strip');
-                });
-            }, 3000); // Se esconde tras 3 segundos de inactividad
+                blockers.forEach(b => b.classList.add('hidden-strip'));
+            }, 3000);
         }
     }
 
@@ -486,18 +485,9 @@
     window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
 
-    // Detectar el primer clic real en la página como "inicio del video"
-    window.addEventListener('mousedown', () => {
-        if (!hasInteracted) {
-            hasInteracted = true;
-            wakeUpUI();
-        }
-    });
-
-    // Truco esencial: Si el video es un iframe, los clics ahí dentro no nos llegan,
-    // pero podemos detectar cuando la ventana principal "pierde el foco" hacia el iframe
+    // Detectamos cuando la ventana pierde el foco hacia el iframe (clic genuino)
     window.addEventListener('blur', () => {
-        if (!hasInteracted && document.activeElement && document.activeElement.tagName === 'IFRAME') {
+        if (!hasInteracted && iframeFocusProtector && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             hasInteracted = true;
             wakeUpUI();
         }
@@ -561,8 +551,7 @@
         });
         container.appendChild(blocker);
         
-        // Llamar a wakeUpUI al instante. Como `hasInteracted` es falso al cargar la web,
-        // la tira se quedará visible SIN DESAPARECER hasta que el usuario le dé play.
+        // Despierta la interfaz asegurando que la tira inicie visible
         wakeUpUI();
     }
 
@@ -589,9 +578,10 @@
             }
         }
         if (url.includes("odysee.com")) {
-            const match = url.match(/odysee\.com\/\$\/embed\/([^:]+):([^/?]+)/);
-            if (match && match[1] && match[2]) {
-                return `https://odysee.com/$/download/${match[1]}/${match[2]}`;
+            // Captura todo lo que sigue a /$/embed/ (ej. nombre-video/hash)
+            const match = url.match(/odysee\.com\/\$\/embed\/([^?]+)/);
+            if (match && match[1]) {
+                return `https://odysee.com/$/download/${match[1]}`;
             }
         }
         return url;
@@ -620,8 +610,10 @@
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Si cambian de servidor, reiniciamos la interacción para que tape de nuevo el video
-            hasInteracted = false; 
+            // Reiniciamos todo al cambiar de servidor
+            hasInteracted = false;
+            iframeFocusProtector = false;
+            setTimeout(() => { iframeFocusProtector = true; }, 1000);
             
             loadVideo(url);
             updateDownloadButton(url);
@@ -646,17 +638,15 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            // Si le dan pausa, mostramos y dejamos anclada la tira (hasInteracted = false momentáneo)
             video.addEventListener('pause', () => {
                 hasInteracted = false; 
                 wakeUpUI();
             });
-            // Si le dan play, que inicie la cuenta de 3s para ocultarse
             video.addEventListener('play', () => {
                 hasInteracted = true;
                 wakeUpUI();
             });
-
+            
             container.appendChild(video);
             addLogoBlocker(container);
         } else {
@@ -691,9 +681,11 @@
                         flatList.push({ s: sKey, e: eKey });
                     });
                 });
+                
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
