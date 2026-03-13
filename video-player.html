@@ -37,6 +37,7 @@
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
+
     const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
@@ -45,6 +46,7 @@
     };
 
     const lerp = (start, end, t) => start + (end - start) * t;
+
     setInterval(() => {
       currentProgress += step;
       if (currentProgress >= segments) {
@@ -62,7 +64,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-})();
+  })();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,7 +75,7 @@
     /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
+        --accent-color: #ff0055;  /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -413,7 +415,7 @@
         
         /* Ajuste fino para la tira en móviles */
         .logo-blocker {
-            height: 18%; 
+            height: 18%;
             min-height: 55px; 
             padding-top: 3%;
         }
@@ -466,6 +468,7 @@
     let activityTimeout;
     let hasInteracted = false; 
     let canRegisterPlay = false;
+    let iframeIsPlaying = false; // <-- Nuevo estado para rastrear iframes
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
@@ -477,11 +480,16 @@
 
         clearTimeout(activityTimeout);
         
-        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play
-        if (hasInteracted) {
+        // Verificar si hay un video nativo incrustado en el reproductor y si está pausado
+        const videoElem = document.querySelector('#playerContainer video');
+        const isNativePaused = videoElem ? videoElem.paused : false;
+
+        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play y NO está pausado
+        if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
                 // Esconder tira y ACTIVAR el escudo para atrapar el próximo toque
                 blockers.forEach(b => b.classList.add('hidden-strip'));
+            
                 overlays.forEach(o => o.classList.remove('inactive')); 
             }, 4500);
         }
@@ -497,10 +505,11 @@
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play inicial al video (la página pierde el foco)
+    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
-            hasInteracted = true;
+            iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
+            hasInteracted = iframeIsPlaying;    // Si está "reproduciendo" se ocultará, si "pausó" se mantendrá la tira
             wakeUpUI();
             setTimeout(() => window.focus(), 100); 
         }
@@ -559,7 +568,6 @@
         touchOverlay.addEventListener('touchstart', (e) => {
             wakeUpUI();
         }, {passive: true});
-        
         container.appendChild(touchOverlay);
 
         // 2. Añadir la tira protectora
@@ -579,7 +587,6 @@
         blocker.addEventListener('touchstart', (e) => {
             wakeUpUI(); 
         }, {passive: true});
-        
         container.appendChild(blocker);
         
         wakeUpUI();
@@ -651,8 +658,8 @@
 
         hasInteracted = false;
         canRegisterPlay = false;
+        iframeIsPlaying = false; // Resetear el estado si el usuario cambia de servidor
         setTimeout(() => { canRegisterPlay = true; }, 1500);
-
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
@@ -706,6 +713,7 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
@@ -727,7 +735,8 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error(e);
+        }
     }
   </script>
 </body>
