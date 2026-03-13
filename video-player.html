@@ -468,7 +468,23 @@
     let activityTimeout;
     let hasInteracted = false; 
     let canRegisterPlay = false;
-    let iframeIsPlaying = false; // <-- Nuevo estado para rastrear iframes
+    let iframeIsPlaying = false; 
+
+    // ¡NUEVO!: Utilidad para obligar a los móviles a detectar el segundo toque
+    function pullFocusFromIframe() {
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+            const tempInput = document.createElement('input');
+            tempInput.setAttribute('readonly', 'true');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.pointerEvents = 'none';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.blur();
+            document.body.removeChild(tempInput);
+            window.focus();
+        }
+    }
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
@@ -489,28 +505,34 @@
             activityTimeout = setTimeout(() => {
                 // Esconder tira y ACTIVAR el escudo para atrapar el próximo toque
                 blockers.forEach(b => b.classList.add('hidden-strip'));
-            
                 overlays.forEach(o => o.classList.remove('inactive')); 
             }, 4500);
         }
     }
 
+    const handleGlobalInteraction = () => {
+        pullFocusFromIframe(); // Saca el foco del iframe en móviles
+        wakeUpUI();
+    };
+
     // Eventos generales de la página (fuera del video)
-    window.addEventListener('mousemove', wakeUpUI);
-    window.addEventListener('touchstart', wakeUpUI, {passive: true});
+    window.addEventListener('mousemove', wakeUpUI); // Mouse move no roba el foco, es más suave
+    window.addEventListener('click', handleGlobalInteraction);
+    window.addEventListener('touchstart', handleGlobalInteraction, {passive: true});
     window.addEventListener('touchmove', wakeUpUI, {passive: true});
     window.addEventListener('touchend', wakeUpUI, {passive: true});
-    window.addEventListener('click', wakeUpUI);
     window.addEventListener('scroll', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
+    // Detectamos cuando se le da play/pausa al video
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
             hasInteracted = iframeIsPlaying;    // Si está "reproduciendo" se ocultará, si "pausó" se mantendrá la tira
             wakeUpUI();
+            
+            // Intento automático para PC de recuperar el foco
             setTimeout(() => window.focus(), 100); 
         }
     });
@@ -559,13 +581,14 @@
         const touchOverlay = document.createElement('div');
         touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
         
-        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
+        // Atrapa movimientos para despertar la UI y RECUPERAR EL FOCO
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
-            e.preventDefault();
+            pullFocusFromIframe();
             wakeUpUI();
         });
         touchOverlay.addEventListener('touchstart', (e) => {
+            pullFocusFromIframe();
             wakeUpUI();
         }, {passive: true});
         container.appendChild(touchOverlay);
@@ -582,9 +605,11 @@
         blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            pullFocusFromIframe();
             wakeUpUI(); 
         });
         blocker.addEventListener('touchstart', (e) => {
+            pullFocusFromIframe();
             wakeUpUI(); 
         }, {passive: true});
         container.appendChild(blocker);
