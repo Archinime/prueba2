@@ -37,7 +37,6 @@
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
-
     const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
@@ -46,7 +45,6 @@
     };
 
     const lerp = (start, end, t) => start + (end - start) * t;
-
     setInterval(() => {
       currentProgress += step;
       if (currentProgress >= segments) {
@@ -75,7 +73,7 @@
     /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055;  /* Rosado Fluorescente (Neon Pink) */
+        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -468,23 +466,7 @@
     let activityTimeout;
     let hasInteracted = false; 
     let canRegisterPlay = false;
-    let iframeIsPlaying = false; 
-
-    // ¡NUEVO!: Utilidad para obligar a los móviles a detectar el segundo toque
-    function pullFocusFromIframe() {
-        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
-            const tempInput = document.createElement('input');
-            tempInput.setAttribute('readonly', 'true');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.pointerEvents = 'none';
-            document.body.appendChild(tempInput);
-            tempInput.focus();
-            tempInput.blur();
-            document.body.removeChild(tempInput);
-            window.focus();
-        }
-    }
+    let iframeIsPlaying = false; // <-- Estado simulado para iframes
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
@@ -510,29 +492,22 @@
         }
     }
 
-    const handleGlobalInteraction = () => {
-        pullFocusFromIframe(); // Saca el foco del iframe en móviles
-        wakeUpUI();
-    };
-
     // Eventos generales de la página (fuera del video)
-    window.addEventListener('mousemove', wakeUpUI); // Mouse move no roba el foco, es más suave
-    window.addEventListener('click', handleGlobalInteraction);
-    window.addEventListener('touchstart', handleGlobalInteraction, {passive: true});
+    window.addEventListener('mousemove', wakeUpUI);
+    window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('touchmove', wakeUpUI, {passive: true});
     window.addEventListener('touchend', wakeUpUI, {passive: true});
+    window.addEventListener('click', wakeUpUI);
     window.addEventListener('scroll', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play/pausa al video
+    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
             hasInteracted = iframeIsPlaying;    // Si está "reproduciendo" se ocultará, si "pausó" se mantendrá la tira
             wakeUpUI();
-            
-            // Intento automático para PC de recuperar el foco
             setTimeout(() => window.focus(), 100); 
         }
     });
@@ -581,14 +556,28 @@
         const touchOverlay = document.createElement('div');
         touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
         
-        // Atrapa movimientos para despertar la UI y RECUPERAR EL FOCO
+        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
-            pullFocusFromIframe();
+            e.preventDefault();
+            
+            // --- FIX PARA MÓVILES (Sincronización de toques) ---
+            // Forzamos el estado a "reproduciendo" al despertar la interfaz.
+            // Así, el siguiente toque (que será para pausar) se registrará correctamente
+            // y la tira protectora se mantendrá visible mientras el video esté en pausa.
+            iframeIsPlaying = true;
+            hasInteracted = true;
+            // ----------------------------------------------------
+            
             wakeUpUI();
         });
         touchOverlay.addEventListener('touchstart', (e) => {
-            pullFocusFromIframe();
+            
+            // --- FIX PARA MÓVILES ---
+            iframeIsPlaying = true;
+            hasInteracted = true;
+            // ------------------------
+            
             wakeUpUI();
         }, {passive: true});
         container.appendChild(touchOverlay);
@@ -605,11 +594,9 @@
         blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            pullFocusFromIframe();
             wakeUpUI(); 
         });
         blocker.addEventListener('touchstart', (e) => {
-            pullFocusFromIframe();
             wakeUpUI(); 
         }, {passive: true});
         container.appendChild(blocker);
@@ -685,6 +672,7 @@
         canRegisterPlay = false;
         iframeIsPlaying = false; // Resetear el estado si el usuario cambia de servidor
         setTimeout(() => { canRegisterPlay = true; }, 1500);
+
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
@@ -706,6 +694,7 @@
                 hasInteracted = true;
                 wakeUpUI();
             });
+            
             container.appendChild(video);
             addLogoBlocker(container);
         } else {
@@ -738,12 +727,13 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
+
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -760,8 +750,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
