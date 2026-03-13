@@ -67,7 +67,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     /* --- VARIABLES --- */
@@ -126,7 +126,6 @@
     }
     
     /* --- NAVEGACIÓN SUPERIOR --- */
-    /* CAMBIO 2: Fondo degradado para simular efecto en PC */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -134,7 +133,6 @@
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
-        /* Efecto visual añadido */
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
         border-radius: 0 0 15px 15px;
@@ -190,6 +188,71 @@
         border: none;
     }
 
+    /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
+    .logo-blocker {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
+        min-height: 45px; /* Altura mínima en móviles pequeños */
+        background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 100; /* Siempre encima del video */
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 1.5%; /* Espaciado adaptable */
+        pointer-events: auto; /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        user-select: none; /* Evita que seleccionen el texto */
+    }
+
+    /* Línea sutil de neón debajo del bloqueador */
+    .logo-blocker::after {
+        content: '';
+        position: absolute;
+        bottom: 25%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.3;
+    }
+
+    .blocker-content {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .blocker-text {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: clamp(1rem, 2.5vw, 1.4rem); /* Texto responsivo */
+        color: #fff;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+        animation: neonPulse 2s infinite alternate;
+    }
+
+    .blocker-sub {
+        font-family: 'Poppins', sans-serif;
+        font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+        color: var(--accent-color);
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px var(--accent-color);
+    }
+
+    @keyframes neonPulse {
+        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+    }
+
     /* --- OPCIONES DE SERVIDOR --- */
     .options { 
         display: flex;
@@ -234,10 +297,9 @@
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
+    /* --- CONTROLES --- */
     .controls { 
         display: grid;
-        /* COL 1: Anterior, COL 2: Descargar (Flexible), COL 3: Siguiente */
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: 15px; 
@@ -246,10 +308,9 @@
         width: 100%;
     }
     
-    /* Posicionamiento específico en la Grid */
-    #prevBtn { justify-self: start; }  /* Siempre a la izquierda */
-    #nextBtn { justify-self: end; }    /* Siempre a la derecha */
-    #downloadBtn { justify-self: center; } /* Siempre al centro */
+    #prevBtn { justify-self: start; }
+    #nextBtn { justify-self: end; }
+    #downloadBtn { justify-self: center; }
 
     /* ESTILOS DE LOS BOTONES */
     .btn { 
@@ -265,14 +326,11 @@
         justify-content: center;
         gap: 8px;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        /* Efecto rebote suave */
         backdrop-filter: blur(5px);
         font-weight: 600;
         min-width: 100px;
-        /* Tamaño mínimo para consistencia */
     }
     
-    /* EFECTO CELESTE (ANTERIOR / SIGUIENTE) */
     .nav-btn {
         border-color: rgba(0, 255, 247, 0.3);
     }
@@ -286,7 +344,6 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
-    /* ESTILO ESPECÍFICO DESCARGAR (ROSADO) */
     #downloadBtn {
         border-color: rgba(255, 0, 85, 0.4);
         background: rgba(255, 0, 85, 0.05);
@@ -302,21 +359,15 @@
         text-shadow: 0 0 8px var(--accent-color);
     }
 
-    /* CLASE IMPORTANTE: OCULTA PERO MANTIENE EL ESPACIO */
     .btn-hidden { 
         visibility: hidden;
-        /* No se ve */
         pointer-events: none;
-        /* No se puede clickear */
-        /* NO usamos display: none, para que ocupe espacio en la grid */
     }
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
-
         .top-nav { justify-content: space-between; }
-
         .options {
             overflow-x: auto;
             white-space: nowrap;
@@ -326,34 +377,19 @@
         }
         .options::-webkit-scrollbar { display: none; }
 
-        /* CONTROLES MÓVIL (2 FILAS) */
         .controls {
-            grid-template-columns: 1fr 1fr; /* 2 columnas iguales */
-            grid-template-rows: auto auto; /* 2 filas */
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: auto auto; 
             gap: 10px;
         }
 
-        /* Fila 1: Anterior (Izq) y Siguiente (Der) */
-        #prevBtn { 
-            grid-column: 1;
-            grid-row: 1; 
-            justify-self: start; 
-            width: auto;
-        }
+        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        #nextBtn { 
-            grid-column: 2;
-            grid-row: 1; 
-            justify-self: end; 
-            width: auto;
-        }
-
-        /* Fila 2: Descargar (Ocupa todo el ancho) */
-        #downloadBtn { 
-            grid-column: 1 / -1;
-            grid-row: 2;
-            width: 100%; /* Botón grande para descargar */
-            box-sizing: border-box;
+        /* Ajuste fino para la tira en móviles */
+        .logo-blocker {
+            padding-top: 3%;
         }
     }
   </style>
@@ -397,7 +433,6 @@
     document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
   </script>
 
-
   <script>
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
@@ -413,15 +448,11 @@
 
     // -- LOGICA DE GUARDADO DE CAPÍTULO VISTO --
     if (animeId && season && episode) {
-        // Creamos una clave única para este capitulo: watched_ID_TEMP_EP
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
-        // Guardamos en la memoria local que ya se vio
         localStorage.setItem(viewedKey, 'true');
     }
-    // ------------------------------------------
-
-    // CAMBIO EN LA LÓGICA DEL BOTÓN VOLVER
-    // Solo actualizamos si hay animeId, y eliminamos la redirección a index.html
+    
+    // Configurar Botón Volver
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
     }
@@ -444,7 +475,25 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
-    // CAMBIO EN LA FUNCIÓN DE DESCARGA
+    // --- FUNCIÓN PARA INYECTAR LA TIRA PROTECTORA ---
+    function addLogoBlocker(container) {
+        const blocker = document.createElement('div');
+        blocker.className = 'logo-blocker';
+        blocker.innerHTML = `
+            <div class="blocker-content">
+                <span class="blocker-text">ARCHINIME</span>
+                <span class="blocker-sub">VIP</span>
+            </div>
+        `;
+        // Evitar que un clic o toque en la tira propague el evento al iframe
+        blocker.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        container.appendChild(blocker);
+    }
+
+    // --- LÓGICA DE DESCARGA (ODYSEE, DRIVE, OK.RU) ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         
@@ -465,25 +514,21 @@
              return url.replace('dl=0', 'dl=1');
         }
 
-        // --- NUEVA LÓGICA PARA OK.RU ---
+        // OK.RU logic
         if (url.includes("ok.ru/")) {
-            // Esta expresión regular extrae el ID, ya sea que la URL use "/videoembed/" o "/video/"
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
             if (match && match[1]) {
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // -------------------------------
 
-        // --- NUEVA LÓGICA PARA ODYSEE ---
+        // ODYSEE logic
         if (url.includes("odysee.com")) {
-            // Convierte https://odysee.com/$/embed/Nombre:id a https://odysee.com/$/download/Nombre/id
             const match = url.match(/odysee\.com\/\$\/embed\/([^:]+):([^/?]+)/);
             if (match && match[1] && match[2]) {
                 return `https://odysee.com/$/download/${match[1]}/${match[2]}`;
             }
         }
-        // --------------------------------
         
         return url;
     }
@@ -493,7 +538,6 @@
         const directLink = generateDirectDownloadLink(url);
         dlBtn.href = directLink || '#';
         
-        // Opcional: Si es un enlace de AnyDownloader o Odysee, lo abrimos en nueva pestaña para que no cierre el reproductor
         if(directLink && (directLink.includes("anydownloader.com") || directLink.includes("odysee.com"))) {
             dlBtn.setAttribute("target", "_blank");
         } else {
@@ -523,6 +567,7 @@
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -533,6 +578,9 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             container.appendChild(video);
+            
+            // Inyectar tira al cargar video
+            addLogoBlocker(container);
         } else {
             loadAsIframe(url, container);
         }
@@ -551,6 +599,9 @@
         iframe.style.height = "100%";
         iframe.style.border = "none";
         container.appendChild(iframe);
+        
+        // Inyectar tira encima del iframe
+        addLogoBlocker(container);
     }
 
     function setupNavigation() {
@@ -568,17 +619,14 @@
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
                 
-                // Configurar Anterior
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
                     prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
                 } else {
-                    // Si no hay anterior, nos aseguramos que tenga la clase btn-hidden
                     prevBtn.classList.add('btn-hidden');
                 }
 
-                // Configurar Siguiente
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
                     nextBtn.classList.remove('btn-hidden');
