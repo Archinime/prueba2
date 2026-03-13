@@ -464,67 +464,49 @@
     // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD Y ESCUDO DE TOQUES
     // -----------------------------------------------------------
     let activityTimeout;
-    let hasInteracted = false; 
-    let canRegisterPlay = false;
-    let iframeIsPlaying = false; // <-- Estado simulado para iframes
 
     function wakeUpUI() {
         const blockers = document.querySelectorAll('.logo-blocker');
         const overlays = document.querySelectorAll('.touch-overlay');
         
-        // Mostrar tira y esconder el escudo (para que dejen tocar el video)
+        // 1. Siempre mostramos la tira al detectar interacción
         blockers.forEach(b => b.classList.remove('hidden-strip'));
         overlays.forEach(o => o.classList.add('inactive'));
 
         clearTimeout(activityTimeout);
         
-        // Verificar si hay un video nativo incrustado en el reproductor y si está pausado
+        // 2. Evaluamos el estado real del reproductor
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
 
-        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play y NO está pausado
-        if (hasInteracted && !isNativePaused) {
+        // 3. Lógica limpia:
+        // Si el video nativo está pausado, NO activamos el temporizador (la tira se queda visible).
+        // Si está reproduciendo (o si es un iframe), activamos el temporizador para ocultarla.
+        if (!isNativePaused) {
             activityTimeout = setTimeout(() => {
-                // Esconder tira y ACTIVAR el escudo para atrapar el próximo toque
                 blockers.forEach(b => b.classList.add('hidden-strip'));
                 overlays.forEach(o => o.classList.remove('inactive')); 
-            }, 4500);
+            }, 4000);
         }
     }
 
-    // Eventos generales de la página (fuera del video)
-    window.addEventListener('mousemove', wakeUpUI);
-    window.addEventListener('touchstart', wakeUpUI, {passive: true});
-    window.addEventListener('touchmove', wakeUpUI, {passive: true});
-    window.addEventListener('touchend', wakeUpUI, {passive: true});
-    window.addEventListener('click', wakeUpUI);
-    window.addEventListener('scroll', wakeUpUI, {passive: true});
-    window.addEventListener('keydown', wakeUpUI);
-    window.addEventListener('focus', wakeUpUI);
+    // Eventos generales para despertar la interfaz
+    ['mousemove', 'touchstart', 'touchmove', 'click', 'keydown', 'scroll', 'focus'].forEach(evt => {
+        window.addEventListener(evt, wakeUpUI, {passive: true});
+    });
 
-    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
+    // Detectamos el toque en el IFRAME (cuando la página pierde el foco)
     window.addEventListener('blur', () => {
-        if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
-            iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
-            hasInteracted = iframeIsPlaying;    // Sincronizamos con el temporizador
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
             wakeUpUI();
             
-            // --- FIX AVANZADO PARA MÓVILES ---
-            // Le quitamos el foco al iframe y forzamos a la ventana a recuperarlo usando
-            // un botón invisible. Así, el siguiente toque sobre el reproductor
-            // volverá a disparar este evento 'blur' correctamente.
+            // Fix para móviles: Quitamos suavemente el foco del iframe para asegurarnos 
+            // de que el próximo toque que des volverá a registrarse correctamente,
+            // rompiendo el ciclo de la tira "atascada".
             setTimeout(() => {
-                if(document.activeElement) document.activeElement.blur();
-                let tempBtn = document.createElement('button');
-                tempBtn.style.position = 'fixed';
-                tempBtn.style.top = '0';
-                tempBtn.style.left = '0';
-                tempBtn.style.opacity = '0';
-                document.body.appendChild(tempBtn);
-                tempBtn.focus();
-                document.body.removeChild(tempBtn);
                 window.focus();
-            }, 200);
+                if(document.activeElement) document.activeElement.blur();
+            }, 300);
         }
     });
 
@@ -568,11 +550,9 @@
     }
 
     function addLogoBlocker(container) {
-        // 1. Añadir el escudo invisible (Touch Overlay)
         const touchOverlay = document.createElement('div');
-        touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
+        touchOverlay.className = 'touch-overlay inactive'; 
         
-        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
             e.preventDefault();
@@ -583,7 +563,6 @@
         }, {passive: true});
         container.appendChild(touchOverlay);
 
-        // 2. Añadir la tira protectora
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
         blocker.innerHTML = `
@@ -669,11 +648,6 @@
         container.innerHTML = ''; 
         if (!url) return;
 
-        hasInteracted = false;
-        canRegisterPlay = false;
-        iframeIsPlaying = false; // Resetear el estado si el usuario cambia de servidor
-        setTimeout(() => { canRegisterPlay = true; }, 1500);
-
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
@@ -687,14 +661,9 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            video.addEventListener('pause', () => {
-                hasInteracted = false; 
-                wakeUpUI();
-            });
-            video.addEventListener('play', () => {
-                hasInteracted = true;
-                wakeUpUI();
-            });
+            // Eventos específicos para video nativo (super exactos)
+            video.addEventListener('pause', () => { wakeUpUI(); });
+            video.addEventListener('play', () => { wakeUpUI(); });
             
             container.appendChild(video);
             addLogoBlocker(container);
