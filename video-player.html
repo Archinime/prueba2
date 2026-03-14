@@ -16,7 +16,7 @@
       "#bc13fe", // Morado Protagonista
       "#ff0055", // Rosa Neón (Acento)
       "#bc13fe", // Morado (Regreso)
-      "#0066ff", // Azul [cite: 2]
+      "#0066ff", // Azul
       "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
@@ -27,24 +27,24 @@
 
     let currentProgress = 0;
     let metaTag = document.querySelector('meta[name="theme-color"]');
-    if (!metaTag) { [cite: 3]
+    if (!metaTag) {
       metaTag = document.createElement('meta');
       metaTag.name = "theme-color";
       document.head.appendChild(metaTag);
-    } [cite: 4]
+    }
 
     const hexToRgb = (hex) => {
       const bigint = parseInt(hex.slice(1), 16);
-      return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255]; [cite: 5]
+      return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
-    const rgbToHex = (r, g, b) => { [cite: 6]
+    const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
         return hex.length === 1 ? "0" + hex : hex;
       }).join('');
-    }; [cite: 7]
+    };
 
-    const lerp = (start, end, t) => start + (end - start) * t; [cite: 8]
+    const lerp = (start, end, t) => start + (end - start) * t;
     setInterval(() => {
       currentProgress += step;
       if (currentProgress >= segments) {
@@ -57,12 +57,12 @@
       const colorEnd = hexToRgb(colors[index + 1]);
 
       const r = lerp(colorStart[0], colorEnd[0], t);
-      const g = lerp(colorStart[1], colorEnd[1], t); [cite: 9]
+      const g = lerp(colorStart[1], colorEnd[1], t);
       const b = lerp(colorStart[2], colorEnd[2], t);
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-  })(); [cite: 10]
+})();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,49 +72,51 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */ [cite: 11]
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */ [cite: 12]
+        --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
-        --glass-border: 1px solid rgba(255, 255, 255, 0.15); [cite: 13]
+        --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     /* --- ESTILOS GENERALES --- */
     body { 
         margin: 0;
-        background: #050505; [cite: 14]
+        background: #050505; 
         color: var(--text-color); 
         font-family: 'Poppins', sans-serif; 
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
-    } [cite: 15]
+    }
    
     /* --- FONDO DE VIDEO --- */
     #bg-video { 
         position: fixed;
-        top: 0; left: 0; [cite: 16]
+        top: 0; left: 0; 
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5; /* Un poco más oscuro para resaltar los neones */ [cite: 17]
+        opacity: 0.5;
     }
 
     /* --- OVERLAY --- */
     #overlay {
       position: fixed;
-      top: 0; left: 0; [cite: 18]
+      top: 0; left: 0; 
       width: 100%; height: 100%; 
       z-index: -5;
-      background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%); [cite: 19]
+      background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
       backdrop-filter: blur(8px);
       pointer-events: none;
-    } [cite: 20]
+    }
     
     /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
-        max-width: 1200px; [cite: 21]
+        max-width: 1300px;
         margin: 0 auto;
         padding: 15px;
         position: relative;
@@ -123,26 +125,26 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
-    } [cite: 22]
+    }
     
     /* --- NAVEGACIÓN SUPERIOR --- */
     .top-nav {
         display: flex;
-        justify-content: space-between; [cite: 23]
+        justify-content: space-between; 
         align-items: center;
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
-        border-radius: 0 0 15px 15px; [cite: 24]
+        border-radius: 0 0 15px 15px;
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
-    } [cite: 25]
+    }
 
     /* BOTÓN VOLVER (ESTILO NEON) */
     .back-btn { 
       display: inline-flex;
-      align-items: center; [cite: 26]
+      align-items: center;
       justify-content: center;
       gap: 8px;
       color: #eee;
@@ -150,379 +152,405 @@
       font-weight: 600;
       font-size: 0.85rem;
       background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px); [cite: 27]
+      backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); /* Borde sutil celeste */ [cite: 28]
+      border: 1px solid rgba(0, 255, 247, 0.3);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); [cite: 29]
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     .back-btn:hover {
         background: rgba(0, 255, 247, 0.15);
-        border-color: var(--primary-color); [cite: 30]
+        border-color: var(--primary-color);
         color: #fff;
         box-shadow: 0 0 20px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
         transform: translateY(-2px);
-        text-shadow: 0 0 5px var(--primary-color); [cite: 31]
+        text-shadow: 0 0 5px var(--primary-color);
     }
    
     /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 */ [cite: 32]
+        padding-bottom: 56.25%; 
         height: 0; 
         width: 100%; 
+        max-height: 85vh; 
         background: #000;
         overflow: hidden;
-        z-index: 50; [cite: 33]
+        z-index: 50;
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-    } [cite: 34]
+    }
    
     .player-wrapper iframe, .player-wrapper video { 
         position: absolute;
-        top: 0; left: 0; [cite: 35]
+        top: 0; left: 0; 
         width: 100%; height: 100%; 
         border: none;
-    } [cite: 36]
+    }
+
+    /* --- BOTÓN FLOTANTE NEÓN --- */
+    .floating-next-btn {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        z-index: 150;
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid var(--primary-color);
+        color: #fff;
+        padding: 12px 28px;
+        border-radius: 50px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        text-decoration: none;
+        letter-spacing: 1px;
+        box-shadow: 0 0 15px var(--primary-color);
+        transition: opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        opacity: 0; 
+        pointer-events: none;
+        backdrop-filter: blur(10px);
+        animation: pulseNext 2s infinite;
+        display: none; 
+    }
+
+    .floating-next-btn.visible {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .floating-next-btn:hover {
+        background: rgba(0, 255, 247, 0.2);
+        color: #fff;
+        transform: scale(1.05);
+        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.4);
+    }
 
     /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO --- */
     #autoNextScreen {
         position: absolute;
-        top: 0; left: 0; [cite: 37]
+        top: 0; left: 0;
         width: 100%; height: 100%;
         background: rgba(5, 5, 5, 0.85);
         backdrop-filter: blur(10px);
         z-index: 200;
-        display: none; /* Oculto por defecto */ [cite: 38]
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         color: #fff;
-        opacity: 0; [cite: 39]
+        opacity: 0;
         transition: opacity 0.5s ease;
     }
 
     #autoNextScreen.visible {
         display: flex;
-        opacity: 1; [cite: 40]
+        opacity: 1;
     }
 
     .auto-next-title {
         font-size: clamp(1.2rem, 3vw, 2rem);
-        font-weight: 800; [cite: 41]
+        font-weight: 800;
         letter-spacing: 2px;
         margin-bottom: 20px;
         text-shadow: 0 0 15px var(--primary-color);
-    } [cite: 42]
+    }
 
     .neon-progress-container {
         width: 60%;
         height: 6px;
-        background: rgba(255, 255, 255, 0.1); [cite: 43]
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         overflow: hidden;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         margin-bottom: 20px;
-    } [cite: 44]
+    }
 
     .neon-progress-bar {
         height: 100%;
         width: 0%;
         background: var(--primary-color);
-        box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); [cite: 45]
+        box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
         border-radius: 10px;
-    } [cite: 46]
+    }
 
     .cancel-auto-btn {
         padding: 8px 20px;
         background: transparent;
-        border: 1px solid var(--accent-color); [cite: 47]
+        border: 1px solid var(--accent-color);
         color: #fff;
         border-radius: 50px;
         cursor: pointer;
         font-family: 'Poppins', sans-serif;
         transition: all 0.3s ease;
-    } [cite: 48]
+    }
 
     .cancel-auto-btn:hover {
         background: rgba(255, 0, 85, 0.2);
-        box-shadow: 0 0 15px var(--accent-color); [cite: 49]
+        box-shadow: 0 0 15px var(--accent-color);
     }
 
     /* --- CAPA INVISIBLE PARA DETECTAR TOQUES --- */
     .touch-overlay {
         position: absolute;
-        top: 0; left: 0; [cite: 50]
+        top: 0; left: 0;
         width: 100%; height: 100%;
-        z-index: 90; /* Encima del video, pero debajo de la tira blocker */ [cite: 51]
+        z-index: 90;
         cursor: pointer;
-    } [cite: 52]
+    }
     .touch-overlay.inactive {
-        display: none; /* Desaparece para que puedas tocar el video debajo */ [cite: 53]
+        display: none;
     }
 
     /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
     .logo-blocker {
         position: absolute;
-        top: 0; [cite: 54]
-        left: 0;
+        top: 0; left: 0;
         width: 100%;
         height: 14%; 
-        min-height: 45px; /* Altura mínima en móviles pequeños */ [cite: 55]
+        min-height: 45px;
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
-        backdrop-filter: blur(6px); [cite: 56]
+        backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
         z-index: 100; 
         display: flex;
-        justify-content: center; [cite: 57]
+        justify-content: center;
         align-items: flex-start;
         padding-top: 1.5%; 
-        pointer-events: auto; /* IMPORTANTE: Esto bloquea los clics hacia el iframe */ [cite: 58]
+        pointer-events: auto;
         border-top-left-radius: 16px;
-        border-top-right-radius: 16px; [cite: 59]
+        border-top-right-radius: 16px;
         user-select: none; 
         opacity: 1 !important;
-        visibility: visible !important; [cite: 60]
+        visibility: visible !important;
     }
 
     .logo-blocker::after {
         content: '';
-        position: absolute; [cite: 61]
-        bottom: 25%;
-        left: 0;
-        width: 100%;
-        height: 1px;
+        position: absolute;
+        bottom: 25%; left: 0;
+        width: 100%; height: 1px;
         background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
         opacity: 0.3;
-    } [cite: 62]
+    }
 
     .blocker-content {
         display: flex;
         align-items: baseline;
         gap: 8px;
-    } [cite: 63]
+    }
 
     .blocker-text {
         font-family: 'Poppins', sans-serif;
         font-weight: 800;
-        font-size: clamp(1rem, 2.5vw, 1.4rem); [cite: 64]
+        font-size: clamp(1rem, 2.5vw, 1.4rem); 
         color: #fff;
         letter-spacing: 5px;
-        text-transform: uppercase; [cite: 65]
+        text-transform: uppercase;
         text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
         animation: neonPulse 2s infinite alternate;
-    } [cite: 66]
+    }
 
     .blocker-sub {
         font-family: 'Poppins', sans-serif;
         font-size: clamp(0.6rem, 1.2vw, 0.8rem);
-        color: var(--accent-color); [cite: 67]
+        color: var(--accent-color);
         font-weight: 700;
         letter-spacing: 2px;
         text-shadow: 0 0 8px var(--accent-color);
-    } [cite: 68]
+    }
 
     @keyframes neonPulse {
         0% { opacity: 0.8;
-        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); } [cite: 69]
+        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
         100% { opacity: 1;
-        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); [cite: 70]
-        } [cite: 71]
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+        }
     }
 
-    /* --- NUEVO: BOTÓN ODYSEE CENTRAL --- */
-    .odysee-center-btn {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 150; /* Por encima del iframe y touch-overlay */
-        background: rgba(229, 39, 90, 0.9); /* Color representativo de Odysee */
-        color: white;
-        border: 2px solid #fff;
-        padding: 12px 24px;
-        border-radius: 50px;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        box-shadow: 0 0 20px rgba(229, 39, 90, 0.6);
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .odysee-center-btn:hover {
-        transform: translate(-50%, -50%) scale(1.05);
-        background: #e5275a;
-        box-shadow: 0 0 30px rgba(229, 39, 90, 0.9);
-    }
-
-    /* --- OPCIONES DE SERVIDOR --- */
+    /* --- OPCIONES DE SERVIDOR Y COPIAR LINK --- */
     .options { 
         display: flex;
-        gap: 10px; [cite: 72]
+        gap: 10px;
         justify-content: flex-end;
+        flex-wrap: wrap; /* Para que bajen en móviles si no caben */
     }
     
     .opt-btn { 
         font-size: 0.8rem;
-        padding: 6px 14px; [cite: 73]
+        padding: 6px 14px;
         border: 1px solid rgba(255,255,255,0.2); 
         background: rgba(0, 0, 0, 0.6);
         color: #ccc;
         cursor: pointer;
         border-radius: 8px;
-        transition: all 0.3s ease; [cite: 74]
+        transition: all 0.3s ease;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
     }
     
     .opt-btn:hover {
         background: rgba(255, 255, 255, 0.1);
-        color: #fff; [cite: 75]
+        color: #fff;
     }
 
     .opt-btn.active { 
         border-color: var(--primary-color);
         color: #000;
-        background: var(--primary-color);  [cite: 76]
+        background: var(--primary-color); 
         font-weight: 700;
         box-shadow: 0 0 15px var(--primary-color);
+    }
+
+    /* ESTILO ESPECÍFICO DEL BOTÓN COPIAR */
+    .copy-btn {
+        border-color: #bc13fe; /* Morado neón de tu paleta */
+        color: #bc13fe;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+    }
+
+    .copy-btn:hover {
+        background: rgba(188, 19, 254, 0.15);
+        color: #fff;
+        box-shadow: 0 0 15px #bc13fe;
+        transform: translateY(-2px);
     }
 
     /* --- TÍTULO DEL EPISODIO --- */
     h1 { 
         color: #fff;
-        font-size: 1.3rem;  [cite: 77]
+        font-size: 1.3rem; 
         margin: 5px 0 15px 0;
         text-align: center;
         font-weight: 700;
         letter-spacing: 0.5px;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); [cite: 78]
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
     /* --- CONTROLES --- */
     .controls { 
         display: grid;
-        grid-template-columns: 1fr auto 1fr; [cite: 79]
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: 15px; 
         margin-top: 10px;
         padding-bottom: 40px;
         width: 100%;
-    } [cite: 80]
+    }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end;
-    } [cite: 81]
+    #nextBtn { justify-self: end; }
     #downloadBtn { justify-self: center; }
 
-    /* ESTILOS DE LOS BOTONES */
     .btn { 
         padding: 12px 28px;
-        background: rgba(0, 0, 0, 0.6); [cite: 82]
+        background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: #fff;
         text-decoration: none; 
         border-radius: 50px; 
         font-size: 0.95rem;
-        display: inline-flex; [cite: 83]
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         backdrop-filter: blur(5px);
         font-weight: 600;
-        min-width: 100px; [cite: 84]
+        min-width: 100px;
     }
     
     .nav-btn {
         border-color: rgba(0, 255, 247, 0.3);
-    } [cite: 85]
+    }
 
     .nav-btn:hover {
         background: rgba(0, 255, 247, 0.15);
         border-color: var(--primary-color);
-        color: #fff; [cite: 86]
+        color: #fff;
         box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
         transform: scale(1.05);
-        text-shadow: 0 0 8px var(--primary-color); [cite: 87]
+        text-shadow: 0 0 8px var(--primary-color);
     }
 
     @keyframes pulseNext {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7);
-        } [cite: 88]
-        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0);
-        } [cite: 89]
-        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0);
-        } [cite: 90]
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0); }
     }
     
     #nextBtn:not(.btn-hidden) {
         animation: pulseNext 2s infinite;
-        border-color: var(--primary-color); [cite: 91]
+        border-color: var(--primary-color);
     }
 
     #downloadBtn {
         border-color: rgba(255, 0, 85, 0.4);
-        background: rgba(255, 0, 85, 0.05); [cite: 92]
+        background: rgba(255, 0, 85, 0.05);
         min-width: 140px;
     }
 
     #downloadBtn:hover {
         background: rgba(255, 0, 85, 0.2);
-        border-color: var(--accent-color); [cite: 93]
+        border-color: var(--accent-color);
         color: #fff;
         box-shadow: 0 0 30px var(--accent-color), inset 0 0 10px rgba(255, 0, 85, 0.2);
         transform: scale(1.05);
-        text-shadow: 0 0 8px var(--accent-color); [cite: 94]
+        text-shadow: 0 0 8px var(--accent-color);
     }
 
     .btn-hidden { 
         visibility: hidden;
-        pointer-events: none; [cite: 95]
+        pointer-events: none;
     }
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px;
-        } [cite: 96]
-        .top-nav { justify-content: space-between;
-        } [cite: 97]
+        .container { padding: 10px; }
+        .top-nav { justify-content: space-between; }
+        
         .options {
+            justify-content: center;
+            width: 100%;
+        }
+
+        #serverOptions {
             overflow-x: auto;
-            white-space: nowrap; [cite: 98]
+            white-space: nowrap;
             -ms-overflow-style: none;
             scrollbar-width: none;
-            max-width: 60%;
+            max-width: 100%;
+            display: flex;
+            gap: 10px;
         }
-        .options::-webkit-scrollbar { display: none;
-        } [cite: 99]
+        #serverOptions::-webkit-scrollbar { display: none; }
 
         .controls {
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;  [cite: 100]
+            grid-template-rows: auto auto; 
             gap: 10px;
         }
 
-        #prevBtn { grid-column: 1; grid-row: 1;
-        justify-self: start; width: auto; } [cite: 101]
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end;
-        width: auto; } [cite: 102]
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%;
-        box-sizing: border-box; } [cite: 103]
+        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
         .logo-blocker {
             height: 18%;
-            min-height: 55px;  [cite: 104]
+            min-height: 55px; 
             padding-top: 3%;
+        }
+        
+        .floating-next-btn {
+            bottom: 15px;
+            right: 15px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
         }
     }
   </style>
@@ -542,11 +570,16 @@
          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
          Volver
        </a>
-       <div class="options" 
-       [cite_start]id="serverOptions"></div> [cite: 105]
+       
+       <div class="options">
+           <button id="copyLinkBtn" class="opt-btn copy-btn">📋 Copiar Link</button>
+           <span id="serverOptions" style="display:flex; gap:10px;"></span>
+       </div>
     </div>
 
     <div class="player-wrapper" id="playerContainer">
+        <a href="#" id="floatingNextBtn" class="floating-next-btn">Sig. Ep ⏭</a>
+
         <div id="autoNextScreen">
             <div class="auto-next-title">Siguiente Episodio en...</div>
             <div class="neon-progress-container">
@@ -554,7 +587,7 @@
             </div>
             <button id="cancelAutoNextBtn" class="cancel-auto-btn">Cancelar</button>
         </div>
-    </div> [cite: 106]
+    </div>
 
     <h1 id="epTitle">Cargando...</h1>
 
@@ -565,48 +598,65 @@
             ⬇ Descargar
         </a>
         
-        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig.
-        ⏭</a> [cite: 107]
+        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
   </div>
 
   <script>
     var version = new Date().getTime();
-    document.write('<script src="video-player-data.js?v=' + version + '"><\/script>'); [cite: 108]
+    document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
   </script>
 
   <script>
+    // Variable global para guardar el enlace activo actualmente
+    let currentActiveUrl = ""; 
+
+    // -----------------------------------------------------------
+    // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD Y ESCUDO DE TOQUES
+    // -----------------------------------------------------------
     let activityTimeout;
-    let hasInteracted = false;  [cite: 109]
+    let hasInteracted = false; 
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
     let autoNextTimer = null;
-    // Variable para el contador [cite: 110]
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
-        overlays.forEach(o => o.classList.add('inactive')); [cite: 111]
+        overlays.forEach(o => o.classList.add('inactive'));
+
+        // Mostrar Botón Flotante Neón
+        const floatingBtn = document.getElementById('floatingNextBtn');
+        if(floatingBtn && floatingBtn.classList.contains('visible')) {
+            floatingBtn.style.opacity = '1';
+            floatingBtn.style.pointerEvents = 'auto';
+        }
 
         clearTimeout(activityTimeout);
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
-        if (hasInteracted && !isNativePaused) { [cite: 112]
+        
+        if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
                 overlays.forEach(o => o.classList.remove('inactive')); 
+                // Ocultar Botón Flotante Neón por inactividad
+                if(floatingBtn && floatingBtn.classList.contains('visible')) {
+                    floatingBtn.style.opacity = '0';
+                    floatingBtn.style.pointerEvents = 'none';
+                }
             }, 4500);
-        } [cite: 113]
+        }
     }
 
     window.addEventListener('mousemove', wakeUpUI);
     window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('touchmove', wakeUpUI, {passive: true});
-    window.addEventListener('touchend', wakeUpUI, {passive: true}); [cite: 114]
+    window.addEventListener('touchend', wakeUpUI, {passive: true});
     window.addEventListener('click', wakeUpUI);
     window.addEventListener('scroll', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
-    window.addEventListener('blur', () => { [cite: 115]
+    window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             iframeIsPlaying = !iframeIsPlaying; 
             hasInteracted = iframeIsPlaying;    
@@ -614,57 +664,59 @@
             setTimeout(() => window.focus(), 100); 
         }
     });
-    // ----------------------------------------------------------- [cite: 116]
+
+    // -----------------------------------------------------------
+    // LÓGICA DEL REPRODUCTOR
+    // -----------------------------------------------------------
     
-    const DB = (typeof players !== 'undefined') ?
-    players : {}; [cite: 117]
+    const DB = (typeof players !== 'undefined') ? players : {};
     
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
     const season = params.get('s');
     const episode = params.get('e');
-    const backLink = document.getElementById('backLink'); [cite: 118]
+    const backLink = document.getElementById('backLink');
 
     if (animeId && season && episode) {
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
-        localStorage.setItem(viewedKey, 'true'); [cite: 119]
+        localStorage.setItem(viewedKey, 'true');
     }
     
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
-    } [cite: 120]
+    }
 
     const epData = DB[animeId]?.[season]?.[episode];
     if (epData) {
         document.title = `Ver ${epData.title} - Archinime`;
-        document.getElementById('epTitle').innerText = epData.title; [cite: 121]
+        document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
         loadVideo(initialLink);
         
         const optContainer = document.getElementById('serverOptions');
         optContainer.innerHTML = '';
-        if(epData.link) createOptionBtn("Latino", epData.link, true); [cite: 122]
+        if(epData.link) createOptionBtn("Latino", epData.link, true);
         if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
         
         updateDownloadButton(initialLink);
         setupNavigation();
-    } else { [cite: 123]
+    } else {
         document.getElementById('epTitle').innerText = "No encontrado";
-    } [cite: 124]
+    }
 
     function addLogoBlocker(container) {
         const touchOverlay = document.createElement('div');
-        touchOverlay.className = 'touch-overlay inactive';  [cite: 125]
+        touchOverlay.className = 'touch-overlay inactive'; 
         
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
             e.preventDefault();
             wakeUpUI();
         });
-        touchOverlay.addEventListener('touchstart', (e) => { [cite: 126]
+        touchOverlay.addEventListener('touchstart', (e) => {
             wakeUpUI();
         }, {passive: true});
-        container.appendChild(touchOverlay); [cite: 127]
+        container.appendChild(touchOverlay);
 
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
@@ -674,96 +726,94 @@
                 <span class="blocker-sub">HD</span>
             </div>
         `;
-        blocker.addEventListener('click', (e) => { [cite: 128]
+        blocker.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             wakeUpUI(); 
         });
-        blocker.addEventListener('touchstart', (e) => { [cite: 129]
+        blocker.addEventListener('touchstart', (e) => {
             wakeUpUI(); 
         }, {passive: true});
-        container.appendChild(blocker); [cite: 130]
+        container.appendChild(blocker);
         
         wakeUpUI();
     }
 
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
-        if (url.includes("drive.google.com")) { [cite: 131]
+        if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) { [cite: 132]
+            if (match && match[1]) {
                return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-            } [cite: 133]
+            }
             const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (altMatch && altMatch[1]) { [cite: 134]
+            if (altMatch && altMatch[1]) {
                return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-            } [cite: 135]
+            }
         }
         if (url.includes("dropbox.com") && url.includes("dl=0")) {
              return url.replace('dl=0', 'dl=1');
-        } [cite: 136]
+        }
         if (url.includes("ok.ru/")) {
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-            if (match && match[1]) { [cite: 137]
+            if (match && match[1]) {
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
-            } [cite: 138]
+            }
         }
         if (url.includes("odysee.com")) {
             return url.replace('/$/embed/', '/$/download/');
-        } [cite: 139]
+        }
         return url;
-    } [cite: 140]
+    }
 
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
-        const directLink = generateDirectDownloadLink(url); [cite: 141]
+        const directLink = generateDirectDownloadLink(url);
         dlBtn.href = directLink || '#';
         
         if(directLink && directLink !== '#') {
             dlBtn.setAttribute("target", "_blank");
-            dlBtn.setAttribute("download", "");  [cite: 142]
+            dlBtn.setAttribute("download", ""); 
         } else {
             dlBtn.removeAttribute("target");
             dlBtn.removeAttribute("download");
-        } [cite: 143]
+        }
     }
 
     function createOptionBtn(label, url, isActive) {
         const optContainer = document.getElementById('serverOptions');
-        const btn = document.createElement('button'); [cite: 144]
+        const btn = document.createElement('button');
         const isFirst = optContainer.children.length === 0;
         const shouldBeActive = isActive || isFirst;
-        btn.className = 'opt-btn' + (shouldBeActive ? ' active' : ''); [cite: 145]
+        btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
         btn.innerText = label;
-        btn.onclick = () => { [cite: 146]
-            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.onclick = () => {
+            document.querySelectorAll('.opt-btn:not(.copy-btn)').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            loadVideo(url); [cite: 147]
+            loadVideo(url);
             updateDownloadButton(url);
         };
         optContainer.appendChild(btn);
     }
 
+    // --- LÓGICA DE AUTOPLAY ---
     function startAutoNextCountdown() {
         const nextBtn = document.getElementById('nextBtn');
-        // Solo si hay un episodio siguiente disponible [cite: 148]
         if(nextBtn && !nextBtn.classList.contains('btn-hidden')) {
             const autoScreen = document.getElementById('autoNextScreen');
-            const progressBar = document.getElementById('autoNextBar'); [cite: 149]
+            const progressBar = document.getElementById('autoNextBar');
             const cancelBtn = document.getElementById('cancelAutoNextBtn');
             
             autoScreen.classList.add('visible');
             
             let progress = 0;
             const duration = 5000;
-            // 5 segundos [cite: 150]
             const interval = 50;
-            // Actualizar cada 50ms [cite: 151]
             const step = (interval / duration) * 100;
-            // Función para cancelar [cite: 152]
+
             const cancelAutoNext = () => {
                 clearInterval(autoNextTimer);
-                autoScreen.classList.remove('visible'); [cite: 153]
+                autoScreen.classList.remove('visible');
             };
 
             cancelBtn.onclick = cancelAutoNext;
@@ -773,19 +823,24 @@
                 progressBar.style.width = `${progress}%`;
                 
                 if (progress >= 100) {
-                   
-                 clearInterval(autoNextTimer); [cite: 154]
+                    clearInterval(autoNextTimer);
                     window.location.href = nextBtn.href;
                 }
             }, interval);
-        } [cite: 155]
+        }
     }
 
     function loadVideo(url) {
+        // ACTUALIZAMOS LA VARIABLE PARA EL BOTÓN DE COPIAR
+        currentActiveUrl = url;
+
         const container = document.getElementById('playerContainer');
-        // Preservar la pantalla de auto-next al limpiar el contenedor [cite: 156]
         const autoNextScreen = document.getElementById('autoNextScreen');
-        container.innerHTML = '';  [cite: 157]
+        const floatingNextBtn = document.getElementById('floatingNextBtn'); 
+
+        container.innerHTML = ''; 
+        
+        if(floatingNextBtn) container.appendChild(floatingNextBtn);
         if(autoNextScreen) container.appendChild(autoNextScreen);
 
         if (!url) return;
@@ -795,113 +850,129 @@
         iframeIsPlaying = false;
         if(autoNextTimer) clearInterval(autoNextTimer);
         autoNextScreen.classList.remove('visible');
-        document.getElementById('autoNextBar').style.width = '0%'; [cite: 158]
+        document.getElementById('autoNextBar').style.width = '0%';
 
         setTimeout(() => { canRegisterPlay = true; }, 1500);
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-        const isDrive = url.includes('drive.google.com') && url.includes('/preview'); [cite: 159]
+        const isDrive = url.includes('drive.google.com') && url.includes('/preview');
         
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
-            video.src = url; [cite: 160]
+            video.src = url;
             video.controls = true;
             video.autoplay = false;
             video.playsInline = true; 
             video.style.width = "100%";
             video.style.height = "100%";
-            video.onerror = function() { loadAsIframe(url, container); }; [cite: 161]
+            video.onerror = function() { loadAsIframe(url, container); };
             
             video.addEventListener('pause', () => {
                 hasInteracted = false; 
                 wakeUpUI();
             });
-            video.addEventListener('play', () => { [cite: 162]
+            video.addEventListener('play', () => {
                 hasInteracted = true;
                 wakeUpUI();
             });
-            // EL EVENTO CLAVE PARA VIDEOS NATIVOS [cite: 163]
             video.addEventListener('ended', () => {
                 startAutoNextCountdown();
             });
-            container.appendChild(video); [cite: 164]
+            container.insertBefore(video, container.firstChild);
             addLogoBlocker(container);
         } else {
             loadAsIframe(url, container);
-        } [cite: 165]
+        }
     }
 
     function loadAsIframe(url, container) {
         const iframe = document.createElement('iframe');
-        iframe.src = url; [cite: 166]
+        iframe.src = url;
         iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
         iframe.setAttribute("allowfullscreen", "true");
         iframe.style.position = "absolute";
         iframe.style.top = "0";
         iframe.style.left = "0";
-        iframe.style.width = "100%"; [cite: 167]
+        iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
         
-        container.insertBefore(iframe, document.getElementById('autoNextScreen'));
-        addLogoBlocker(container); [cite: 168]
-
-        // --- NUEVA LÓGICA: BOTÓN DE ODYSEE AL CENTRO ---
-        if (url.includes('odysee.com')) { [cite: 139]
-            const odyseeBtn = document.createElement('button');
-            odyseeBtn.className = 'odysee-center-btn';
-            odyseeBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                Ver en Odysee
-            `;
-            
-            odyseeBtn.addEventListener('click', () => {
-                // Copia la URL al portapapeles y luego abre la pestaña
-                navigator.clipboard.writeText(url).then(() => {
-                    window.open(url, '_blank');
-                }).catch(err => {
-                    console.error('Error copiando al portapapeles:', err);
-                    window.open(url, '_blank'); // Abrir de todos modos si falla el copiado
-                });
-            });
-
-            // Insertarlo en el contenedor para que quede flotando
-            container.appendChild(odyseeBtn);
-        }
+        container.insertBefore(iframe, container.firstChild);
+        addLogoBlocker(container);
     }
 
     function setupNavigation() {
         try {
             if (DB[animeId]) {
                 let flatList = [];
-                const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b)); [cite: 169]
+                const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
                 seasons.forEach(sKey => {
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
-                    }); [cite: 170]
+                    });
                 });
-                const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode)); [cite: 171]
+
+                const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                if (currentIndex > 0) { [cite: 172]
+                const floatingBtn = document.getElementById('floatingNextBtn'); 
+
+                if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
-                    prevBtn.classList.remove('btn-hidden'); [cite: 173]
+                    prevBtn.classList.remove('btn-hidden');
                     prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
                 } else {
                     prevBtn.classList.add('btn-hidden');
-                } [cite: 174]
+                }
 
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
-                    nextBtn.classList.remove('btn-hidden'); [cite: 175]
-                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
+                    const nextUrl = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
+                    
+                    nextBtn.classList.remove('btn-hidden');
+                    nextBtn.href = nextUrl;
+
+                    if (floatingBtn) {
+                        floatingBtn.href = nextUrl;
+                        floatingBtn.classList.add('visible'); 
+                    }
                 } else {
                     nextBtn.classList.add('btn-hidden');
-                } [cite: 176]
+                    if (floatingBtn) {
+                        floatingBtn.classList.remove('visible');
+                    }
+                }
             }
-        } catch (e) { console.error(e);
-        } [cite: 177]
+        } catch (e) { console.error(e); }
+    }
+
+    // --- FUNCIÓN DEL BOTÓN COPIAR ENLACE ---
+    const copyBtn = document.getElementById('copyLinkBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Usamos la API moderna del portapapeles
+            navigator.clipboard.writeText(currentActiveUrl).then(() => {
+                // Efecto visual
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = "¡Copiado! ✔️";
+                copyBtn.style.background = "var(--primary-color)";
+                copyBtn.style.color = "#000";
+                copyBtn.style.borderColor = "var(--primary-color)";
+                
+                // Volver a la normalidad después de 2 segundos
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.background = "rgba(0, 0, 0, 0.6)";
+                    copyBtn.style.color = "#bc13fe";
+                    copyBtn.style.borderColor = "#bc13fe";
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+                alert("Tu navegador no permite copiar automáticamente.");
+            });
+        });
     }
   </script>
 </body>
