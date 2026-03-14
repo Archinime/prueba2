@@ -62,7 +62,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-})();
+  })();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,7 +117,7 @@
     /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
-        max-width: 1300px; /* Ampliado para forzar Modo Cine en escritorio */
+        max-width: 1200px;
         margin: 0 auto;
         padding: 15px;
         position: relative;
@@ -171,13 +171,12 @@
         text-shadow: 0 0 5px var(--primary-color);
     }
    
-    /* --- REPRODUCTOR (MODO CINE) --- */
+    /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 - Mantiene la proporción perfecta */
+        padding-bottom: 56.25%; /* 16:9 */
         height: 0; 
         width: 100%; 
-        max-height: 85vh; /* Evita que sea ridículamente grande en monitores ultra anchos */
         background: #000;
         overflow: hidden;
         z-index: 50;
@@ -193,44 +192,7 @@
         border: none;
     }
 
-    /* --- BOTÓN FLOTANTE NEÓN (NUEVO) --- */
-    .floating-next-btn {
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        z-index: 150; /* Por encima del iframe pero debajo de las capas de bloqueo */
-        background: rgba(0, 0, 0, 0.85);
-        border: 2px solid var(--primary-color);
-        color: #fff;
-        padding: 12px 28px;
-        border-radius: 50px;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 800;
-        text-decoration: none;
-        letter-spacing: 1px;
-        box-shadow: 0 0 15px var(--primary-color);
-        transition: opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        opacity: 0; /* Oculto por defecto, manejado por wakeUpUI */
-        pointer-events: none;
-        backdrop-filter: blur(10px);
-        animation: pulseNext 2s infinite;
-        display: none; /* Se activa por JS solo si hay siguiente episodio */
-    }
-
-    .floating-next-btn.visible {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .floating-next-btn:hover {
-        background: rgba(0, 255, 247, 0.2);
-        color: #fff;
-        transform: scale(1.05);
-        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.4);
-    }
-
-    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO --- */
+    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO (NUEVO) --- */
     #autoNextScreen {
         position: absolute;
         top: 0; left: 0;
@@ -238,8 +200,7 @@
         background: rgba(5, 5, 5, 0.85);
         backdrop-filter: blur(10px);
         z-index: 200;
-        display: none;
-        /* Oculto por defecto */
+        display: none; /* Oculto por defecto */
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -437,8 +398,7 @@
     }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end;
-    }
+    #nextBtn { justify-self: end; }
     #downloadBtn { justify-self: center; }
 
     /* ESTILOS DE LOS BOTONES */
@@ -473,14 +433,11 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
-    /* ANIMACIÓN AGRESIVA PARA EL BOTÓN "SIGUIENTE" */
+    /* ANIMACIÓN AGRESIVA PARA EL BOTÓN "SIGUIENTE" (El señuelo visual) */
     @keyframes pulseNext {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7);
-        }
-        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0);
-        }
-        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0);
-        }
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0); }
     }
     
     #nextBtn:not(.btn-hidden) {
@@ -510,10 +467,8 @@
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px;
-        }
-        .top-nav { justify-content: space-between;
-        }
+        .container { padding: 10px; }
+        .top-nav { justify-content: space-between; }
         .options {
             overflow-x: auto;
             white-space: nowrap;
@@ -521,8 +476,7 @@
             scrollbar-width: none;
             max-width: 60%;
         }
-        .options::-webkit-scrollbar { display: none;
-        }
+        .options::-webkit-scrollbar { display: none; }
 
         .controls {
             grid-template-columns: 1fr 1fr;
@@ -530,26 +484,15 @@
             gap: 10px;
         }
 
-        #prevBtn { grid-column: 1; grid-row: 1;
-        justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end;
-        width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%;
-        box-sizing: border-box; }
+        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
         /* Ajuste fino para la tira en móviles */
         .logo-blocker {
             height: 18%;
             min-height: 55px; 
             padding-top: 3%;
-        }
-        
-        /* Ajuste de posición del botón flotante en móviles */
-        .floating-next-btn {
-            bottom: 15px;
-            right: 15px;
-            padding: 8px 18px;
-            font-size: 0.85rem;
         }
     }
   </style>
@@ -573,8 +516,6 @@
     </div>
 
     <div class="player-wrapper" id="playerContainer">
-        <a href="#" id="floatingNextBtn" class="floating-next-btn">Sig. Ep ⏭</a>
-
         <div id="autoNextScreen">
             <div class="auto-next-title">Siguiente Episodio en...</div>
             <div class="neon-progress-container">
@@ -611,31 +552,19 @@
     let hasInteracted = false; 
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
-    let autoNextTimer = null;
+    let autoNextTimer = null; // Variable para el contador
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
         overlays.forEach(o => o.classList.add('inactive'));
 
-        // Mostrar Botón Flotante Neón
-        const floatingBtn = document.getElementById('floatingNextBtn');
-        if(floatingBtn && floatingBtn.classList.contains('visible')) {
-            floatingBtn.style.opacity = '1';
-            floatingBtn.style.pointerEvents = 'auto';
-        }
-
         clearTimeout(activityTimeout);
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
-        
+
         if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
                 overlays.forEach(o => o.classList.remove('inactive')); 
-                // Ocultar Botón Flotante Neón por inactividad
-                if(floatingBtn && floatingBtn.classList.contains('visible')) {
-                    floatingBtn.style.opacity = '0';
-                    floatingBtn.style.pointerEvents = 'none';
-                }
             }, 4500);
         }
     }
@@ -648,6 +577,7 @@
     window.addEventListener('scroll', wakeUpUI, {passive: true});
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
+
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
             iframeIsPlaying = !iframeIsPlaying; 
@@ -788,9 +718,10 @@
         optContainer.appendChild(btn);
     }
 
-    // --- LÓGICA DE AUTOPLAY ---
+    // --- LÓGICA DE AUTOPLAY (NUEVO) ---
     function startAutoNextCountdown() {
         const nextBtn = document.getElementById('nextBtn');
+        // Solo si hay un episodio siguiente disponible
         if(nextBtn && !nextBtn.classList.contains('btn-hidden')) {
             const autoScreen = document.getElementById('autoNextScreen');
             const progressBar = document.getElementById('autoNextBar');
@@ -799,10 +730,11 @@
             autoScreen.classList.add('visible');
             
             let progress = 0;
-            const duration = 5000;
-            const interval = 50;
+            const duration = 5000; // 5 segundos
+            const interval = 50; // Actualizar cada 50ms
             const step = (interval / duration) * 100;
 
+            // Función para cancelar
             const cancelAutoNext = () => {
                 clearInterval(autoNextTimer);
                 autoScreen.classList.remove('visible');
@@ -816,7 +748,7 @@
                 
                 if (progress >= 100) {
                     clearInterval(autoNextTimer);
-                    window.location.href = nextBtn.href;
+                    window.location.href = nextBtn.href; // Redirigir al siguiente
                 }
             }, interval);
         }
@@ -824,13 +756,9 @@
 
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
+        // Preservar la pantalla de auto-next al limpiar el contenedor
         const autoNextScreen = document.getElementById('autoNextScreen');
-        const floatingNextBtn = document.getElementById('floatingNextBtn'); // Extraer el botón antes de limpiar
-
         container.innerHTML = ''; 
-        
-        // Devolver elementos preservados
-        if(floatingNextBtn) container.appendChild(floatingNextBtn);
         if(autoNextScreen) container.appendChild(autoNextScreen);
 
         if (!url) return;
@@ -864,11 +792,13 @@
                 hasInteracted = true;
                 wakeUpUI();
             });
+            
+            // EL EVENTO CLAVE PARA VIDEOS NATIVOS
             video.addEventListener('ended', () => {
                 startAutoNextCountdown();
             });
-            // Insertar el video detrás del botón flotante y el screen
-            container.insertBefore(video, container.firstChild);
+
+            container.appendChild(video);
             addLogoBlocker(container);
         } else {
             loadAsIframe(url, container);
@@ -887,8 +817,8 @@
         iframe.style.height = "100%";
         iframe.style.border = "none";
         
-        // Insertamos el iframe antes de las pantallas flotantes
-        container.insertBefore(iframe, container.firstChild);
+        // Insertamos el iframe antes de la pantalla de autoNext para que no la sobreescriba
+        container.insertBefore(iframe, document.getElementById('autoNextScreen'));
         addLogoBlocker(container);
     }
 
@@ -903,12 +833,10 @@
                         flatList.push({ s: sKey, e: eKey });
                     });
                 });
-
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                const floatingBtn = document.getElementById('floatingNextBtn'); // Referencia al nuevo botón
-
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -919,22 +847,10 @@
 
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
-                    const nextUrl = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
-                    
                     nextBtn.classList.remove('btn-hidden');
-                    nextBtn.href = nextUrl;
-
-                    // Activar el botón flotante también
-                    if (floatingBtn) {
-                        floatingBtn.href = nextUrl;
-                        floatingBtn.classList.add('visible'); 
-                    }
+                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
                 } else {
                     nextBtn.classList.add('btn-hidden');
-                    // Ocultar el botón flotante si no hay siguiente episodio
-                    if (floatingBtn) {
-                        floatingBtn.classList.remove('visible');
-                    }
                 }
             }
         } catch (e) { console.error(e); }
