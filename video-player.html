@@ -73,7 +73,9 @@
     /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
         --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -98,6 +100,7 @@
         object-fit: cover;
         z-index: -10; 
         opacity: 0.5;
+        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -126,6 +129,7 @@
     }
     
     /* --- NAVEGACIÓN SUPERIOR --- */
+    /* CAMBIO 2: Fondo degradado para simular efecto en PC */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -133,6 +137,7 @@
         margin-bottom: 5px;
         flex-wrap: wrap;
         gap: 10px;
+        /* Efecto visual añadido */
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         padding: 10px;
         border-radius: 0 0 15px 15px;
@@ -154,6 +159,7 @@
       padding: 8px 18px;
       border-radius: 50px;
       border: 1px solid rgba(0, 255, 247, 0.3);
+      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -179,7 +185,6 @@
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        transition: all 0.3s ease;
     }
    
     .player-wrapper iframe, .player-wrapper video { 
@@ -187,83 +192,6 @@
         top: 0; left: 0; 
         width: 100%; height: 100%; 
         border: none;
-        z-index: 1;
-    }
-
-    /* --- MODO AMPLIO Y OVERLAY DE ODYSEE --- */
-    .odysee-play-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 60;
-        cursor: pointer;
-        backdrop-filter: blur(5px);
-    }
-    .odysee-play-overlay .play-icon {
-        background: var(--primary-color);
-        color: #000;
-        padding: 15px 35px;
-        border-radius: 50px;
-        font-size: 1.2rem;
-        font-weight: 800;
-        box-shadow: 0 0 25px var(--primary-color);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .odysee-play-overlay:hover .play-icon {
-        transform: scale(1.05);
-        box-shadow: 0 0 40px var(--primary-color);
-    }
-
-    /* Fuerza el modo amplio al salir del fullscreen nativo */
-    .player-wrapper.force-expanded {
-        position: fixed !important;
-        top: 0 !important; left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        padding: 0 !important;
-        z-index: 9999 !important;
-        border-radius: 0 !important;
-        background: #000;
-    }
-
-    /* Botón para poder cerrar el modo amplio si se cansan */
-    .close-expanded-btn {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 0, 85, 0.8);
-        color: #fff;
-        border: 1px solid var(--accent-color);
-        padding: 10px 20px;
-        border-radius: 30px;
-        z-index: 10000;
-        cursor: pointer;
-        font-family: 'Poppins', sans-serif;
-        font-weight: bold;
-        display: none;
-        box-shadow: 0 0 15px var(--accent-color);
-        transition: 0.3s;
-    }
-    .close-expanded-btn:hover {
-        background: var(--accent-color);
-        transform: scale(1.05);
-    }
-
-    /* Solo mostrar el botón de cerrar cuando estemos en force-expanded */
-    .player-wrapper.force-expanded .close-expanded-btn {
-        display: block;
-    }
-
-    /* OCULTAR el botón de cerrar si están en el fullscreen nativo del navegador */
-    .player-wrapper:fullscreen .close-expanded-btn,
-    .player-wrapper:-webkit-full-screen .close-expanded-btn,
-    .player-wrapper:-ms-fullscreen .close-expanded-btn {
-        display: none !important;
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -310,9 +238,10 @@
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- CONTROLES (GRID SYSTEM) --- */
+    /* --- CONTROLES (GRID SYSTEM PARA POSICIÓN PERFECTA) --- */
     .controls { 
         display: grid;
+        /* COL 1: Anterior, COL 2: Descargar (Flexible), COL 3: Siguiente */
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: 15px; 
@@ -321,10 +250,15 @@
         width: 100%;
     }
     
-    #prevBtn { justify-self: start; } 
-    #nextBtn { justify-self: end; }    
-    #downloadBtn { justify-self: center; } 
+    /* Posicionamiento específico en la Grid */
+    #prevBtn { justify-self: start;
+    }  /* Siempre a la izquierda */
+    #nextBtn { justify-self: end;
+    }    /* Siempre a la derecha */
+    #downloadBtn { justify-self: center;
+    } /* Siempre al centro */
 
+    /* ESTILOS DE LOS BOTONES */
     .btn { 
         padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
@@ -338,11 +272,14 @@
         justify-content: center;
         gap: 8px;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Efecto rebote suave */
         backdrop-filter: blur(5px);
         font-weight: 600;
         min-width: 100px;
+        /* Tamaño mínimo para consistencia */
     }
     
+    /* EFECTO CELESTE (ANTERIOR / SIGUIENTE) */
     .nav-btn {
         border-color: rgba(0, 255, 247, 0.3);
     }
@@ -356,6 +293,7 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
+    /* ESTILO ESPECÍFICO DESCARGAR (ROSADO) */
     #downloadBtn {
         border-color: rgba(255, 0, 85, 0.4);
         background: rgba(255, 0, 85, 0.05);
@@ -371,15 +309,23 @@
         text-shadow: 0 0 8px var(--accent-color);
     }
 
+    /* CLASE IMPORTANTE: OCULTA PERO MANTIENE EL ESPACIO */
     .btn-hidden { 
         visibility: hidden;
+        /* No se ve */
         pointer-events: none;
+        /* No se puede clickear */
+        /* NO usamos display: none, para que ocupe espacio en la grid */
     }
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .top-nav { justify-content: space-between; }
+        .container { padding: 10px;
+        }
+
+        .top-nav { justify-content: space-between;
+        }
+
         .options {
             overflow-x: auto;
             white-space: nowrap;
@@ -387,15 +333,40 @@
             scrollbar-width: none;
             max-width: 60%;
         }
-        .options::-webkit-scrollbar { display: none; }
+        .options::-webkit-scrollbar { display: none;
+        }
+
+        /* CONTROLES MÓVIL (2 FILAS) */
         .controls {
             grid-template-columns: 1fr 1fr;
+            /* 2 columnas iguales */
             grid-template-rows: auto auto;
+            /* 2 filas */
             gap: 10px;
         }
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
+
+        /* Fila 1: Anterior (Izq) y Siguiente (Der) */
+        #prevBtn { 
+            grid-column: 1;
+            grid-row: 1; 
+            justify-self: start; 
+            width: auto;
+        }
+        
+        #nextBtn { 
+            grid-column: 2;
+            grid-row: 1; 
+            justify-self: end; 
+            width: auto;
+        }
+
+        /* Fila 2: Descargar (Ocupa todo el ancho) */
+        #downloadBtn { 
+            grid-column: 1 / -1;
+            grid-row: 2;
+            width: 100%; /* Botón grande para descargar */
+            box-sizing: border-box;
+        }
     }
   </style>
 </head>
@@ -415,6 +386,7 @@
          Volver
        </a>
        <div class="options" id="serverOptions"></div>
+    
     </div>
 
     <div class="player-wrapper" id="playerContainer"></div>
@@ -428,7 +400,8 @@
             ⬇ Descargar
         </a>
         
-        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
+        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig.
+        ⏭</a>
     </div>
 
   </div>
@@ -438,19 +411,32 @@
     document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
   </script>
 
+
   <script>
-    const DB = (typeof players !== 'undefined') ? players : {};
+    // -----------------------------------------------------------
+    // LÓGICA DEL REPRODUCTOR
+    // -----------------------------------------------------------
+    
+    const DB = (typeof players !== 'undefined') ?
+    players : {};
+    
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
     const season = params.get('s');
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
 
+    // -- LOGICA DE GUARDADO DE CAPÍTULO VISTO --
     if (animeId && season && episode) {
+        // Creamos una clave única para este capitulo: watched_ID_TEMP_EP
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
+        // Guardamos en la memoria local que ya se vio
         localStorage.setItem(viewedKey, 'true');
     }
+    // ------------------------------------------
 
+    // CAMBIO EN LA LÓGICA DEL BOTÓN VOLVER
+    // Solo actualizamos si hay animeId, y eliminamos la redirección a index.html
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
     }
@@ -473,9 +459,10 @@
         document.getElementById('epTitle').innerText = "No encontrado";
     }
 
+    // CAMBIO EN LA FUNCIÓN DE DESCARGA
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
-        
+        // Google Drive logic
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
             if (match && match[1]) {
@@ -487,16 +474,20 @@
             }
         }
         
+        // Dropbox logic
         if (url.includes("dropbox.com") && url.includes("dl=0")) {
              return url.replace('dl=0', 'dl=1');
         }
 
+        // --- NUEVA LÓGICA PARA OK.RU ---
         if (url.includes("ok.ru/")) {
+            // Esta expresión regular extrae el ID, ya sea que la URL use "/videoembed/" o "/video/"
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
             if (match && match[1]) {
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
+        // -------------------------------
         
         return url;
     }
@@ -506,6 +497,7 @@
         const directLink = generateDirectDownloadLink(url);
         dlBtn.href = directLink || '#';
         
+        // Opcional: Si es un enlace de AnyDownloader, lo abrimos en nueva pestaña para que no cierre el reproductor
         if(directLink && directLink.includes("anydownloader.com")) {
             dlBtn.setAttribute("target", "_blank");
         } else {
@@ -532,12 +524,9 @@
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
-        container.classList.remove('force-expanded'); // Resetear modo amplio si cambias de video
-        
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -554,7 +543,9 @@
     }
 
     function loadAsIframe(url, container) {
+        container.innerHTML = '';
         const iframe = document.createElement('iframe');
+        iframe.src = url;
         iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
         iframe.setAttribute("allowfullscreen", "true");
         iframe.style.position = "absolute";
@@ -563,56 +554,56 @@
         iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
-        iframe.style.zIndex = "1";
+        container.appendChild(iframe);
 
-        const isOdysee = url.includes('odysee.com');
+        // --- NUEVA LÓGICA EXCLUSIVA PARA ODYSEE (AUTO-FULLSCREEN Y AUTOPLAY) ---
+        if (url.includes("odysee.com")) {
+            // Creamos un botón de Play gigante que cubre el iframe
+            const playOverlay = document.createElement('div');
+            playOverlay.style.position = 'absolute';
+            playOverlay.style.top = '0';
+            playOverlay.style.left = '0';
+            playOverlay.style.width = '100%';
+            playOverlay.style.height = '100%';
+            playOverlay.style.background = 'rgba(0,0,0,0.6)';
+            playOverlay.style.display = 'flex';
+            playOverlay.style.justifyContent = 'center';
+            playOverlay.style.alignItems = 'center';
+            playOverlay.style.cursor = 'pointer';
+            playOverlay.style.zIndex = '100';
+            playOverlay.style.backdropFilter = 'blur(4px)'; // Toque estético moderno
+            
+            // Botón de play estilo neón coincidente con tu UI
+            playOverlay.innerHTML = `
+                <div style="width: 80px; height: 80px; background: rgba(0, 255, 247, 0.2); border: 2px solid var(--primary-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px var(--primary-color); transition: transform 0.3s ease;">
+                    <svg width="35" height="35" viewBox="0 0 24 24" fill="#fff" stroke="none" style="margin-left: 5px;"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+            `;
 
-        if (isOdysee) {
-            // Preparar el overlay personalizado para forzar modo pantalla completa/amplio
-            const overlayBtn = document.createElement('div');
-            overlayBtn.className = 'odysee-play-overlay';
-            overlayBtn.innerHTML = '<div class="play-icon">▶ Reproducir y Ampliar</div>';
+            // Efecto Hover
+            playOverlay.onmouseover = () => playOverlay.children[0].style.transform = 'scale(1.1)';
+            playOverlay.onmouseout = () => playOverlay.children[0].style.transform = 'scale(1)';
 
-            // Preparar el botón para cerrar el modo amplio por si lo necesitan
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'close-expanded-btn';
-            closeBtn.innerHTML = '✖ Cerrar modo amplio';
-            closeBtn.onclick = (e) => {
-                e.stopPropagation();
-                container.classList.remove('force-expanded');
-            };
-
-            overlayBtn.onclick = () => {
-                // 1. Pedir Fullscreen nativo
-                if (container.requestFullscreen) {
-                    container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) { 
-                    container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) { 
-                    container.msRequestFullscreen();
+            // Evento de Clic: Activa Fullscreen y Autoplay
+            playOverlay.onclick = function() {
+                // Solicitar Pantalla Completa directamente en el Iframe
+                if (iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe.webkitRequestFullscreen) { /* Safari */
+                    iframe.webkitRequestFullscreen();
+                } else if (iframe.msRequestFullscreen) { /* IE11 */
+                    iframe.msRequestFullscreen();
                 }
-
-                // 2. Forzar modo amplio por si se sale del fullscreen nativo
-                container.classList.add('force-expanded');
-
-                // 3. Forzar Autoplay añadiendo el parámetro a la url de Odysee
-                let finalUrl = url;
-                if (!finalUrl.includes('autoplay=')) {
-                    finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'autoplay=true';
-                }
-                iframe.src = finalUrl;
-
-                // 4. Ocultar el overlay
-                overlayBtn.style.display = 'none';
+                
+                // Recargar el iframe pasándole el parámetro autoplay
+                const separator = url.includes('?') ? '&' : '?';
+                iframe.src = url + separator + 'autoplay=true';
+                
+                // Ocultar la capa para permitir interacción normal tras el click
+                playOverlay.style.display = 'none';
             };
-
-            // Inyectar en el DOM
-            container.appendChild(iframe);
-            container.appendChild(closeBtn);
-            container.appendChild(overlayBtn);
-        } else {
-            iframe.src = url;
-            container.appendChild(iframe);
+            
+            container.appendChild(playOverlay);
         }
     }
 
@@ -625,21 +616,23 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
-                
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                
+                // Configurar Anterior
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
                     prevBtn.href = `?anime=${animeId}&s=${prevItem.s}&e=${prevItem.e}`;
                 } else {
+                    // Si no hay anterior, nos aseguramos que tenga la clase btn-hidden
                     prevBtn.classList.add('btn-hidden');
                 }
 
+                // Configurar Siguiente
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
                     nextBtn.classList.remove('btn-hidden');
@@ -648,7 +641,8 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error(e);
+        }
     }
   </script>
 </body>
