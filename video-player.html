@@ -550,9 +550,15 @@
         
         const directLink = generateDirectDownloadLink(url);
         newBtn.href = directLink || '#';
+        
         if(directLink && directLink !== '#') {
-            // Ahora usamos comportamiento nativo para evadir los bloqueos de seguridad en tablets
-            newBtn.setAttribute("target", "_blank");
+            // Eliminar target para que la descarga inicie en la misma pestaña sin abrir popups vacíos
+            newBtn.removeAttribute("target");
+            
+            // LA CLAVE AQUÍ: Ocultamos la procedencia del clic. 
+            // Odysee bloquea las descargas directas (Error 404) si detecta que vienen de otra web.
+            // 'noreferrer' hace que se comporte exactamente igual que si copiaras y pegaras el enlace.
+            newBtn.setAttribute("rel", "noreferrer noopener");
         }
     }
 
