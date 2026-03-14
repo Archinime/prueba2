@@ -100,7 +100,6 @@
         object-fit: cover;
         z-index: -10; 
         opacity: 0.5;
-        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -157,7 +156,6 @@
       padding: 8px 18px;
       border-radius: 50px;
       border: 1px solid rgba(0, 255, 247, 0.3);
-      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -192,7 +190,7 @@
         border: none;
     }
 
-    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO (NUEVO) --- */
+    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO (Para videos directos nativos) --- */
     #autoNextScreen {
         position: absolute;
         top: 0; left: 0;
@@ -200,7 +198,7 @@
         background: rgba(5, 5, 5, 0.85);
         backdrop-filter: blur(10px);
         z-index: 200;
-        display: none; /* Oculto por defecto */
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -262,12 +260,51 @@
         top: 0; left: 0;
         width: 100%; height: 100%;
         z-index: 90;
-        /* Encima del video, pero debajo de la tira blocker */
         cursor: pointer;
     }
     .touch-overlay.inactive {
         display: none;
-        /* Desaparece para que puedas tocar el video debajo */
+    }
+
+    /* --- BOTÓN FLOTANTE "SIGUIENTE" (El Anti-Odysee) --- */
+    .floating-next {
+        position: absolute;
+        bottom: 70px; /* Suficientemente alto para no tapar los controles de Odysee */
+        right: 20px;
+        z-index: 150;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid var(--primary-color);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: translateX(30px);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .floating-next.active-ui {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+    }
+
+    .floating-next:hover {
+        background: var(--primary-color);
+        color: #000;
+        box-shadow: 0 0 25px var(--primary-color);
+        transform: translateX(0) scale(1.05);
     }
 
     /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
@@ -276,27 +313,24 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
+        height: 14%; 
         min-height: 45px;
-        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
-        z-index: 100; /* Siempre encima de todo */
+        z-index: 100;
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding-top: 1.5%; /* Espaciado adaptable */
+        padding-top: 1.5%;
         pointer-events: auto;
-        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
-        user-select: none; /* Evita que seleccionen el texto */
+        user-select: none;
         opacity: 1 !important;
         visibility: visible !important;
     }
 
-    /* Línea sutil de neón debajo del bloqueador */
     .logo-blocker::after {
         content: '';
         position: absolute;
@@ -317,7 +351,7 @@
     .blocker-text {
         font-family: 'Poppins', sans-serif;
         font-weight: 800;
-        font-size: clamp(1rem, 2.5vw, 1.4rem); /* Texto responsivo */
+        font-size: clamp(1rem, 2.5vw, 1.4rem); 
         color: #fff;
         letter-spacing: 5px;
         text-transform: uppercase;
@@ -335,11 +369,8 @@
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8;
-        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1;
-        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
-        }
+        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -433,7 +464,6 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
-    /* ANIMACIÓN AGRESIVA PARA EL BOTÓN "SIGUIENTE" (El señuelo visual) */
     @keyframes pulseNext {
         0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7); }
         70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0); }
@@ -488,11 +518,17 @@
         #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
         #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        /* Ajuste fino para la tira en móviles */
         .logo-blocker {
             height: 18%;
             min-height: 55px; 
             padding-top: 3%;
+        }
+
+        .floating-next {
+            bottom: 60px;
+            right: 15px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
         }
     }
   </style>
@@ -529,11 +565,7 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#" target="_blank">
-            ⬇ Descargar
-        </a>
-        
+        <a id="downloadBtn" class="btn" href="#" target="_blank">⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
@@ -552,11 +584,14 @@
     let hasInteracted = false; 
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
-    let autoNextTimer = null; // Variable para el contador
+    let autoNextTimer = null; 
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
+        const floatBtns = document.querySelectorAll('.floating-next'); // <-- Seleccionamos el botón flotante
+        
         overlays.forEach(o => o.classList.add('inactive'));
+        floatBtns.forEach(b => b.classList.add('active-ui')); // <-- Lo mostramos
 
         clearTimeout(activityTimeout);
         const videoElem = document.querySelector('#playerContainer video');
@@ -565,6 +600,7 @@
         if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
                 overlays.forEach(o => o.classList.remove('inactive')); 
+                floatBtns.forEach(b => b.classList.remove('active-ui')); // <-- Lo ocultamos tras inactividad
             }, 4500);
         }
     }
@@ -613,6 +649,9 @@
         document.title = `Ver ${epData.title} - Archinime`;
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
+        
+        // Ejecutamos la navegación PRIMERO para que el botón flotante sepa a dónde ir
+        setupNavigation();
         loadVideo(initialLink);
         
         const optContainer = document.getElementById('serverOptions');
@@ -621,7 +660,6 @@
         if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
         
         updateDownloadButton(initialLink);
-        setupNavigation();
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
     }
@@ -661,30 +699,32 @@
         wakeUpUI();
     }
 
+    function addFloatingNextBtn(container) {
+        const nextBtn = document.getElementById('nextBtn');
+        // Solo lo inyectamos si hay un episodio siguiente configurado
+        if (nextBtn && !nextBtn.classList.contains('btn-hidden') && nextBtn.href) {
+            const floatBtn = document.createElement('a');
+            floatBtn.className = 'floating-next active-ui';
+            floatBtn.href = nextBtn.href;
+            floatBtn.innerHTML = `Siguiente ⏭`;
+            container.appendChild(floatBtn);
+        }
+    }
+
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) {
-               return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-            }
+            if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
             const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (altMatch && altMatch[1]) {
-               return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-            }
+            if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
         }
-        if (url.includes("dropbox.com") && url.includes("dl=0")) {
-             return url.replace('dl=0', 'dl=1');
-        }
+        if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
         if (url.includes("ok.ru/")) {
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-            if (match && match[1]) {
-                return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
-            }
+            if (match && match[1]) return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
         }
-        if (url.includes("odysee.com")) {
-            return url.replace('/$/embed/', '/$/download/');
-        }
+        if (url.includes("odysee.com")) return url.replace('/$/embed/', '/$/download/');
         return url;
     }
 
@@ -718,10 +758,8 @@
         optContainer.appendChild(btn);
     }
 
-    // --- LÓGICA DE AUTOPLAY (NUEVO) ---
     function startAutoNextCountdown() {
         const nextBtn = document.getElementById('nextBtn');
-        // Solo si hay un episodio siguiente disponible
         if(nextBtn && !nextBtn.classList.contains('btn-hidden')) {
             const autoScreen = document.getElementById('autoNextScreen');
             const progressBar = document.getElementById('autoNextBar');
@@ -730,11 +768,10 @@
             autoScreen.classList.add('visible');
             
             let progress = 0;
-            const duration = 5000; // 5 segundos
-            const interval = 50; // Actualizar cada 50ms
+            const duration = 5000; 
+            const interval = 50; 
             const step = (interval / duration) * 100;
 
-            // Función para cancelar
             const cancelAutoNext = () => {
                 clearInterval(autoNextTimer);
                 autoScreen.classList.remove('visible');
@@ -748,7 +785,7 @@
                 
                 if (progress >= 100) {
                     clearInterval(autoNextTimer);
-                    window.location.href = nextBtn.href; // Redirigir al siguiente
+                    window.location.href = nextBtn.href; 
                 }
             }, interval);
         }
@@ -756,7 +793,6 @@
 
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
-        // Preservar la pantalla de auto-next al limpiar el contenedor
         const autoNextScreen = document.getElementById('autoNextScreen');
         container.innerHTML = ''; 
         if(autoNextScreen) container.appendChild(autoNextScreen);
@@ -784,22 +820,13 @@
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
             
-            video.addEventListener('pause', () => {
-                hasInteracted = false; 
-                wakeUpUI();
-            });
-            video.addEventListener('play', () => {
-                hasInteracted = true;
-                wakeUpUI();
-            });
-            
-            // EL EVENTO CLAVE PARA VIDEOS NATIVOS
-            video.addEventListener('ended', () => {
-                startAutoNextCountdown();
-            });
+            video.addEventListener('pause', () => { hasInteracted = false; wakeUpUI(); });
+            video.addEventListener('play', () => { hasInteracted = true; wakeUpUI(); });
+            video.addEventListener('ended', () => { startAutoNextCountdown(); });
 
             container.appendChild(video);
             addLogoBlocker(container);
+            addFloatingNextBtn(container); // Inyectamos el botón flotante anti-odysee
         } else {
             loadAsIframe(url, container);
         }
@@ -817,9 +844,9 @@
         iframe.style.height = "100%";
         iframe.style.border = "none";
         
-        // Insertamos el iframe antes de la pantalla de autoNext para que no la sobreescriba
         container.insertBefore(iframe, document.getElementById('autoNextScreen'));
         addLogoBlocker(container);
+        addFloatingNextBtn(container); // Inyectamos el botón flotante anti-odysee
     }
 
     function setupNavigation() {
