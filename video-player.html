@@ -11,10 +11,16 @@
   (function() {
     // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"
+      "#00f3ff", // Cian Neón (Inicio)
+      "#0066ff", // Azul Eléctrico
+      "#bc13fe", // Morado Protagonista
+      "#ff0055", // Rosa Neón (Acento)
+      "#bc13fe", // Morado (Regreso)
+      "#0066ff", // Azul
+      "#00f3ff"  // Cian (Final para loop perfecto)
     ];
 
-    const animationDuration = 20000; 
+    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -44,13 +50,16 @@
       if (currentProgress >= segments) {
         currentProgress = currentProgress % segments;
       }
+
       const index = Math.floor(currentProgress);
       const t = currentProgress - index;
       const colorStart = hexToRgb(colors[index]);
       const colorEnd = hexToRgb(colors[index + 1]);
+
       const r = lerp(colorStart[0], colorEnd[0], t);
       const g = lerp(colorStart[1], colorEnd[1], t);
       const b = lerp(colorStart[2], colorEnd[2], t);
+
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
 })();
@@ -61,12 +70,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
+    /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7;
         --accent-color: #ff0055;
         --text-color: #ffffff;
+        --glass-bg: rgba(0, 0, 0, 0.7);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
+    /* --- ESTILOS GENERALES --- */
     body { 
         margin: 0;
         background: #050505; 
@@ -77,6 +90,7 @@
         -webkit-tap-highlight-color: transparent;
     }
    
+    /* --- FONDO DE VIDEO --- */
     #bg-video { 
         position: fixed;
         top: 0; left: 0; 
@@ -86,6 +100,7 @@
         opacity: 0.5;
     }
 
+    /* --- OVERLAY --- */
     #overlay {
       position: fixed;
       top: 0; left: 0; 
@@ -96,6 +111,7 @@
       pointer-events: none;
     }
     
+    /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
         max-width: 1200px;
@@ -109,6 +125,7 @@
         gap: 15px;
     }
     
+    /* --- NAVEGACIÓN SUPERIOR --- */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -122,6 +139,7 @@
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
 
+    /* BOTÓN VOLVER (ESTILO NEON) */
     .back-btn { 
       display: inline-flex;
       align-items: center;
@@ -152,7 +170,7 @@
     /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 por defecto */
+        padding-bottom: 56.25%; /* 16:9 */
         height: 0; 
         width: 100%; 
         background: #000;
@@ -161,17 +179,7 @@
         border-radius: 16px; 
         border: 1px solid rgba(255,255,255,0.1);
         box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        /* Transición suave para cuando se haga grande */
-        transition: padding-bottom 0.4s ease, height 0.4s ease; 
-    }
-
-    /* --- ESTADO MODO AMPLIO ODYSEE (Se activa por JS al dar Play) --- */
-    .player-wrapper.odysee-wide {
-        padding-bottom: 0 !important;
-        height: 85vh !important; /* Crece para ocupar casi toda la pantalla */
-        max-height: 1000px;
-        border: 1px solid var(--primary-color);
-        box-shadow: 0 0 30px rgba(0, 255, 247, 0.3);
+        transition: all 0.3s ease;
     }
    
     .player-wrapper iframe, .player-wrapper video { 
@@ -179,8 +187,86 @@
         top: 0; left: 0; 
         width: 100%; height: 100%; 
         border: none;
+        z-index: 1;
     }
 
+    /* --- MODO AMPLIO Y OVERLAY DE ODYSEE --- */
+    .odysee-play-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 60;
+        cursor: pointer;
+        backdrop-filter: blur(5px);
+    }
+    .odysee-play-overlay .play-icon {
+        background: var(--primary-color);
+        color: #000;
+        padding: 15px 35px;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        box-shadow: 0 0 25px var(--primary-color);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .odysee-play-overlay:hover .play-icon {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px var(--primary-color);
+    }
+
+    /* Fuerza el modo amplio al salir del fullscreen nativo */
+    .player-wrapper.force-expanded {
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        padding: 0 !important;
+        z-index: 9999 !important;
+        border-radius: 0 !important;
+        background: #000;
+    }
+
+    /* Botón para poder cerrar el modo amplio si se cansan */
+    .close-expanded-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 0, 85, 0.8);
+        color: #fff;
+        border: 1px solid var(--accent-color);
+        padding: 10px 20px;
+        border-radius: 30px;
+        z-index: 10000;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+        font-weight: bold;
+        display: none;
+        box-shadow: 0 0 15px var(--accent-color);
+        transition: 0.3s;
+    }
+    .close-expanded-btn:hover {
+        background: var(--accent-color);
+        transform: scale(1.05);
+    }
+
+    /* Solo mostrar el botón de cerrar cuando estemos en force-expanded */
+    .player-wrapper.force-expanded .close-expanded-btn {
+        display: block;
+    }
+
+    /* OCULTAR el botón de cerrar si están en el fullscreen nativo del navegador */
+    .player-wrapper:fullscreen .close-expanded-btn,
+    .player-wrapper:-webkit-full-screen .close-expanded-btn,
+    .player-wrapper:-ms-fullscreen .close-expanded-btn {
+        display: none !important;
+    }
+
+    /* --- OPCIONES DE SERVIDOR --- */
     .options { 
         display: flex;
         gap: 10px;
@@ -213,6 +299,7 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
+    /* --- TÍTULO DEL EPISODIO --- */
     h1 { 
         color: #fff;
         font-size: 1.3rem; 
@@ -223,6 +310,7 @@
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
+    /* --- CONTROLES (GRID SYSTEM) --- */
     .controls { 
         display: grid;
         grid-template-columns: 1fr auto 1fr;
@@ -234,7 +322,7 @@
     }
     
     #prevBtn { justify-self: start; } 
-    #nextBtn { justify-self: end; }   
+    #nextBtn { justify-self: end; }    
     #downloadBtn { justify-self: center; } 
 
     .btn { 
@@ -255,7 +343,9 @@
         min-width: 100px;
     }
     
-    .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
+    .nav-btn {
+        border-color: rgba(0, 255, 247, 0.3);
+    }
 
     .nav-btn:hover {
         background: rgba(0, 255, 247, 0.15);
@@ -286,6 +376,7 @@
         pointer-events: none;
     }
 
+    /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
         .top-nav { justify-content: space-between; }
@@ -297,20 +388,14 @@
             max-width: 60%;
         }
         .options::-webkit-scrollbar { display: none; }
-
         .controls {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto;
             gap: 10px;
         }
-
         #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
         #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
         #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
-        
-        .player-wrapper.odysee-wide {
-            height: 60vh !important; 
-        }
     }
   </style>
 </head>
@@ -323,6 +408,7 @@
   <div id="overlay"></div>
 
   <div class="container">
+   
     <div class="top-nav">
        <a href="#" id="backLink" class="back-btn">
          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -337,9 +423,14 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        <a id="downloadBtn" class="btn" href="#" target="_blank" download>⬇ Descargar</a>
+        
+        <a id="downloadBtn" class="btn" href="#" target="_blank" download>
+            ⬇ Descargar
+        </a>
+        
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
+
   </div>
 
   <script>
@@ -384,17 +475,29 @@
 
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
+        
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+            if (match && match[1]) {
+               return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+            }
             const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
+            if (altMatch && altMatch[1]) {
+               return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
+            }
         }
-        if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
+        
+        if (url.includes("dropbox.com") && url.includes("dl=0")) {
+             return url.replace('dl=0', 'dl=1');
+        }
+
         if (url.includes("ok.ru/")) {
             const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-            if (match && match[1]) return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
+            if (match && match[1]) {
+                return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
+            }
         }
+        
         return url;
     }
 
@@ -402,6 +505,7 @@
         const dlBtn = document.getElementById('downloadBtn');
         const directLink = generateDirectDownloadLink(url);
         dlBtn.href = directLink || '#';
+        
         if(directLink && directLink.includes("anydownloader.com")) {
             dlBtn.setAttribute("target", "_blank");
         } else {
@@ -428,8 +532,8 @@
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
         container.innerHTML = ''; 
-        container.classList.remove('odysee-wide');
-
+        container.classList.remove('force-expanded'); // Resetear modo amplio si cambias de video
+        
         if (!url) return;
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
@@ -450,11 +554,7 @@
     }
 
     function loadAsIframe(url, container) {
-        container.innerHTML = '';
-        container.classList.remove('odysee-wide');
-
         const iframe = document.createElement('iframe');
-        iframe.src = url;
         iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
         iframe.setAttribute("allowfullscreen", "true");
         iframe.style.position = "absolute";
@@ -463,39 +563,58 @@
         iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
-        container.appendChild(iframe);
+        iframe.style.zIndex = "1";
 
-        // Devolvemos el foco al documento principal para que detecte el próximo click
-        setTimeout(() => window.focus(), 100);
-    }
+        const isOdysee = url.includes('odysee.com');
 
-    // --------------------------------------------------------------------------
-    // TRUCO MÁGICO: Detectar cuando el usuario hace clic en el Play de Odysee
-    // --------------------------------------------------------------------------
-    window.addEventListener('blur', function() {
-        setTimeout(() => {
-            const active = document.activeElement;
-            // Si el elemento clickeado es un iframe
-            if (active && active.tagName === 'IFRAME') {
-                const src = active.getAttribute('src');
-                // Y si ese iframe es de Odysee
-                if (src && src.includes('odysee.com')) {
-                    const container = document.getElementById('playerContainer');
-                    // ¡Lo expandimos automáticamente!
-                    container.classList.add('odysee-wide');
-                    
-                    // Aseguramos un scroll suave para que se vea el reproductor gigante
-                    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (isOdysee) {
+            // Preparar el overlay personalizado para forzar modo pantalla completa/amplio
+            const overlayBtn = document.createElement('div');
+            overlayBtn.className = 'odysee-play-overlay';
+            overlayBtn.innerHTML = '<div class="play-icon">▶ Reproducir y Ampliar</div>';
+
+            // Preparar el botón para cerrar el modo amplio por si lo necesitan
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-expanded-btn';
+            closeBtn.innerHTML = '✖ Cerrar modo amplio';
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                container.classList.remove('force-expanded');
+            };
+
+            overlayBtn.onclick = () => {
+                // 1. Pedir Fullscreen nativo
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) { 
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) { 
+                    container.msRequestFullscreen();
                 }
-            }
-        }, 50);
-    });
 
-    // Restauramos el foco a la ventana si el usuario hace clic fuera del video
-    window.addEventListener('click', function() {
-        window.focus();
-    });
-    // --------------------------------------------------------------------------
+                // 2. Forzar modo amplio por si se sale del fullscreen nativo
+                container.classList.add('force-expanded');
+
+                // 3. Forzar Autoplay añadiendo el parámetro a la url de Odysee
+                let finalUrl = url;
+                if (!finalUrl.includes('autoplay=')) {
+                    finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'autoplay=true';
+                }
+                iframe.src = finalUrl;
+
+                // 4. Ocultar el overlay
+                overlayBtn.style.display = 'none';
+            };
+
+            // Inyectar en el DOM
+            container.appendChild(iframe);
+            container.appendChild(closeBtn);
+            container.appendChild(overlayBtn);
+        } else {
+            iframe.src = url;
+            container.appendChild(iframe);
+        }
+    }
 
     function setupNavigation() {
         try {
@@ -504,8 +623,11 @@
                 const seasons = Object.keys(DB[animeId]).sort((a, b) => Number(a) - Number(b));
                 seasons.forEach(sKey => {
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
-                    episodes.forEach(eKey => { flatList.push({ s: sKey, e: eKey }); });
+                    episodes.forEach(eKey => {
+                        flatList.push({ s: sKey, e: eKey });
+                    });
                 });
+                
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
