@@ -100,6 +100,7 @@
         object-fit: cover;
         z-index: -10; 
         opacity: 0.5;
+        /* Un poco más oscuro para resaltar los neones */
     }
 
     /* --- OVERLAY --- */
@@ -116,7 +117,7 @@
     /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
-        max-width: 1300px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 15px;
         position: relative;
@@ -156,6 +157,7 @@
       padding: 8px 18px;
       border-radius: 50px;
       border: 1px solid rgba(0, 255, 247, 0.3);
+      /* Borde sutil celeste */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -172,10 +174,9 @@
     /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; 
+        padding-bottom: 56.25%; /* 16:9 */
         height: 0; 
         width: 100%; 
-        max-height: 85vh; 
         background: #000;
         overflow: hidden;
         z-index: 50;
@@ -191,44 +192,7 @@
         border: none;
     }
 
-    /* --- BOTÓN FLOTANTE NEÓN --- */
-    .floating-next-btn {
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        z-index: 150;
-        background: rgba(0, 0, 0, 0.85);
-        border: 2px solid var(--primary-color);
-        color: #fff;
-        padding: 12px 28px;
-        border-radius: 50px;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 800;
-        text-decoration: none;
-        letter-spacing: 1px;
-        box-shadow: 0 0 15px var(--primary-color);
-        transition: opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        opacity: 0; 
-        pointer-events: none;
-        backdrop-filter: blur(10px);
-        animation: pulseNext 2s infinite;
-        display: none; 
-    }
-
-    .floating-next-btn.visible {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .floating-next-btn:hover {
-        background: rgba(0, 255, 247, 0.2);
-        color: #fff;
-        transform: scale(1.05);
-        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.4);
-    }
-
-    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO --- */
+    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO (NUEVO) --- */
     #autoNextScreen {
         position: absolute;
         top: 0; left: 0;
@@ -237,6 +201,7 @@
         backdrop-filter: blur(10px);
         z-index: 200;
         display: none;
+        /* Oculto por defecto */
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -298,40 +263,48 @@
         top: 0; left: 0;
         width: 100%; height: 100%;
         z-index: 90;
+        /* Encima del video, pero debajo de la tira blocker */
         cursor: pointer;
     }
     .touch-overlay.inactive {
         display: none;
+        /* Desaparece para que puedas tocar el video debajo */
     }
 
     /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
     .logo-blocker {
         position: absolute;
-        top: 0; left: 0;
+        top: 0;
+        left: 0;
         width: 100%;
-        height: 14%; 
+        height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
         min-height: 45px;
+        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
-        z-index: 100; 
+        z-index: 100; /* Siempre encima de todo */
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding-top: 1.5%; 
+        padding-top: 1.5%; /* Espaciado adaptable */
         pointer-events: auto;
+        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
-        user-select: none; 
+        user-select: none; /* Evita que seleccionen el texto */
         opacity: 1 !important;
         visibility: visible !important;
     }
 
+    /* Línea sutil de neón debajo del bloqueador */
     .logo-blocker::after {
         content: '';
         position: absolute;
-        bottom: 25%; left: 0;
-        width: 100%; height: 1px;
+        bottom: 25%;
+        left: 0;
+        width: 100%;
+        height: 1px;
         background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
         opacity: 0.3;
     }
@@ -345,7 +318,7 @@
     .blocker-text {
         font-family: 'Poppins', sans-serif;
         font-weight: 800;
-        font-size: clamp(1rem, 2.5vw, 1.4rem); 
+        font-size: clamp(1rem, 2.5vw, 1.4rem); /* Texto responsivo */
         color: #fff;
         letter-spacing: 5px;
         text-transform: uppercase;
@@ -370,12 +343,12 @@
         }
     }
 
-    /* --- OPCIONES DE SERVIDOR Y COPIAR LINK --- */
+    /* --- OPCIONES DE SERVIDOR --- */
     .options { 
         display: flex;
         gap: 10px;
         justify-content: flex-end;
-        flex-wrap: wrap; /* Para que bajen en móviles si no caben */
+        align-items: center; /* Alineado verticalmente */
     }
     
     .opt-btn { 
@@ -404,21 +377,16 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* ESTILO ESPECÍFICO DEL BOTÓN COPIAR */
+    /* --- NUEVO: BOTÓN DE COPIAR MP4 --- */
     .copy-btn {
-        border-color: #bc13fe; /* Morado neón de tu paleta */
+        border-color: #bc13fe;
         color: #bc13fe;
-        display: flex;
-        align-items: center;
-        gap: 5px;
         font-weight: 600;
     }
-
     .copy-btn:hover {
         background: rgba(188, 19, 254, 0.15);
         color: #fff;
         box-shadow: 0 0 15px #bc13fe;
-        transform: translateY(-2px);
     }
 
     /* --- TÍTULO DEL EPISODIO --- */
@@ -444,9 +412,11 @@
     }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end; }
+    #nextBtn { justify-self: end;
+    }
     #downloadBtn { justify-self: center; }
 
+    /* ESTILOS DE LOS BOTONES */
     .btn { 
         padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
@@ -478,10 +448,14 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
+    /* ANIMACIÓN AGRESIVA PARA EL BOTÓN "SIGUIENTE" (El señuelo visual) */
     @keyframes pulseNext {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7); }
-        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7);
+        }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0);
+        }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0);
+        }
     }
     
     #nextBtn:not(.btn-hidden) {
@@ -511,24 +485,19 @@
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .top-nav { justify-content: space-between; }
-        
-        .options {
-            justify-content: center;
-            width: 100%;
+        .container { padding: 10px;
         }
-
-        #serverOptions {
+        .top-nav { justify-content: space-between;
+        }
+        .options {
             overflow-x: auto;
             white-space: nowrap;
             -ms-overflow-style: none;
             scrollbar-width: none;
-            max-width: 100%;
-            display: flex;
-            gap: 10px;
+            max-width: 60%;
         }
-        #serverOptions::-webkit-scrollbar { display: none; }
+        .options::-webkit-scrollbar { display: none;
+        }
 
         .controls {
             grid-template-columns: 1fr 1fr;
@@ -536,21 +505,18 @@
             gap: 10px;
         }
 
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
+        #prevBtn { grid-column: 1; grid-row: 1;
+        justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end;
+        width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%;
+        box-sizing: border-box; }
         
+        /* Ajuste fino para la tira en móviles */
         .logo-blocker {
             height: 18%;
             min-height: 55px; 
             padding-top: 3%;
-        }
-        
-        .floating-next-btn {
-            bottom: 15px;
-            right: 15px;
-            padding: 8px 18px;
-            font-size: 0.85rem;
         }
     }
   </style>
@@ -572,14 +538,12 @@
        </a>
        
        <div class="options">
-           <button id="copyLinkBtn" class="opt-btn copy-btn">📋 Copiar Link</button>
+           <button id="copyLinkBtn" class="opt-btn copy-btn">📋 Copiar Link MP4</button>
            <span id="serverOptions" style="display:flex; gap:10px;"></span>
        </div>
     </div>
 
     <div class="player-wrapper" id="playerContainer">
-        <a href="#" id="floatingNextBtn" class="floating-next-btn">Sig. Ep ⏭</a>
-
         <div id="autoNextScreen">
             <div class="auto-next-title">Siguiente Episodio en...</div>
             <div class="neon-progress-container">
@@ -598,7 +562,8 @@
             ⬇ Descargar
         </a>
         
-        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
+        <a id="nextBtn" class="btn nav-btn btn-hidden">Sig.
+        ⏭</a>
     </div>
 
   </div>
@@ -609,9 +574,6 @@
   </script>
 
   <script>
-    // Variable global para guardar el enlace activo actualmente
-    let currentActiveUrl = ""; 
-
     // -----------------------------------------------------------
     // LÓGICA ULTRA RÁPIDA DE INACTIVIDAD Y ESCUDO DE TOQUES
     // -----------------------------------------------------------
@@ -620,30 +582,19 @@
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
     let autoNextTimer = null;
+    // Variable para el contador
+    let currentActiveUrl = ""; // NUEVO: Rastrear URL activa para el botón de copia
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
         overlays.forEach(o => o.classList.add('inactive'));
 
-        // Mostrar Botón Flotante Neón
-        const floatingBtn = document.getElementById('floatingNextBtn');
-        if(floatingBtn && floatingBtn.classList.contains('visible')) {
-            floatingBtn.style.opacity = '1';
-            floatingBtn.style.pointerEvents = 'auto';
-        }
-
         clearTimeout(activityTimeout);
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
-        
         if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
                 overlays.forEach(o => o.classList.remove('inactive')); 
-                // Ocultar Botón Flotante Neón por inactividad
-                if(floatingBtn && floatingBtn.classList.contains('visible')) {
-                    floatingBtn.style.opacity = '0';
-                    floatingBtn.style.pointerEvents = 'none';
-                }
             }, 4500);
         }
     }
@@ -669,7 +620,8 @@
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
     
-    const DB = (typeof players !== 'undefined') ? players : {};
+    const DB = (typeof players !== 'undefined') ?
+    players : {};
     
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
@@ -788,6 +740,7 @@
         btn.className = 'opt-btn' + (shouldBeActive ? ' active' : '');
         btn.innerText = label;
         btn.onclick = () => {
+            // No quitar la clase activa al botón de copiar
             document.querySelectorAll('.opt-btn:not(.copy-btn)').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             loadVideo(url);
@@ -799,6 +752,7 @@
     // --- LÓGICA DE AUTOPLAY ---
     function startAutoNextCountdown() {
         const nextBtn = document.getElementById('nextBtn');
+        // Solo si hay un episodio siguiente disponible
         if(nextBtn && !nextBtn.classList.contains('btn-hidden')) {
             const autoScreen = document.getElementById('autoNextScreen');
             const progressBar = document.getElementById('autoNextBar');
@@ -808,9 +762,11 @@
             
             let progress = 0;
             const duration = 5000;
+            // 5 segundos
             const interval = 50;
+            // Actualizar cada 50ms
             const step = (interval / duration) * 100;
-
+            // Función para cancelar
             const cancelAutoNext = () => {
                 clearInterval(autoNextTimer);
                 autoScreen.classList.remove('visible');
@@ -823,24 +779,21 @@
                 progressBar.style.width = `${progress}%`;
                 
                 if (progress >= 100) {
-                    clearInterval(autoNextTimer);
-                    window.location.href = nextBtn.href;
+                   
+                 clearInterval(autoNextTimer);
+                    window.location.href = nextBtn.href; // Redirigir al siguiente
                 }
             }, interval);
         }
     }
 
     function loadVideo(url) {
-        // ACTUALIZAMOS LA VARIABLE PARA EL BOTÓN DE COPIAR
-        currentActiveUrl = url;
+        currentActiveUrl = url; // <-- NUEVO: Guardamos la URL actual
 
         const container = document.getElementById('playerContainer');
+        // Preservar la pantalla de auto-next al limpiar el contenedor
         const autoNextScreen = document.getElementById('autoNextScreen');
-        const floatingNextBtn = document.getElementById('floatingNextBtn'); 
-
         container.innerHTML = ''; 
-        
-        if(floatingNextBtn) container.appendChild(floatingNextBtn);
         if(autoNextScreen) container.appendChild(autoNextScreen);
 
         if (!url) return;
@@ -874,10 +827,11 @@
                 hasInteracted = true;
                 wakeUpUI();
             });
+            // EL EVENTO CLAVE PARA VIDEOS NATIVOS
             video.addEventListener('ended', () => {
                 startAutoNextCountdown();
             });
-            container.insertBefore(video, container.firstChild);
+            container.appendChild(video);
             addLogoBlocker(container);
         } else {
             loadAsIframe(url, container);
@@ -896,9 +850,37 @@
         iframe.style.height = "100%";
         iframe.style.border = "none";
         
-        container.insertBefore(iframe, container.firstChild);
+        // Insertamos el iframe antes de la pantalla de autoNext para que no la sobreescriba
+        container.insertBefore(iframe, document.getElementById('autoNextScreen'));
         addLogoBlocker(container);
     }
+
+    // --- NUEVA LÓGICA: COPIAR LINK DIRECTO MP4 ---
+    document.getElementById('copyLinkBtn').addEventListener('click', function() {
+        if (!currentActiveUrl) return;
+        let urlToCopy = currentActiveUrl;
+
+        // Convertir embed de Odysee a enlace de descarga directa
+        if (urlToCopy.includes("odysee.com/$/embed/")) {
+            urlToCopy = urlToCopy.replace("/$/embed/", "/$/download/");
+        }
+
+        navigator.clipboard.writeText(urlToCopy).then(() => {
+            const btn = this;
+            const originalText = btn.innerText;
+            
+            // Animación de éxito
+            btn.innerText = "¡Copiado! ✔️";
+            btn.style.background = "#bc13fe";
+            btn.style.color = "#fff";
+            
+            setTimeout(() => { 
+                btn.innerText = originalText; 
+                btn.style.background = ""; 
+                btn.style.color = ""; 
+            }, 2000);
+        }).catch(err => console.error("Error al copiar: ", err));
+    });
 
     function setupNavigation() {
         try {
@@ -909,14 +891,12 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
-
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                const floatingBtn = document.getElementById('floatingNextBtn'); 
-
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -927,52 +907,14 @@
 
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
-                    const nextUrl = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
-                    
                     nextBtn.classList.remove('btn-hidden');
-                    nextBtn.href = nextUrl;
-
-                    if (floatingBtn) {
-                        floatingBtn.href = nextUrl;
-                        floatingBtn.classList.add('visible'); 
-                    }
+                    nextBtn.href = `?anime=${animeId}&s=${nextItem.s}&e=${nextItem.e}`;
                 } else {
                     nextBtn.classList.add('btn-hidden');
-                    if (floatingBtn) {
-                        floatingBtn.classList.remove('visible');
-                    }
                 }
             }
-        } catch (e) { console.error(e); }
-    }
-
-    // --- FUNCIÓN DEL BOTÓN COPIAR ENLACE ---
-    const copyBtn = document.getElementById('copyLinkBtn');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Usamos la API moderna del portapapeles
-            navigator.clipboard.writeText(currentActiveUrl).then(() => {
-                // Efecto visual
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = "¡Copiado! ✔️";
-                copyBtn.style.background = "var(--primary-color)";
-                copyBtn.style.color = "#000";
-                copyBtn.style.borderColor = "var(--primary-color)";
-                
-                // Volver a la normalidad después de 2 segundos
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                    copyBtn.style.background = "rgba(0, 0, 0, 0.6)";
-                    copyBtn.style.color = "#bc13fe";
-                    copyBtn.style.borderColor = "#bc13fe";
-                }, 2000);
-            }).catch(err => {
-                console.error('Error al copiar: ', err);
-                alert("Tu navegador no permite copiar automáticamente.");
-            });
-        });
+        } catch (e) { console.error(e);
+        }
     }
   </script>
 </body>
