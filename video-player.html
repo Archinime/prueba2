@@ -72,8 +72,10 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -88,7 +90,7 @@
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
-        outline: none; 
+        outline: none;
     }
    
     /* --- FONDO DE VIDEO --- */
@@ -98,7 +100,7 @@
         width: 100%; height: 100%; 
         object-fit: cover;
         z-index: -10; 
-        opacity: 0.5; 
+        opacity: 0.5;
     }
 
     /* --- OVERLAY --- */
@@ -154,7 +156,7 @@
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 50px;
-      border: 1px solid rgba(0, 255, 247, 0.3); 
+      border: 1px solid rgba(0, 255, 247, 0.3);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
@@ -196,7 +198,8 @@
         left: 0;
         width: 100%;
         height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
-        min-height: 45px; /* Altura mínima en móviles pequeños */
+        min-height: 45px;
+        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
@@ -205,7 +208,8 @@
         justify-content: center;
         align-items: flex-start;
         padding-top: 1.5%; /* Espaciado adaptable */
-        pointer-events: auto; /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
+        pointer-events: auto;
+        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
         user-select: none; /* Evita que seleccionen el texto */
@@ -252,8 +256,11 @@
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+        0% { opacity: 0.8;
+        text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1;
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+        }
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -312,7 +319,8 @@
     }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end; }
+    #nextBtn { justify-self: end;
+    }
     #downloadBtn { justify-self: center; }
 
     /* ESTILOS DE LOS BOTONES */
@@ -392,7 +400,7 @@
         
         /* Ajuste fino para la tira en móviles - Reducida para que no estorbe */
         .logo-blocker {
-            height: 17%; 
+            height: 17%;
             min-height: 52px; 
             padding-top: 3%;
         }
@@ -491,7 +499,7 @@
         container.appendChild(blocker);
     }
 
-    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO) ---
+    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO Y CORREGIDO) ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -513,36 +521,42 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // NUEVA LOGICA DE ODYSEE FORZADA
+        // LÓGICA DE ODYSEE TOTALMENTE REESCRITA
         if (url.includes("odysee.com")) {
-            // Reemplaza /embed/ por /download/ y añade parámetros agresivos
-            let newUrl = url.replace(/\/(\$)\/embed\//, '/$1/download/');
-            if (!newUrl.includes("?")) {
-                newUrl += "?download=true";
-            } else {
-                newUrl += "&download=true";
+            // Extraemos la parte final del embed para generar la ruta correcta de descarga
+            const match = url.match(/\/embed\/(.+)/);
+            if (match && match[1]) {
+                return `https://odysee.com/$/download/${match[1]}`;
             }
-            return newUrl;
+            return url;
         }
         return url;
     }
 
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
+        
+        // Clonamos el botón para asegurar que no haya eventos colgados o comportamientos raros previos
+        const newBtn = dlBtn.cloneNode(true);
+        dlBtn.parentNode.replaceChild(newBtn, dlBtn);
+        
         const directLink = generateDirectDownloadLink(url);
-        dlBtn.href = directLink || '#';
+        newBtn.href = directLink || '#';
         
         if(directLink && directLink !== '#') {
-            dlBtn.setAttribute("target", "_blank");
+            newBtn.setAttribute("target", "_blank");
             
-            // Forzamos el atributo download ESPECÍFICAMENTE para los links de Odysee
             if (url.includes("odysee.com")) {
-                dlBtn.setAttribute("download", "Archinime_Video.mp4");
+                newBtn.setAttribute("download", "Archinime_Video.mp4");
+                // EL TRUCO CLAVE: Evita que Odysee detecte de qué web vienes (Referer) y bloquee la descarga
+                newBtn.setAttribute("rel", "noreferrer");
             } else {
-                dlBtn.removeAttribute("download");
+                newBtn.removeAttribute("download");
+                newBtn.removeAttribute("rel");
             }
         } else {
-            dlBtn.removeAttribute("target");
+            newBtn.removeAttribute("target");
+            newBtn.removeAttribute("rel");
         }
     }
 
@@ -569,7 +583,6 @@
 
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
