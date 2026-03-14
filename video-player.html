@@ -321,7 +321,7 @@
     #prevBtn { justify-self: start; }
     #nextBtn { justify-self: end;
     }
-    #downloadBtn { justify-self: center; }
+    #downloadBtn { justify-self: center; cursor: pointer; }
 
     /* ESTILOS DE LOS BOTONES */
     .btn { 
@@ -432,7 +432,7 @@
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
         
-        <a id="downloadBtn" class="btn" href="#" target="_blank">
+        <a id="downloadBtn" class="btn">
             ⬇ Descargar
         </a>
         
@@ -499,6 +499,18 @@
         container.appendChild(blocker);
     }
 
+    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO ---
+    function forceDownload(url) {
+        let iframe = document.getElementById('hiddenDownloader');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'hiddenDownloader';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+        iframe.src = url;
+    }
+
     // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO Y CORREGIDO) ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
@@ -521,12 +533,14 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // LÓGICA DE ODYSEE TOTALMENTE REESCRITA
+        // NUEVA LOGICA DE ODYSEE TOTALMENTE REESCRITA
         if (url.includes("odysee.com")) {
-            // Extraemos la parte final del embed para generar la ruta correcta de descarga
-            const match = url.match(/\/embed\/(.+)/);
-            if (match && match[1]) {
-                return `https://odysee.com/$/download/${match[1]}`;
+            // Extraemos la parte final del embed y la adaptamos a la API de descarga
+            let claimStr = url.split("/embed/")[1];
+            if (claimStr) {
+                // Reemplaza el : por / si existe, para asegurar el formato correcto de la API
+                claimStr = claimStr.replace(':', '/');
+                return `https://odysee.com/$/download/${claimStr}`;
             }
             return url;
         }
@@ -536,7 +550,7 @@
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
         
-        // Clonamos el botón para asegurar que no haya eventos colgados o comportamientos raros previos
+        // Clonamos el botón para borrar eventos onclick previos y que no se acumulen
         const newBtn = dlBtn.cloneNode(true);
         dlBtn.parentNode.replaceChild(newBtn, dlBtn);
         
@@ -544,19 +558,14 @@
         newBtn.href = directLink || '#';
         
         if(directLink && directLink !== '#') {
-            newBtn.setAttribute("target", "_blank");
-            
-            if (url.includes("odysee.com")) {
-                newBtn.setAttribute("download", "Archinime_Video.mp4");
-                // EL TRUCO CLAVE: Evita que Odysee detecte de qué web vienes (Referer) y bloquee la descarga
-                newBtn.setAttribute("rel", "noreferrer");
-            } else {
-                newBtn.removeAttribute("download");
-                newBtn.removeAttribute("rel");
-            }
-        } else {
+            // Quitamos el target blank porque ahora lo haremos por debajo del capó
             newBtn.removeAttribute("target");
-            newBtn.removeAttribute("rel");
+            
+            // Interceptamos el click
+            newBtn.onclick = function(e) {
+                e.preventDefault(); // Detiene al navegador para que no cambie de página
+                forceDownload(directLink); // Inicia la magia oculta
+            };
         }
     }
 
