@@ -62,7 +62,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-  })();
+})();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,8 +72,10 @@
   <style>
     /* --- VARIABLES --- */
     :root {
-        --primary-color: #00fff7; /* Celeste Fluorescente (Cyan) */
-        --accent-color: #ff0055; /* Rosado Fluorescente (Neon Pink) */
+        --primary-color: #00fff7;
+        /* Celeste Fluorescente (Cyan) */
+        --accent-color: #ff0055;
+        /* Rosado Fluorescente (Neon Pink) */
         --text-color: #ffffff;
         --glass-bg: rgba(0, 0, 0, 0.7);
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
@@ -196,7 +198,8 @@
         left: 0;
         width: 100%;
         height: 14%; /* Tapa un 14% de la pantalla (ideal para logos) */
-        min-height: 45px; /* Altura mínima en móviles pequeños */
+        min-height: 45px;
+        /* Altura mínima en móviles pequeños */
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
@@ -205,7 +208,8 @@
         justify-content: center;
         align-items: flex-start;
         padding-top: 1.5%; /* Espaciado adaptable */
-        pointer-events: auto; /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
+        pointer-events: auto;
+        /* IMPORTANTE: Esto bloquea los clics hacia el iframe */
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
         user-select: none; /* Evita que seleccionen el texto */
@@ -252,8 +256,11 @@
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+        0% { opacity: 0.8;
+             text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        100% { opacity: 1;
+               text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+        }
     }
 
     /* --- OPCIONES DE SERVIDOR --- */
@@ -312,8 +319,10 @@
     }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end; }
-    #downloadBtn { justify-self: center; cursor: pointer; }
+    #nextBtn { justify-self: end;
+    }
+    #downloadBtn { justify-self: center; cursor: pointer;
+    }
 
     /* ESTILOS DE LOS BOTONES */
     .btn { 
@@ -369,8 +378,10 @@
 
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .top-nav { justify-content: space-between; }
+        .container { padding: 10px;
+        }
+        .top-nav { justify-content: space-between;
+        }
         .options {
             overflow-x: auto;
             white-space: nowrap;
@@ -378,7 +389,8 @@
             scrollbar-width: none;
             max-width: 60%;
         }
-        .options::-webkit-scrollbar { display: none; }
+        .options::-webkit-scrollbar { display: none;
+        }
 
         .controls {
             grid-template-columns: 1fr 1fr;
@@ -386,9 +398,12 @@
             gap: 10px;
         }
 
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
+        #prevBtn { grid-column: 1; grid-row: 1;
+        justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end;
+        width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%;
+        box-sizing: border-box; }
         
         /* Ajuste fino para la tira en móviles - Reducida para que no estorbe */
         .logo-blocker {
@@ -491,19 +506,7 @@
         container.appendChild(blocker);
     }
 
-    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO ---
-    function forceDownload(url) {
-        let iframe = document.getElementById('hiddenDownloader');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.id = 'hiddenDownloader';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-        }
-        iframe.src = url;
-    }
-
-    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO Y CORREGIDO PARA TABLETS) ---
+    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO Y CORREGIDO) ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -525,18 +528,14 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // NUEVA LOGICA DE ODYSEE TOTALMENTE REESCRITA
+        // LOGICA DE ODYSEE
         if (url.includes("odysee.com")) {
+            // Extraemos la parte final del embed y la adaptamos a la API de descarga
             let claimStr = url.split("/embed/")[1];
             if (claimStr) {
-                let parts = claimStr.split(':');
-                if (parts.length === 2) {
-                    // Decodificamos y re-codificamos para evitar errores con la "ñ" u otros caracteres en tablets
-                    let name = encodeURIComponent(decodeURIComponent(parts[0]));
-                    let id = parts[1];
-                    return `https://odysee.com/$/download/${name}/${id}`;
-                }
-                return `https://odysee.com/$/download/${claimStr.replace(':', '/')}`;
+                // Reemplaza el : por / si existe, para asegurar el formato correcto de la API
+                claimStr = claimStr.replace(':', '/');
+                return `https://odysee.com/$/download/${claimStr}`;
             }
             return url;
         }
@@ -551,23 +550,9 @@
         
         const directLink = generateDirectDownloadLink(url);
         newBtn.href = directLink || '#';
-        
         if(directLink && directLink !== '#') {
-            // DETECCIÓN INTELIGENTE DE TABLETS Y DISPOSITIVOS APPLE
-            const isAppleOrTablet = (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) 
-                                     || /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(navigator.userAgent);
-            
-            if (isAppleOrTablet) {
-                // En tablets o iPads abrimos en pestaña nueva para esquivar el bloqueo
-                newBtn.setAttribute("target", "_blank");
-            } else {
-                // En PC o celular mantenemos la magia de descarga oculta
-                newBtn.removeAttribute("target");
-                newBtn.onclick = function(e) {
-                    e.preventDefault();
-                    forceDownload(directLink);
-                };
-            }
+            // Ahora usamos comportamiento nativo para evadir los bloqueos de seguridad en tablets
+            newBtn.setAttribute("target", "_blank");
         }
     }
 
@@ -636,7 +621,6 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
