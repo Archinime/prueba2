@@ -192,6 +192,70 @@
         border: none;
     }
 
+    /* --- PANTALLA DE CARGA SIGUIENTE EPISODIO (NUEVO) --- */
+    #autoNextScreen {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(5, 5, 5, 0.85);
+        backdrop-filter: blur(10px);
+        z-index: 200;
+        display: none; /* Oculto por defecto */
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    #autoNextScreen.visible {
+        display: flex;
+        opacity: 1;
+    }
+
+    .auto-next-title {
+        font-size: clamp(1.2rem, 3vw, 2rem);
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        text-shadow: 0 0 15px var(--primary-color);
+    }
+
+    .neon-progress-container {
+        width: 60%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+    }
+
+    .neon-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--primary-color);
+        box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+        border-radius: 10px;
+    }
+
+    .cancel-auto-btn {
+        padding: 8px 20px;
+        background: transparent;
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        border-radius: 50px;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-auto-btn:hover {
+        background: rgba(255, 0, 85, 0.2);
+        box-shadow: 0 0 15px var(--accent-color);
+    }
+
     /* --- CAPA INVISIBLE PARA DETECTAR TOQUES --- */
     .touch-overlay {
         position: absolute;
@@ -369,6 +433,18 @@
         text-shadow: 0 0 8px var(--primary-color);
     }
 
+    /* ANIMACIÓN AGRESIVA PARA EL BOTÓN "SIGUIENTE" (El señuelo visual) */
+    @keyframes pulseNext {
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 247, 0); }
+    }
+    
+    #nextBtn:not(.btn-hidden) {
+        animation: pulseNext 2s infinite;
+        border-color: var(--primary-color);
+    }
+
     #downloadBtn {
         border-color: rgba(255, 0, 85, 0.4);
         background: rgba(255, 0, 85, 0.05);
@@ -439,7 +515,15 @@
        <div class="options" id="serverOptions"></div>
     </div>
 
-    <div class="player-wrapper" id="playerContainer"></div>
+    <div class="player-wrapper" id="playerContainer">
+        <div id="autoNextScreen">
+            <div class="auto-next-title">Siguiente Episodio en...</div>
+            <div class="neon-progress-container">
+                <div id="autoNextBar" class="neon-progress-bar"></div>
+            </div>
+            <button id="cancelAutoNextBtn" class="cancel-auto-btn">Cancelar</button>
+        </div>
+    </div>
 
     <h1 id="epTitle">Cargando...</h1>
 
@@ -468,30 +552,23 @@
     let hasInteracted = false; 
     let canRegisterPlay = false;
     let iframeIsPlaying = false;
-    // <-- Nuevo estado para rastrear iframes
+    let autoNextTimer = null; // Variable para el contador
 
     function wakeUpUI() {
         const overlays = document.querySelectorAll('.touch-overlay');
-        
-        // Esconder el escudo (para que dejen tocar el video). La tira ya no se esconde.
         overlays.forEach(o => o.classList.add('inactive'));
 
         clearTimeout(activityTimeout);
-        
-        // Verificar si hay un video nativo incrustado en el reproductor y si está pausado
         const videoElem = document.querySelector('#playerContainer video');
         const isNativePaused = videoElem ? videoElem.paused : false;
 
-        // Solo iniciamos el temporizador de inactividad si el usuario ya le dio Play y NO está pausado
         if (hasInteracted && !isNativePaused) {
             activityTimeout = setTimeout(() => {
-                // ACTIVAR el escudo para atrapar el próximo toque (la tira ya no se altera)
                 overlays.forEach(o => o.classList.remove('inactive')); 
             }, 4500);
         }
     }
 
-    // Eventos generales de la página (fuera del video)
     window.addEventListener('mousemove', wakeUpUI);
     window.addEventListener('touchstart', wakeUpUI, {passive: true});
     window.addEventListener('touchmove', wakeUpUI, {passive: true});
@@ -501,16 +578,15 @@
     window.addEventListener('keydown', wakeUpUI);
     window.addEventListener('focus', wakeUpUI);
 
-    // Detectamos cuando se le da play/pausa al video (la página pierde el foco)
     window.addEventListener('blur', () => {
         if (canRegisterPlay && document.activeElement && document.activeElement.tagName === 'IFRAME') {
-            iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
+            iframeIsPlaying = !iframeIsPlaying; 
             hasInteracted = iframeIsPlaying;    
             wakeUpUI();
- 
             setTimeout(() => window.focus(), 100); 
         }
     });
+
     // -----------------------------------------------------------
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
@@ -551,11 +627,9 @@
     }
 
     function addLogoBlocker(container) {
-        // 1. Añadir el escudo invisible (Touch Overlay)
         const touchOverlay = document.createElement('div');
-        touchOverlay.className = 'touch-overlay inactive'; // Inicia inactivo
+        touchOverlay.className = 'touch-overlay inactive'; 
         
-        // Atrapa cualquier movimiento de mouse (PC) o toque (Móvil) cuando la interfaz duerme
         touchOverlay.addEventListener('mousemove', wakeUpUI);
         touchOverlay.addEventListener('click', (e) => {
             e.preventDefault();
@@ -566,7 +640,6 @@
         }, {passive: true});
         container.appendChild(touchOverlay);
 
-        // 2. Añadir la tira protectora
         const blocker = document.createElement('div');
         blocker.className = 'logo-blocker';
         blocker.innerHTML = `
@@ -588,7 +661,6 @@
         wakeUpUI();
     }
 
-    // --- LÓGICA DE DESCARGA ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -610,7 +682,6 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // LÓGICA DE ODYSEE (Descarga directa automática)
         if (url.includes("odysee.com")) {
             return url.replace('/$/embed/', '/$/download/');
         }
@@ -624,7 +695,7 @@
         
         if(directLink && directLink !== '#') {
             dlBtn.setAttribute("target", "_blank");
-            dlBtn.setAttribute("download", ""); // Fuerza la descarga en PC y Móvil
+            dlBtn.setAttribute("download", ""); 
         } else {
             dlBtn.removeAttribute("target");
             dlBtn.removeAttribute("download");
@@ -647,18 +718,62 @@
         optContainer.appendChild(btn);
     }
 
+    // --- LÓGICA DE AUTOPLAY (NUEVO) ---
+    function startAutoNextCountdown() {
+        const nextBtn = document.getElementById('nextBtn');
+        // Solo si hay un episodio siguiente disponible
+        if(nextBtn && !nextBtn.classList.contains('btn-hidden')) {
+            const autoScreen = document.getElementById('autoNextScreen');
+            const progressBar = document.getElementById('autoNextBar');
+            const cancelBtn = document.getElementById('cancelAutoNextBtn');
+            
+            autoScreen.classList.add('visible');
+            
+            let progress = 0;
+            const duration = 5000; // 5 segundos
+            const interval = 50; // Actualizar cada 50ms
+            const step = (interval / duration) * 100;
+
+            // Función para cancelar
+            const cancelAutoNext = () => {
+                clearInterval(autoNextTimer);
+                autoScreen.classList.remove('visible');
+            };
+
+            cancelBtn.onclick = cancelAutoNext;
+
+            autoNextTimer = setInterval(() => {
+                progress += step;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(autoNextTimer);
+                    window.location.href = nextBtn.href; // Redirigir al siguiente
+                }
+            }, interval);
+        }
+    }
+
     function loadVideo(url) {
         const container = document.getElementById('playerContainer');
+        // Preservar la pantalla de auto-next al limpiar el contenedor
+        const autoNextScreen = document.getElementById('autoNextScreen');
         container.innerHTML = ''; 
+        if(autoNextScreen) container.appendChild(autoNextScreen);
+
         if (!url) return;
 
         hasInteracted = false;
         canRegisterPlay = false;
         iframeIsPlaying = false;
-        // Resetear el estado si el usuario cambia de servidor
+        if(autoNextTimer) clearInterval(autoNextTimer);
+        autoNextScreen.classList.remove('visible');
+        document.getElementById('autoNextBar').style.width = '0%';
+
         setTimeout(() => { canRegisterPlay = true; }, 1500);
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -677,6 +792,12 @@
                 hasInteracted = true;
                 wakeUpUI();
             });
+            
+            // EL EVENTO CLAVE PARA VIDEOS NATIVOS
+            video.addEventListener('ended', () => {
+                startAutoNextCountdown();
+            });
+
             container.appendChild(video);
             addLogoBlocker(container);
         } else {
@@ -685,7 +806,6 @@
     }
 
     function loadAsIframe(url, container) {
-        container.innerHTML = '';
         const iframe = document.createElement('iframe');
         iframe.src = url;
         iframe.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
@@ -696,7 +816,9 @@
         iframe.style.width = "100%";
         iframe.style.height = "100%";
         iframe.style.border = "none";
-        container.appendChild(iframe);
+        
+        // Insertamos el iframe antes de la pantalla de autoNext para que no la sobreescriba
+        container.insertBefore(iframe, document.getElementById('autoNextScreen'));
         addLogoBlocker(container);
     }
 
@@ -709,12 +831,12 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -731,8 +853,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
