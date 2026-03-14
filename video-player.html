@@ -508,7 +508,6 @@
             activityTimeout = setTimeout(() => {
                 // Esconder tira y ACTIVAR el escudo para atrapar el próximo toque
                 blockers.forEach(b => b.classList.add('hidden-strip'));
-  
                 overlays.forEach(o => o.classList.remove('inactive')); 
             }, 4500);
         }
@@ -530,7 +529,6 @@
             iframeIsPlaying = !iframeIsPlaying; // Alternamos el estado simulado (Play/Pausa)
             hasInteracted = iframeIsPlaying;    // Si está "reproduciendo" se ocultará, si "pausó" se mantendrá la tira
             wakeUpUI();
- 
             setTimeout(() => window.focus(), 100); 
         }
     });
@@ -538,8 +536,7 @@
     // LÓGICA DEL REPRODUCTOR
     // -----------------------------------------------------------
     
-    const DB = (typeof players !== 'undefined') ?
-    players : {};
+    const DB = (typeof players !== 'undefined') ? players : {};
     
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
@@ -561,6 +558,8 @@
         document.title = `Ver ${epData.title} - Archinime`;
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
+        
+        // Carga Inicial
         loadVideo(initialLink);
         
         const optContainer = document.getElementById('serverOptions');
@@ -568,7 +567,6 @@
         if(epData.link) createOptionBtn("Latino", epData.link, true);
         if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
         
-        updateDownloadButton(initialLink);
         setupNavigation();
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
@@ -634,7 +632,7 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // LÓGICA DE ODYSEE (Descarga directa automática)
+        // LÓGICA DE ODYSEE (Descarga directa automática por si el MP4 no se extrae)
         if (url.includes("odysee.com")) {
             return url.replace('/$/embed/', '/$/download/');
         }
@@ -666,14 +664,17 @@
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             loadVideo(url);
-            updateDownloadButton(url);
         };
         optContainer.appendChild(btn);
     }
 
-    function loadVideo(url) {
+    // --- AHORA ASÍNCRONA PARA PERMITIR EXTRACCIÓN DE LINKS ---
+    async function loadVideo(url) {
         const container = document.getElementById('playerContainer');
-        container.innerHTML = ''; 
+        
+        // Mensaje de neón mientras buscamos el MP4 oculto
+        container.innerHTML = '<div style="color:var(--primary-color); display:flex; justify-content:center; align-items:center; height:100%; font-weight:bold; font-size: 1.2rem; letter-spacing:2px; animation: neonPulse 1s infinite alternate; font-family:\'Poppins\', sans-serif;">EXTRAYENDO VIDEO...</div>'; 
+        
         if (!url) return;
 
         hasInteracted = false;
@@ -681,65 +682,47 @@
         iframeIsPlaying = false;
         // Resetear el estado si el usuario cambia de servidor
         setTimeout(() => { canRegisterPlay = true; }, 1500);
-        
-        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-        const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        const isOdyseeEmbed = url.includes('odysee.com/$/embed/');
 
-        // --- LÓGICA DE RESOLVER Y FALLBACK PARA ODYSEE ---
-        if (isOdyseeEmbed) {
-            // 1. Transformar URL a stream directo
-            const streamUrl = url.replace('/$/embed/', '/$/stream/');
-            
-            // 2. Crear Reproductor Nativo
-            const video = document.createElement('video');
-            video.src = streamUrl;
-            video.controls = true;
-            video.autoplay = false; 
-            video.playsInline = true; 
-            // allowfullscreen no es un atributo directo en tags <video> (se maneja nativamente o via JS), 
-            // pero playsinline asegura compatibilidad móvil.
-            video.style.width = "100%";
-            video.style.height = "100%";
-            
-            // 3. Manejo de Errores y Fallback Automático (CORS / Hotlinking)
-            video.onerror = function() {
-                console.warn("Fallo al cargar el video nativo de Odysee (posible bloqueo de CORS). Cargando Iframe como plan B.");
-                loadAsIframe(url, container); // Carga la URL original del iframe
-            };
+        let finalUrl = url;
 
-            // 4. Evento para el siguiente episodio
-            video.addEventListener('ended', () => {
-                if (typeof showNextEpisodeCountdown === 'function') {
-                    showNextEpisodeCountdown();
-                } else {
-                    console.log("El video terminó, pero showNextEpisodeCountdown() aún no ha sido programada.");
+        // --- LÓGICA MÁGICA PARA ODYSEE ---
+        if (url.includes('odysee.com')) {
+            try {
+                // Usamos AllOrigins como proxy para evitar el bloqueo de CORS y leer el código de Odysee
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const html = data.contents;
+
+                // Buscamos con una Expresión Regular el enlace .mp4 dentro del código que acabamos de leer
+                const match = html.match(/(https:\/\/player\.odycdn\.com\/v[0-9]+\/streams\/[^"'\s]+\.mp4)/i) || 
+                              html.match(/(https:\/\/player\.odycdn\.com\/api\/v[0-9]+\/streams\/free\/[^"'\s]+\.mp4)/i);
+                
+                if (match && match[1]) {
+                    finalUrl = match[1]; // ¡Lo encontramos! Cambiamos la url del iframe por el .mp4 puro
                 }
-            });
+            } catch (error) {
+                console.error("Error extrayendo MP4 de Odysee:", error);
+                // Si falla, finalUrl seguirá siendo el enlace del iframe de Odysee
+            }
+        }
+        // ----------------------------------
 
-            // Re-vincular eventos para tu UI y barra protectora
-            video.addEventListener('pause', () => {
-                hasInteracted = false; 
-                wakeUpUI();
-            });
-            video.addEventListener('play', () => {
-                hasInteracted = true;
-                wakeUpUI();
-            });
+        container.innerHTML = ''; // Limpiamos el texto de carga
 
-            container.appendChild(video);
-            addLogoBlocker(container);
+        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(finalUrl);
+        const isDrive = finalUrl.includes('drive.google.com') && finalUrl.includes('/preview');
 
-        // --- LÓGICA PARA ARCHIVOS DIRECTOS .MP4, .WEBM, ETC ---
-        } else if (isVideoFile && !isDrive) {
+        // Si logramos extraer el .mp4, entrará aquí y cargará nativo [cite: 139, 140, 141]
+        if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
-            video.src = url;
+            video.src = finalUrl;
             video.controls = true;
             video.autoplay = false;
             video.playsInline = true; 
             video.style.width = "100%";
             video.style.height = "100%";
-            video.onerror = function() { loadAsIframe(url, container); };
+            video.onerror = function() { loadAsIframe(finalUrl, container); };
             
             video.addEventListener('pause', () => {
                 hasInteracted = false; 
@@ -751,11 +734,13 @@
             });
             container.appendChild(video);
             addLogoBlocker(container);
-            
-        // --- CUALQUIER OTRA COSA (Drive, iframes normales, etc) ---
         } else {
-            loadAsIframe(url, container);
+            // Si no es un MP4, se sigue cargando como Iframe [cite: 144, 146]
+            loadAsIframe(finalUrl, container);
         }
+
+        // Actualizamos el botón de descarga con el nuevo enlace puro extraído
+        updateDownloadButton(finalUrl);
     }
 
     function loadAsIframe(url, container) {
@@ -783,7 +768,6 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
-          
                     });
                 });
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
@@ -807,13 +791,6 @@
             }
         } catch (e) { console.error(e);
         }
-    }
-
-    // --- FUNCIONES ADICIONALES ---
-    // Función placeholder para el siguiente episodio.
-    function showNextEpisodeCountdown() {
-        console.log("¡Iniciando cuenta regresiva para el siguiente episodio!");
-        // Aquí puedes agregar la lógica visual para mostrar el temporizador y luego redireccionar usando la URL generada en nextBtn.href
     }
   </script>
 </body>
