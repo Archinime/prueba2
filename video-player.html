@@ -62,7 +62,7 @@
 
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
-})();
+  })();
 </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -407,8 +407,10 @@
         
         /* Ajuste fino para la tira en móviles - Agrandada según lo pedido */
         .logo-blocker {
-            height: 20%;      /* Aumentado de 17% a 20% */
-            min-height: 60px; /* Aumentado de 52px a 60px */
+            height: 20%;
+            /* Aumentado de 17% a 20% */
+            min-height: 60px;
+            /* Aumentado de 52px a 60px */
             padding-top: 4%;
         }
     }
@@ -430,6 +432,7 @@
          Volver
        </a>
        <div class="options" id="serverOptions"></div>
+    
     </div>
 
     <div class="player-wrapper" id="playerContainer">
@@ -454,7 +457,8 @@
         
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig.
         ⏭</a>
-    </div>
+   
+     </div>
 
   </div>
 
@@ -564,16 +568,28 @@
         
         const directLink = generateDirectDownloadLink(url);
         newBtn.href = directLink || '#';
+        
         if(directLink && directLink !== '#') {
-            newBtn.removeAttribute("target");
-            newBtn.onclick = function(e) {
-                e.preventDefault();
-                if (isTabletDevice()) {
-                    prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
-                } else {
-                    forceDownload(directLink);
+            // Lógica para OK.ru (AnyDownloader)
+            if (directLink.includes("anydownloader.com")) {
+                newBtn.setAttribute("target", "_blank");
+            } else {
+                newBtn.removeAttribute("target");
+                
+                // Lógica de tablet y descarga forzada SOLO para Odysee
+                if (url.includes("odysee.com")) {
+                    newBtn.onclick = function(e) {
+                        e.preventDefault();
+                        if (isTabletDevice()) {
+                            prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
+                        } else {
+                            forceDownload(directLink);
+                        }
+                    };
                 }
-            };
+                // Para Google Drive y Dropbox, al no haber onclick, el navegador maneja
+                // el 'href' de forma nativa, evitando los bloqueos de seguridad del iframe.
+            }
         }
     }
 
@@ -601,7 +617,6 @@
 
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -642,13 +657,12 @@
                     const episodes = Object.keys(DB[animeId][sKey]).sort((a, b) => Number(a) - Number(b));
                     episodes.forEach(eKey => {
                         flatList.push({ s: sKey, e: eKey });
+          
                     });
                 });
-                
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -665,7 +679,8 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error(e);
+        }
     }
   </script>
 </body>
