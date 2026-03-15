@@ -423,7 +423,7 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        <a id="downloadBtn" class="btn">⬇ Descargar</a>
+        <a id="downloadBtn" class="btn" href="#" target="_blank" download>⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
@@ -496,7 +496,7 @@
         container.appendChild(blocker);
     }
 
-    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO ---
+    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO (Solo Odysee) ---
     function forceDownload(url) {
         let iframe = document.getElementById('hiddenDownloader');
         if (!iframe) {
@@ -508,7 +508,7 @@
         iframe.src = url;
     }
 
-    // --- LÓGICA DE DESCARGA ---
+    // --- LÓGICA DE DESCARGA FUSIONADA ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -552,27 +552,31 @@
         newBtn.href = directLink || '#';
 
         if(directLink && directLink !== '#') {
-            // LÓGICA FUSIONADA: Identifica si es AnyDownloader u otro recurso que necesita abrirse como página
-            if(directLink.includes("anydownloader.com")) {
-                newBtn.setAttribute("target", "_blank");
-                // Importante: No añadimos interceptor del click (e.preventDefault) para que funcione naturalmente y abra la pestaña.
-            } else {
-                // LÓGICA ORIGINAL DE VIDEO-PLAYER (Para Odysee, Drive, Dropbox...)
-                newBtn.removeAttribute("target");
+            
+            // 1. SI ES ODYSEE: Usar tu lógica especial intocable
+            if (url.includes("odysee.com")) {
+                newBtn.removeAttribute("target"); // Lo manejamos nosotros
                 
-                // Interceptamos el click
                 newBtn.onclick = function(e) {
                     e.preventDefault(); // Detiene al navegador para que no cambie de página
-
                     if (isTabletDevice()) {
-                        // Si es tablet, mostramos un prompt para que pueda copiar fácilmente el link
+                        // Si es tablet, mostramos un prompt
                         prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
                     } else {
-                        // Si es PC o Móvil, aplicamos la magia oculta de siempre
+                        // Si es PC o Móvil, aplicamos la magia oculta
                         forceDownload(directLink);
                     }
                 };
             }
+            // 2. SI ES ANYDOWNLOADER (Ok.ru): Nueva pestaña como en tu archivo de prueba
+            else if(directLink.includes("anydownloader.com")) {
+                newBtn.setAttribute("target", "_blank");
+            }
+            // 3. PARA LOS DEMÁS (Drive, Dropbox, etc): Funciona normal como en tu archivo de prueba
+            else {
+                newBtn.removeAttribute("target");
+            }
+            
         }
     }
 
@@ -646,6 +650,7 @@
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
+                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
