@@ -319,10 +319,8 @@
     }
     
     #prevBtn { justify-self: start; }
-    #nextBtn { justify-self: end;
-    }
-    #downloadBtn { justify-self: center; cursor: pointer;
-    }
+    #nextBtn { justify-self: end; }
+    #downloadBtn { justify-self: center; cursor: pointer; }
 
     /* ESTILOS DE LOS BOTONES */
     .btn { 
@@ -341,11 +339,10 @@
         backdrop-filter: blur(5px);
         font-weight: 600;
         min-width: 100px;
+        cursor: pointer;
     }
     
-    .nav-btn {
-        border-color: rgba(0, 255, 247, 0.3);
-    }
+    .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
 
     .nav-btn:hover {
         background: rgba(0, 255, 247, 0.15);
@@ -376,12 +373,83 @@
         pointer-events: none;
     }
 
+    /* --- MODAL PARA CELULARES Y TABLETS --- */
+    .dl-modal {
+        display: none; 
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+        justify-content: center; 
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .dl-modal.active {
+        display: flex;
+    }
+
+    .dl-modal-content {
+        background: #111;
+        border: 1px solid var(--primary-color);
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 100%;
+        width: 400px;
+        box-shadow: 0 0 25px rgba(0, 255, 247, 0.2);
+    }
+
+    .dl-modal-content h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+        text-shadow: 0 0 8px rgba(0, 255, 247, 0.5);
+    }
+
+    .dl-modal-content p {
+        font-size: 0.9rem;
+        color: #ddd;
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }
+
+    .dl-input-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .dl-modal-content input {
+        width: 100%;
+        padding: 12px;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 1px solid #444;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    .dl-modal-content input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .dl-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
-        .container { padding: 10px;
-        }
-        .top-nav { justify-content: space-between;
-        }
+        .container { padding: 10px; }
+        .top-nav { justify-content: space-between; }
         .options {
             overflow-x: auto;
             white-space: nowrap;
@@ -389,8 +457,7 @@
             scrollbar-width: none;
             max-width: 60%;
         }
-        .options::-webkit-scrollbar { display: none;
-        }
+        .options::-webkit-scrollbar { display: none; }
 
         .controls {
             grid-template-columns: 1fr 1fr;
@@ -398,19 +465,11 @@
             gap: 10px;
         }
 
-        #prevBtn { grid-column: 1; grid-row: 1;
-        justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end;
-        width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%;
-        box-sizing: border-box; }
+        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
         
-        /* Ajuste fino para la tira en móviles - Reducida para que no estorbe */
-        .logo-blocker {
-            height: 17%;
-            min-height: 52px; 
-            padding-top: 3%;
-        }
+        .logo-blocker { height: 17%; min-height: 52px; padding-top: 3%; }
     }
   </style>
 </head>
@@ -439,13 +498,25 @@
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
         
-        <a id="downloadBtn" class="btn">
-            ⬇ Descargar
-        </a>
+        <a id="downloadBtn" class="btn">⬇ Descargar</a>
         
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
+  </div>
+
+  <div id="dlModal" class="dl-modal">
+      <div class="dl-modal-content">
+          <h3>Enlace de Descarga</h3>
+          <p>Para evitar errores en este dispositivo, copia el enlace y pégalo en una nueva pestaña del navegador.</p>
+          <div class="dl-input-container">
+              <input type="text" id="dlLinkInput" readonly>
+              <div class="dl-buttons">
+                  <button id="copyDlBtn" class="btn" style="border-color: var(--primary-color);">Copiar Enlace</button>
+                  <button id="closeDlBtn" class="btn" style="background: rgba(255,255,255,0.1); border-color: transparent;">Cerrar</button>
+              </div>
+          </div>
+      </div>
   </div>
 
   <script>
@@ -465,6 +536,9 @@
     const season = params.get('s');
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
+
+    // Detectar dispositivos táctiles (Tablets / Móviles)
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
 
     if (animeId && season && episode) {
         const viewedKey = `watched_${animeId}_${season}_${episode}`;
@@ -506,7 +580,7 @@
         container.appendChild(blocker);
     }
 
-    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO Y CORREGIDO) ---
+    // --- LÓGICA DE DESCARGA (ODYSEE MEJORADO) ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -528,12 +602,10 @@
                 return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
             }
         }
-        // LOGICA DE ODYSEE
+        // LÓGICA DE ODYSEE
         if (url.includes("odysee.com")) {
-            // Extraemos la parte final del embed y la adaptamos a la API de descarga
             let claimStr = url.split("/embed/")[1];
             if (claimStr) {
-                // Reemplaza el : por / si existe, para asegurar el formato correcto de la API
                 claimStr = claimStr.replace(':', '/');
                 return `https://odysee.com/$/download/${claimStr}`;
             }
@@ -544,23 +616,64 @@
 
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
-        // Clonamos el botón para borrar eventos onclick previos y que no se acumulen
         const newBtn = dlBtn.cloneNode(true);
         dlBtn.parentNode.replaceChild(newBtn, dlBtn);
         
         const directLink = generateDirectDownloadLink(url);
-        newBtn.href = directLink || '#';
         
-        if(directLink && directLink !== '#') {
-            // Eliminar target para que la descarga inicie en la misma pestaña sin abrir popups vacíos
-            newBtn.removeAttribute("target");
-            
-            // LA CLAVE AQUÍ: Ocultamos la procedencia del clic. 
-            // Odysee bloquea las descargas directas (Error 404) si detecta que vienen de otra web.
-            // 'noreferrer' hace que se comporte exactamente igual que si copiaras y pegaras el enlace.
-            newBtn.setAttribute("rel", "noreferrer noopener");
-        }
+        newBtn.onclick = function(e) {
+            e.preventDefault(); // Evitamos comportamiento por defecto siempre
+
+            if (!directLink || directLink === '#') return;
+
+            if (isTouchDevice) {
+                // MODO TABLET/MÓVIL: Mostramos el modal para que el usuario copie el link
+                const modal = document.getElementById('dlModal');
+                const input = document.getElementById('dlLinkInput');
+                input.value = directLink;
+                modal.classList.add('active');
+            } else {
+                // MODO PC: Creamos un enlace dinámico simulando un clic directo sin rastro (evade el 404 de Odysee)
+                const a = document.createElement('a');
+                a.href = directLink;
+                a.target = "_blank";
+                a.rel = "noreferrer noopener";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        };
     }
+
+    // Funciones del Modal
+    document.getElementById('closeDlBtn').onclick = function() {
+        document.getElementById('dlModal').classList.remove('active');
+    };
+
+    document.getElementById('copyDlBtn').onclick = function() {
+        const input = document.getElementById('dlLinkInput');
+        input.select();
+        input.setSelectionRange(0, 99999); // Para móviles
+        
+        // Copiar texto al portapapeles
+        try {
+            navigator.clipboard.writeText(input.value).then(() => {
+                const btn = document.getElementById('copyDlBtn');
+                const originalText = btn.innerText;
+                btn.innerText = '¡Copiado!';
+                btn.style.background = 'var(--primary-color)';
+                btn.style.color = '#000';
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = 'rgba(0, 0, 0, 0.6)';
+                    btn.style.color = '#fff';
+                }, 2000);
+            });
+        } catch (err) {
+            document.execCommand('copy'); // Fallback para navegadores antiguos
+        }
+    };
 
     function createOptionBtn(label, url, isActive) {
         const optContainer = document.getElementById('serverOptions');
@@ -648,8 +761,7 @@
                     nextBtn.classList.add('btn-hidden');
                 }
             }
-        } catch (e) { console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
   </script>
 </body>
