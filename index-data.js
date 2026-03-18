@@ -35,11 +35,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1771594235827,
+        "lastUpdate": 1772757162010,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 5",
+        "latestEpTitle": "Capítulo 7",
         "isFinal": false
     },
     {
@@ -489,14 +489,21 @@ const animes = [
         "img": "onepieceportada.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
+            "Acción",
             "Aventura",
             "Comedia",
-            "Acción",
-            "Fantasía",
             "Drama",
+            "Fantasía",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1773258729289,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/8ia1wi18lkdtsxev6vzrq/onepiece22.jpg?rlkey=a1nlcclu7625tqoiy4w3rgi8i&st=xnadjkcg&raw=1",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 8",
+        "isFinal": true
     },
     {
         "id": 30,
@@ -525,11 +532,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1770072039801,
-        "updateType": "Ninguna",
+        "lastUpdate": 1773539611244,
+        "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 16",
+        "latestEpTitle": "Capítulo 19",
         "isFinal": false,
         "aliases": [
             "Fumetsu no Anata e"
@@ -743,8 +750,8 @@ const animes = [
             "Hentai",
             "Seijin"
         ],
-        "lastUpdate": 1771448463426,
-        "updateType": "NUEVO 🔥",
+        "lastUpdate": 1773366211665,
+        "updateType": "Ninguna",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/totid4w011l0ftg088jwf/erisM.jpg?rlkey=bv2zu5u17sst8k4cjct0l0e0u&st=7f5sh8co&raw=1",
         "latestBlockName": "My Dress-Up Darling",
         "latestEpTitle": "Capítulo 2",
@@ -946,7 +953,7 @@ const animes = [
     },
     {
         "id": 54,
-        "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai",
+        "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai",
         "img": "tojima1.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
@@ -957,11 +964,11 @@ const animes = [
             "Tokusatsu",
             "Seinen"
         ],
-        "lastUpdate": 1771451561987,
+        "lastUpdate": 1773538857671,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 16",
+        "latestEpTitle": "Capítulo 20",
         "isFinal": false,
         "aliases": [
             "Tojima Wants to Be a Kamen Rider"
@@ -1152,11 +1159,11 @@ const animes = [
             "Misterio",
             "Seinen"
         ],
-        "lastUpdate": 1771331483768,
+        "lastUpdate": 1773008741372,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "gnosia1.avif",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 14",
+        "latestEpTitle": "Capítulo 18",
         "isFinal": false
     },
     {
@@ -1191,11 +1198,11 @@ const animes = [
             "Fantasía",
             "Shōnen"
         ],
-        "lastUpdate": 1771331943637,
+        "lastUpdate": 1772856243815,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 2",
+        "latestEpTitle": "Capítulo 5",
         "isFinal": false,
         "aliases": [
             "Sōsō no Frieren"
@@ -1318,11 +1325,11 @@ const animes = [
             "Slice of Life",
             "Shōnen"
         ],
-        "lastUpdate": 1771592663674,
+        "lastUpdate": 1773597201550,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 6",
+        "latestEpTitle": "Capítulo 8",
         "isFinal": false,
         "aliases": [
             "You And I Are Polar Opposites"
@@ -1341,11 +1348,11 @@ const animes = [
             "Fantasía oscura",
             "Seinen"
         ],
-        "lastUpdate": 1771592852542,
+        "lastUpdate": 1773348695100,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/g6gmcpr341z0eav70s8xa/C2P4K6XQ5BBNBAKHMAM5XBFAKE.avif?rlkey=8q1u5gev6iq55ndsts7m6s5ij&st=x46rl6r1&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "Yuusha-kei ni Shosu"
@@ -1367,11 +1374,11 @@ const animes = [
             "Thriller",
             "Seinen"
         ],
-        "lastUpdate": 1771592715258,
+        "lastUpdate": 1773324308678,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "Shibou Yuugi de Meshi wo Kuu"
@@ -1439,11 +1446,11 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1771332024542,
+        "lastUpdate": 1773539072846,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 18",
+        "latestEpTitle": "Capítulo 22",
         "isFinal": false
     },
     {
@@ -1461,12 +1468,12 @@ const animes = [
             "Slice of Life",
             "Shōjo"
         ],
-        "lastUpdate": 1771592467678,
+        "lastUpdate": 1773619004385,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 8",
-        "isFinal": false,
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
         "aliases": [
             "Hanazakari no kimitachi e"
         ]
@@ -1487,11 +1494,11 @@ const animes = [
             "Sobrenatural",
             "Shōjo"
         ],
-        "lastUpdate": 1771331671042,
+        "lastUpdate": 1773538942915,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 5",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false
     },
     {
@@ -1512,11 +1519,11 @@ const animes = [
             "Thriller",
             "Shōnen"
         ],
-        "lastUpdate": 1771592768453,
+        "lastUpdate": 1773619612915,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZz2Pl5ZtIRJpcwNxr5Alrpg7RDymX4RfcJV&size=2000x3000",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 3",
+        "latestEpTitle": "Capítulo 7",
         "isFinal": false,
         "aliases": [
             "Jigokuraku."
@@ -1737,7 +1744,7 @@ const animes = [
     {
         "id": 90,
         "title": "Shangri-La Frontier",
-        "img": "https://api.pcloud.com/getpubthumb?code=XZLEwK5ZcndcdKwL4pftTTY5vsrHUhh3Vkc7&size=2000x3000",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/shangiran.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
         "uploaderImg": "Logo_Archinime.avif",
@@ -1749,8 +1756,8 @@ const animes = [
             "VRMMO",
             "Shōnen"
         ],
-        "lastUpdate": 1769990075138,
-        "updateType": "NUEVO 🔥",
+        "lastUpdate": 1773758461313,
+        "updateType": "Ninguna",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZBEwK5ZjV7AT4DkE4YjShvLSJIRlLcMFJHV&size=2000x3000",
         "latestBlockName": "Temporada 2",
         "latestEpTitle": "Capítulo 25",
@@ -1770,12 +1777,12 @@ const animes = [
             "Drama",
             "Seinen"
         ],
-        "lastUpdate": 1770050435269,
+        "lastUpdate": 1773538760990,
         "updateType": "NUEVO 🔥",
-        "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZUwdK5ZW1ksGIIKW0FKoFGnE4sGzRGSoATy&size=2000x3000",
-        "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 12",
-        "isFinal": true
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/trigun-stargaze-character-visuals-v0-no7rngaincuf1.jpg",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 7",
+        "isFinal": false
     },
     {
         "id": 92,
@@ -1793,11 +1800,11 @@ const animes = [
             "Yuri",
             "Shōnen"
         ],
-        "lastUpdate": 1771592889880,
+        "lastUpdate": 1773348659101,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZHpEK5ZDYj1Ggi9U8bycVPaNOxCkQolhpak&size=2000x3000",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 4",
+        "latestEpTitle": "Capítulo 7",
         "isFinal": false,
         "aliases": [
             "Omae Gotoki ga Maō ni Kateru to Omou na"
@@ -1806,7 +1813,7 @@ const animes = [
     {
         "id": 93,
         "title": "Tower of God",
-        "img": "https://api.pcloud.com/getpubthumb?code=XZF6EK5Zvw2rdq5KKMVN0VFcgbLkohPIfQ0k&size=2000x3000",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/tower.avif",
         "rating": 4.6,
         "uploader": "archinime12@gmail.com",
         "uploaderImg": "Logo_Archinime.avif",
@@ -1818,8 +1825,8 @@ const animes = [
             "Misterio",
             "Shōnen"
         ],
-        "lastUpdate": 1770137764938,
-        "updateType": "NUEVO 🔥",
+        "lastUpdate": 1773758499527,
+        "updateType": "Ninguna",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZR6EK5ZMbtpcgy8H3Ld11AsXGK1V5mXHjRk&size=2000x3000",
         "latestBlockName": "Temporada 2",
         "latestEpTitle": "Capítulo 26",
@@ -1827,5 +1834,27 @@ const animes = [
         "aliases": [
             "Torre de Dios"
         ]
+    },
+    {
+        "id": 94,
+        "title": "Oshi no Ko",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Drama",
+            "Misterio",
+            "Slice of Life",
+            "Sobrenatural",
+            "Thriller psicológico",
+            "Seinen"
+        ],
+        "lastUpdate": 1773781369664,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt3.avif",
+        "latestBlockName": "Temporada 3",
+        "latestEpTitle": "Capítulo 5",
+        "isFinal": false
     }
 ];
