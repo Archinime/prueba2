@@ -45,7 +45,8 @@ const data = {
                     {
                         "title": "Capítulo 12"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             },
             {
                 "num": 2,
@@ -87,7 +88,8 @@ const data = {
                     {
                         "title": "Capítulo 12"
                     }
-                ]
+                ],
+                "name": "Temporada 2"
             }
         ]
     },
@@ -105,7 +107,7 @@ const data = {
                         "title": "Jujutsu Kaisen 0"
                     }
                 ],
-                "name": "Película"
+                "name": "Película 1"
             },
             {
                 "num": 2,
@@ -268,6 +270,24 @@ const data = {
                 "eps": [
                     {
                         "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
                     }
                 ],
                 "name": "Temporada 3"
@@ -812,10 +832,10 @@ const data = {
                 "cover": "mushokuova.jpg",
                 "eps": [
                     {
-                        "title": "Capítulo 1"
+                        "title": "Eris, La Cazaduendes"
                     }
                 ],
-                "name": "Ova 1"
+                "name": "OVA 1"
             },
             {
                 "num": 3,
@@ -1030,13 +1050,13 @@ const data = {
                 "cover": "https://www.dropbox.com/scl/fi/kcs3irob5bxh8gakdytk7/MV5BMTU3MTIzN2UtMDhmOS00MjM1LWI5OWEtOWQ3MTZjOWFjMDM2XkEyXkFqcGc-._V1_FMjpg_UX1000_.jpg?rlkey=ddrnjyrra1mm5gp3qghiqz3w0&st=gah9qpka&raw=1",
                 "eps": [
                     {
-                        "title": "Coleus no Yume 1"
+                        "title": "Capítulo 1"
                     },
                     {
-                        "title": "Coleus no Yume 2"
+                        "title": "Capítulo 2"
                     },
                     {
-                        "title": "Coleus no Yume 3"
+                        "title": "Capítulo 3"
                     }
                 ],
                 "name": "Especial 1 - 3"
@@ -3242,7 +3262,8 @@ const data = {
                     {
                         "title": "Capítulo 8"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             },
             {
                 "num": 2,
@@ -3272,7 +3293,8 @@ const data = {
                     {
                         "title": "Capítulo 8"
                     }
-                ]
+                ],
+                "name": "Temporada 2"
             }
         ]
     },
@@ -3307,7 +3329,7 @@ const data = {
     },
     "31": {
         "title": "To Your Eternity",
-        "desc": "Al principio el \"orbe\" llegó a la Tierra. Podía hacer dos cosas: tomar la forma de cualquier cosa con la que interactuara y regenerarse para volver a la vida. El orbe se convirtió en roca, luego en lobo y finalmente en un chico, pero vaga por el mundo como un recién nacido que no sabe nada. Como niño se convierte en Fushi. Poco a poco va conociendo la amabilidad humana y Fushi no solo aprende a sobrevivir, sino que crece como \"persona\". Pero su viaje queda ensombrecido por Nokker, un destructivo e inexplicable enemigo, así como por las crueles depedidas de aquellos a quienes ama.",
+        "desc": "Al principio el \"orbe\" llegó a la Tierra. Podía hacer dos cosas: tomar la forma de cualquier cosa con la que interactuara y regenerarse para volver a la vida. El orbe se convirtió en roca, luego en lobo y finalmente en un chico, pero vaga por el mundo como un recién nacido que no sabe nada. Como niño se convierte en Fushi. Poco a poco va conociendo la amabilidad humana y Fushi no solo aprende a sobrevivir, sino que crece como \"persona\". Pero su viaje queda ensombrecido por Nokker, un destructivo e inexplicable enemigo, así como por las crueles depedidas de aquellos a quienes ama",
         "cover": "fumetsuportada.avif",
         "uploader": "archinime12@gmail.com",
         "seasons": [
@@ -3490,6 +3512,21 @@ const data = {
                     },
                     {
                         "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
                     }
                 ],
                 "name": "Temporada 3"
@@ -4052,7 +4089,7 @@ const data = {
                         "title": "Capítulo 1"
                     }
                 ],
-                "name": "Ova 0"
+                "name": "OVA 1"
             },
             {
                 "num": 2,
@@ -4093,30 +4130,37 @@ const data = {
                     },
                     {
                         "title": "Capítulo 12"
-                    },
-                    {
-                        "title": "Capítulo 13"
-                    },
-                    {
-                        "title": "Capítulo 14"
-                    },
-                    {
-                        "title": "Capítulo 15"
-                    },
-                    {
-                        "title": "Capítulo 16"
-                    },
-                    {
-                        "title": "Capítulo 17"
-                    },
-                    {
-                        "title": "Capítulo 18"
                     }
                 ],
                 "name": "Temporada 1"
             },
             {
                 "num": 3,
+                "cover": "https://www.dropbox.com/scl/fi/gb5c5qs9vk8urqfgu2cnz/asfasf.avif?rlkey=riiqywxtk4ocat1oy879m46il&st=f9sl6b6d&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    }
+                ],
+                "name": "Especial 1"
+            },
+            {
+                "num": 4,
                 "cover": "https://www.dropbox.com/scl/fi/xx302drnrqurqrj7eggdc/gsdgsdgsdg-1.jpg?rlkey=ee9b8kqmq7kdbef8tqr622d5j&st=9qw1ilb1&raw=1",
                 "eps": [
                     {
@@ -4154,30 +4198,37 @@ const data = {
                     },
                     {
                         "title": "Capítulo 12"
-                    },
-                    {
-                        "title": "Capítulo 13"
-                    },
-                    {
-                        "title": "Capítulo 14"
-                    },
-                    {
-                        "title": "Capítulo 15"
-                    },
-                    {
-                        "title": "Capítulo 16"
-                    },
-                    {
-                        "title": "Capítulo 17"
-                    },
-                    {
-                        "title": "Capítulo 18"
                     }
                 ],
                 "name": "Temporada 2"
             },
             {
-                "num": 4,
+                "num": 5,
+                "cover": "https://www.dropbox.com/scl/fi/whxth23vsbdxykczed7fp/sdafssfd.avif?rlkey=2enj7arpalqyogu9fzir3etf3&st=hvbj3t83&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    }
+                ],
+                "name": "Especial 2"
+            },
+            {
+                "num": 6,
                 "cover": "https://www.dropbox.com/scl/fi/1r0djgkxmptdfe2ltkbk1/onepunch3.jpg?rlkey=4e2i0r1cvl5ufsh5f41fa2sqm&st=woghk9gy&raw=1",
                 "eps": [
                     {
@@ -4200,6 +4251,21 @@ const data = {
                     },
                     {
                         "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
                     }
                 ],
                 "name": "Temporada 3"
@@ -4470,165 +4536,171 @@ const data = {
         "seasons": [
             {
                 "num": 1,
-                "name": "Spy X Family",
                 "cover": "https://www.dropbox.com/scl/fi/avjrkhe5q0yv4kqwrx4x0/Spy-x-Family-Yor-Forger-ganha-animacao-18-em-2D3.jpg?rlkey=18e6y2j4xk7255k9ktj3aglu8&st=mt2bb8ud&raw=1",
                 "eps": [
                     {
-                        "title": "Spy X Family 1 - Maplestar"
+                        "title": "Capítulo 1"
                     },
                     {
-                        "title": "Spy X Family 2 - Maplestar"
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "Spy X Family"
             },
             {
                 "num": 2,
-                "name": "Alya Sometimes Hides Her Feelings In Russian",
                 "cover": "https://www.dropbox.com/scl/fi/nmfbx7us1q9k5dh5qglfy/aliaM.jpg?rlkey=yath585uqogp214rxh7ulepf9&st=466xsoqv&raw=1",
                 "eps": [
                     {
-                        "title": "Alya Sometimes Hides Her Feelings In Russian - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Alya Sometimes Hides Her Feelings In Russian"
             },
             {
                 "num": 3,
-                "name": "Jujutsu Kaisen",
                 "cover": "https://www.dropbox.com/scl/fi/fswo0t4mzwijbspj2v9g4/nobaraM.jfif?rlkey=e787f0szmw8n05ursu8hihqmy&st=aebv02ah&raw=1",
                 "eps": [
                     {
-                        "title": "Jujutsu Kaisen 1 - Maplestar"
+                        "title": "Capítulo 1"
                     },
                     {
-                        "title": "Jujutsu Kaisen 2 - Maplestar"
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "Jujutsu Kaisen"
             },
             {
                 "num": 4,
-                "name": "Konosuba",
                 "cover": "https://www.dropbox.com/scl/fi/uzfdxexukg9sr4wp1z94w/aquaM.jfif?rlkey=igtyabr214tsilqnnhy5o1shx&st=lyjb3gm2&raw=1",
                 "eps": [
                     {
-                        "title": "Konosuba - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Konosuba"
             },
             {
                 "num": 5,
-                "name": "Chainsaw Man",
                 "cover": "https://www.dropbox.com/scl/fi/nbr045h8grownaa3bu464/makimaM.jpg?rlkey=ewy21pxbt7mgop4yfrd9v1vo2&st=j6a6rtqw&raw=1",
                 "eps": [
                     {
-                        "title": "Chainsaw Man 1 - Maplestar"
+                        "title": "Capítulo 1"
                     },
                     {
-                        "title": "Chainsaw Man 2 - Maplestar"
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "Chainsaw Man"
             },
             {
                 "num": 6,
-                "name": "Dan Da Dan",
                 "cover": "https://www.dropbox.com/scl/fi/by32qz4bh39bx2yb34gwa/dan.jpg?rlkey=o64kxwhd1y9hmoskxghyvc22g&st=qqax6yc6&raw=1",
                 "eps": [
                     {
-                        "title": "Dan Da Dan - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Dan Da Dan"
             },
             {
                 "num": 7,
-                "name": "Frieren",
                 "cover": "https://www.dropbox.com/scl/fi/ggq2edhfeox5pnjd2sx5x/FERN.jpg?rlkey=7lyh8ni85qonzs5q768cd0zda&st=pf0aghys&raw=1",
                 "eps": [
                     {
-                        "title": "Frieren - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Frieren"
             },
             {
                 "num": 8,
-                "name": "Nier: Automata",
                 "cover": "https://www.dropbox.com/scl/fi/34xwkjrydls96q5z1hyre/8-min-nier.jpg?rlkey=0apo1w3wwod1r6d8l57amq2jo&st=23pwus4w&raw=1",
                 "eps": [
                     {
-                        "title": "Nier: Automata - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Nier: Automata"
             },
             {
                 "num": 9,
-                "name": "The Legend of Zelda: Tears of the Kingdom",
                 "cover": "https://www.dropbox.com/scl/fi/hq01tsig0ac9h2e8wq3rp/zelda-1.jpg?rlkey=z5i1ghzkn0np8009d39t01lma&st=jb28zqch&raw=1",
                 "eps": [
                     {
-                        "title": "The Legend of Zelda: Tears of the Kingdom 1 - Maplestar"
+                        "title": "Capítulo 1"
                     },
                     {
-                        "title": "The Legend of Zelda: Tears of the Kingdom 2 - Maplestar"
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "The Legend of Zelda: Tears of the Kingdom"
             },
             {
                 "num": 10,
-                "name": "High School DxD",
                 "cover": "https://www.dropbox.com/scl/fi/su4u2rau7cppordofr9ai/kudasai_dxd-74.jpg?rlkey=rayqt9zi559n32agnrzbymx2e&st=7jpc5q9o&raw=1",
                 "eps": [
                     {
-                        "title": "High School DxD - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "High School DxD"
             },
             {
                 "num": 11,
-                "name": "Re:Zero",
                 "cover": "https://www.dropbox.com/scl/fi/2fatzekmlexw5f0c6avfz/rezesroM.jpg?rlkey=oxfbyto5hf3680a1kipvp4j4h&st=y6evnq26&raw=1",
                 "eps": [
                     {
-                        "title": "Re:Zero - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Re:Zero"
             },
             {
                 "num": 12,
-                "name": "Rent-A-Girlfriend",
                 "cover": "https://www.dropbox.com/scl/fi/qjwxek3z34b2i97zrrndk/mizuharaM.jpg?rlkey=x5xkgdapedk1lcjow9weo6jm4&st=e2dtm2po&raw=1",
                 "eps": [
                     {
-                        "title": "Rent-A-Girlfriend - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Rent-A-Girlfriend"
             },
             {
                 "num": 13,
-                "name": "My Dress-Up Darling",
-                "cover": "https://www.dropbox.com/scl/fi/totid4w011l0ftg088jwf/erisM.jpg?rlkey=bv2zu5u17sst8k4cjct0l0e0u&st=7f5sh8co&raw=1",
-                "eps": [
-                    {
-                        "title": "My Dress-Up Darling - Maplestar"
-                    }
-                ]
-            },
-            {
-                "num": 14,
-                "name": "The Rising of the Shield Hero",
                 "cover": "https://www.dropbox.com/scl/fi/d0gfqghwy4c5ny1k4uydw/tate.jpg?rlkey=s5nbk49nlerdhyzbxy6q0kgia&st=94zaxd74&raw=1",
                 "eps": [
                     {
-                        "title": "The Rising of the Shield Hero - Maplestar"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "The Rising of the Shield Hero"
             },
             {
-                "num": 15,
-                "name": "Demon Slayer",
+                "num": 14,
                 "cover": "inosukexnetsuko.avif",
                 "eps": [
                     {
-                        "title": "Demon Slayer"
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "Demon Slayer"
+            },
+            {
+                "num": 15,
+                "cover": "https://www.dropbox.com/scl/fi/totid4w011l0ftg088jwf/erisM.jpg?rlkey=bv2zu5u17sst8k4cjct0l0e0u&st=7f5sh8co&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    }
+                ],
+                "name": "My Dress-Up Darling"
             }
         ]
     },
@@ -4876,7 +4948,8 @@ const data = {
                     {
                         "title": "Capítulo 8"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             },
             {
                 "num": 2,
@@ -4906,7 +4979,8 @@ const data = {
                     {
                         "title": "Capítulo 8"
                     }
-                ]
+                ],
+                "name": "Temporada 2"
             }
         ]
     },
@@ -5200,6 +5274,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
                     }
                 ],
                 "name": "Temporada 3"
@@ -5708,9 +5791,12 @@ const data = {
                     },
                     {
                         "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
                     }
                 ],
-                "name": "Temporada 8"
+                "name": "Temporada 1"
             }
         ]
     },
@@ -5930,7 +6016,7 @@ const data = {
         ]
     },
     "54": {
-        "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai",
+        "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai",
         "desc": "Tanzaburo Tojima ha soñado con ser un Kamen Rider toda su vida. Pero ahora que tiene 40 años, empieza a pensar que su sueño quizá nunca se haga realidad… ¡hasta que se ve envuelto en una serie de crímenes inspirados en el infame “Shocker”! De Shibata Yokusaru, creador de Air Master y 81 Diver, llega una historia alocada y conmovedora sobre adultos que adoran a Kamen Rider demasiado y empiezan a jugar a serlo… ¡de verdad!",
         "cover": "tojima1.avif",
         "uploader": "archinime12@gmail.com",
@@ -5998,20 +6084,9 @@ const data = {
                     },
                     {
                         "title": "Capítulo 20"
-                    },
-                    {
-                        "title": "Capítulo 21"
-                    },
-                    {
-                        "title": "Capítulo 22"
-                    },
-                    {
-                        "title": "Capítulo 23"
-                    },
-                    {
-                        "title": "Capítulo 24"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             }
         ]
     },
@@ -7176,6 +7251,9 @@ const data = {
                         "title": "Capítulo 8"
                     },
                     {
+                        "title": "Capítulo 9"
+                    },
+                    {
                         "title": "Capítulo 10"
                     },
                     {
@@ -7183,6 +7261,24 @@ const data = {
                     },
                     {
                         "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
                     }
                 ],
                 "name": "Temporada 1"
@@ -7432,7 +7528,30 @@ const data = {
                     {
                         "title": "Capítulo 28"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    }
+                ],
+                "name": "Temporada 2"
             }
         ]
     },
@@ -7643,6 +7762,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
                     }
                 ],
                 "name": "Temporada 1"
@@ -7853,7 +7981,7 @@ const data = {
     },
     "72": {
         "title": "Seihantai na Kimi to Boku",
-        "desc": "Miyu Suzuki y Yusuke Tani son dos estudiantes de preparatoria totalmente opuestos: Suzuki es una chica enérgica y extrovertida que tiende a seguir a la multitud, incluso cuando no le apetece, mientras que Tani es un chico tranquilo e introvertido que dice lo que piensa sin rodeos.",
+        "desc": "Miyu Suzuki y Yusuke Tani son dos estudiantes de preparatoria totalmente opuestos: Suzuki es una chica enérgica y extrovertida que tiende a seguir a la multitud, incluso cuando no le apetece, mientras que Tani es un chico tranquilo e introvertido que dice lo que piensa sin rodeos",
         "cover": "https://www.dropbox.com/scl/fi/tj525d996dhx67ybfo85f/ImageToStl.com_MV5BNGI4NzhiZmMtNWY2Mi00MTFhLTgyOTktZTk1YjRlZmU5NzkxXkEyXkFqcGc._V1_FMjpg_UX1000.avif?rlkey=3so7gb70li05txtrk86ppisen&st=thjnvset&raw=1",
         "uploader": "archinime12@gmail.com",
         "seasons": [
@@ -7863,6 +7991,27 @@ const data = {
                 "eps": [
                     {
                         "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
                     }
                 ],
                 "name": "Temporada 1"
@@ -7884,9 +8033,2944 @@ const data = {
                     },
                     {
                         "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 1"
+            }
+        ]
+    },
+    "74": {
+        "title": "SHIBOYUGI: Me gano el pan participando de juegos mortales",
+        "desc": "Con solo diecisiete años, Yuki es una jugadora profesional de juegos mortales. Ha sobrevivido a suficientes rondas como para saber que la supervivencia es cuestión de cálculo, no de suerte, y que el fracaso es irreversible. Para la mayoría de los jugadores, los juegos son una pesadilla sin escapatoria. Para Yuki, son simplemente un negocio.",
+        "cover": "https://www.dropbox.com/scl/fi/fx5zw1358e8zykeh8qku1/ImageToStl.com_MV5BMzVmOTUyMTktZjg1ZC00ZjljLWE3MjEtNTRjMDc2Yjg1NzZiXkEyXkFqcGc._V1_-1.avif?rlkey=ejl6szzppyol14lq9nvcjgw4m&st=ipj0pclp&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "75": {
+        "title": "Date a Live",
+        "desc": "Shido, un estudiante de preparatoria común y corriente, descubre a una misteriosa chica en la zona cero de un reciente terremoto espacial. Shido descubre, a través de su hermana Kotori, que la chica es uno de los Espíritus: criaturas místicas responsables de los terremotos espaciales. Shido es reclutado para ayudar a \"sellar\" a los espíritus y acabar con su amenaza para la humanidad. Solo hay una condición: la única manera de sellar un espíritu es hacer que se enamore de ti.",
+        "cover": "https://www.dropbox.com/scl/fi/0p0mfy5af83b1u0au9ebb/datealive-1.jpg?rlkey=6cft8w0ibv4j60iqcz4bdip00&st=4i66ch8r&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/3o77xs6m26chtq0ksrjdc/datealive1.avif?rlkey=bqdrm63lztv73obekk27z5y4y&st=db0pctp8&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/4nh6lhxlebnyhkhv9ekhp/datealiveova1.avif?rlkey=hegjyapqlyrl974alubzobnti&st=ffsa2pim&raw=1",
+                "eps": [
+                    {
+                        "title": "Date to Date"
+                    }
+                ],
+                "name": "OVA 1"
+            },
+            {
+                "num": 3,
+                "cover": "https://www.dropbox.com/scl/fi/9hw4mo92sskll7fudvijg/datealive2.avif?rlkey=g34ts9btyjro1x424p2ltmmna&st=hu35wkwp&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 4,
+                "cover": "https://www.dropbox.com/scl/fi/1v9vfqfqhhn2xq5qw5tph/datealiveova2.avif?rlkey=sikq6eciwauj10i73j731h4bd&st=7dk5p7ey&raw=1",
+                "eps": [
+                    {
+                        "title": "Kurumi Star Festival"
+                    }
+                ],
+                "name": "OVA 2"
+            },
+            {
+                "num": 5,
+                "cover": "https://www.dropbox.com/scl/fi/01a4adofr41e197gqkhe8/datealivepelicula.avif?rlkey=3g3mpdn552r1jux1b9srx9fzm&st=q4nwvj2s&raw=1",
+                "eps": [
+                    {
+                        "title": "Mayuri Judgement"
+                    }
+                ],
+                "name": "Película 1"
+            },
+            {
+                "num": 6,
+                "cover": "https://www.dropbox.com/scl/fi/36m7l6ciwu5b2u6oc5v0v/datealive3.avif?rlkey=50jup0tl3rcvbc8ha0395yth5&st=svp38pm2&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 3"
+            },
+            {
+                "num": 7,
+                "cover": "https://www.dropbox.com/scl/fi/ac61j6y0nvqh132v2dyaj/Date-A-Bullet.avif?rlkey=kkw63qgo8ts6frf6aentd271m&st=4gzc6lhi&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    }
+                ],
+                "name": "Date A Bullet"
+            },
+            {
+                "num": 8,
+                "cover": "https://www.dropbox.com/scl/fi/9nv51y1z6cpbq4jjle2vr/datealive4.avif?rlkey=2iyk0y13stw1g6yj57e6bolzb&st=hoslep3i&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 4"
+            },
+            {
+                "num": 9,
+                "cover": "https://www.dropbox.com/scl/fi/twsfyhd59flqcld6hx8kf/datealive5.avif?rlkey=szzmialnfoz4pvtbb0ee84bvg&st=uptlajf8&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 5"
+            }
+        ]
+    },
+    "76": {
+        "title": "Let's Play",
+        "desc": "Samara \"Sam\" Young es una desarrolladora de Los Ángeles a punto de cumplir su sueño con su primer videojuego, \"Ruminate\". Eso es… hasta que un streamer famoso le dedica una crítica demoledora. Para colmo, Sam descubre que ese problemático crítico es ahora su nuevo vecino. Sumérgete en una historia cómica, romántica y terriblemente real sobre videojuegos, memes y ansiedad social.",
+        "cover": "https://www.dropbox.com/scl/fi/p8ym5q7jf3n25bh2x2aok/letsplay.avif?rlkey=byvltt6ghhpit0mutgbogn9qi&st=j3sx3sfp&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/hy1r4mrzb32etx0b34i65/letsplay1.avif?rlkey=ium82ha2azfcozjljkipa7iwi&st=0tdmrzz8&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "77": {
+        "title": "Fire Force",
+        "desc": "Tokio está ardiendo y los ciudadanos sufren misteriosas combustiones espontáneas por toda la ciudad. La responsable de apagar este infierno es la Brigada Especial Antiincendios y Shinra está listo para unirse a su lucha. Ahora, como parte del 8.º Escuadrón, usará sus poderes para evitar que la ciudad acabe reducida a cenizas.Sin embargo, un secreto de su pasado podría prenderlo todo.",
+        "cover": "https://www.dropbox.com/scl/fi/yb4ceq87w77dc9tfv6hck/fireforce.avif?rlkey=vqtcwroglk2w1xksclu3fzy6k&st=x4wng0o2&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/8qk3g1d7l5jz5w00y6fhs/fireforce1.avif?rlkey=sw2jpbkkue0i2azgswqtvswje&st=qbpro3i8&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/yr1ue000zew17acj05fvh/fireforce2.avif?rlkey=bv4t186a6hlfgs1srwtspeaph&st=3x9mbj4r&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    }
+                ],
+                "name": "Temporada 3"
+            }
+        ]
+    },
+    "78": {
+        "title": "Hana-Kimi",
+        "desc": "Mizuki Ashiya tiene una misión: disfrazarse de chico e inscribirse en un internado masculino para conocer a su ídolo, la estrella del salto de altura Izumi Sano. Pero tras infiltrarse con éxito en la escuela, descubre que él ha abandonado el deporte. Ahora Mizuki debe esquivar las sospechas, proteger su tapadera y, como pueda, llegar hasta el chico por el que ha recorrido todo este camino.",
+        "cover": "https://www.dropbox.com/scl/fi/pjimk877gp2f1gq1fur0f/ImageToStl.com_Hana-Kimi-1.avif?rlkey=e0wi3l2w6v5vjy753cyag3sup&st=89tv9fxr&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "79": {
+        "title": "Dark Moon: The Blood Altar",
+        "desc": "En la ciudad costera de Riverfield se encuentra la Academia Decelis, hogar de siete chicos misteriosos que comparten el mismo secreto: son vampiros y ocultan su turbio pasado. Cuando Sooha, una estudiante que odia a los vampiros, se transfiere a la academia, los chicos se sienten irresistiblemente atraídos por ella. A medida que extraños sucesos sacuden la ciudad, viejos pecados y secretos enterrados resurgen, y su mundo comienza a fracturarse.",
+        "cover": "https://www.dropbox.com/scl/fi/ypv720n8l5jvhd47c77ei/68HcRvCpiajsPhKn1MnV4hqeCAN.avif?rlkey=yulou1xyoa1ocvhu9nd0pfjxk&st=cswxzs4u&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "80": {
+        "title": "Hell's Paradise",
+        "desc": "Gabimaru el Vacío es uno de los asesinos más despiadados de la aldea ninja de Iwagakure. Es cruelmente eficiente, pero una traición lo condena a muerte. Solo le queda una opción para sobrevivir: debe viajar a una isla oculta y recuperar un elixir que hará inmortal al shogun. No puede fracasar. En esa isla, el paraíso y el infierno se entremezclan a partes iguales.",
+        "cover": "https://www.dropbox.com/scl/fi/vpt0m3tswyu0uzjsu7f1w/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769090129026-1769090129026-1.avif?rlkey=4s8i5bmu32nk7mbghl593q6h0&st=1349sffw&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/w5est8ffkgk3w7af0c4i0/ImageToStl.com_MV5BZjhmMjhkNjUtMGU2MC00N2IzLTg1YzItZDk5ODMxMDYxODc0XkEyXkFqcGc._V1.avif?rlkey=ytkpz6jwh00o8ikvdyf95l4pq&st=9mxw44sm&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZz2Pl5ZtIRJpcwNxr5Alrpg7RDymX4RfcJV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "81": {
+        "title": "NieR: Automata Ver1.1a",
+        "desc": "2B es una unidad que participa en una misión que tristemente sale mal y eliminan a todo su equipo. Ella intenta seguir con su misión, donde conoce a 9S.",
+        "cover": "https://www.dropbox.com/scl/fi/54c7obrwsgh12oojlpvkx/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769098432658-1769098432658-1.avif?rlkey=md3jxz8n24z6i6ube8locfa9o&st=1kc4iygy&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/dyghot1udf99pi7ilffjp/ImageToStl.com_nier-replicant-and-nier-automata-v0-e1ca85rjutna1.avif?rlkey=lefktvdfb8fd2d391v96mu8w1&st=netf26qi&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/8r1nblzvbi56izp0v7kog/ImageToStl.com_sadfsf.avif?rlkey=dqr0neuyaiwp4tnhc9t8e2jcf&st=2ij9738d&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "82": {
+        "title": "TSUKIMICHI -Moonlit Fantasy-",
+        "desc": "Makoto Misumi era un adolescente normal y corriente que de repente fue invocado a otro mundo como \"héroe\". Pero la diosa de este mundo le llamó feo y le quitó su condición de héroe, enviándolo a los confines del mundo. En los páramos, se encuentra con dragones, arañas, orcos, enanos y muchas otras razas no humanas. Makoto consigue mostrarse promoetedor en el uso de la magia y combatiendo, lo que no habría podido hacer en su anterior mundo. Tiene numerosos encuentros, pero ¿será capaz de sobrevivir a este nuevo mundo?",
+        "cover": "https://www.dropbox.com/scl/fi/e56h2qp9qlauoosf1h7hk/ImageToStl.com_1726486-1.avif?rlkey=ib1bvbj4pprxe9kvqcado5n9e&st=y5m4yxqn&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/fleqa94cfrqydtxabipxo/ImageToStl.com_sdf123sfsdf.avif?rlkey=b6aw7wo34vxck2cvij26w4pyn&st=aat5erfk&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/v8bqukkk1hnrttxesdelv/aSdasd.avif?rlkey=6mvurri42mf2tl9vzjq7akzj9&st=3pyfls2p&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "83": {
+        "title": "Mairimashita! Iruma-kun",
+        "desc": "Iruma Suzuki es un humano de 14 años que un día es arrastrado en contra de su voluntad al mundo de los demonios. Por si no tenía bastantes problemas con eso, su nuevo dueño y autodeclarado \"Abuelo\" es el demonio director de su nueva escuela. Para poder sobrevivir en este nuevo mundo y en esta escuela, Iruma tendrá que superar todo tipo de retos, como vencer en un duelo a un estudiante muy peligroso, una chica con ciertos problemillas de personalidad, ¡y todo tipo de seres terroríficos!",
+        "cover": "https://www.dropbox.com/scl/fi/1jwtfdr7fniisbyk86ufq/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769436697375-1769436697376-1.avif?rlkey=7ykuw4c34w1dkr6wlnt2hmx82&st=nbyyeq8a&raw=1",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://www.dropbox.com/scl/fi/h4duafxrqto2ibfeb4ozh/iruma1.avif?rlkey=2t4afhydf7skq7rfzevvfq08m&st=o0voptcy&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://www.dropbox.com/scl/fi/aeoy9d588siec1zwqts4z/iruma2.avif?rlkey=w8ftukvyby93woqg6tl3oxsog&st=j4x9rx6h&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://www.dropbox.com/scl/fi/oqkpyyqku4fr3ghwhzcr0/iruma3.avif?rlkey=g4yh1imo1v86ubsaeb4k541nk&st=2yuirrws&raw=1",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    }
+                ],
+                "name": "Temporada 3"
+            }
+        ]
+    },
+    "84": {
+        "title": "Kobayashi-san Chi no Maid Dragon",
+        "desc": "Miss Kobayashi es la oficinista media con una vida aburrida y que vive en un pequeño apartamento sola. Esto era hasta que salva la vida a una dragón llamada Tohru con la capacidad de transformarse en una adorable chica humana. ¡Tohru hasta cualquier cosa que le sea posible para agradecer a Kobayashi que la salvara, quiera ella o no! Así, la vida de la oficinista pasa a complicarse por tener a una compañera de piso dragón.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZ4jhK5ZV96vwk3dhrfuqylIjMK0SkhV0pyV&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZFcjK5ZpO8UyE7UJgJ1xEmweVpOd0fOYQ1y&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZjcjK5ZqUyWMqb24UQnImkXria4Fzpq51IV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZjojK5Z0gt6QP9JFsB8waiQNJy5hFX2fF77&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "A Lonely Dragon Wants to Be Loved"
+                    }
+                ],
+                "name": "Película 1"
+            }
+        ]
+    },
+    "85": {
+        "title": "Sword Art Online",
+        "desc": "En un futuro cercano, un Virtual Reality Massive Multiplayer Online Role-Playing Game (VRMMORPG) llamado Sword Art Online permite que los jugadores se introduzcan en el juego directamente mediante el uso del Nerve Gear, un casco que les sumerge por completo.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZexDK5ZF3sDn1qITuYL1VScYcuknLSBUcDy&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZKxDK5ZyrehaQ3LaA4GlOjnABQsnBclPUJV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZIwDK5ZJyUtMNCyhz4kaxwtOiGtkXPxznn7&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Extra Edition"
+                    }
+                ],
+                "name": "OVA 1"
+            },
+            {
+                "num": 3,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZyqDK5Zt3acz3WekQpgkJ02cfowXFs6J4AV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    }
+                ],
+                "name": "Sword Art Offline"
+            },
+            {
+                "num": 4,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZslDK5ZFU3tnJ6khuhVpVgn6oA3WbEEq9Py&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 5,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZeDTK5ZHA2Q4Uso7jkzCpTQjHgxw4P1fBjX&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    }
+                ],
+                "name": "Sword Art Offline II"
+            },
+            {
+                "num": 6,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZsdDK5Zwrs5SeTzNEB27kHJ0brge0Qkc8SV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Ordinal Scale"
+                    }
+                ],
+                "name": "Película 1"
+            },
+            {
+                "num": 7,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZnIDK5ZGFXUeyphMLm3HvY570j9vjbIP49X&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 3"
+            },
+            {
+                "num": 8,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZHmnK5ZzCEH4jIu5oRcXNFP2fmbSzTaaMMX&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    }
+                ],
+                "name": "Temporada 4"
+            },
+            {
+                "num": 9,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZRSnK5ZBuVI4IeVDKSxeLiBC79MubXWNBN7&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Progressive: Aria of a Starless Night"
+                    }
+                ],
+                "name": "Película 2"
+            },
+            {
+                "num": 10,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZjSnK5Zyi5nPAcNy9Y0V0S50OKEWydf4gRV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Progressive 2: Scherzo of Deep Night"
+                    }
+                ],
+                "name": "Película 3"
+            },
+            {
+                "num": 11,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZP1TK5Zb94z5nzcTzBJCtExxfBQIReDpgr7&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Alternative: Gun Gale Online"
+            },
+            {
+                "num": 12,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZr1TK5ZWqGs6z8IT6JzKyMNjMbUSH5P9wOk&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Alternative: Gun Gale Online II"
+            }
+        ]
+    },
+    "86": {
+        "title": "Baki",
+        "desc": "Baki Hanma, un joven prodigio de las artes marciales que entrena incansablemente para superar a su padre, Yujiro Hanma, considerado el ser más fuerte del mundo, enfrentándose a luchadores extremadamente poderosos en peleas clandestinas y torneos para probar su fuerza y superar sus límites, con el objetivo final de derrotar a su padre.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZ0p9K5Zz7CYJaaP8E4a4o9sBzCkrSwHI6k0&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZ9p9K5ZqjqTJUccGufTIcc4gX2Y0bamjI3k&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    },
+                    {
+                        "title": "Capítulo 26"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZjz9K5ZWO1k5qWg2nX6x5YCztO2N8wGz90V&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZuf9K5Z6yxVcVD6zqHJjm2rxwYNHV5fR4yV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 3"
+            },
+            {
+                "num": 4,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZ1B9K5Z5rwFu6hoiB5IltTlMjvywB8YSkwV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    },
+                    {
+                        "title": "Capítulo 26"
+                    },
+                    {
+                        "title": "Capítulo 27"
+                    }
+                ],
+                "name": "Temporada 4"
+            },
+            {
+                "num": 5,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZ6rMK5ZTji8HdOSHVXg8AlDp46GWV3zzusy&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Baki Hanma vs. Kengan Ashura"
+                    }
+                ],
+                "name": "Película 1"
+            }
+        ]
+    },
+    "87": {
+        "title": "Death Note",
+        "desc": "Light Yagami es un estudiante brillante con mucho futuro que se aburre a más no poder. Pero todo cambia cuando encuentra la Death Note, un cuaderno que dejó caer un rebelde dios de la muerte.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZC3PK5ZI5e4GKRCk8Xvz6QX7v678Q275LUy&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZd3PK5ZpT0OB7y4ALjU5DNn1jo74HFpQ6FV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    },
+                    {
+                        "title": "Capítulo 26"
+                    },
+                    {
+                        "title": "Capítulo 27"
+                    },
+                    {
+                        "title": "Capítulo 28"
+                    },
+                    {
+                        "title": "Capítulo 29"
+                    },
+                    {
+                        "title": "Capítulo 30"
+                    },
+                    {
+                        "title": "Capítulo 31"
+                    },
+                    {
+                        "title": "Capítulo 32"
+                    },
+                    {
+                        "title": "Capítulo 33"
+                    },
+                    {
+                        "title": "Capítulo 34"
+                    },
+                    {
+                        "title": "Capítulo 35"
+                    },
+                    {
+                        "title": "Capítulo 36"
+                    },
+                    {
+                        "title": "Capítulo 37"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "88": {
+        "title": "Leviathan",
+        "desc": "En 1914, al borde de la Primera Guerra Mundial, un joven príncipe huye tras un golpe de Estado y conoce a una chica que se hace pasar por chico para alistarse. Su encuentro ocurre a bordo del Leviatán, una asombrosa aeronave viviente fruto de la bioingeniería.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZtUxK5ZfdVT4R2RN44PbPKssJv7pzlVjzTk&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZUUxK5ZvX1LOxy7ATS77OpaO3KgbbREKVQV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "89": {
+        "title": "Bocchi the Rock!",
+        "desc": "Hitori es una chica muy introvertida e incapaz de relacionarse socialmente. Sin embargo, ama la música y su sueño es formar una banda y ser famosa. Un día, mientras iba con su guitarra, se encuentra con una chica que necesita una guitarrista para tocar urgentemente en una banda. A partir de aquí, Hitori tendrá que superar sus miedos para poder alcanzar su sueño.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZ4dxK5ZKlNdhaL1aIHMTyPcgPwmj0xf5tck&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZ2dxK5ZgSR67lxGIR7csx2hXKyFnYeBg4M7&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "90": {
+        "title": "Shangri-La Frontier",
+        "desc": "\"¿Cuándo fue la última vez que jugué un juego que no fuera una basura?\" Este es un mundo en el futuro cercano donde los juegos que usan pantallas se consideran retro, y muchos juegos de realidad virtual no llegan a un mínimo de calidad: son los llamados \"juegos basura\". A aquellos que dedican sus vidas a completar estos juegos se les llama \"cazadores de juegos basura\", y Rakuro Hizutome es uno de ellos. El juego que ha elegido abordar a continuación es Shangri-La Frontier, un juego que goza de una gran crítica y más de 30 millones de jugadores. ¡La mejor historia de aventuras escrita por el jugador más fuerte de \"juegos basura\" está a punto de comenzar!",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/shangiran.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZfEwK5Zgs30Jghmx8jFQPqIBtwqIjSpUS4X&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZBEwK5ZjV7AT4DkE4YjShvLSJIRlLcMFJHV&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "91": {
+        "title": "Trigun Stampede",
+        "desc": "Un pistolero con una recompensa millonaria, conocido como el \"Huracán Humano\" por la destrucción que supuestamente causa en el árido planeta No Man's Land, pero que en realidad es un pacifista bondadoso que intenta proteger a la humanidad de los peligros de su propio pasado y de su hermano gemelo malvado, Knives Millions, que busca erradicar a la humanidad a través de las poderosas plantas que sustentan la vida.",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZswdK5ZPrDr8metTShLGWYpHJjgnJ3OvO3k&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZUwdK5ZW1ksGIIKW0FKoFGnE4sGzRGSoATy&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/trigun-stargaze-character-visuals-v0-no7rngaincuf1.jpg",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "92": {
+        "title": "Roll Over and Die",
+        "desc": "Flum no era fuerte. Tampoco poseía una gran magia ni hablidades, solo una capacidad llamada \"Reversión\" que ni ella misma comprende. Entonces, ¿por qué Dios la incluyó en el grupo de héroes? La traicionan, la venden como esclava y acaba siendo un juguete para monstruos. Estando al borde la muerte, Flum debe elegir: dejarse devorar o empuñar una espada maldita que, según se dice, mata a quien la...",
+        "cover": "https://api.pcloud.com/getpubthumb?code=XZppEK5ZRLLOpgFR0DXqgYFQHwIxaYtakxkk&size=2000x3000",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZHpEK5ZDYj1Ggi9U8bycVPaNOxCkQolhpak&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "93": {
+        "title": "Tower of God",
+        "desc": "Alcanza la lo más alto y todo será tuyo.\n\nEn la cima de la torre encontrarás todo lo que existe en este mundo, y todo puede ser tuyo.\n\nPodrás ser un dios.\n\nEsta es la historia del inicio y el final de Rachel, la joven que ascendió la torre para poder ver las estrellas, y Bam, el joven que lo único que necesitaba era estar con ella.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/tower.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZp6EK5Zoo7hw2hakajeuIuwXUtcrHWlEIny&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://api.pcloud.com/getpubthumb?code=XZR6EK5ZMbtpcgy8H3Ld11AsXGK1V5mXHjRk&size=2000x3000",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    },
+                    {
+                        "title": "Capítulo 26"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "94": {
+        "title": "Oshi no Ko",
+        "desc": "Ai Hoshino, una idol de 16 años adorada pero con un secreto: está embarazada de gemelos. Un médico fan, Gorou, le promete un parto seguro pero muere y renace como uno de los hijos de Ai",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt3.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    }
+                ],
+                "name": "Temporada 3"
             }
         ]
     }

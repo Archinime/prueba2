@@ -4764,6 +4764,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1LUTBwxSGgb6eIOXrv_bTrPdukv_WkGSk/preview",
                 "link2": "",
                 "title": "To Your Eternity T3 Cap 18"
+            },
+            "19": {
+                "link": "https://drive.google.com/file/d/14bCX-FCrgMxhMnDQp5mJXf3P0qudRNXt/preview",
+                "link2": "",
+                "title": "To Your Eternity T3 Cap 19"
             }
         }
     },
@@ -8075,97 +8080,102 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1CNEjy7XOSsWioiEbsy3aCyhy0K5l88k3/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ipb4lc6jiaqacb6al4y2v/T-jima-Tanzabur-wa-Kamen-Rider-ni-Naritai-T1-Cap-1.mp4?rlkey=7796r6pwfdbbjvk0rl9l7tnzr&st=u4huftos&raw=1",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 1"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1-TAltIstu2c6oReESC1WZDGstP6RoLgW/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zfv6optbgdlhk9yrbyimb/T-jima-Tanzabur-wa-Kamen-Rider-ni-Naritai-T1-Cap-2.mp4?rlkey=k2n3ma25tmhkptlorprj234fi&st=jtf97b5e&raw=1",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 2"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1ZYTNt-vrHLTFEvDuscNs-3JC5fLZC4f2/preview",
                 "link2": "https://www.dropbox.com/scl/fi/9i7ycmk5wwxa0ja0uhpgk/T-jima-Tanzabur-wa-Kamen-Rider-ni-Naritai-T1-Cap-3.mp4?rlkey=yt8tg9r5tfoq31x02qst6zc9y&st=egtk9xj7&raw=1",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 3"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1FY_jZ61wRtSTS6akzxOvYvBvqTBXGcV8/preview",
                 "link2": "https://www.dropbox.com/scl/fi/6u0gyjxomjfvh2nm40l0w/T-jima-Tanzabur-wa-Kamen-Rider-ni-Naritai-T1-Cap-4.mp4?rlkey=7ul5jfhj5h4rkttdj5vwfrne3&st=6eu62t5d&raw=1",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 4"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1LGTe12Pezs-4VVuV4Zkz4XRTeXszP6vv/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 5"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1H0sq3zKrJxnLIAF_MlmuI1-cUAtom07M/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 6"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1MXYNnpSIKUMuIr1nVgGVi-aM4Z2DA5Pz/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 7"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1cgwwaDUEhG-QBsXgK5anjCw-pb1T8lTO/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 8"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/10jEXAorQKgqzuiksXcst8f40-GBJZe9M/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 9"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/16kHo1LyyVlPO5MlbLZ64VQaTias5lA6p/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 10"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/15tcLf-i1vMj9q2y_TR6LrSltXLiDrXND/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 11"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/189kwKpe-dkjx-HNmUxgGSgn_jGeodXZH/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 12"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/16lSrR0sfJoMsryjF4eqq5xkK5Zv146TA/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 13"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1zNxPk0NGCkIaNNEDs2owc4V0b-WPitbD/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 14"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/10-v8EftLlr2lXaxdbNzm-Luc9pG9xO3k/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 15"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1G3spH6oy070sgpijGhqelkdDplsWPUQJ/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 16"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 16"
             },
             "17": {
                 "link": "https://ok.ru/videoembed/12303448017618",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 17"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1TxWXry5KxV8yxkbcsw7fEFHmEj65wgwz/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 18"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1GJ5Z6KPf6QemskOCj3Tfz1kzTjaEpncy/preview",
                 "link2": "",
-                "title": "Tōjima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 19"
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 19"
+            },
+            "20": {
+                "link": "https://drive.google.com/file/d/1K4cs4SH2bzmHv1JUfE04jUjxArIfOV_r/preview",
+                "link2": "",
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 20"
             }
         }
     },
@@ -10514,6 +10524,11 @@ const players = {
                 "link": "https://ok.ru/videoembed/12325398710994",
                 "link2": "",
                 "title": "Seihantai na Kimi to Boku T1 Cap 7"
+            },
+            "8": {
+                "link": "https://drive.google.com/file/d/1YUeDm7LGq8BatznHhcZBd7lP1TvNIjpz/preview",
+                "link2": "",
+                "title": "Seihantai na Kimi to Boku T1 Cap 8"
             }
         }
     },
@@ -11374,6 +11389,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1ipu5QPEDAdmDxkV3twpUdf26JpslDp5A/preview",
                 "link2": "",
                 "title": "Fire Force T3 Cap 21"
+            },
+            "22": {
+                "link": "https://drive.google.com/file/d/1P_5WCml5GF-6C5o7pCVNiraV2ELAs8ir/preview",
+                "link2": "",
+                "title": "Fire Force T3 Cap 22"
             }
         }
     },
@@ -11433,6 +11453,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1v9y9cwkglJPGyvkA5I5Nl8oILdA38JRm/preview",
                 "link2": "",
                 "title": "Hana-Kimi T1 Cap 11"
+            },
+            "12": {
+                "link": "https://drive.google.com/file/d/1XlTnkxEFvG6kf2n0AY_5ZgEWAHmDEIi7/preview",
+                "link2": "",
+                "title": "Hana-Kimi T1 Cap 12"
             }
         }
     },
@@ -11482,6 +11507,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1XKbzL5i_HnJbKXdoPTxXE6vLxZlAJHq7/preview",
                 "link2": "",
                 "title": "Dark Moon: The Blood Altar T1 Cap 9"
+            },
+            "10": {
+                "link": "https://drive.google.com/file/d/14U3L-wECe7cNmS48dn4-7CznsuZrcAkK/preview",
+                "link2": "",
+                "title": "Dark Moon: The Blood Altar T1 Cap 10"
             }
         }
     },
@@ -11583,6 +11613,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1b6Urkt5sq0co-kv74H-p44O8g8rXWvAe/preview",
                 "link2": "",
                 "title": "Hell's Paradise T2 Cap 6"
+            },
+            "7": {
+                "link": "https://drive.google.com/file/d/1PjMq2xUxVvhP3vII8LDuN3DQXzF-5UYO/preview",
+                "link2": "",
+                "title": "Hell's Paradise T2 Cap 7"
             }
         }
     },
@@ -14203,6 +14238,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/18g1fAPhwXnSmvqlGa2JeIqGbYkvB2637/preview",
                 "link2": "",
                 "title": "Trigun Stampede T2 Cap 6"
+            },
+            "7": {
+                "link": "https://drive.google.com/file/d/1gHEJ6xWoqo7io-yvk2vl92jsColoaxuI/preview",
+                "link2": "",
+                "title": "Trigun Stampede T2 Cap 7"
             }
         }
     },
@@ -14443,6 +14483,159 @@ const players = {
                 "link": "https://drive.google.com/file/d/1BbLInPlZt-KDFaTUtcJndN4b-eJxoIPj/preview",
                 "link2": "",
                 "title": "Tower of God T2 Cap 26"
+            }
+        }
+    },
+    "94": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9311:d",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94-1-2:e",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9413:d",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9414:5",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9415:2",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9416:7",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9417:fb",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9418:2eb",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9419:1",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94110:7",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94111:8",
+                "link2": "",
+                "title": "Oshi no Ko T1 Cap 11"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9421:7",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9422:0e",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9423:e",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9424:8",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9425:a",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9426:4",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9427:1",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9428:7",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9429:2",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94210:5",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94211:0",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94212:1",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/@yudi:1/94213:f",
+                "link2": "",
+                "title": "Oshi no Ko T2 Cap 13"
+            }
+        },
+        "3": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9431:4",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9432:a",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9433:4",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9434:5",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@yudi:1/9435:5",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 5"
             }
         }
     }
