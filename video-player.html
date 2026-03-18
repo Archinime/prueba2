@@ -496,18 +496,6 @@
         return isIpad || isAndroidTablet || isGenericTablet;
     }
 
-    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO ---
-    function forceDownload(url) {
-        let iframe = document.getElementById('hiddenDownloader');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.id = 'hiddenDownloader';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-        }
-        iframe.src = url;
-    }
-
     // --- LÓGICA DE DESCARGA ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
@@ -535,7 +523,7 @@
             if (claimStr) {
                 // CORRECCIÓN: Manejar URLs complejas (ej. @canal:1/video:2)
                 if (claimStr.includes('/')) {
-                    claimStr = claimStr.split('/').pop(); // Extrae solo la parte final "video:2"
+                    claimStr = claimStr.split('/').pop(); // Extrae solo la parte final
                 }
                 claimStr = claimStr.replace(':', '/');
                 return `https://odysee.com/$/download/${claimStr}`;
@@ -552,25 +540,20 @@
         
         const directLink = generateDirectDownloadLink(url);
         newBtn.href = directLink || '#';
+        
         if(directLink && directLink !== '#') {
-            // Lógica para OK.ru (AnyDownloader)
-            if (directLink.includes("anydownloader.com")) {
-                newBtn.setAttribute("target", "_blank");
-            } else {
-                newBtn.removeAttribute("target");
-                // Lógica de tablet y descarga forzada SOLO para Odysee
-                if (url.includes("odysee.com")) {
-                    newBtn.onclick = function(e) {
+            // SOLUCIÓN MÓVILES: Forzar abrir en una nueva pestaña aislada
+            // Evita que la carga del video iframe principal interrumpa o cancele la descarga
+            newBtn.setAttribute("target", "_blank"); 
+
+            if (url.includes("odysee.com")) {
+                newBtn.onclick = function(e) {
+                    if (isTabletDevice()) {
                         e.preventDefault();
-                        if (isTabletDevice()) {
-                            prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
-                        } else {
-                            forceDownload(directLink);
-                        }
-                    };
-                }
-                // Para Google Drive y Dropbox, al no haber onclick, el navegador maneja
-                // el 'href' de forma nativa, evitando los bloqueos de seguridad del iframe.
+                        prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
+                    }
+                    // Si es un móvil o PC, no intervenimos. El 'href' y 'target="_blank"' harán su trabajo limpio.
+                };
             }
         }
     }
@@ -592,13 +575,13 @@
     }
 
     function loadVideo(url) {
-        // Ahora solo limpiamos el contenedor de video, no toda la caja protectora
         const container = document.getElementById('mediaContainer');
         container.innerHTML = ''; 
         if (!url) return;
 
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
+        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
