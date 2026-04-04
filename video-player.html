@@ -65,6 +65,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
     /* --- VARIABLES --- */
@@ -303,7 +304,7 @@
         align-items: center;
         gap: 15px; 
         margin-top: 10px;
-        padding-bottom: 40px;
+        padding-bottom: 20px;
         width: 100%;
     }
     
@@ -361,6 +362,275 @@
         pointer-events: none;
     }
 
+    /* ============================================
+       ESTILOS PARA COMENTARIOS
+       ============================================ */
+    .comentarios-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 255, 247, 0.2);
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 16px;
+        padding: 20px;
+    }
+
+    .comentarios-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .comentarios-header i {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+    }
+
+    .comentarios-header h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+
+    .comentarios-header h3 span {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        margin-left: 8px;
+    }
+
+    /* Formulario de comentario */
+    .comentario-form-container {
+        background: rgba(20, 20, 30, 0.6);
+        border-radius: 16px;
+        padding: 15px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comentario-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .comentario-user-info img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-color);
+    }
+
+    .comentario-user-info span {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .comentario-form-container textarea {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 12px;
+        padding: 12px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        resize: vertical;
+        min-height: 80px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .comentario-form-container textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.2);
+    }
+
+    .comentario-form-container textarea:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .comentario-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .enviar-comentario-btn {
+        background: linear-gradient(135deg, var(--primary-color), #0099ff);
+        border: none;
+        color: #000;
+        font-weight: 700;
+        padding: 10px 24px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .enviar-comentario-btn:hover:not(:disabled) {
+        transform: scale(1.02);
+        box-shadow: 0 0 15px var(--primary-color);
+    }
+
+    .enviar-comentario-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Mensaje de login requerido */
+    .comentario-login-message {
+        background: rgba(0, 255, 247, 0.1);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .comentario-login-message i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .comentario-login-message p {
+        margin-bottom: 15px;
+        color: #ccc;
+    }
+
+    .login-link-btn {
+        background: var(--primary-color);
+        color: #000;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .login-link-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 15px var(--primary-color);
+    }
+
+    /* Lista de comentarios */
+    .comentarios-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .comentarios-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .comentarios-list::-webkit-scrollbar-track {
+        background: #1a1a2e;
+        border-radius: 4px;
+    }
+
+    .comentarios-list::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .comentario-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .comentario-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(0, 255, 247, 0.1);
+    }
+
+    .comentario-avatar img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--primary-color);
+    }
+
+    .comentario-content {
+        flex: 1;
+    }
+
+    .comentario-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .comentario-user {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    .comentario-fecha {
+        font-size: 0.7rem;
+        color: #888;
+    }
+
+    .comentario-delete {
+        background: none;
+        border: none;
+        color: #ff5555;
+        cursor: pointer;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        margin-left: auto;
+    }
+
+    .comentario-delete:hover {
+        background: rgba(255, 85, 85, 0.2);
+        transform: scale(1.05);
+    }
+
+    .comentario-texto {
+        color: #ddd;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    .empty-comments {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+    }
+
+    .empty-comments i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-comments.error i {
+        color: #ff5555;
+    }
+
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
@@ -388,6 +658,29 @@
             height: 20%;
             min-height: 60px;
             padding-top: 4%;
+        }
+
+        .comentarios-section {
+            padding: 15px;
+        }
+
+        .comentario-item {
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .comentario-avatar img {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .comentario-header {
+            flex-wrap: wrap;
+        }
+        .comentario-delete {
+            margin-left: 0;
         }
     }
   </style>
@@ -431,7 +724,48 @@
         </a>
         
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
-     </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECCIÓN DE COMENTARIOS                        -->
+    <!-- ============================================ -->
+    <div class="comentarios-section">
+        <div class="comentarios-header">
+            <i class="fas fa-comments"></i>
+            <h3>COMENTARIOS <span>Comparte tu opinión</span></h3>
+        </div>
+
+        <!-- Mensaje para usuarios no logueados -->
+        <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
+            <i class="fas fa-lock"></i>
+            <p>Inicia sesión para dejar tu comentario y participar en la comunidad</p>
+            <button class="login-link-btn" onclick="openLoginModalFromComent()">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </button>
+        </div>
+
+        <!-- Formulario de comentario (solo visible para usuarios logueados) -->
+        <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
+            <div class="comentario-user-info">
+                <img id="comentarioUserAvatar" src="invitado.avif" alt="Avatar">
+                <span id="comentarioUserName">Usuario</span>
+            </div>
+            <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (máximo 500 caracteres)" maxlength="500"></textarea>
+            <div class="comentario-actions">
+                <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentario()">
+                    <i class="fas fa-paper-plane"></i> Enviar comentario
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de comentarios -->
+        <div id="comentariosList" class="comentarios-list">
+            <div class="empty-comments">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando comentarios...</p>
+            </div>
+        </div>
+    </div>
 
   </div>
 
@@ -461,8 +795,13 @@
   </script>
 
   <script>
+    var version = new Date().getTime();
+    document.write('<script src="comentarios.js?v=' + version + '"><\/script>');
+  </script>
+
+  <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE (CORREGIDA)
+    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -472,6 +811,11 @@
     const season = params.get('s');
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
+
+    // Variables globales para el sistema de comentarios
+    window.comentariosAnimeId = animeId;
+    window.comentariosSeason = season;
+    window.comentariosEpisode = episode;
 
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
@@ -735,6 +1079,12 @@
             currentUserId = user ? user.uid : null;
             authReady = true;
             console.log('Player - Usuario autenticado:', currentUserId);
+            
+            // Inicializar sistema de comentarios
+            if (typeof initComentariosSystem === 'function') {
+                initComentariosSystem(db, auth);
+            }
+            
             // Pequeña espera para asegurar que todo esté listo
             setTimeout(async () => {
                 await markEpisodeWatched(animeId, parseInt(season), parseInt(episode));
