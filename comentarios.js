@@ -5,6 +5,7 @@
 let comentariosAuthReady = false;
 let comentariosCurrentUser = null;
 let comentariosDb = null;
+let comentariosUnsubscribe = null; // Para escuchar cambios en tiempo real
 
 // Inicializar sistema de comentarios
 function initComentariosSystem(db, auth) {
@@ -17,9 +18,97 @@ function initComentariosSystem(db, auth) {
         // Actualizar UI de comentarios
         updateComentariosUI();
         
-        // Cargar comentarios si ya tenemos el anime/season/episode
+        // Cargar comentarios con escucha en tiempo real
         if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-            await loadComentarios(window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
+            setupComentariosRealtimeListener(window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
+        }
+    });
+}
+
+// Configurar escucha en tiempo real (cuando alguien comenta, aparece automáticamente)
+function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
+    // Cancelar listener anterior si existe
+    if (comentariosUnsubscribe) {
+        comentariosUnsubscribe();
+        comentariosUnsubscribe = null;
+    }
+    
+    if (!comentariosDb) return;
+    
+    const commentsRef = comentariosDb.collection('comments')
+        .where('animeId', '==', animeId)
+        .where('season', '==', parseInt(seasonNum))
+        .where('episode', '==', parseInt(episodeNum))
+        .orderBy('timestamp', 'desc');
+    
+    // Escuchar cambios en tiempo real
+    comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
+        const commentsList = document.getElementById('comentariosList');
+        
+        if (snapshot.empty) {
+            commentsList.innerHTML = `
+                <div class="empty-comments">
+                    <i class="fas fa-comment-dots"></i>
+                    <p>Sin comentarios aún. ¡Sé el primero en comentar!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        snapshot.forEach(doc => {
+            const c = doc.data();
+            let fecha = 'Fecha desconocida';
+            
+            // Manejar timestamp correctamente
+            if (c.timestamp) {
+                if (c.timestamp.toDate) {
+                    // Es un Timestamp de Firestore
+                    const date = c.timestamp.toDate();
+                    fecha = date.toLocaleString();
+                } else if (c.timestamp.seconds) {
+                    // Es un objeto con segundos
+                    const date = new Date(c.timestamp.seconds * 1000);
+                    fecha = date.toLocaleString();
+                } else if (typeof c.timestamp === 'string') {
+                    fecha = c.timestamp;
+                }
+            }
+            
+            const isOwner = comentariosCurrentUser && comentariosCurrentUser.uid === c.userId;
+            const userAvatar = c.userAvatar || 'invitado.avif';
+            const userName = c.userName || 'Usuario';
+            const texto = escapeHtmlComent(c.texto || '');
+            
+            html += `
+                <div class="comentario-item" data-comment-id="${doc.id}">
+                    <div class="comentario-avatar">
+                        <img src="${userAvatar}" alt="${userName}" onerror="this.src='invitado.avif'">
+                    </div>
+                    <div class="comentario-content">
+                        <div class="comentario-header">
+                            <span class="comentario-user">${escapeHtmlComent(userName)}</span>
+                            <span class="comentario-fecha">${fecha}</span>
+                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar comentario"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                        <div class="comentario-texto">${texto.replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        commentsList.innerHTML = html;
+        
+    }, (error) => {
+        console.error('Error en listener de comentarios:', error);
+        const commentsList = document.getElementById('comentariosList');
+        if (commentsList) {
+            commentsList.innerHTML = `
+                <div class="empty-comments error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar comentarios. ${error.message}</p>
+                </div>
+            `;
         }
     });
 }
@@ -54,67 +143,6 @@ function updateComentariosUI() {
     }
 }
 
-// Cargar comentarios desde Firestore
-async function loadComentarios(animeId, seasonNum, episodeNum) {
-    if (!comentariosDb) return;
-    
-    const commentsRef = comentariosDb.collection('comments')
-        .where('animeId', '==', animeId)
-        .where('season', '==', parseInt(seasonNum))
-        .where('episode', '==', parseInt(episodeNum))
-        .orderBy('timestamp', 'desc');
-    
-    try {
-        const snapshot = await commentsRef.get();
-        const commentsList = document.getElementById('comentariosList');
-        
-        if (snapshot.empty) {
-            commentsList.innerHTML = `
-                <div class="empty-comments">
-                    <i class="fas fa-comment-dots"></i>
-                    <p>Sin comentarios aún. ¡Sé el primero en comentar!</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '';
-        snapshot.forEach(doc => {
-            const c = doc.data();
-            const fecha = c.timestamp ? new Date(c.timestamp.toDate()).toLocaleString() : 'Fecha desconocida';
-            const isOwner = comentariosCurrentUser && comentariosCurrentUser.uid === c.userId;
-            
-            html += `
-                <div class="comentario-item" data-comment-id="${doc.id}">
-                    <div class="comentario-avatar">
-                        <img src="${c.userAvatar || 'invitado.avif'}" alt="${escapeHtmlComent(c.userName)}">
-                    </div>
-                    <div class="comentario-content">
-                        <div class="comentario-header">
-                            <span class="comentario-user">${escapeHtmlComent(c.userName)}</span>
-                            <span class="comentario-fecha">${fecha}</span>
-                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar comentario"><i class="fas fa-trash-alt"></i></button>` : ''}
-                        </div>
-                        <div class="comentario-texto">${escapeHtmlComent(c.texto).replace(/\n/g, '<br>')}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        commentsList.innerHTML = html;
-        
-    } catch (error) {
-        console.error('Error cargando comentarios:', error);
-        const commentsList = document.getElementById('comentariosList');
-        commentsList.innerHTML = `
-            <div class="empty-comments error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Error al cargar comentarios. Intenta de nuevo.</p>
-            </div>
-        `;
-    }
-}
-
 // Enviar comentario
 async function enviarComentario() {
     if (!comentariosCurrentUser) {
@@ -134,6 +162,7 @@ async function enviarComentario() {
     }
     
     const submitBtn = document.getElementById('enviarComentarioBtn');
+    const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     
@@ -154,9 +183,6 @@ async function enviarComentario() {
         // Limpiar textarea
         document.getElementById('comentarioTexto').value = '';
         
-        // Recargar comentarios
-        await loadComentarios(window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
-        
         // Mostrar notificación
         showToastComent('Comentario enviado con éxito');
         
@@ -165,7 +191,7 @@ async function enviarComentario() {
         alert('Error al enviar comentario: ' + error.message);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar comentario';
+        submitBtn.innerHTML = originalText;
     }
 }
 
@@ -191,14 +217,11 @@ async function deleteComentario(commentId) {
         }
         
         await docRef.delete();
-        
-        // Recargar comentarios
-        await loadComentarios(window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
         showToastComent('Comentario eliminado');
         
     } catch (error) {
         console.error('Error eliminando comentario:', error);
-        alert('Error al eliminar comentario');
+        alert('Error al eliminar comentario: ' + error.message);
     }
 }
 
@@ -237,7 +260,6 @@ function showToastComent(msg) {
 
 // Función para abrir modal de login desde comentarios
 function openLoginModalFromComent() {
-    // Buscar y mostrar el modal de autenticación
     const authModal = document.getElementById('authModal');
     if (authModal) {
         authModal.classList.add('show');
