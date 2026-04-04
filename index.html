@@ -335,7 +335,7 @@
     border: 2px solid var(--neon-cyan);
     cursor: pointer;
     transition: 0.2s;
-    margin-top: 2px; /* Ajuste de alineación */
+    margin-top: 2px;
   }
   #userAvatarBtn:hover {
     transform: scale(1.05);
@@ -843,15 +843,22 @@
 </style>
 </head>
 <body>
-  <!-- LIMPIADOR TOTAL DE CACHÉ Y SERVICE WORKER -->
+  <!-- LIMPIADOR DE CACHÉ Y SERVICE WORKER ANTIGUO -->
   <script>
     (function() {
-      // Eliminar todos los Service Workers
+      // Si la URL no tiene parámetro 'cb', lo añadimos para forzar recarga del HTML
+      if (!window.location.search.includes('cb=')) {
+        const url = window.location.href.split('?')[0] + '?cb=' + Date.now();
+        window.location.replace(url);
+        return;
+      }
+      
+      // Eliminar todos los Service Workers antiguos
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (let reg of registrations) {
             reg.unregister();
-            console.log('SW eliminado');
+            console.log('Service Worker antiguo desregistrado');
           }
         });
       }
@@ -863,11 +870,6 @@
             console.log('Caché eliminada:', name);
           }
         });
-      }
-      // Forzar recarga con parámetro único si no existe
-      if (!window.location.search.includes('cb=')) {
-        const url = window.location.href.split('?')[0] + '?cb=' + Date.now();
-        window.location.replace(url);
       }
     })();
   </script>
@@ -1113,7 +1115,6 @@
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
     firebase.initializeApp(firebaseConfig);
-    // Forzar persistencia LOCAL para que la sesión no se pierda al abrir otra pestaña
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const auth = firebase.auth();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
@@ -1199,7 +1200,7 @@
 
     function logoutUser() {
       auth.signOut().then(() => {
-        location.reload(); // Recargar la página para un cierre profesional
+        location.reload();
       });
     }
 
@@ -1217,7 +1218,6 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
-        // Si es admin, mostrar botón admin
         if (user.email === 'archinime12@gmail.com') {
           document.getElementById('adminBtn').style.display = 'flex';
         } else {
@@ -1233,7 +1233,6 @@
       }
     }
 
-    // Menú desplegable de usuario
     const userAvatarBtn = document.getElementById('userAvatarBtn');
     const userDropdown = document.getElementById('userDropdown');
     userAvatarBtn.addEventListener('click', (e) => {
@@ -1250,12 +1249,10 @@
       updateUserUI(user);
     });
 
-    // --- BOTÓN ADMIN ---
     document.getElementById('adminBtn').addEventListener('click', () => {
       window.open('Archinime%20CMS%20-%20Creador.html', '_blank');
     });
 
-    // --- FUNCIONES GLOBALES PARA NOTIFICACIONES ---
     window.toggleNotifMenu = function() {
       const menu = document.getElementById('notifMenu');
       menu.classList.toggle('active');
@@ -1271,18 +1268,17 @@
       setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // --- SERVICE WORKER (actualizado para forzar nueva versión) ---
+    // SERVICE WORKER con timestamp para forzar nueva versión
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(registration => {
           console.log('SW registrado con versión', registration);
-          // Forzar actualización del SW
           registration.update();
         }).catch(e => console.log('SW Error:', e));
       });
     }
 
-    // --- LOADER ---
+    // LOADER
     window.addEventListener('load', () => {
       const loader = document.getElementById('page-loader');
       const bgVideo = document.getElementById('bg-video');
@@ -1305,7 +1301,7 @@
       }, delay);
     });
 
-    // --- TILT EN CARDS ---
+    // TILT EN CARDS
     const gridObserver = new MutationObserver(() => {
       document.querySelectorAll('.card').forEach(card => {
         if (card.dataset.tiltInit) return;
@@ -1326,6 +1322,5 @@
     const gridEl = document.getElementById('grid');
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
-
 </body>
 </html>

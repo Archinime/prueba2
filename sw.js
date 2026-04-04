@@ -1,4 +1,5 @@
-// Nombre de caché dinámico basado en timestamp (se genera cada vez que se actualiza el SW)
+// Service Worker con nombre de caché único (basado en timestamp)
+// Cada vez que se modifica este archivo, la caché anterior se invalida automáticamente.
 const CACHE_NAME = 'archinime-os-v' + Date.now();
 
 const urlsToCache = [
@@ -10,7 +11,7 @@ const urlsToCache = [
 
 // Instalación: cachea lo básico
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Fuerza a activarse inmediatamente
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
@@ -38,7 +39,6 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {
-        // Si la red responde, actualiza la caché y devuelve la respuesta
         const responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, responseClone);
@@ -46,7 +46,6 @@ self.addEventListener('fetch', event => {
         return networkResponse;
       })
       .catch(() => {
-        // Si falla la red, devuelve desde caché
         return caches.match(event.request);
       })
   );
