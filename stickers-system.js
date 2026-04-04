@@ -1,6 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS CON CATBOX (GRATIS, SIN REGISTRO)
-// SUBIDA DE IMÁGENES Y GIFS HASTA 200MB
+// SISTEMA DE STICKERS CON IMGBB (GRATIS, CON CORS)
 // ============================================
 
 let stickersDb = null;
@@ -9,7 +8,10 @@ let stickersCurrentUser = null;
 let userStickersCollection = [];
 let globalStickersList = [];
 
-// Stickers por defecto (algunos de ejemplo)
+// 🔑 TU API KEY DE IMGBB (ya incluida)
+const IMGBB_API_KEY = 'c4c143b7bacc58fc3cc5ce5c66282d4e';
+
+// Stickers por defecto
 const DEFAULT_STICKERS = [
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/1.webp",
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/2.webp",
@@ -20,7 +22,7 @@ const DEFAULT_STICKERS = [
 ];
 
 function initStickersSystem(db, auth) {
-    console.log("📦 Inicializando sistema de stickers con Catbox...");
+    console.log("📦 Inicializando sistema de stickers con ImgBB...");
     stickersDb = db;
     stickersAuth = auth;
     
@@ -94,39 +96,51 @@ async function loadGlobalStickers() {
 }
 
 // ============================================
-// SUBIR STICKER A CATBOX (GRATIS, SIN REGISTRO)
+// SUBIR STICKER A IMGBB (CON CORS)
 // ============================================
-async function subirStickerACatbox(file) {
-    console.log("Subiendo a Catbox:", file.name, file.type, file.size);
+async function subirStickerAImgBB(file) {
+    console.log("Subiendo a ImgBB:", file.name, file.type, file.size);
     
-    // Validar tipo de archivo (imágenes y GIFs)
+    // Validar tipo
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
     if (!validTypes.includes(file.type)) {
         throw new Error('Formato no soportado. Usa JPG, PNG, GIF, WEBP o AVIF');
     }
     
-    // Límite de Catbox: 200MB, pero ponemos 50MB para no abusar
-    if (file.size > 50 * 1024 * 1024) {
-        throw new Error('El archivo debe ser menor a 50MB (Catbox permite hasta 200MB, pero por seguridad)');
+    // ImgBB permite hasta 32MB
+    if (file.size > 32 * 1024 * 1024) {
+        throw new Error('El archivo debe ser menor a 32MB');
     }
     
+    // Convertir a base64 (ImgBB acepta base64)
+    const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+    });
+    
     const formData = new FormData();
-    formData.append('fileToUpload', file);
-    formData.append('reqtype', 'fileupload'); // Parámetro necesario para Catbox
-
-    const response = await fetch('https://catbox.moe/user/api.php', {
+    formData.append('key', IMGBB_API_KEY);
+    formData.append('image', base64);
+    formData.append('expiration', '0'); // 0 = nunca expira
+    
+    const response = await fetch('https://api.imgbb.com/1/upload', {
         method: 'POST',
         body: formData
     });
-
+    
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Error al subir a Catbox: ${errorText}`);
+        throw new Error(`Error HTTP ${response.status}: ${errorText}`);
     }
-
-    const url = await response.text(); // Catbox devuelve la URL directamente
-    console.log("Catbox respuesta:", url);
-    return url.trim(); // Asegurar que no haya espacios
+    
+    const data = await response.json();
+    if (!data.success) {
+        throw new Error(data.error?.message || 'Error desconocido');
+    }
+    
+    console.log("ImgBB respuesta:", data);
+    return data.data.url; // URL pública del sticker
 }
 
 async function subirStickerDesdePC(fileInput) {
@@ -167,17 +181,17 @@ async function subirStickerDesdePC(fileInput) {
     const btn = document.querySelector('#subirStickerTab .add-sticker-btn');
     const originalText = btn ? btn.innerHTML : 'Subir';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a ImgBB...';
         btn.disabled = true;
     }
 
     try {
-        const catboxUrl = await subirStickerACatbox(file);
-        userStickersCollection.push(catboxUrl);
+        const imgbbUrl = await subirStickerAImgBB(file);
+        userStickersCollection.push(imgbbUrl);
         await saveUserStickers();
         renderUserStickers();
         await loadGlobalStickers();
-        showToastSticker('✅ Sticker subido a Catbox con éxito!');
+        showToastSticker('✅ Sticker subido a ImgBB con éxito!');
         
         if (previewDiv) {
             setTimeout(() => {
