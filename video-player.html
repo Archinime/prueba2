@@ -730,15 +730,15 @@
         
         setupNavigation();
 
-        // MARCAR EPISODIO COMO VISTO (sincronizado) - Esperar a que auth esté listo
+        // MARCAR EPISODIO COMO VISTO - esperar autenticación
         auth.onAuthStateChanged(async (user) => {
             currentUserId = user ? user.uid : null;
             authReady = true;
             console.log('Player - Usuario autenticado:', currentUserId);
-            // Esperar un poco para asegurar que la página esté lista
+            // Pequeña espera para asegurar que todo esté listo
             setTimeout(async () => {
-                await markEpisodeWatched(animeId, season, episode);
-            }, 500);
+                await markEpisodeWatched(animeId, parseInt(season), parseInt(episode));
+            }, 800);
         });
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
