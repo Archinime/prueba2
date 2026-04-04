@@ -371,10 +371,6 @@
   .user-dropdown-header div {
     font-weight: 600;
   }
-  .user-dropdown-header span {
-    font-size: 0.8rem;
-    color: var(--neon-cyan);
-  }
   .user-dropdown-item {
     padding: 12px 15px;
     cursor: pointer;
@@ -853,10 +849,10 @@
   <audio id="bg-music"></audio> 
 
   <nav class="cyber-nav">
-    <div class="nav-logo" id="logoReloadBtn" title="Recargar catálogo">
+    <a href="https://archinime.github.io/ArchiPapu/index.html" class="nav-logo" title="Ir a Archinime">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
-    </div>
+    </a>
 
     <div class="search-wrapper">
       <input id="search" class="search-input" placeholder="Acceder a base de datos..." aria-label="Buscar anime">
@@ -889,13 +885,12 @@
       </div>
       
       <div class="user-menu">
-        <img id="userAvatarBtn" src="Logo_Archinime.avif" alt="Usuario" style="width:40px; height:40px; border-radius:50%; cursor:pointer;">
+        <img id="userAvatarBtn" src="invitado.avif" alt="Usuario" style="width:40px; height:40px; border-radius:50%; cursor:pointer;">
         <div id="userDropdown" class="user-dropdown">
           <div class="user-dropdown-header">
-            <img id="dropdownAvatar" src="Logo_Archinime.avif">
+            <img id="dropdownAvatar" src="invitado.avif">
             <div>
               <div id="dropdownName">Invitado</div>
-              <span id="dropdownEmail"></span>
             </div>
           </div>
           <div id="userDropdownItems">
@@ -934,9 +929,6 @@
       <div class="auth-providers">
         <div class="provider-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Continuar con Google
-        </div>
-        <div class="provider-btn" onclick="loginWithFacebook()">
-          <i class="fab fa-facebook-f"></i> Continuar con Facebook
         </div>
       </div>
       <div id="authError" class="auth-error"></div>
@@ -1082,7 +1074,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
-    const providerFacebook = new firebase.auth.FacebookAuthProvider();
   </script>
 
   <script src="index-data.js"></script>
@@ -1159,19 +1150,10 @@
       }
     }
 
-    async function loginWithFacebook() {
-      try {
-        await auth.signInWithPopup(providerFacebook);
-        closeAuthModal();
-        updateUserUI(auth.currentUser);
-      } catch (err) {
-        document.getElementById('authError').innerText = err.message;
-      }
-    }
-
     function logoutUser() {
-      auth.signOut();
-      updateUserUI(null);
+      auth.signOut().then(() => {
+        location.reload(); // Recargar la página para un cierre profesional
+      });
     }
 
     function updateUserUI(user) {
@@ -1179,16 +1161,13 @@
       const avatarBtn = document.getElementById('userAvatarBtn');
       const dropdownAvatar = document.getElementById('dropdownAvatar');
       const dropdownName = document.getElementById('dropdownName');
-      const dropdownEmail = document.getElementById('dropdownEmail');
       const loginItem = document.getElementById('loginBtnItem');
-      const userDropdownItems = document.getElementById('userDropdownItems');
 
       if (user) {
-        const photoURL = user.photoURL || 'Logo_Archinime.avif';
+        const photoURL = user.photoURL || 'invitado.avif';
         avatarBtn.src = photoURL;
         dropdownAvatar.src = photoURL;
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
-        dropdownEmail.innerText = user.email;
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
         // Si es admin, mostrar botón admin
@@ -1198,17 +1177,16 @@
           document.getElementById('adminBtn').style.display = 'none';
         }
       } else {
-        avatarBtn.src = 'Logo_Archinime.avif';
-        dropdownAvatar.src = 'Logo_Archinime.avif';
+        avatarBtn.src = 'invitado.avif';
+        dropdownAvatar.src = 'invitado.avif';
         dropdownName.innerText = 'Invitado';
-        dropdownEmail.innerText = '';
         loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
         loginItem.onclick = () => showAuthModal();
         document.getElementById('adminBtn').style.display = 'none';
       }
     }
 
-    // Menu desplegable de usuario
+    // Menú desplegable de usuario
     const userAvatarBtn = document.getElementById('userAvatarBtn');
     const userDropdown = document.getElementById('userDropdown');
     userAvatarBtn.addEventListener('click', (e) => {
@@ -1224,45 +1202,6 @@
     auth.onAuthStateChanged(user => {
       updateUserUI(user);
     });
-
-    // --- RECARGAR ANIMES AL HACER CLIC EN EL LOGO ---
-    async function reloadAnimes() {
-      const timestamp = Date.now();
-      const url = `index-data.js?t=${timestamp}`;
-      try {
-        const response = await fetch(url);
-        const text = await response.text();
-        // Evaluar el contenido (cuidado con seguridad, pero es tu propio archivo)
-        const newAnimes = eval(text.replace('const animes =', '').replace(/;$/, ''));
-        if (Array.isArray(newAnimes)) {
-          window.animes = newAnimes;
-          filtro(); // Re-renderiza la grid
-          showToast('Catálogo actualizado', false);
-        } else {
-          throw new Error('Datos inválidos');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('Error al actualizar catálogo', true);
-      }
-    }
-
-    document.getElementById('logoReloadBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      reloadAnimes();
-    });
-
-    // --- AJUSTE DEL BOTÓN DE INSTALACIÓN (solo web, no app) ---
-    function checkInstallVisibility() {
-      const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      if (!isInStandalone && isMobile()) {
-        installBtn.style.display = 'flex';
-      } else {
-        installBtn.style.display = 'none';
-      }
-    }
-    window.addEventListener('load', checkInstallVisibility);
-    window.addEventListener('resize', checkInstallVisibility);
 
     // --- BOTÓN ADMIN ---
     document.getElementById('adminBtn').addEventListener('click', () => {
