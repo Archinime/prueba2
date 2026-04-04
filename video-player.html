@@ -65,6 +65,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
     /* --- VARIABLES --- */
@@ -303,7 +304,7 @@
         align-items: center;
         gap: 15px; 
         margin-top: 10px;
-        padding-bottom: 40px;
+        padding-bottom: 20px;
         width: 100%;
     }
     
@@ -361,6 +362,247 @@
         pointer-events: none;
     }
 
+    /* --- COMENTARIOS --- */
+    .comments-section {
+        margin-top: 30px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(0, 255, 247, 0.2);
+    }
+    .comments-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary-color);
+    }
+    .comment-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 25px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 15px;
+        border-radius: 12px;
+    }
+    .comment-input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--primary-color);
+    }
+    .comment-input {
+        flex: 1;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 10px 15px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        resize: vertical;
+        font-size: 0.9rem;
+    }
+    .comment-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    .comment-toolbar {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .tool-btn {
+        background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 30px;
+        padding: 6px 12px;
+        color: #ccc;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .tool-btn:hover {
+        background: rgba(0, 255, 247, 0.2);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    .comment-submit {
+        background: var(--primary-color);
+        color: #000;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .comment-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 10px var(--primary-color);
+    }
+    /* Emoji picker */
+    .emoji-picker {
+        position: absolute;
+        background: #1a1a2e;
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 10px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        z-index: 200;
+        max-width: 250px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .emoji-picker span {
+        font-size: 1.5rem;
+        cursor: pointer;
+        text-align: center;
+        transition: 0.1s;
+    }
+    .emoji-picker span:hover {
+        transform: scale(1.2);
+    }
+    /* GIF Modal */
+    .gif-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .gif-modal-content {
+        background: #0f0f1a;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 20px;
+        border: 1px solid var(--primary-color);
+    }
+    .gif-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .gif-item {
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: 0.2s;
+    }
+    .gif-item img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+    .gif-item:hover {
+        transform: scale(1.05);
+        border: 2px solid var(--primary-color);
+    }
+    .close-gif {
+        float: right;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #aaa;
+    }
+    /* Lista de comentarios */
+    .comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    .comment-item {
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 12px;
+        transition: 0.2s;
+    }
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .comment-avatar-small {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .comment-user {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    .comment-date {
+        font-size: 0.7rem;
+        color: #aaa;
+        margin-left: auto;
+    }
+    .comment-text {
+        margin-left: 48px;
+        word-break: break-word;
+        white-space: pre-wrap;
+        font-size: 0.9rem;
+    }
+    .comment-gif {
+        margin-left: 48px;
+        margin-top: 8px;
+        max-width: 200px;
+        border-radius: 8px;
+    }
+    .comment-delete {
+        float: right;
+        background: none;
+        border: none;
+        color: #ff0055;
+        cursor: pointer;
+        font-size: 0.8rem;
+        opacity: 0.6;
+        transition: 0.2s;
+    }
+    .comment-delete:hover {
+        opacity: 1;
+    }
+    .no-comments {
+        text-align: center;
+        color: #aaa;
+        padding: 20px;
+        font-style: italic;
+    }
+    .load-more-btn {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 8px;
+        border-radius: 30px;
+        margin-top: 15px;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+    }
+
     /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
@@ -388,6 +630,18 @@
             height: 20%;
             min-height: 60px;
             padding-top: 4%;
+        }
+        .comment-input-wrapper {
+            flex-direction: column;
+        }
+        .comment-avatar {
+            display: none;
+        }
+        .comment-text {
+            margin-left: 0;
+        }
+        .comment-gif {
+            margin-left: 0;
         }
     }
   </style>
@@ -425,14 +679,46 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#">
-            ⬇ Descargar
-        </a>
-        
+        <a id="downloadBtn" class="btn" href="#">⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
-     </div>
+    </div>
 
+    <!-- SECCIÓN DE COMENTARIOS -->
+    <div class="comments-section" id="commentsSection" style="display: none;">
+        <div class="comments-title">
+            <i class="fas fa-comments"></i> Comentarios
+        </div>
+        
+        <!-- Formulario de comentario -->
+        <div class="comment-form" id="commentForm">
+            <div class="comment-input-wrapper">
+                <img id="commentUserAvatar" class="comment-avatar" src="invitado.avif" alt="Avatar">
+                <textarea id="commentText" class="comment-input" rows="2" placeholder="Escribe tu comentario..."></textarea>
+            </div>
+            <div class="comment-toolbar">
+                <button id="emojiBtn" class="tool-btn"><i class="far fa-smile-wink"></i> Emoji</button>
+                <button id="gifBtn" class="tool-btn"><i class="fas fa-images"></i> GIF</button>
+                <button id="submitCommentBtn" class="comment-submit">Enviar</button>
+            </div>
+            <div id="emojiPickerContainer" style="position: relative; display: none;"></div>
+        </div>
+
+        <!-- Lista de comentarios -->
+        <div id="commentsList" class="comments-list">
+            <div class="no-comments">Cargando comentarios...</div>
+        </div>
+        <button id="loadMoreCommentsBtn" class="load-more-btn" style="display: none;">Cargar más</button>
+    </div>
+
+  </div>
+
+  <!-- Modal de GIFs -->
+  <div id="gifModal" class="gif-modal">
+    <div class="gif-modal-content">
+        <span class="close-gif">&times;</span>
+        <h3>Selecciona un GIF</h3>
+        <div class="gif-grid" id="gifGrid"></div>
+    </div>
   </div>
 
   <!-- Firebase y Firestore -->
@@ -462,7 +748,7 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE (CORREGIDA)
+    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -658,6 +944,7 @@
 
     // --- FUNCIONES DE HISTORIAL (Firestore + localStorage) ---
     let currentUserId = null;
+    let currentUser = null;
     let authReady = false;
 
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
@@ -714,6 +1001,253 @@
         setTimeout(() => toast.style.display = 'none', 3000);
     }
 
+    // -----------------------------------------------------------
+    // SISTEMA DE COMENTARIOS
+    // -----------------------------------------------------------
+    let commentsRef = null;
+    let lastCommentDoc = null;
+    let loadingComments = false;
+    let hasMoreComments = true;
+
+    // Lista de emojis predefinidos
+    const emojis = ['😀', '😂', '😍', '😎', '😢', '😡', '👍', '❤️', '🔥', '🎉', '✨', '💀', '👀', '😱', '🤔', '🍿', '🎬', '🙌', '💯', '👏'];
+
+    // Lista de GIFs predefinidos (URLs públicas)
+    const gifs = [
+        'https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif',
+        'https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif',
+        'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif',
+        'https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif',
+        'https://media.giphy.com/media/l0MYt5jH6gkTWwQwU/giphy.gif',
+        'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif',
+        'https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif',
+        'https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif',
+        'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif',
+        'https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif',
+        'https://media.giphy.com/media/l0MYt5jH6gkTWwQwU/giphy.gif',
+        'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif'
+    ];
+
+    function initComments() {
+        if (!animeId || !season || !episode) return;
+        commentsRef = db.collection('comments')
+            .where('animeId', '==', animeId)
+            .where('season', '==', parseInt(season))
+            .where('episode', '==', parseInt(episode))
+            .orderBy('timestamp', 'desc')
+            .limit(15);
+        
+        document.getElementById('commentsSection').style.display = 'block';
+        loadComments();
+    }
+
+    async function loadComments(reset = true) {
+        if (loadingComments) return;
+        loadingComments = true;
+        if (reset) {
+            lastCommentDoc = null;
+            hasMoreComments = true;
+            document.getElementById('commentsList').innerHTML = '<div class="no-comments">Cargando comentarios...</div>';
+        }
+        
+        try {
+            let query = commentsRef;
+            if (!reset && lastCommentDoc) {
+                query = commentsRef.startAfter(lastCommentDoc);
+            }
+            const snapshot = await query.get();
+            if (snapshot.empty && reset) {
+                document.getElementById('commentsList').innerHTML = '<div class="no-comments">No hay comentarios aún. ¡Sé el primero!</div>';
+                hasMoreComments = false;
+            } else {
+                const comments = [];
+                snapshot.forEach(doc => {
+                    comments.push({ id: doc.id, ...doc.data() });
+                    lastCommentDoc = doc;
+                });
+                if (snapshot.size < 15) hasMoreComments = false;
+                
+                if (reset) {
+                    renderComments(comments);
+                } else {
+                    appendComments(comments);
+                }
+            }
+            document.getElementById('loadMoreCommentsBtn').style.display = hasMoreComments ? 'block' : 'none';
+        } catch (err) {
+            console.error('Error loading comments:', err);
+            if (reset) document.getElementById('commentsList').innerHTML = '<div class="no-comments">Error al cargar comentarios</div>';
+        } finally {
+            loadingComments = false;
+        }
+    }
+
+    function renderComments(comments) {
+        const container = document.getElementById('commentsList');
+        if (comments.length === 0) {
+            container.innerHTML = '<div class="no-comments">No hay comentarios aún. ¡Sé el primero!</div>';
+            return;
+        }
+        container.innerHTML = comments.map(comment => renderCommentItem(comment)).join('');
+        attachDeleteListeners();
+    }
+
+    function appendComments(comments) {
+        const container = document.getElementById('commentsList');
+        if (comments.length === 0) return;
+        const existing = container.innerHTML;
+        const newHtml = comments.map(comment => renderCommentItem(comment)).join('');
+        container.innerHTML = existing + newHtml;
+        attachDeleteListeners();
+    }
+
+    function renderCommentItem(comment) {
+        const date = comment.timestamp ? new Date(comment.timestamp.toDate()) : new Date();
+        const timeAgo = getTimeAgo(date);
+        const isAdmin = currentUser && currentUser.email === 'archinime12@gmail.com';
+        const canDelete = (currentUserId && comment.userId === currentUserId) || isAdmin;
+        const deleteBtn = canDelete ? `<button class="comment-delete" data-id="${comment.id}"><i class="fas fa-trash-alt"></i></button>` : '';
+        const gifHtml = comment.gifUrl ? `<img class="comment-gif" src="${comment.gifUrl}" alt="gif">` : '';
+        return `
+            <div class="comment-item" data-id="${comment.id}">
+                <div class="comment-header">
+                    <img class="comment-avatar-small" src="${comment.userAvatar || 'invitado.avif'}" alt="avatar">
+                    <span class="comment-user">${escapeHtml(comment.userName)}</span>
+                    <span class="comment-date">${timeAgo}</span>
+                    ${deleteBtn}
+                </div>
+                <div class="comment-text">${escapeHtml(comment.text).replace(/\n/g, '<br>')}</div>
+                ${gifHtml}
+            </div>
+        `;
+    }
+
+    function attachDeleteListeners() {
+        document.querySelectorAll('.comment-delete').forEach(btn => {
+            btn.removeEventListener('click', handleDelete);
+            btn.addEventListener('click', handleDelete);
+        });
+    }
+
+    async function handleDelete(e) {
+        const commentId = e.currentTarget.getAttribute('data-id');
+        if (!confirm('¿Eliminar este comentario?')) return;
+        try {
+            await db.collection('comments').doc(commentId).delete();
+            showToast('Comentario eliminado');
+            // Recargar comentarios desde cero
+            lastCommentDoc = null;
+            loadComments(true);
+        } catch (err) {
+            console.error(err);
+            showToast('Error al eliminar', true);
+        }
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 60) return 'ahora';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d`;
+        return date.toLocaleDateString();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function submitComment(text, gifUrl = null) {
+        if (!text.trim() && !gifUrl) {
+            showToast('Escribe algo o añade un GIF', true);
+            return;
+        }
+        if (!currentUserId) {
+            showToast('Inicia sesión para comentar', true);
+            return;
+        }
+        try {
+            await db.collection('comments').add({
+                animeId: animeId,
+                season: parseInt(season),
+                episode: parseInt(episode),
+                userId: currentUserId,
+                userName: currentUser.displayName || currentUser.email.split('@')[0] || 'Usuario',
+                userAvatar: currentUser.photoURL || 'invitado.avif',
+                text: text.trim() || '',
+                gifUrl: gifUrl,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast('Comentario publicado');
+            document.getElementById('commentText').value = '';
+            // Recargar comentarios
+            lastCommentDoc = null;
+            loadComments(true);
+        } catch (err) {
+            console.error(err);
+            showToast('Error al publicar comentario', true);
+        }
+    }
+
+    // Emoji picker
+    let emojiPickerVisible = false;
+    function toggleEmojiPicker() {
+        const container = document.getElementById('emojiPickerContainer');
+        if (emojiPickerVisible) {
+            container.style.display = 'none';
+            emojiPickerVisible = false;
+        } else {
+            container.innerHTML = `<div class="emoji-picker">${emojis.map(e => `<span>${e}</span>`).join('')}</div>`;
+            container.style.display = 'block';
+            emojiPickerVisible = true;
+            container.querySelectorAll('.emoji-picker span').forEach(span => {
+                span.addEventListener('click', () => {
+                    const textarea = document.getElementById('commentText');
+                    textarea.value += span.innerText;
+                    textarea.focus();
+                    container.style.display = 'none';
+                    emojiPickerVisible = false;
+                });
+            });
+        }
+    }
+
+    // GIF modal
+    function showGifModal() {
+        const modal = document.getElementById('gifModal');
+        const grid = document.getElementById('gifGrid');
+        grid.innerHTML = gifs.map(url => `<div class="gif-item"><img src="${url}" data-url="${url}"></div>`).join('');
+        modal.style.display = 'flex';
+        grid.querySelectorAll('.gif-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const gifUrl = item.querySelector('img').getAttribute('data-url');
+                submitComment(document.getElementById('commentText').value, gifUrl);
+                modal.style.display = 'none';
+            });
+        });
+    }
+
+    // Actualizar avatar según usuario
+    function updateCommentAvatar() {
+        const avatarImg = document.getElementById('commentUserAvatar');
+        if (currentUser && currentUser.photoURL) {
+            avatarImg.src = currentUser.photoURL;
+        } else if (currentUser && currentUser.email) {
+            avatarImg.src = `https://ui-avatars.com/api/?background=00fff7&color=000&name=${encodeURIComponent(currentUser.email[0])}`;
+        } else {
+            avatarImg.src = 'invitado.avif';
+        }
+    }
+
     // --- EJECUTAR AL CARGAR LA PÁGINA ---
     if (epData) {
         document.title = `Ver ${epData.title} - Archinime`;
@@ -730,15 +1264,43 @@
         
         setupNavigation();
 
-        // MARCAR EPISODIO COMO VISTO - esperar autenticación
+        // Autenticación y marcado de visto
         auth.onAuthStateChanged(async (user) => {
             currentUserId = user ? user.uid : null;
+            currentUser = user;
             authReady = true;
             console.log('Player - Usuario autenticado:', currentUserId);
-            // Pequeña espera para asegurar que todo esté listo
+            updateCommentAvatar();
+            // Inicializar comentarios después de auth
+            initComments();
+            // Marcar como visto
             setTimeout(async () => {
                 await markEpisodeWatched(animeId, parseInt(season), parseInt(episode));
             }, 800);
+        });
+
+        // Eventos de comentarios
+        document.getElementById('submitCommentBtn').addEventListener('click', () => {
+            const text = document.getElementById('commentText').value;
+            submitComment(text, null);
+        });
+        document.getElementById('emojiBtn').addEventListener('click', toggleEmojiPicker);
+        document.getElementById('gifBtn').addEventListener('click', showGifModal);
+        document.getElementById('loadMoreCommentsBtn').addEventListener('click', () => loadComments(false));
+        // Cerrar modal de GIF
+        document.querySelector('.close-gif').addEventListener('click', () => {
+            document.getElementById('gifModal').style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('gifModal');
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        // Cerrar emoji picker al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('emojiBtn').contains(e.target) && !document.getElementById('emojiPickerContainer').contains(e.target)) {
+                document.getElementById('emojiPickerContainer').style.display = 'none';
+                emojiPickerVisible = false;
+            }
         });
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
