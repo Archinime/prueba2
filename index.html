@@ -84,7 +84,6 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
   /* --- VARIABLES CYBERPUNK --- */
@@ -849,7 +848,7 @@
   <audio id="bg-music"></audio> 
 
   <nav class="cyber-nav">
-    <a href="https://archinime.github.io/ArchiPapu/index.html" class="nav-logo" title="Ir a Archinime">
+    <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
     </a>
@@ -1072,15 +1071,21 @@
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
     firebase.initializeApp(firebaseConfig);
+    // Forzar persistencia LOCAL para que la sesión no se pierda al abrir otra pestaña
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const auth = firebase.auth();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
   </script>
 
-  <script src="index-data.js"></script>
-  <script src="animaciones.js" defer></script>
-  <script src="musica_fondo.js" defer></script>
-  <script src="notification-system.js" defer></script>
-  <script src="script-index.js" defer></script>
+  <!-- Carga de scripts con timestamp para evitar caché -->
+  <script>
+    const version = Date.now();
+    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+    document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+  </script>
   
   <script>
     // --- LOGIN/RESGISTRO DE USUARIOS NORMALES ---
