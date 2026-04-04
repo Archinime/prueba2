@@ -462,7 +462,7 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE
+    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE (CORREGIDA)
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -658,6 +658,7 @@
 
     // --- FUNCIONES DE HISTORIAL (Firestore + localStorage) ---
     let currentUserId = null;
+    let authReady = false;
 
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
         console.log('Player - markEpisodeWatched', { animeId, seasonNum, epNum, currentUserId });
@@ -674,17 +675,43 @@
                     data[animeId] = animeData;
                     await docRef.set(data, { merge: true });
                     console.log('Player - Marcado en Firestore');
+                    showToast('Episodio marcado como visto');
                 } else {
                     console.log('Player - Ya estaba marcado');
                 }
             } catch (err) {
                 console.error('Player - Error al marcar en Firestore:', err);
+                showToast('Error al marcar: ' + err.message, true);
             }
         } else {
             const key = `watched_${animeId}_${seasonNum}_${epNum}`;
             localStorage.setItem(key, 'true');
             console.log('Player - Marcado en localStorage');
+            showToast('Episodio marcado como visto (local)');
         }
+    }
+
+    function showToast(msg, isError = false) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '50px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = isError ? '#ff0055' : '#00fff7';
+            toast.style.color = '#000';
+            toast.style.padding = '8px 20px';
+            toast.style.borderRadius = '20px';
+            toast.style.zIndex = '999';
+            toast.style.fontWeight = 'bold';
+            toast.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
     }
 
     // --- EJECUTAR AL CARGAR LA PÁGINA ---
@@ -703,11 +730,15 @@
         
         setupNavigation();
 
-        // MARCAR EPISODIO COMO VISTO (sincronizado)
+        // MARCAR EPISODIO COMO VISTO (sincronizado) - Esperar a que auth esté listo
         auth.onAuthStateChanged(async (user) => {
             currentUserId = user ? user.uid : null;
+            authReady = true;
             console.log('Player - Usuario autenticado:', currentUserId);
-            await markEpisodeWatched(animeId, season, episode);
+            // Esperar un poco para asegurar que la página esté lista
+            setTimeout(async () => {
+                await markEpisodeWatched(animeId, season, episode);
+            }, 500);
         });
     } else {
         document.getElementById('epTitle').innerText = "No encontrado";
