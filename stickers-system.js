@@ -1,5 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS CON IMGUR (CLIENT ID PÚBLICO)
+// SISTEMA DE STICKERS CON CATBOX (GRATIS, SIN REGISTRO)
+// SUBIDA DE IMÁGENES Y GIFS HASTA 200MB
 // ============================================
 
 let stickersDb = null;
@@ -8,10 +9,7 @@ let stickersCurrentUser = null;
 let userStickersCollection = [];
 let globalStickersList = [];
 
-// Client ID público funcional (puedes usarlo en producción)
-const IMGUR_CLIENT_ID = '546c25a59c58ad7';
-
-// Stickers por defecto
+// Stickers por defecto (algunos de ejemplo)
 const DEFAULT_STICKERS = [
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/1.webp",
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/2.webp",
@@ -22,10 +20,12 @@ const DEFAULT_STICKERS = [
 ];
 
 function initStickersSystem(db, auth) {
+    console.log("📦 Inicializando sistema de stickers con Catbox...");
     stickersDb = db;
     stickersAuth = auth;
     
     auth.onAuthStateChanged(async (user) => {
+        console.log("👤 Usuario:", user ? user.email : "invitado");
         stickersCurrentUser = user;
         if (user) {
             await loadUserStickers();
@@ -37,11 +37,9 @@ function initStickersSystem(db, auth) {
 
 async function loadUserStickers() {
     if (!stickersCurrentUser) return;
-    
     try {
         const docRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         const doc = await docRef.get();
-        
         if (doc.exists) {
             userStickersCollection = doc.data().stickers || [];
         } else {
@@ -50,7 +48,7 @@ async function loadUserStickers() {
         }
         renderUserStickers();
     } catch (error) {
-        console.error('Error cargando stickers:', error);
+        console.error("Error cargando stickers:", error);
         userStickersCollection = [...DEFAULT_STICKERS];
         renderUserStickers();
     }
@@ -58,7 +56,6 @@ async function loadUserStickers() {
 
 async function saveUserStickers() {
     if (!stickersCurrentUser) return;
-    
     await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
         stickers: userStickersCollection,
         userId: stickersCurrentUser.uid,
@@ -72,7 +69,6 @@ async function loadGlobalStickers() {
     try {
         const snapshot = await stickersDb.collection('userStickers').get();
         const stickerMap = new Map();
-        
         snapshot.forEach(doc => {
             const data = doc.data();
             if (data.stickers && Array.isArray(data.stickers)) {
@@ -88,57 +84,64 @@ async function loadGlobalStickers() {
                 });
             }
         });
-        
         globalStickersList = Array.from(stickerMap.values());
         renderGlobalStickers();
     } catch (error) {
-        console.error('Error cargando stickers globales:', error);
+        console.error("Error cargando stickers globales:", error);
         globalStickersList = [];
         renderGlobalStickers();
     }
 }
 
 // ============================================
-// SUBIR STICKER A IMGUR (CLIENT ID PÚBLICO)
+// SUBIR STICKER A CATBOX (GRATIS, SIN REGISTRO)
 // ============================================
-async function subirStickerAImgur(file) {
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+async function subirStickerACatbox(file) {
+    console.log("Subiendo a Catbox:", file.name, file.type, file.size);
+    
+    // Validar tipo de archivo (imágenes y GIFs)
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
     if (!validTypes.includes(file.type)) {
-        throw new Error('Formato no soportado. Usa JPG, PNG, GIF o WEBP');
+        throw new Error('Formato no soportado. Usa JPG, PNG, GIF, WEBP o AVIF');
     }
     
-    if (file.size > 5 * 1024 * 1024) {
-        throw new Error('La imagen debe ser menor a 5MB');
+    // Límite de Catbox: 200MB, pero ponemos 50MB para no abusar
+    if (file.size > 50 * 1024 * 1024) {
+        throw new Error('El archivo debe ser menor a 50MB (Catbox permite hasta 200MB, pero por seguridad)');
     }
     
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('fileToUpload', file);
+    formData.append('reqtype', 'fileupload'); // Parámetro necesario para Catbox
 
-    const response = await fetch('https://api.imgur.com/3/image', {
+    const response = await fetch('https://catbox.moe/user/api.php', {
         method: 'POST',
-        headers: {
-            'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
-        },
         body: formData
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.data?.error || 'Error al subir a Imgur');
+        const errorText = await response.text();
+        throw new Error(`Error al subir a Catbox: ${errorText}`);
     }
 
-    const data = await response.json();
-    return data.data.link; // URL pública del sticker
+    const url = await response.text(); // Catbox devuelve la URL directamente
+    console.log("Catbox respuesta:", url);
+    return url.trim(); // Asegurar que no haya espacios
 }
 
 async function subirStickerDesdePC(fileInput) {
+    console.log("subirStickerDesdePC llamada", fileInput);
     if (!stickersCurrentUser) {
         showToastSticker('🔒 Inicia sesión para subir stickers');
         return;
     }
 
     const file = fileInput.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log("No se seleccionó archivo");
+        return;
+    }
+    console.log("Archivo seleccionado:", file.name, file.type, file.size);
 
     if (userStickersCollection.length >= 50) {
         alert('📦 Límite de 50 stickers alcanzado');
@@ -146,39 +149,45 @@ async function subirStickerDesdePC(fileInput) {
         return;
     }
 
-    // Preview
+    // Mostrar preview
     const previewDiv = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        previewImg.src = e.target.result;
-        previewDiv.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    if (previewDiv && previewImg) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewDiv.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        console.warn("Elementos de preview no encontrados");
+    }
 
     // UI de carga
     const btn = document.querySelector('#subirStickerTab .add-sticker-btn');
     const originalText = btn ? btn.innerHTML : 'Subir';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Imgur...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
         btn.disabled = true;
     }
 
     try {
-        const imgurUrl = await subirStickerAImgur(file);
-        userStickersCollection.push(imgurUrl);
+        const catboxUrl = await subirStickerACatbox(file);
+        userStickersCollection.push(catboxUrl);
         await saveUserStickers();
         renderUserStickers();
         await loadGlobalStickers();
-        showToastSticker('✅ Sticker subido a Imgur con éxito!');
+        showToastSticker('✅ Sticker subido a Catbox con éxito!');
         
-        setTimeout(() => {
-            previewDiv.style.display = 'none';
-            previewImg.src = '';
-        }, 2000);
+        if (previewDiv) {
+            setTimeout(() => {
+                previewDiv.style.display = 'none';
+                if (previewImg) previewImg.src = '';
+            }, 2000);
+        }
     } catch (error) {
-        console.error(error);
-        alert('Error: ' + error.message);
+        console.error("Error en subida:", error);
+        alert('Error al subir el sticker: ' + error.message);
     } finally {
         if (btn) {
             btn.innerHTML = originalText;
@@ -198,7 +207,7 @@ async function agregarStickerPorURL() {
     if (!url) return;
     
     if (!url.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !url.includes('tenor.com') && !url.includes('giphy.com')) {
-        alert('❌ URL no válida');
+        alert('❌ URL no válida. Debe ser una imagen directa.');
         return;
     }
     
