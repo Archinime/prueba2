@@ -1,6 +1,6 @@
-const CACHE_NAME = 'archinime-os-v2';
+// Nombre de caché dinámico basado en timestamp (se genera cada vez que se actualiza el SW)
+const CACHE_NAME = 'archinime-os-v' + Date.now();
 
-// Archivos básicos a cachear (solo los esenciales)
 const urlsToCache = [
   './',
   'index.html',
@@ -8,21 +8,22 @@ const urlsToCache = [
   'Logo_Archinime.avif'
 ];
 
-// Instalación: cachea solo lo básico
+// Instalación: cachea lo básico
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  self.skipWaiting(); // Fuerza a activarse inmediatamente
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// Activación: limpia cachés viejas
+// Activación: elimina todas las cachés antiguas (cualquier nombre que no sea el actual)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Eliminando caché antigua:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -37,7 +38,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {
-        // Actualiza la caché con la nueva respuesta
+        // Si la red responde, actualiza la caché y devuelve la respuesta
         const responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, responseClone);
@@ -45,7 +46,7 @@ self.addEventListener('fetch', event => {
         return networkResponse;
       })
       .catch(() => {
-        // Si falla la red, busca en caché
+        // Si falla la red, devuelve desde caché
         return caches.match(event.request);
       })
   );

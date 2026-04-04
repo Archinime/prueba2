@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Meta tags anti-caché -->
+  <!-- Meta tags anti-caché (evitan que el navegador guarde el HTML) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -108,7 +108,7 @@
   
   body { 
     background-color: var(--dark-bg);
-    background-image: url('galaxia-morado1.avif?v=' + Date.now());
+    background-image: url('galaxia-morado1.avif');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -1243,12 +1243,12 @@
       setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // --- SERVICE WORKER (actualizado para evitar caché) ---
+    // --- SERVICE WORKER (actualizado para forzar nueva versión) ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(registration => {
-          console.log('SW registrado');
-          // Forzar actualización del SW cada vez que se carga la página
+        navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(registration => {
+          console.log('SW registrado con versión', registration);
+          // Forzar actualización del SW
           registration.update();
         }).catch(e => console.log('SW Error:', e));
       });
