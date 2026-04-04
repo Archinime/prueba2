@@ -391,18 +391,18 @@
         text-shadow: 0 0 5px rgba(0, 255, 157, 0.4);
     }
 
-    /* --- BOTÓN ELIMINAR EPISODIO (INDIVIDUAL) --- */
-    .delete-ep-btn {
+    /* --- BOTÓN DE ACCIÓN (marcar/borrar) --- */
+    .ep-action-btn {
         position: absolute;
         top: 4px;
         right: 4px;
         background: rgba(0,0,0,0.6);
         border: none;
-        color: #ff0055;
+        color: #00ff9d;
         font-size: 0.7rem;
-        width: 20px;
-        height: 20px;
-        border-radius: 20px;
+        width: 24px;
+        height: 24px;
+        border-radius: 24px;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -411,13 +411,20 @@
         opacity: 0;
         z-index: 2;
     }
-    .ep-btn:hover .delete-ep-btn {
+    .ep-btn:hover .ep-action-btn {
         opacity: 1;
     }
-    .delete-ep-btn:hover {
+    .ep-action-btn:hover {
+        background: #00ff9d;
+        color: black;
+        transform: scale(1.1);
+    }
+    .ep-btn.watched .ep-action-btn {
+        color: #ff0055;
+    }
+    .ep-btn.watched .ep-action-btn:hover {
         background: #ff0055;
         color: white;
-        transform: scale(1.1);
     }
 
     /* --- RECOMENDACIONES --- */
@@ -646,7 +653,6 @@
     // Marcar como visto (local o cloud)
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
         if (currentUserId) {
-            // Usuario logueado -> Firestore
             const docRef = db.collection('watchHistory').doc(currentUserId);
             const doc = await docRef.get();
             let data = doc.exists ? doc.data() : {};
@@ -659,23 +665,8 @@
                 await docRef.set(data, { merge: true });
             }
         } else {
-            // Invitado -> localStorage
             const key = getLocalKey(animeId, seasonNum, epNum);
             localStorage.setItem(key, 'true');
-        }
-    }
-
-    // Verificar si un episodio está visto (local o cloud)
-    async function isEpisodeWatched(animeId, seasonNum, epNum) {
-        if (currentUserId) {
-            const docRef = db.collection('watchHistory').doc(currentUserId);
-            const doc = await docRef.get();
-            if (!doc.exists) return false;
-            const data = doc.data();
-            return data[animeId]?.[seasonNum]?.includes(epNum) || false;
-        } else {
-            const key = getLocalKey(animeId, seasonNum, epNum);
-            return localStorage.getItem(key) === 'true';
         }
     }
 
@@ -703,7 +694,7 @@
         }
     }
 
-    // Cargar todos los episodios vistos del anime actual (para aplicar clase 'watched')
+    // Cargar todos los episodios vistos del anime actual (devuelve objeto con season -> array de eps)
     async function loadWatchedEpisodes(animeId) {
         if (currentUserId) {
             const docRef = db.collection('watchHistory').doc(currentUserId);
@@ -730,7 +721,7 @@
     }
 
     /* ----------------------------------------------------
-       4. Renderizado y Lógica Visual (modificada para usar el nuevo historial)
+       4. Renderizado y Lógica Visual (con botones dinámicos)
        ---------------------------------------------------- */
     
     if (typeof data === 'undefined') {
@@ -799,7 +790,7 @@
         }
     }
 
-    // Función toggleSeason modificada para cargar los episodios con el nuevo historial y botón de eliminar individual
+    // Función toggleSeason modificada para generar botones de acción según estado
     async function toggleSeason(details, animeId, seasonIndex) {
         if (!details.open) return;
         
@@ -815,7 +806,7 @@
         const total = episodes.length;
         const seasonNum = data[animeId].seasons[seasonIndex].num;
         
-        // Cargar los episodios vistos (desde localStorage o Firestore)
+        // Cargar los episodios vistos desde Firestore/localStorage
         const watchedData = await loadWatchedEpisodes(animeId);
         
         let processed = 0;
@@ -832,37 +823,54 @@
                 a.className = 'ep-btn';
                 a.addEventListener('mouseenter', () => playUISound('hover'));
                 
-                // Botón para eliminar este episodio del historial
-                const delBtn = document.createElement('button');
-                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                delBtn.className = 'delete-ep-btn';
-                delBtn.title = 'Eliminar del historial';
-                delBtn.addEventListener('click', async (e) => {
+                // Verificar si está visto
+                const isWatched = watchedData[seasonNum] && watchedData[seasonNum].includes(epNum);
+                
+                // Crear botón de acción según estado
+                const actionBtn = document.createElement('button');
+                actionBtn.className = 'ep-action-btn';
+                if (isWatched) {
+                    actionBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    actionBtn.title = 'Borrar del historial';
+                } else {
+                    actionBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    actionBtn.title = 'Marcar como visto';
+                }
+                
+                // Manejador del botón
+                actionBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    await removeEpisodeWatched(animeId, seasonNum, epNum);
-                    a.classList.remove('watched');
-                    const watchedDiv = a.querySelector('.watched-tag');
-                    if (watchedDiv) watchedDiv.remove();
-                    showToast('Episodio eliminado del historial', false);
+                    if (isWatched) {
+                        await removeEpisodeWatched(animeId, seasonNum, epNum);
+                        showToast('Episodio eliminado del historial', false);
+                    } else {
+                        await markEpisodeWatched(animeId, seasonNum, epNum);
+                        showToast('Episodio marcado como visto', false);
+                    }
+                    // Recargar esta temporada para actualizar todos los estados visuales
+                    const parentDetail = a.closest('details');
+                    if (parentDetail) {
+                        const wasOpen = parentDetail.open;
+                        parentDetail.open = false;
+                        // Limpiar el contenido y volver a cargar
+                        const listDiv = parentDetail.querySelector('.video-list');
+                        if (listDiv) listDiv.innerHTML = '';
+                        parentDetail.open = wasOpen;
+                        // Si estaba abierto, la función toggleSeason se ejecutará de nuevo al abrir
+                        if (!wasOpen) parentDetail.open = true;
+                    }
                 });
-                a.appendChild(delBtn);
-
-                // Verificar si está visto
-                let isWatched = false;
-                if (watchedData[seasonNum] && watchedData[seasonNum].includes(epNum)) {
-                    isWatched = true;
-                }
+                
+                a.appendChild(actionBtn);
+                
                 if (isWatched) {
                     a.classList.add('watched');
-                    a.innerHTML = `
-                        <span>▶ ${ep.title}</span>
-                        <div class="watched-tag"><i class="fas fa-check"></i> VISTO</div>
-                    `;
-                    a.appendChild(delBtn); // reinsertar el botón después de cambiar innerHTML
+                    a.innerHTML += `<span>▶ ${ep.title}</span><div class="watched-tag"><i class="fas fa-check"></i> VISTO</div>`;
+                    a.appendChild(actionBtn); // reinsertar porque innerHTML lo borró
                 } else {
-                    a.innerHTML = `<span>▶ ${ep.title}</span>`;
-                    a.appendChild(delBtn);
+                    a.innerHTML += `<span>▶ ${ep.title}</span>`;
+                    a.appendChild(actionBtn);
                 }
 
                 fragment.appendChild(a);
@@ -973,26 +981,25 @@
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUserId = user.uid;
-            // Recargar la vista de temporadas para reflejar el historial de la cuenta
-            if (currentAnimeId) {
-                // Recargar todas las temporadas abiertas (si alguna está abierta)
-                const details = document.querySelectorAll('details[open]');
-                for (let detail of details) {
-                    const summary = detail.querySelector('summary');
-                    if (summary) {
-                        // Forzar recarga: cerrar y abrir de nuevo
-                        detail.open = false;
-                        detail.open = true;
-                    }
-                }
-            }
         } else {
             currentUserId = null;
-            if (currentAnimeId) {
-                const details = document.querySelectorAll('details[open]');
-                for (let detail of details) {
-                    detail.open = false;
-                    detail.open = true;
+        }
+        // Recargar las temporadas abiertas para reflejar el historial actualizado
+        if (currentAnimeId) {
+            const details = document.querySelectorAll('details[open]');
+            for (let detail of details) {
+                const wasOpen = detail.open;
+                detail.open = false;
+                const listDiv = detail.querySelector('.video-list');
+                if (listDiv) listDiv.innerHTML = '';
+                detail.open = wasOpen;
+                if (wasOpen) {
+                    // Forzar la recarga llamando al toggle manualmente
+                    const summary = detail.querySelector('summary');
+                    if (summary) {
+                        // Simular un clic en el summary para recargar
+                        summary.click();
+                    }
                 }
             }
         }
