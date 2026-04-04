@@ -720,6 +720,22 @@
         }
     }
 
+    // Función para recargar una temporada específica
+    async function reloadSeason(detailsElement, animeId, seasonIndex) {
+        if (!detailsElement) return;
+        const listContainer = detailsElement.querySelector('.video-list');
+        if (listContainer) {
+            listContainer.innerHTML = '';
+            // Forzar recarga cerrando y abriendo
+            const wasOpen = detailsElement.open;
+            detailsElement.open = false;
+            // Pequeño retraso para permitir el cierre
+            setTimeout(() => {
+                detailsElement.open = wasOpen;
+            }, 50);
+        }
+    }
+
     /* ----------------------------------------------------
        4. Renderizado y Lógica Visual (con botones dinámicos)
        ---------------------------------------------------- */
@@ -790,17 +806,18 @@
         }
     }
 
-    // Función toggleSeason modificada para generar botones de acción según estado
-    async function toggleSeason(details, animeId, seasonIndex) {
+    // Función toggleSeason (se llama desde el atributo ontoggle)
+    window.toggleSeason = async function(details, animeId, seasonIndex) {
         if (!details.open) return;
         
         playUISound('click');
 
-        const listContainer = document.getElementById(`list-${seasonIndex}`);
+        const listContainer = details.querySelector('.video-list');
+        // Si ya tiene contenido, no recargar (evita duplicados)
         if (listContainer.children.length > 0) return; 
 
-        const loadingMsg = document.getElementById(`loading-${seasonIndex}`);
-        loadingMsg.style.display = 'block';
+        const loadingMsg = details.querySelector(`#loading-${seasonIndex}`);
+        if (loadingMsg) loadingMsg.style.display = 'block';
 
         const episodes = data[animeId].seasons[seasonIndex].eps;
         const total = episodes.length;
@@ -849,30 +866,22 @@
                         showToast('Episodio marcado como visto', false);
                     }
                     // Recargar esta temporada para actualizar todos los estados visuales
-                    const parentDetail = a.closest('details');
-                    if (parentDetail) {
-                        const wasOpen = parentDetail.open;
-                        parentDetail.open = false;
-                        // Limpiar el contenido y volver a cargar
-                        const listDiv = parentDetail.querySelector('.video-list');
-                        if (listDiv) listDiv.innerHTML = '';
-                        parentDetail.open = wasOpen;
-                        // Si estaba abierto, la función toggleSeason se ejecutará de nuevo al abrir
-                        if (!wasOpen) parentDetail.open = true;
-                    }
+                    await reloadSeason(details, animeId, seasonIndex);
                 });
                 
+                // Construir el contenido del enlace
                 a.appendChild(actionBtn);
-                
+                const span = document.createElement('span');
+                span.textContent = `▶ ${ep.title}`;
+                a.appendChild(span);
                 if (isWatched) {
                     a.classList.add('watched');
-                    a.innerHTML += `<span>▶ ${ep.title}</span><div class="watched-tag"><i class="fas fa-check"></i> VISTO</div>`;
-                    a.appendChild(actionBtn); // reinsertar porque innerHTML lo borró
-                } else {
-                    a.innerHTML += `<span>▶ ${ep.title}</span>`;
-                    a.appendChild(actionBtn);
+                    const tag = document.createElement('div');
+                    tag.className = 'watched-tag';
+                    tag.innerHTML = '<i class="fas fa-check"></i> VISTO';
+                    a.appendChild(tag);
                 }
-
+                
                 fragment.appendChild(a);
             }
 
@@ -881,11 +890,11 @@
             if (processed < total) {
                 requestAnimationFrame(processChunk);
             } else {
-                loadingMsg.style.display = 'none';
+                if (loadingMsg) loadingMsg.style.display = 'none';
             }
         }
         requestAnimationFrame(processChunk);
-    }
+    };
 
     document.getElementById('share-detail').addEventListener('click', () => {
         playUISound('click');
@@ -976,7 +985,7 @@
     }
 
     /* ----------------------------------------------------
-       6. Autenticación y listener para actualizar historial en tiempo real
+       6. Autenticación y recarga de temporadas abiertas
        ---------------------------------------------------- */
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -985,20 +994,17 @@
             currentUserId = null;
         }
         // Recargar las temporadas abiertas para reflejar el historial actualizado
-        if (currentAnimeId) {
-            const details = document.querySelectorAll('details[open]');
-            for (let detail of details) {
-                const wasOpen = detail.open;
-                detail.open = false;
-                const listDiv = detail.querySelector('.video-list');
-                if (listDiv) listDiv.innerHTML = '';
-                detail.open = wasOpen;
-                if (wasOpen) {
-                    // Forzar la recarga llamando al toggle manualmente
-                    const summary = detail.querySelector('summary');
-                    if (summary) {
-                        // Simular un clic en el summary para recargar
-                        summary.click();
+        if (currentAnimeId && typeof data !== 'undefined' && data[currentAnimeId]) {
+            const detailsList = document.querySelectorAll('details');
+            for (let detail of detailsList) {
+                if (detail.open) {
+                    // Obtener el índice de la temporada a partir del id del listContainer
+                    const listDiv = detail.querySelector('.video-list');
+                    if (listDiv && listDiv.id) {
+                        const seasonIndex = parseInt(listDiv.id.split('-')[1]);
+                        if (!isNaN(seasonIndex)) {
+                            await reloadSeason(detail, currentAnimeId, seasonIndex);
+                        }
                     }
                 }
             }
