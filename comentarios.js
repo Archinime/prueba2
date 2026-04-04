@@ -1,11 +1,12 @@
 // ============================================
 // SISTEMA DE COMENTARIOS PARA VIDEO-PLAYER
+// CON SOPORTE PARA EMOJIS, GIFS Y STICKERS
 // ============================================
 
 let comentariosAuthReady = false;
 let comentariosCurrentUser = null;
 let comentariosDb = null;
-let comentariosUnsubscribe = null; // Para escuchar cambios en tiempo real
+let comentariosUnsubscribe = null;
 
 // Inicializar sistema de comentarios
 function initComentariosSystem(db, auth) {
@@ -15,19 +16,16 @@ function initComentariosSystem(db, auth) {
         comentariosCurrentUser = user;
         comentariosAuthReady = true;
         
-        // Actualizar UI de comentarios
         updateComentariosUI();
         
-        // Cargar comentarios con escucha en tiempo real
         if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
             setupComentariosRealtimeListener(window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
         }
     });
 }
 
-// Configurar escucha en tiempo real (cuando alguien comenta, aparece automáticamente)
+// Configurar escucha en tiempo real
 function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
-    // Cancelar listener anterior si existe
     if (comentariosUnsubscribe) {
         comentariosUnsubscribe();
         comentariosUnsubscribe = null;
@@ -41,7 +39,6 @@ function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
         .where('episode', '==', parseInt(episodeNum))
         .orderBy('timestamp', 'desc');
     
-    // Escuchar cambios en tiempo real
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const commentsList = document.getElementById('comentariosList');
         
@@ -60,14 +57,11 @@ function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
             const c = doc.data();
             let fecha = 'Fecha desconocida';
             
-            // Manejar timestamp correctamente
             if (c.timestamp) {
                 if (c.timestamp.toDate) {
-                    // Es un Timestamp de Firestore
                     const date = c.timestamp.toDate();
                     fecha = date.toLocaleString();
                 } else if (c.timestamp.seconds) {
-                    // Es un objeto con segundos
                     const date = new Date(c.timestamp.seconds * 1000);
                     fecha = date.toLocaleString();
                 } else if (typeof c.timestamp === 'string') {
@@ -78,12 +72,13 @@ function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
             const isOwner = comentariosCurrentUser && comentariosCurrentUser.uid === c.userId;
             const userAvatar = c.userAvatar || 'invitado.avif';
             const userName = c.userName || 'Usuario';
-            const texto = escapeHtmlComent(c.texto || '');
+            // Procesar texto con emojis y stickers
+            let textoProcesado = procesarTextoComentario(c.texto || '');
             
             html += `
                 <div class="comentario-item" data-comment-id="${doc.id}">
                     <div class="comentario-avatar">
-                        <img src="${userAvatar}" alt="${userName}" onerror="this.src='invitado.avif'">
+                        <img src="${userAvatar}" alt="${escapeHtmlComent(userName)}" onerror="this.src='invitado.avif'">
                     </div>
                     <div class="comentario-content">
                         <div class="comentario-header">
@@ -91,7 +86,7 @@ function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
                             <span class="comentario-fecha">${fecha}</span>
                             ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar comentario"><i class="fas fa-trash-alt"></i></button>` : ''}
                         </div>
-                        <div class="comentario-texto">${texto.replace(/\n/g, '<br>')}</div>
+                        <div class="comentario-texto">${textoProcesado}</div>
                     </div>
                 </div>
             `;
@@ -113,6 +108,58 @@ function setupComentariosRealtimeListener(animeId, seasonNum, episodeNum) {
     });
 }
 
+// Procesar texto: convertir emojis, stickers y URLs de imágenes
+function procesarTextoComentario(texto) {
+    if (!texto) return '';
+    
+    let html = escapeHtmlComent(texto);
+    
+    // Convertir emojis comunes a emojis reales (soporte nativo)
+    const emojisMap = {
+        ':D': '😃',
+        ':)': '😊',
+        ':(': '😢',
+        ':P': '😛',
+        ':p': '😛',
+        ';)': '😉',
+        '<3': '❤️',
+        '</3': '💔',
+        ':v': '🤘',
+        ':3': '😸',
+        '>:(' : '😠',
+        'O:)': '😇',
+        ':*': '😘',
+        ':-*': '😘'
+    };
+    
+    for (const [emojiCode, emojiReal] of Object.entries(emojisMap)) {
+        html = html.split(emojiCode).join(emojiReal);
+    }
+    
+    // Convertir URLs de imágenes a etiquetas img
+    const imageUrlRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|avif))/gi;
+    html = html.replace(imageUrlRegex, (url) => {
+        return `<img src="${url}" class="comentario-imagen" loading="lazy" onerror="this.style.display='none'">`;
+    });
+    
+    // Convertir URLs de GIFs de GIPHY (formato especial)
+    const giphyRegex = /(https?:\/\/media[0-9]?\.giphy\.com\/media\/[^\s]+)\/giphy\.gif/gi;
+    html = html.replace(giphyRegex, (url) => {
+        return `<img src="${url}" class="comentario-gif" loading="lazy">`;
+    });
+    
+    // Convertir stickers de Telegram o similares
+    const stickerRegex = /(https?:\/\/[^\s]+\.(?:webp|avif))/gi;
+    html = html.replace(stickerRegex, (url) => {
+        return `<img src="${url}" class="comentario-sticker" loading="lazy" onerror="this.style.display='none'">`;
+    });
+    
+    // Convertir saltos de línea a <br>
+    html = html.replace(/\n/g, '<br>');
+    
+    return html;
+}
+
 // Actualizar interfaz según estado de autenticación
 function updateComentariosUI() {
     const loginMessage = document.getElementById('comentarioLoginMessage');
@@ -131,7 +178,6 @@ function updateComentariosUI() {
         if (textarea) textarea.disabled = false;
         if (submitBtn) submitBtn.disabled = false;
         
-        // Actualizar avatar del usuario en el formulario
         const userAvatar = document.getElementById('comentarioUserAvatar');
         if (userAvatar) {
             userAvatar.src = comentariosCurrentUser.photoURL || 'invitado.avif';
@@ -143,14 +189,48 @@ function updateComentariosUI() {
     }
 }
 
+// Panel de emojis/stickers
+function toggleEmojiPanel() {
+    const panel = document.getElementById('emojiPanel');
+    if (panel) {
+        panel.classList.toggle('active');
+    }
+}
+
+function agregarEmoji(emoji) {
+    const textarea = document.getElementById('comentarioTexto');
+    if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + emoji + text.substring(end);
+        textarea.focus();
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }
+    toggleEmojiPanel();
+}
+
+function agregarSticker(url) {
+    const textarea = document.getElementById('comentarioTexto');
+    if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const stickerMarkdown = `[Sticker](${url})`;
+        textarea.value = text.substring(0, start) + stickerMarkdown + text.substring(end);
+        textarea.focus();
+    }
+    toggleEmojiPanel();
+}
+
 // Enviar comentario
 async function enviarComentario() {
     if (!comentariosCurrentUser) {
-        alert('Debes iniciar sesión para comentar');
+        openLoginModalFromComent();
         return;
     }
     
-    const texto = document.getElementById('comentarioTexto').value.trim();
+    let texto = document.getElementById('comentarioTexto').value.trim();
     if (!texto) {
         alert('Escribe un comentario antes de enviar');
         return;
@@ -180,10 +260,7 @@ async function enviarComentario() {
         
         await comentariosDb.collection('comments').add(commentData);
         
-        // Limpiar textarea
         document.getElementById('comentarioTexto').value = '';
-        
-        // Mostrar notificación
         showToastComent('Comentario enviado con éxito');
         
     } catch (error) {
@@ -202,7 +279,6 @@ async function deleteComentario(commentId) {
     if (!confirm('¿Eliminar este comentario?')) return;
     
     try {
-        // Verificar que el usuario es el dueño
         const docRef = comentariosDb.collection('comments').doc(commentId);
         const doc = await docRef.get();
         
@@ -225,7 +301,6 @@ async function deleteComentario(commentId) {
     }
 }
 
-// Función auxiliar para escapar HTML
 function escapeHtmlComent(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -233,7 +308,6 @@ function escapeHtmlComent(text) {
     return div.innerHTML;
 }
 
-// Toast para comentarios
 function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
     if (!toast) {
@@ -258,12 +332,24 @@ function showToastComent(msg) {
     setTimeout(() => toast.style.display = 'none', 3000);
 }
 
-// Función para abrir modal de login desde comentarios
+// Función mejorada para abrir modal de login (con registro)
 function openLoginModalFromComent() {
     const authModal = document.getElementById('authModal');
     if (authModal) {
         authModal.classList.add('show');
+        // Asegurar que se muestre el formulario de login por defecto
+        const loginTab = document.querySelector('.auth-tab[data-tab="login"]');
+        const registerTab = document.querySelector('.auth-tab[data-tab="register"]');
+        const loginForm = document.getElementById('authLoginForm');
+        const registerForm = document.getElementById('authRegisterForm');
+        
+        if (loginTab && registerTab && loginForm && registerForm) {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.style.display = 'flex';
+            registerForm.style.display = 'none';
+        }
     } else {
-        alert('Inicia sesión para comentar');
+        alert('Inicia sesión o regístrate para comentar');
     }
 }

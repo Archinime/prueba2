@@ -9,17 +9,11 @@
 
 <script>
   (function() {
-    // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
-    const colors = [
-      "#00f3ff", "#0066ff", "#bc13fe", 
-      "#ff0055", "#bc13fe", "#0066ff", "#00f3ff" 
-    ];
-
-    const animationDuration = 20000; 
-    const intervalTime = 20; 
+    const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
+    const animationDuration = 20000;
+    const intervalTime = 20;
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
-
     let currentProgress = 0;
     let metaTag = document.querySelector('meta[name="theme-color"]');
     if (!metaTag) {
@@ -27,36 +21,27 @@
       metaTag.name = "theme-color";
       document.head.appendChild(metaTag);
     }
-
     const hexToRgb = (hex) => {
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
     };
-    
     const rgbToHex = (r, g, b) => {
       return "#" + [r, g, b].map(x => {
         const hex = Math.round(x).toString(16);
         return hex.length === 1 ? "0" + hex : hex;
       }).join('');
     };
-
     const lerp = (start, end, t) => start + (end - start) * t;
-    
     setInterval(() => {
       currentProgress += step;
-      if (currentProgress >= segments) {
-        currentProgress = currentProgress % segments;
-      }
-
+      if (currentProgress >= segments) currentProgress = currentProgress % segments;
       const index = Math.floor(currentProgress);
       const t = currentProgress - index;
       const colorStart = hexToRgb(colors[index]);
       const colorEnd = hexToRgb(colors[index + 1]);
-
       const r = lerp(colorStart[0], colorEnd[0], t);
       const g = lerp(colorStart[1], colorEnd[1], t);
       const b = lerp(colorStart[2], colorEnd[2], t);
-
       metaTag.setAttribute('content', rgbToHex(r, g, b));
     }, intervalTime);
   })();
@@ -68,7 +53,6 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
-    /* --- VARIABLES --- */
     :root {
         --primary-color: #00fff7;
         --accent-color: #ff0055;
@@ -77,7 +61,8 @@
         --glass-border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* --- ESTILOS GENERALES --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body { 
         margin: 0;
         background: #050505; 
@@ -86,10 +71,8 @@
         overflow-x: hidden; 
         min-height: 100vh;
         -webkit-tap-highlight-color: transparent;
-        outline: none;
     }
    
-    /* --- FONDO DE VIDEO --- */
     #bg-video { 
         position: fixed;
         top: 0; left: 0; 
@@ -99,7 +82,6 @@
         opacity: 0.5;
     }
 
-    /* --- OVERLAY --- */
     #overlay {
       position: fixed;
       top: 0; left: 0; 
@@ -110,7 +92,6 @@
       pointer-events: none;
     }
     
-    /* --- CONTENEDOR PRINCIPAL --- */
     .container { 
         width: 100%;
         max-width: 1200px;
@@ -124,7 +105,6 @@
         gap: 15px;
     }
     
-    /* --- NAVEGACIÓN SUPERIOR --- */
     .top-nav {
         display: flex;
         justify-content: space-between; 
@@ -138,7 +118,6 @@
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
 
-    /* BOTÓN VOLVER (ESTILO NEON) */
     .back-btn { 
       display: inline-flex;
       align-items: center;
@@ -163,13 +142,11 @@
         color: #fff;
         box-shadow: 0 0 20px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
         transform: translateY(-2px);
-        text-shadow: 0 0 5px var(--primary-color);
     }
    
-    /* --- REPRODUCTOR --- */
     .player-wrapper { 
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 */
+        padding-bottom: 56.25%;
         height: 0; 
         width: 100%; 
         background: #000;
@@ -187,7 +164,6 @@
         border: none;
     }
 
-    /* --- TIRA PROTECTORA (LOGO BLOCKER) --- */
     .logo-blocker {
         position: absolute;
         top: 0;
@@ -197,7 +173,6 @@
         min-height: 45px;
         background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
         z-index: 100; 
         display: flex;
         justify-content: center;
@@ -206,26 +181,6 @@
         pointer-events: auto;
         border-top-left-radius: 16px;
         border-top-right-radius: 16px;
-        user-select: none; 
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .logo-blocker::after {
-        content: '';
-        position: absolute;
-        bottom: 25%;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-        opacity: 0.3;
-    }
-
-    .blocker-content {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
     }
 
     .blocker-text {
@@ -235,7 +190,7 @@
         color: #fff;
         letter-spacing: 5px;
         text-transform: uppercase;
-        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+        text-shadow: 0 0 10px var(--primary-color);
         animation: neonPulse 2s infinite alternate;
     }
 
@@ -245,15 +200,13 @@
         color: var(--accent-color);
         font-weight: 700;
         letter-spacing: 2px;
-        text-shadow: 0 0 8px var(--accent-color);
     }
 
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color); }
+        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
     }
 
-    /* --- OPCIONES DE SERVIDOR --- */
     .options { 
         display: flex;
         gap: 10px;
@@ -286,18 +239,14 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* --- TÍTULO DEL EPISODIO --- */
     h1 { 
         color: #fff;
         font-size: 1.3rem; 
         margin: 5px 0 15px 0;
         text-align: center;
         font-weight: 700;
-        letter-spacing: 0.5px;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- CONTROLES --- */
     .controls { 
         display: grid;
         grid-template-columns: 1fr auto 1fr;
@@ -312,7 +261,6 @@
     #nextBtn { justify-self: end; }
     #downloadBtn { justify-self: center; cursor: pointer; }
 
-    /* ESTILOS DE LOS BOTONES */
     .btn { 
         padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
@@ -337,9 +285,8 @@
         background: rgba(0, 255, 247, 0.15);
         border-color: var(--primary-color);
         color: #fff;
-        box-shadow: 0 0 25px var(--primary-color), inset 0 0 10px rgba(0, 255, 247, 0.2);
+        box-shadow: 0 0 25px var(--primary-color);
         transform: scale(1.05);
-        text-shadow: 0 0 8px var(--primary-color);
     }
 
     #downloadBtn {
@@ -351,10 +298,8 @@
     #downloadBtn:hover {
         background: rgba(255, 0, 85, 0.2);
         border-color: var(--accent-color);
-        color: #fff;
-        box-shadow: 0 0 30px var(--accent-color), inset 0 0 10px rgba(255, 0, 85, 0.2);
+        box-shadow: 0 0 30px var(--accent-color);
         transform: scale(1.05);
-        text-shadow: 0 0 8px var(--accent-color);
     }
 
     .btn-hidden { 
@@ -395,13 +340,6 @@
         letter-spacing: 1px;
     }
 
-    .comentarios-header h3 span {
-        color: var(--primary-color);
-        font-size: 0.9rem;
-        margin-left: 8px;
-    }
-
-    /* Formulario de comentario */
     .comentario-form-container {
         background: rgba(20, 20, 30, 0.6);
         border-radius: 16px;
@@ -430,8 +368,15 @@
         color: var(--primary-color);
     }
 
+    .comentario-input-wrapper {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
     .comentario-form-container textarea {
-        width: 100%;
+        flex: 1;
         background: rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px;
@@ -441,7 +386,6 @@
         font-size: 0.9rem;
         resize: vertical;
         min-height: 80px;
-        margin-bottom: 12px;
         transition: all 0.3s ease;
     }
 
@@ -451,14 +395,73 @@
         box-shadow: 0 0 10px rgba(0, 255, 247, 0.2);
     }
 
-    .comentario-form-container textarea:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+    .emoji-btn, .sticker-btn {
+        background: rgba(0, 255, 247, 0.1);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .emoji-btn:hover, .sticker-btn:hover {
+        background: rgba(0, 255, 247, 0.2);
+        transform: scale(1.05);
+    }
+
+    .emoji-panel {
+        display: none;
+        background: rgba(20, 20, 30, 0.95);
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 10px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .emoji-panel.active {
+        display: flex;
+    }
+
+    .emoji-option {
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 5px;
+        transition: transform 0.2s;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        width: 45px;
+        text-align: center;
+    }
+
+    .emoji-option:hover {
+        transform: scale(1.2);
+        background: rgba(0, 255, 247, 0.2);
+    }
+
+    .sticker-option {
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        border-radius: 8px;
+    }
+
+    .sticker-option:hover {
+        transform: scale(1.1);
+        background: rgba(0, 255, 247, 0.2);
     }
 
     .comentario-actions {
         display: flex;
         justify-content: flex-end;
+        margin-top: 10px;
     }
 
     .enviar-comentario-btn {
@@ -481,12 +484,6 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
-    .enviar-comentario-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Mensaje de login requerido */
     .comentario-login-message {
         background: rgba(0, 255, 247, 0.1);
         border: 1px solid rgba(0, 255, 247, 0.3);
@@ -509,14 +506,18 @@
     }
 
     .login-link-btn {
-        background: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary-color), #0099ff);
         color: #000;
         border: none;
-        padding: 8px 20px;
+        padding: 10px 24px;
         border-radius: 30px;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
     }
 
     .login-link-btn:hover {
@@ -524,24 +525,9 @@
         box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* Lista de comentarios */
     .comentarios-list {
         max-height: 500px;
         overflow-y: auto;
-    }
-
-    .comentarios-list::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .comentarios-list::-webkit-scrollbar-track {
-        background: #1a1a2e;
-        border-radius: 4px;
-    }
-
-    .comentarios-list::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
     }
 
     .comentario-item {
@@ -615,6 +601,22 @@
         word-break: break-word;
     }
 
+    .comentario-imagen, .comentario-gif {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        margin: 5px 0;
+        display: block;
+    }
+
+    .comentario-sticker {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 8px;
+        margin: 5px 0;
+        display: block;
+    }
+
     .empty-comments {
         text-align: center;
         padding: 40px 20px;
@@ -627,61 +629,166 @@
         opacity: 0.5;
     }
 
-    .empty-comments.error i {
-        color: #ff5555;
+    /* MODAL DE AUTENTICACIÓN */
+    .auth-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        backdrop-filter: blur(8px);
+        z-index: 10001;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s;
+        padding: 20px;
+    }
+    
+    .auth-modal.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .auth-card {
+        background: #0f0f13;
+        border: 1px solid var(--primary-color);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 400px;
+        padding: 30px;
+        position: relative;
+        transform: scale(0.95);
+        transition: transform 0.3s;
+    }
+    
+    .auth-modal.show .auth-card {
+        transform: scale(1);
+    }
+    
+    .auth-close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #aaa;
+    }
+    
+    .auth-tabs {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .auth-tab {
+        padding: 10px 0;
+        cursor: pointer;
+        font-weight: 700;
+        color: #aaa;
+        transition: 0.2s;
+        border-bottom: 2px solid transparent;
+    }
+    
+    .auth-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+    
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .auth-form input {
+        background: #181920;
+        border: 1px solid #2a2b35;
+        padding: 14px;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .auth-form button {
+        background: var(--primary-color);
+        color: #000;
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    
+    .auth-form button:hover {
+        background: #fff;
+        transform: translateY(-2px);
+    }
+    
+    .auth-providers {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .provider-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 12px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+        color: white;
+    }
+    
+    .provider-btn:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: var(--primary-color);
+    }
+    
+    .auth-error {
+        color: #ff4757;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        text-align: center;
     }
 
-    /* --- MEDIA QUERIES --- */
     @media (max-width: 768px) {
         .container { padding: 10px; }
         .top-nav { justify-content: space-between; }
         .options {
             overflow-x: auto;
             white-space: nowrap;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
             max-width: 60%;
         }
         .options::-webkit-scrollbar { display: none; }
-
         .controls {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto; 
             gap: 10px;
         }
-
-        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; width: auto; }
-        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; width: auto; }
-        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; box-sizing: border-box; }
-        
+        #prevBtn { grid-column: 1; grid-row: 1; justify-self: start; }
+        #nextBtn { grid-column: 2; grid-row: 1; justify-self: end; }
+        #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; }
         .logo-blocker {
             height: 20%;
             min-height: 60px;
             padding-top: 4%;
         }
-
-        .comentarios-section {
-            padding: 15px;
-        }
-
-        .comentario-item {
-            gap: 10px;
-            padding: 12px;
-        }
-
-        .comentario-avatar img {
-            width: 32px;
-            height: 32px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .comentario-header {
-            flex-wrap: wrap;
-        }
-        .comentario-delete {
-            margin-left: 0;
-        }
+        .comentarios-section { padding: 15px; }
+        .comentario-item { gap: 10px; padding: 12px; }
+        .comentario-avatar img { width: 32px; height: 32px; }
+        .emoji-panel { justify-content: center; }
     }
   </style>
 </head>
@@ -690,14 +797,12 @@
   <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
     <source src="galaxia.mp4" type="video/mp4">
   </video>
-
   <div id="overlay"></div>
 
   <div class="container">
-   
     <div class="top-nav">
        <a href="#" id="backLink" class="back-btn">
-         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
          Volver
        </a>
        <div class="options" id="serverOptions"></div>
@@ -710,7 +815,6 @@
                 <span class="blocker-sub">HD</span>
             </div>
         </div>
-        
         <div id="mediaContainer" style="width: 100%; height: 100%;"></div>
     </div>
 
@@ -718,39 +822,171 @@
 
     <div class="controls">
         <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-        
-        <a id="downloadBtn" class="btn" href="#">
-            ⬇ Descargar
-        </a>
-        
+        <a id="downloadBtn" class="btn" href="#">⬇ Descargar</a>
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
-    <!-- ============================================ -->
-    <!-- SECCIÓN DE COMENTARIOS                        -->
-    <!-- ============================================ -->
+    <!-- SECCIÓN DE COMENTARIOS -->
     <div class="comentarios-section">
         <div class="comentarios-header">
             <i class="fas fa-comments"></i>
             <h3>COMENTARIOS <span>Comparte tu opinión</span></h3>
         </div>
 
-        <!-- Mensaje para usuarios no logueados -->
+        <!-- Mensaje para usuarios no logueados (con emoji y botón mejorado) -->
         <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
             <i class="fas fa-lock"></i>
-            <p>Inicia sesión para dejar tu comentario y participar en la comunidad</p>
+            <p>🔒 Inicia sesión o regístrate para dejar tu comentario y participar en la comunidad 💬</p>
             <button class="login-link-btn" onclick="openLoginModalFromComent()">
-                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                <i class="fas fa-sign-in-alt"></i> ✨ Iniciar sesión / Registrarse ✨
             </button>
         </div>
 
-        <!-- Formulario de comentario (solo visible para usuarios logueados) -->
+        <!-- Formulario de comentario -->
         <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
             <div class="comentario-user-info">
                 <img id="comentarioUserAvatar" src="invitado.avif" alt="Avatar">
                 <span id="comentarioUserName">Usuario</span>
             </div>
-            <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (máximo 500 caracteres)" maxlength="500"></textarea>
+            
+            <div class="comentario-input-wrapper">
+                <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (máximo 500 caracteres) 😊✨" maxlength="500"></textarea>
+                <button type="button" class="emoji-btn" onclick="toggleEmojiPanel()" title="Agregar emoji">😊</button>
+                <button type="button" class="sticker-btn" onclick="toggleStickerPanel()" title="Agregar sticker">🎨</button>
+            </div>
+            
+            <!-- Panel de emojis -->
+            <div id="emojiPanel" class="emoji-panel">
+                <div class="emoji-option" onclick="agregarEmoji('😀')">😀</div>
+                <div class="emoji-option" onclick="agregarEmoji('😃')">😃</div>
+                <div class="emoji-option" onclick="agregarEmoji('😄')">😄</div>
+                <div class="emoji-option" onclick="agregarEmoji('😁')">😁</div>
+                <div class="emoji-option" onclick="agregarEmoji('😆')">😆</div>
+                <div class="emoji-option" onclick="agregarEmoji('😅')">😅</div>
+                <div class="emoji-option" onclick="agregarEmoji('😂')">😂</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤣')">🤣</div>
+                <div class="emoji-option" onclick="agregarEmoji('😊')">😊</div>
+                <div class="emoji-option" onclick="agregarEmoji('😇')">😇</div>
+                <div class="emoji-option" onclick="agregarEmoji('🙂')">🙂</div>
+                <div class="emoji-option" onclick="agregarEmoji('🙃')">🙃</div>
+                <div class="emoji-option" onclick="agregarEmoji('😉')">😉</div>
+                <div class="emoji-option" onclick="agregarEmoji('😌')">😌</div>
+                <div class="emoji-option" onclick="agregarEmoji('😍')">😍</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥰')">🥰</div>
+                <div class="emoji-option" onclick="agregarEmoji('😘')">😘</div>
+                <div class="emoji-option" onclick="agregarEmoji('😗')">😗</div>
+                <div class="emoji-option" onclick="agregarEmoji('😙')">😙</div>
+                <div class="emoji-option" onclick="agregarEmoji('😚')">😚</div>
+                <div class="emoji-option" onclick="agregarEmoji('😋')">😋</div>
+                <div class="emoji-option" onclick="agregarEmoji('😛')">😛</div>
+                <div class="emoji-option" onclick="agregarEmoji('😝')">😝</div>
+                <div class="emoji-option" onclick="agregarEmoji('😜')">😜</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤪')">🤪</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤨')">🤨</div>
+                <div class="emoji-option" onclick="agregarEmoji('🧐')">🧐</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤓')">🤓</div>
+                <div class="emoji-option" onclick="agregarEmoji('😎')">😎</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤩')">🤩</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥳')">🥳</div>
+                <div class="emoji-option" onclick="agregarEmoji('😏')">😏</div>
+                <div class="emoji-option" onclick="agregarEmoji('😒')">😒</div>
+                <div class="emoji-option" onclick="agregarEmoji('😞')">😞</div>
+                <div class="emoji-option" onclick="agregarEmoji('😔')">😔</div>
+                <div class="emoji-option" onclick="agregarEmoji('😟')">😟</div>
+                <div class="emoji-option" onclick="agregarEmoji('😕')">😕</div>
+                <div class="emoji-option" onclick="agregarEmoji('🙁')">🙁</div>
+                <div class="emoji-option" onclick="agregarEmoji('☹️')">☹️</div>
+                <div class="emoji-option" onclick="agregarEmoji('😣')">😣</div>
+                <div class="emoji-option" onclick="agregarEmoji('😖')">😖</div>
+                <div class="emoji-option" onclick="agregarEmoji('😫')">😫</div>
+                <div class="emoji-option" onclick="agregarEmoji('😩')">😩</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥺')">🥺</div>
+                <div class="emoji-option" onclick="agregarEmoji('😢')">😢</div>
+                <div class="emoji-option" onclick="agregarEmoji('😭')">😭</div>
+                <div class="emoji-option" onclick="agregarEmoji('😤')">😤</div>
+                <div class="emoji-option" onclick="agregarEmoji('😠')">😠</div>
+                <div class="emoji-option" onclick="agregarEmoji('😡')">😡</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤬')">🤬</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤯')">🤯</div>
+                <div class="emoji-option" onclick="agregarEmoji('😳')">😳</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥵')">🥵</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥶')">🥶</div>
+                <div class="emoji-option" onclick="agregarEmoji('😱')">😱</div>
+                <div class="emoji-option" onclick="agregarEmoji('😨')">😨</div>
+                <div class="emoji-option" onclick="agregarEmoji('😰')">😰</div>
+                <div class="emoji-option" onclick="agregarEmoji('😥')">😥</div>
+                <div class="emoji-option" onclick="agregarEmoji('😓')">😓</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤗')">🤗</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤔')">🤔</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤭')">🤭</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤫')">🤫</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤥')">🤥</div>
+                <div class="emoji-option" onclick="agregarEmoji('😶')">😶</div>
+                <div class="emoji-option" onclick="agregarEmoji('😐')">😐</div>
+                <div class="emoji-option" onclick="agregarEmoji('😑')">😑</div>
+                <div class="emoji-option" onclick="agregarEmoji('😬')">😬</div>
+                <div class="emoji-option" onclick="agregarEmoji('🙄')">🙄</div>
+                <div class="emoji-option" onclick="agregarEmoji('😯')">😯</div>
+                <div class="emoji-option" onclick="agregarEmoji('😦')">😦</div>
+                <div class="emoji-option" onclick="agregarEmoji('😧')">😧</div>
+                <div class="emoji-option" onclick="agregarEmoji('😮')">😮</div>
+                <div class="emoji-option" onclick="agregarEmoji('😲')">😲</div>
+                <div class="emoji-option" onclick="agregarEmoji('🥱')">🥱</div>
+                <div class="emoji-option" onclick="agregarEmoji('😴')">😴</div>
+                <div class="emoji-option" onclick="agregarEmoji('💤')">💤</div>
+                <div class="emoji-option" onclick="agregarEmoji('💩')">💩</div>
+                <div class="emoji-option" onclick="agregarEmoji('👻')">👻</div>
+                <div class="emoji-option" onclick="agregarEmoji('💀')">💀</div>
+                <div class="emoji-option" onclick="agregarEmoji('👽')">👽</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤖')">🤖</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎃')">🎃</div>
+                <div class="emoji-option" onclick="agregarEmoji('😺')">😺</div>
+                <div class="emoji-option" onclick="agregarEmoji('😸')">😸</div>
+                <div class="emoji-option" onclick="agregarEmoji('😹')">😹</div>
+                <div class="emoji-option" onclick="agregarEmoji('😻')">😻</div>
+                <div class="emoji-option" onclick="agregarEmoji('😼')">😼</div>
+                <div class="emoji-option" onclick="agregarEmoji('😽')">😽</div>
+                <div class="emoji-option" onclick="agregarEmoji('🙀')">🙀</div>
+                <div class="emoji-option" onclick="agregarEmoji('😿')">😿</div>
+                <div class="emoji-option" onclick="agregarEmoji('😾')">😾</div>
+                <div class="emoji-option" onclick="agregarEmoji('❤️')">❤️</div>
+                <div class="emoji-option" onclick="agregarEmoji('🧡')">🧡</div>
+                <div class="emoji-option" onclick="agregarEmoji('💛')">💛</div>
+                <div class="emoji-option" onclick="agregarEmoji('💚')">💚</div>
+                <div class="emoji-option" onclick="agregarEmoji('💙')">💙</div>
+                <div class="emoji-option" onclick="agregarEmoji('💜')">💜</div>
+                <div class="emoji-option" onclick="agregarEmoji('🖤')">🖤</div>
+                <div class="emoji-option" onclick="agregarEmoji('🤍')">🤍</div>
+                <div class="emoji-option" onclick="agregarEmoji('💔')">💔</div>
+                <div class="emoji-option" onclick="agregarEmoji('💖')">💖</div>
+                <div class="emoji-option" onclick="agregarEmoji('💗')">💗</div>
+                <div class="emoji-option" onclick="agregarEmoji('💓')">💓</div>
+                <div class="emoji-option" onclick="agregarEmoji('💕')">💕</div>
+                <div class="emoji-option" onclick="agregarEmoji('💞')">💞</div>
+                <div class="emoji-option" onclick="agregarEmoji('🔥')">🔥</div>
+                <div class="emoji-option" onclick="agregarEmoji('✨')">✨</div>
+                <div class="emoji-option" onclick="agregarEmoji('⭐')">⭐</div>
+                <div class="emoji-option" onclick="agregarEmoji('🌟')">🌟</div>
+                <div class="emoji-option" onclick="agregarEmoji('💫')">💫</div>
+                <div class="emoji-option" onclick="agregarEmoji('💥')">💥</div>
+                <div class="emoji-option" onclick="agregarEmoji('💢')">💢</div>
+                <div class="emoji-option" onclick="agregarEmoji('💦')">💦</div>
+                <div class="emoji-option" onclick="agregarEmoji('💧')">💧</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎉')">🎉</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎊')">🎊</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎈')">🎈</div>
+            </div>
+            
+            <!-- Panel de stickers -->
+            <div id="stickerPanel" class="emoji-panel" style="display: none;">
+                <img src="https://media.tenor.com/images/5e9c9e3c6a8d3b8e3c6a8d3b8e3c6a8d/tenor.gif" class="sticker-option" onclick="agregarSticker('https://media.tenor.com/images/5e9c9e3c6a8d3b8e3c6a8d3b8e3c6a8d/tenor.gif')">
+                <img src="https://media.tenor.com/images/8e9c9e3c6a8d3b8e3c6a8d3b8e3c6a8d/tenor.gif" class="sticker-option" onclick="agregarSticker('https://media.tenor.com/images/8e9c9e3c6a8d3b8e3c6a8d3b8e3c6a8d/tenor.gif')">
+                <div class="emoji-option" onclick="agregarEmoji('🎮')">🎮</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎲')">🎲</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎯')">🎯</div>
+                <div class="emoji-option" onclick="agregarEmoji('🎨')">🎨</div>
+            </div>
+            
             <div class="comentario-actions">
                 <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentario()">
                     <i class="fas fa-paper-plane"></i> Enviar comentario
@@ -758,7 +994,6 @@
             </div>
         </div>
 
-        <!-- Lista de comentarios -->
         <div id="comentariosList" class="comentarios-list">
             <div class="empty-comments">
                 <i class="fas fa-spinner fa-spin"></i>
@@ -766,16 +1001,41 @@
             </div>
         </div>
     </div>
-
   </div>
 
-  <!-- Firebase y Firestore -->
+  <!-- MODAL DE AUTENTICACIÓN -->
+  <div id="authModal" class="auth-modal">
+    <div class="auth-card">
+      <div class="auth-close" onclick="closeAuthModal()">&times;</div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+        <div class="auth-tab" data-tab="register">Registrarse</div>
+      </div>
+      <div id="authLoginForm" class="auth-form">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="loginWithEmail()">Iniciar sesión</button>
+      </div>
+      <div id="authRegisterForm" class="auth-form" style="display:none;">
+        <input type="email" id="registerEmail" placeholder="Correo electrónico">
+        <input type="password" id="registerPassword" placeholder="Contraseña">
+        <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
+        <button onclick="registerWithEmail()">Registrarse</button>
+      </div>
+      <div class="auth-providers">
+        <div class="provider-btn" onclick="loginWithGoogle()">
+          <i class="fab fa-google"></i> Continuar con Google
+        </div>
+      </div>
+      <div id="authError" class="auth-error"></div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -785,34 +1045,84 @@
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
     firebase.initializeApp(firebaseConfig);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const providerGoogle = new firebase.auth.GoogleAuthProvider();
+    
+    // Funciones de autenticación
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('show');
+      document.getElementById('authError').innerText = '';
+    }
+    
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        if (tabName === 'login') {
+          document.getElementById('authLoginForm').style.display = 'flex';
+          document.getElementById('authRegisterForm').style.display = 'none';
+        } else {
+          document.getElementById('authLoginForm').style.display = 'none';
+          document.getElementById('authRegisterForm').style.display = 'flex';
+        }
+        document.getElementById('authError').innerText = '';
+      });
+    });
+    
+    async function loginWithEmail() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) {
+        document.getElementById('authError').innerText = err.message;
+      }
+    }
+    
+    async function registerWithEmail() {
+      const email = document.getElementById('registerEmail').value;
+      const pass = document.getElementById('registerPassword').value;
+      const confirm = document.getElementById('registerConfirm').value;
+      if (pass !== confirm) {
+        document.getElementById('authError').innerText = 'Las contraseñas no coinciden';
+        return;
+      }
+      try {
+        await auth.createUserWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) {
+        document.getElementById('authError').innerText = err.message;
+      }
+    }
+    
+    async function loginWithGoogle() {
+      try {
+        await auth.signInWithPopup(providerGoogle);
+        closeAuthModal();
+      } catch (err) {
+        document.getElementById('authError').innerText = err.message;
+      }
+    }
   </script>
 
   <script>
     var version = new Date().getTime();
     document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
-  </script>
-
-  <script>
-    var version = new Date().getTime();
     document.write('<script src="comentarios.js?v=' + version + '"><\/script>');
   </script>
 
   <script>
-    // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE
-    // -----------------------------------------------------------
-    
     const DB = (typeof players !== 'undefined') ? players : {};
-    
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
     const season = params.get('s');
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
 
-    // Variables globales para el sistema de comentarios
     window.comentariosAnimeId = animeId;
     window.comentariosSeason = season;
     window.comentariosEpisode = episode;
@@ -823,20 +1133,17 @@
 
     const epData = DB[animeId]?.[season]?.[episode];
     
-    // --- DETECCIÓN DE DISPOSITIVOS ---
     function isTabletDevice() {
         const ua = navigator.userAgent.toLowerCase();
         const isIpad = /ipad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isAndroidTablet = /android/i.test(ua) && !/mobile/i.test(ua);
-        const isGenericTablet = /tablet/i.test(ua);
-        return isIpad || isAndroidTablet || isGenericTablet;
+        return isIpad || isAndroidTablet;
     }
 
     function isMobileDevice() {
         return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
     }
 
-    // --- FORZAR LA DESCARGA OCULTA EN SEGUNDO PLANO ---
     function forceDownload(url) {
         let iframe = document.getElementById('hiddenDownloader');
         if (!iframe) {
@@ -848,7 +1155,6 @@
         iframe.src = url;
     }
 
-    // --- LÓGICA DE DESCARGA ---
     function generateDirectDownloadLink(url) {
         if (!url) return "#";
         if (url.includes("drive.google.com")) {
@@ -888,10 +1194,8 @@
         const dlBtn = document.getElementById('downloadBtn');
         dlBtn.onclick = null;
         dlBtn.removeAttribute("target");
-        
         const directLink = generateDirectDownloadLink(url);
         dlBtn.href = directLink || '#';
-
         if(directLink && directLink !== '#') {
             if (directLink.includes("anydownloader.com")) {
                 dlBtn.setAttribute("target", "_blank");
@@ -899,7 +1203,7 @@
                 dlBtn.onclick = function(e) {
                     if (isTabletDevice()) {
                         e.preventDefault();
-                        prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
+                        prompt("Copia el enlace:", directLink);
                     } else if (isMobileDevice()) {
                         dlBtn.setAttribute("target", "_blank"); 
                     } else {
@@ -931,10 +1235,8 @@
         const container = document.getElementById('mediaContainer');
         container.innerHTML = ''; 
         if (!url) return;
-
         const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
         const isDrive = url.includes('drive.google.com') && url.includes('/preview');
-        
         if (isVideoFile && !isDrive) {
             const video = document.createElement('video');
             video.src = url;
@@ -976,11 +1278,9 @@
                         flatList.push({ s: sKey, e: eKey });
                     });
                 });
-                
                 const currentIndex = flatList.findIndex(item => String(item.s) === String(season) && String(item.e) === String(episode));
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
-                
                 if (currentIndex > 0) {
                     const prevItem = flatList[currentIndex - 1];
                     prevBtn.classList.remove('btn-hidden');
@@ -988,7 +1288,6 @@
                 } else {
                     prevBtn.classList.add('btn-hidden');
                 }
-
                 if (currentIndex !== -1 && currentIndex < flatList.length - 1) {
                     const nextItem = flatList[currentIndex + 1];
                     nextBtn.classList.remove('btn-hidden');
@@ -1000,12 +1299,9 @@
         } catch (e) { console.error(e); }
     }
 
-    // --- FUNCIONES DE HISTORIAL (Firestore + localStorage) ---
     let currentUserId = null;
-    let authReady = false;
 
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
-        console.log('Player - markEpisodeWatched', { animeId, seasonNum, epNum, currentUserId });
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
@@ -1018,74 +1314,31 @@
                     animeData[seasonNum] = seasonData;
                     data[animeId] = animeData;
                     await docRef.set(data, { merge: true });
-                    console.log('Player - Marcado en Firestore');
-                    showToast('Episodio marcado como visto');
-                } else {
-                    console.log('Player - Ya estaba marcado');
                 }
             } catch (err) {
-                console.error('Player - Error al marcar en Firestore:', err);
-                showToast('Error al marcar: ' + err.message, true);
+                console.error(err);
             }
         } else {
-            const key = `watched_${animeId}_${seasonNum}_${epNum}`;
-            localStorage.setItem(key, 'true');
-            console.log('Player - Marcado en localStorage');
-            showToast('Episodio marcado como visto (local)');
+            localStorage.setItem(`watched_${animeId}_${seasonNum}_${epNum}`, 'true');
         }
     }
 
-    function showToast(msg, isError = false) {
-        let toast = document.getElementById('toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'toast';
-            toast.style.position = 'fixed';
-            toast.style.bottom = '50px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%)';
-            toast.style.backgroundColor = isError ? '#ff0055' : '#00fff7';
-            toast.style.color = '#000';
-            toast.style.padding = '8px 20px';
-            toast.style.borderRadius = '20px';
-            toast.style.zIndex = '999';
-            toast.style.fontWeight = 'bold';
-            toast.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-            document.body.appendChild(toast);
-        }
-        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 3000);
-    }
-
-    // --- EJECUTAR AL CARGAR LA PÁGINA ---
     if (epData) {
         document.title = `Ver ${epData.title} - Archinime`;
         document.getElementById('epTitle').innerText = epData.title;
         const initialLink = epData.link || epData.link2;
-        
         updateDownloadButton(initialLink);
         loadVideo(initialLink);
-        
         const optContainer = document.getElementById('serverOptions');
         optContainer.innerHTML = '';
         if(epData.link) createOptionBtn("Latino", epData.link, true);
         if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
-        
         setupNavigation();
-
-        // MARCAR EPISODIO COMO VISTO - esperar autenticación
         auth.onAuthStateChanged(async (user) => {
             currentUserId = user ? user.uid : null;
-            authReady = true;
-            console.log('Player - Usuario autenticado:', currentUserId);
-            
-            // Inicializar sistema de comentarios
             if (typeof initComentariosSystem === 'function') {
                 initComentariosSystem(db, auth);
             }
-            
-            // Pequeña espera para asegurar que todo esté listo
             setTimeout(async () => {
                 await markEpisodeWatched(animeId, parseInt(season), parseInt(episode));
             }, 800);
