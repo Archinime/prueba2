@@ -1,100 +1,52 @@
-const CACHE_VERSION = 'archinime-v1.0';
-const CACHE_ASSETS = 'archinime-assets-cache';
-const CACHE_DATA = 'archinime-data-cache';
+const CACHE_NAME = 'archinime-os-v2';
 
-const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/styles-index.css',
-  '/script-index.js',
-  '/index-data.js',
-  '/animaciones.js',
-  '/musica_fondo.js',
-  '/notification-system.js',
-  '/pwa-handler.js',
-  '/Logo_Archinime.avif',
-  '/galaxia-morado1.avif',
-  '/manifest.json'
+// Archivos básicos a cachear (solo los esenciales)
+const urlsToCache = [
+  './',
+  'index.html',
+  'styles-index.css',
+  'Logo_Archinime.avif'
 ];
 
-// Instalar y cachear assets
+// Instalación: cachea solo lo básico
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_ASSETS).then(cache => {
-      console.log('✓ Cacheando assets...');
-      return cache.addAll(PRECACHE_URLS).catch(err => {
-        console.log('⚠ Algunos assets no pudieron cachearse:', err);
-      });
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // Activar inmediatamente
 });
 
-// Activar y limpiar caches antiguos
+// Activación: limpia cachés viejas
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_ASSETS && cacheName !== CACHE_DATA) {
-            console.log('🗑️ Limpiando cache antiguo:', cacheName);
+          if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  self.clients.claim(); // Tomar control inmediatamente
+  return self.clients.claim();
 });
 
-// Estrategia: Network First para datos, Cache First para assets
+// Estrategia: Network First (siempre intenta ir a la red primero)
 self.addEventListener('fetch', event => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // Archivos de datos (JSON, JS de datos)
-  if (url.pathname.includes('-data.js') || url.pathname.includes('.json')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (!response.ok) throw new Error('Network error');
-          const clone = response.clone();
-          caches.open(CACHE_DATA).then(cache => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then(cached => {
-            return cached || new Response('Offline - data not available', { status: 503 });
-          });
-        })
-    );
-  }
-  // Assets (CSS, imágenes, etc)
-  else if (request.method === 'GET') {
-    event.respondWith(
-      caches.match(request).then(cached => {
-        return cached || fetch(request).then(response => {
-          if (!response.ok) return cached || response;
-          
-          const clone = response.clone();
-          caches.open(CACHE_ASSETS).then(cache => {
-            cache.put(request, clone);
-          });
-          return response;
-        }).catch(() => cached);
+  event.respondWith(
+    fetch(event.request)
+      .then(networkResponse => {
+        // Actualiza la caché con la nueva respuesta
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+        return networkResponse;
       })
-    );
-  }
-});
-
-// Notificar a los clientes cuando hay actualización
-self.addEventListener('controllerchange', () => {
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'CACHE_UPDATED',
-        message: 'Datos precargados para carga rápida en próximas visitas'
-      });
-    });
-  });
+      .catch(() => {
+        // Si falla la red, busca en caché
+        return caches.match(event.request);
+      })
+  );
 });

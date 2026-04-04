@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
+  <!-- Meta tags anti-caché -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <title>Archinime - Ver Anime Online Gratis en Alta Calidad</title>
   
   <meta name="description" content="Explora Archinime, la plataforma definitiva para ver anime online. Disfruta de estrenos de temporada, clásicos y una base de datos actualizada en alta calidad.">
@@ -103,7 +108,7 @@
   
   body { 
     background-color: var(--dark-bg);
-    background-image: url('galaxia-morado1.avif');
+    background-image: url('galaxia-morado1.avif?v=' + Date.now());
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -330,8 +335,7 @@
     border: 2px solid var(--neon-cyan);
     cursor: pointer;
     transition: 0.2s;
-    /* Ajuste de alineación vertical: baja 2px para alinear con otros botones */
-    margin-top: 2px;
+    margin-top: 2px; /* Ajuste de alineación */
   }
   #userAvatarBtn:hover {
     transform: scale(1.05);
@@ -1239,10 +1243,14 @@
       setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // --- SERVICE WORKER ---
+    // --- SERVICE WORKER (actualizado para evitar caché) ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(e => console.log('SW Error:', e));
+        navigator.serviceWorker.register('sw.js').then(registration => {
+          console.log('SW registrado');
+          // Forzar actualización del SW cada vez que se carga la página
+          registration.update();
+        }).catch(e => console.log('SW Error:', e));
       });
     }
 
