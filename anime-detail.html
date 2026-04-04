@@ -641,7 +641,7 @@
     }, { once: true });
 
     /* ----------------------------------------------------
-       3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage) - CORREGIDAS DEFINITIVAMENTE
+       3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage) - CORREGIDAS PARA CUENTAS
        ---------------------------------------------------- */
     let currentUserId = null;
     let currentAnimeId = null;
@@ -701,7 +701,7 @@
                 const doc = await docRef.get();
                 if (doc.exists) {
                     let data = doc.data();
-                    if (data[animeId]?.[seasonNum]) {
+                    if (data[animeId] && data[animeId][seasonNum]) {
                         // Filtrar el episodio a eliminar
                         const newSeasonData = data[animeId][seasonNum].filter(n => n !== epNum);
                         if (newSeasonData.length === 0) {
@@ -713,11 +713,12 @@
                         if (Object.keys(data[animeId]).length === 0) {
                             delete data[animeId];
                         }
-                        await docRef.set(data, { merge: true });
+                        // Usar set sin merge para sobreescribir completamente
+                        await docRef.set(data);
                         console.log('Eliminado de Firestore, nuevo estado:', data);
                         showToast('Episodio eliminado del historial');
-                        // Esperar un poco para que Firestore actualice su caché local
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        // Esperar medio segundo para que Firestore actualice su caché
+                        await new Promise(resolve => setTimeout(resolve, 500));
                     } else {
                         console.log('No existía en Firestore');
                     }
@@ -736,7 +737,7 @@
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
-                // Forzar lectura desde el servidor para evitar caché
+                // Forzar lectura desde el servidor para evitar caché local
                 const doc = await docRef.get({ source: 'server' });
                 if (doc.exists) {
                     const data = doc.data();
@@ -745,10 +746,9 @@
                 }
                 return {};
             } catch (err) {
-                console.warn('Error cargando historial de Firestore:', err);
-                // Fallback a caché local si hay error de red
+                console.warn('Error cargando historial desde servidor, intentando caché:', err);
                 try {
-                    const doc = await db.collection('watchHistory').doc(currentUserId).get();
+                    const doc = await docRef.get();
                     if (doc.exists) return doc.data()[animeId] || {};
                 } catch(e) {}
                 return {};
@@ -769,7 +769,7 @@
         }
     }
 
-    // Recargar una temporada específica (vacía y vuelve a cargar)
+    // Recargar una temporada específica
     async function reloadSeason(detailsElement, animeId, seasonIndex) {
         if (!detailsElement) return;
         const listContainer = detailsElement.querySelector('.video-list');
@@ -777,7 +777,7 @@
             const wasOpen = detailsElement.open;
             // Vaciar completamente
             listContainer.innerHTML = '';
-            // Si estaba abierta, recargar (pero esperar un poco para asegurar que Firestore ya actualizó)
+            // Si estaba abierta, recargar después de un pequeño retraso
             if (wasOpen) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 await toggleSeason(detailsElement, animeId, seasonIndex);
