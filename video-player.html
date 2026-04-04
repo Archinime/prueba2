@@ -660,21 +660,30 @@
     let currentUserId = null;
 
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
+        console.log('Player - markEpisodeWatched', { animeId, seasonNum, epNum, currentUserId });
         if (currentUserId) {
-            const docRef = db.collection('watchHistory').doc(currentUserId);
-            const doc = await docRef.get();
-            let data = doc.exists ? doc.data() : {};
-            let animeData = data[animeId] || {};
-            let seasonData = animeData[seasonNum] || [];
-            if (!seasonData.includes(epNum)) {
-                seasonData.push(epNum);
-                animeData[seasonNum] = seasonData;
-                data[animeId] = animeData;
-                await docRef.set(data, { merge: true });
+            try {
+                const docRef = db.collection('watchHistory').doc(currentUserId);
+                const doc = await docRef.get();
+                let data = doc.exists ? doc.data() : {};
+                let animeData = data[animeId] || {};
+                let seasonData = animeData[seasonNum] || [];
+                if (!seasonData.includes(epNum)) {
+                    seasonData.push(epNum);
+                    animeData[seasonNum] = seasonData;
+                    data[animeId] = animeData;
+                    await docRef.set(data, { merge: true });
+                    console.log('Player - Marcado en Firestore');
+                } else {
+                    console.log('Player - Ya estaba marcado');
+                }
+            } catch (err) {
+                console.error('Player - Error al marcar en Firestore:', err);
             }
         } else {
             const key = `watched_${animeId}_${seasonNum}_${epNum}`;
             localStorage.setItem(key, 'true');
+            console.log('Player - Marcado en localStorage');
         }
     }
 
@@ -697,6 +706,7 @@
         // MARCAR EPISODIO COMO VISTO (sincronizado)
         auth.onAuthStateChanged(async (user) => {
             currentUserId = user ? user.uid : null;
+            console.log('Player - Usuario autenticado:', currentUserId);
             await markEpisodeWatched(animeId, season, episode);
         });
     } else {
