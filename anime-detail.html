@@ -641,7 +641,7 @@
     }, { once: true });
 
     /* ----------------------------------------------------
-       3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage) - CORREGIDAS
+       3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage) - CORREGIDAS DEFINITIVAMENTE
        ---------------------------------------------------- */
     let currentUserId = null;
     let currentAnimeId = null;
@@ -702,16 +702,22 @@
                 if (doc.exists) {
                     let data = doc.data();
                     if (data[animeId]?.[seasonNum]) {
-                        data[animeId][seasonNum] = data[animeId][seasonNum].filter(n => n !== epNum);
-                        if (data[animeId][seasonNum].length === 0) {
+                        // Filtrar el episodio a eliminar
+                        const newSeasonData = data[animeId][seasonNum].filter(n => n !== epNum);
+                        if (newSeasonData.length === 0) {
                             delete data[animeId][seasonNum];
+                        } else {
+                            data[animeId][seasonNum] = newSeasonData;
                         }
+                        // Si la temporada quedó vacía, eliminar la clave del anime
                         if (Object.keys(data[animeId]).length === 0) {
                             delete data[animeId];
                         }
                         await docRef.set(data, { merge: true });
-                        console.log('Eliminado de Firestore');
+                        console.log('Eliminado de Firestore, nuevo estado:', data);
                         showToast('Episodio eliminado del historial');
+                        // Esperar un poco para que Firestore actualice su caché local
+                        await new Promise(resolve => setTimeout(resolve, 300));
                     } else {
                         console.log('No existía en Firestore');
                     }
@@ -730,13 +736,21 @@
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
-                const doc = await docRef.get();
+                // Forzar lectura desde el servidor para evitar caché
+                const doc = await docRef.get({ source: 'server' });
                 if (doc.exists) {
-                    return doc.data()[animeId] || {};
+                    const data = doc.data();
+                    console.log('Watched data desde servidor:', data[animeId]);
+                    return data[animeId] || {};
                 }
                 return {};
             } catch (err) {
                 console.warn('Error cargando historial de Firestore:', err);
+                // Fallback a caché local si hay error de red
+                try {
+                    const doc = await db.collection('watchHistory').doc(currentUserId).get();
+                    if (doc.exists) return doc.data()[animeId] || {};
+                } catch(e) {}
                 return {};
             }
         } else {
@@ -763,8 +777,9 @@
             const wasOpen = detailsElement.open;
             // Vaciar completamente
             listContainer.innerHTML = '';
-            // Si estaba abierta, recargar
+            // Si estaba abierta, recargar (pero esperar un poco para asegurar que Firestore ya actualizó)
             if (wasOpen) {
+                await new Promise(resolve => setTimeout(resolve, 100));
                 await toggleSeason(detailsElement, animeId, seasonIndex);
             }
         }
@@ -900,7 +915,7 @@
                         } else {
                             await markEpisodeWatched(animeId, seasonNum, epNum);
                         }
-                        // Recargar la temporada actual
+                        // Recargar la temporada actual después de la operación
                         await reloadSeason(details, animeId, seasonIndex);
                     } catch (err) {
                         console.error(err);
