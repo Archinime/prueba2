@@ -11,16 +11,11 @@
   (function() {
     // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#00f3ff", // Cian Neón (Inicio)
-      "#0066ff", // Azul Eléctrico
-      "#bc13fe", // Morado Protagonista
-      "#ff0055", // Rosa Neón (Acento)
-      "#bc13fe", // Morado (Regreso)
-      "#0066ff", // Azul
-      "#00f3ff"  // Cian (Final para loop perfecto)
+      "#00f3ff", "#0066ff", "#bc13fe", 
+      "#ff0055", "#bc13fe", "#0066ff", "#00f3ff" 
     ];
 
-    const animationDuration = 20000; // 6 segundos (igual que el CSS nuevo)
+    const animationDuration = 20000; 
     const intervalTime = 20; 
     const segments = colors.length - 1;
     const step = (intervalTime / animationDuration) * segments;
@@ -136,13 +131,14 @@
     }
     @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-    /* --- BOTONES SUPERIORES --- */
+    /* --- BOTONES SUPERIORES Y BUSCADOR --- */
     .top-buttons {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        margin: -20px -20px 10px -20px;
+        gap: 15px;
+        flex-wrap: wrap; 
+        margin: -20px -20px 20px -20px;
         padding: 15px 20px;
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
         border-radius: 12px 12px 0 0;
@@ -157,22 +153,24 @@
       background: rgba(0, 255, 255, 0.1);
       padding: 8px 12px;
       border-radius: 20px;
+      white-space: nowrap;
     }
     .back:active, .share-detail:active { background: rgba(0, 255, 255, 0.3); }
 
-    /* --- BARRA DE BÚSQUEDA RÁPIDA --- */
+    /* --- BARRA DE BÚSQUEDA RÁPIDA EN EL MEDIO --- */
     .search-container {
         position: relative;
-        margin-bottom: 25px;
+        flex-grow: 1; 
+        max-width: 400px;
     }
     .search-container input {
         width: 100%;
-        padding: 12px 20px;
+        padding: 10px 18px;
         border-radius: 25px;
         background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(0, 255, 255, 0.4);
         color: #fff;
-        font-size: 1rem;
+        font-size: 0.95rem;
         outline: none;
         transition: all 0.3s ease;
     }
@@ -199,7 +197,6 @@
         display: none;
         box-shadow: 0 8px 32px rgba(0,0,0,0.8);
     }
-    /* Estilizar barra de scroll del dropdown */
     .search-dropdown::-webkit-scrollbar { width: 8px; }
     .search-dropdown::-webkit-scrollbar-track { background: #0d0214; border-radius: 8px; }
     .search-dropdown::-webkit-scrollbar-thumb { background: #0ff; border-radius: 8px; }
@@ -269,8 +266,7 @@
       border: 1px solid rgba(0, 255, 255, 0.4);
       background: rgba(0, 255, 255, 0.05);
       color: #e0ffff;
-      cursor: default; 
-      user-select: none;
+      cursor: text; 
     }
     .genre-chip:hover {
         background: rgba(0, 255, 255, 0.15);
@@ -285,12 +281,10 @@
       border-left:3px solid #0ff;
     }
 
-    /* --- UPLOADER INFO --- */
+    /* --- UPLOADER INFO (OCULTO) --- */
     .uploader-container {
-        display: flex;
+        display: none; /* OCULTO SEGÚN SOLICITUD */
         align-items: center;
-        justify-content: flex-end; 
-        margin-bottom: 30px;
         gap: 10px;
     }
     .upload-label { font-size: 0.85rem; color: #aaa; }
@@ -355,7 +349,8 @@
     }
 
     .ep-btn {
-      display:flex; flex-direction: column;
+      display:flex;
+      flex-direction: column;
       align-items: center; 
       justify-content: center;
       padding:10px 4px;
@@ -364,7 +359,7 @@
       border-radius:4px;
       text-decoration:none; color:#ddd;
       font-size:0.8rem; text-align:center;
-      min-height: 55px; 
+      min-height: 55px;
       transition: all 0.2s;
       position: relative;
     }
@@ -394,6 +389,35 @@
         align-items: center;
         gap: 3px;
         text-shadow: 0 0 5px rgba(0, 255, 157, 0.4);
+    }
+
+    /* --- BOTÓN ELIMINAR EPISODIO (INDIVIDUAL) --- */
+    .delete-ep-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(0,0,0,0.6);
+        border: none;
+        color: #ff0055;
+        font-size: 0.7rem;
+        width: 20px;
+        height: 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        opacity: 0;
+        z-index: 2;
+    }
+    .ep-btn:hover .delete-ep-btn {
+        opacity: 1;
+    }
+    .delete-ep-btn:hover {
+        background: #ff0055;
+        color: white;
+        transform: scale(1.1);
     }
 
     /* --- RECOMENDACIONES --- */
@@ -438,13 +462,12 @@
 
     @media (max-width: 600px) {
         .container { 
-            width:100%;
-            margin-top:0; padding:15px; border-radius:0; border:none; background: rgba(0,0,0,0.6); 
+            width:100%; margin-top:0; padding:15px; border-radius:0; border:none; background: rgba(0,0,0,0.6); 
         }
+        .search-container { order: 3; width: 100%; max-width: 100%; margin-top: 10px; }
         .video-list { grid-template-columns: repeat(2, 1fr); gap: 6px; }
         h1 { font-size:1.4rem; }
         .rec-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .uploader-container { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -455,13 +478,14 @@
   <div class="container">
     <div class="top-buttons">
         <a href="index.html" class="back">← Volver</a>
+        
+        <div class="search-container">
+            <input type="text" id="quick-search" placeholder="🔍 Buscar anime..." autocomplete="off">
+            <div id="quick-search-results" class="search-dropdown"></div>
+        </div>
+
         <span id="share-detail" class="share-detail">🔗 Compartir</span>
-    </div>
-    
-    <div class="search-container">
-        <input type="text" id="quick-search" placeholder="🔍 Buscar otro anime..." autocomplete="off">
-        <div id="quick-search-results" class="search-dropdown"></div>
-    </div>
+     </div>
     
     <div id="contenido"></div>
 
@@ -477,6 +501,26 @@
     <source src="galaxia.mp4" type="video/mp4">
   </video>
   <div id="overlay"></div>
+
+  <!-- Firebase y Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Configuración de Firebase (la misma que en index.html)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
 
   <script>
     var version = new Date().getTime();
@@ -498,8 +542,40 @@
     document.write('<script src="users-data.js?v=' + version + '"><\/script>');
   </script>
 
-
   <script>
+    /* ----------------------------------------------------
+       0. SINTETIZADOR WEB AUDIO API (Sonidos UI)
+       ---------------------------------------------------- */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playUISound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'hover') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, now);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+            gainNode.gain.setValueAtTime(0.02, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            oscillator.start(now);
+            oscillator.stop(now + 0.05);
+        } else if (type === 'click') {
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(300, now);
+            oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+            gainNode.gain.setValueAtTime(0.05, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            oscillator.start(now);
+            oscillator.stop(now + 0.1);
+        }
+    }
+
     /* ----------------------------------------------------
        1. Gestión de Carga
        ---------------------------------------------------- */
@@ -515,7 +591,7 @@
     });
 
     /* ----------------------------------------------------
-       2. Lógica de Audio
+       2. Lógica de Audio (BGM)
        ---------------------------------------------------- */
     let currentAudio = null;
     let playlist = [];
@@ -549,7 +625,7 @@
         const params = new URLSearchParams(location.search);
         const id = params.get('id');
         
-        if (audioPlaylists[id] && audioPlaylists[id].length > 0) {
+         if (audioPlaylists[id] && audioPlaylists[id].length > 0) {
             playlist = audioPlaylists[id];
             currentTrackIndex = Math.floor(Math.random() * playlist.length);
             playTrack(currentTrackIndex);
@@ -557,7 +633,104 @@
     }, { once: true });
 
     /* ----------------------------------------------------
-       3. Renderizado y Lógica Visual (CON MEJORA SEO)
+       3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage)
+       ---------------------------------------------------- */
+    let currentUserId = null;        // uid del usuario logueado, null si invitado
+    let currentAnimeId = null;       // id del anime actual
+
+    // Obtener la clave local para un episodio (invitado)
+    function getLocalKey(animeId, seasonNum, epNum) {
+        return `watched_${animeId}_${seasonNum}_${epNum}`;
+    }
+
+    // Marcar como visto (local o cloud)
+    async function markEpisodeWatched(animeId, seasonNum, epNum) {
+        if (currentUserId) {
+            // Usuario logueado -> Firestore
+            const docRef = db.collection('watchHistory').doc(currentUserId);
+            const doc = await docRef.get();
+            let data = doc.exists ? doc.data() : {};
+            let animeData = data[animeId] || {};
+            let seasonData = animeData[seasonNum] || [];
+            if (!seasonData.includes(epNum)) {
+                seasonData.push(epNum);
+                animeData[seasonNum] = seasonData;
+                data[animeId] = animeData;
+                await docRef.set(data, { merge: true });
+            }
+        } else {
+            // Invitado -> localStorage
+            const key = getLocalKey(animeId, seasonNum, epNum);
+            localStorage.setItem(key, 'true');
+        }
+    }
+
+    // Verificar si un episodio está visto (local o cloud)
+    async function isEpisodeWatched(animeId, seasonNum, epNum) {
+        if (currentUserId) {
+            const docRef = db.collection('watchHistory').doc(currentUserId);
+            const doc = await docRef.get();
+            if (!doc.exists) return false;
+            const data = doc.data();
+            return data[animeId]?.[seasonNum]?.includes(epNum) || false;
+        } else {
+            const key = getLocalKey(animeId, seasonNum, epNum);
+            return localStorage.getItem(key) === 'true';
+        }
+    }
+
+    // Eliminar un episodio del historial (local o cloud)
+    async function removeEpisodeWatched(animeId, seasonNum, epNum) {
+        if (currentUserId) {
+            const docRef = db.collection('watchHistory').doc(currentUserId);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                let data = doc.data();
+                if (data[animeId]?.[seasonNum]) {
+                    data[animeId][seasonNum] = data[animeId][seasonNum].filter(n => n !== epNum);
+                    if (data[animeId][seasonNum].length === 0) {
+                        delete data[animeId][seasonNum];
+                    }
+                    if (Object.keys(data[animeId]).length === 0) {
+                        delete data[animeId];
+                    }
+                    await docRef.set(data, { merge: true });
+                }
+            }
+        } else {
+            const key = getLocalKey(animeId, seasonNum, epNum);
+            localStorage.removeItem(key);
+        }
+    }
+
+    // Cargar todos los episodios vistos del anime actual (para aplicar clase 'watched')
+    async function loadWatchedEpisodes(animeId) {
+        if (currentUserId) {
+            const docRef = db.collection('watchHistory').doc(currentUserId);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                const data = doc.data();
+                return data[animeId] || {};
+            }
+            return {};
+        } else {
+            const watched = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(`watched_${animeId}_`)) {
+                    const parts = key.split('_');
+                    const season = parseInt(parts[2]);
+                    const ep = parseInt(parts[3]);
+                    if (!watched[season]) watched[season] = [];
+                    watched[season].push(ep);
+                }
+            }
+            return watched;
+        }
+    }
+
+    /* ----------------------------------------------------
+       4. Renderizado y Lógica Visual (modificada para usar el nuevo historial)
        ---------------------------------------------------- */
     
     if (typeof data === 'undefined') {
@@ -567,10 +740,10 @@
         const id = params.get('id');
         const anime = data[id];
         const container = document.getElementById('contenido');
+        currentAnimeId = id;
 
         if (anime) {
             document.title = `Ver ${anime.title} Online - Archinime OS`;
-
             const metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
                 metaDesc.setAttribute('content', `Disfruta de ${anime.title} en HD. ${anime.desc.substring(0, 140)}... Véalo gratis en Archinime.`);
@@ -598,54 +771,22 @@
                 }
             }
 
-            let uploaderEmailOrName = anime.uploader || "Desconocido";
-            let displayNick = uploaderEmailOrName; 
-            let uploaderHtml = "";
-            let userAvatar = "Logo_Archinime.avif";
-
-            if (typeof usersData !== 'undefined' && usersData[uploaderEmailOrName]) {
-                const userData = usersData[uploaderEmailOrName];
-                displayNick = userData.nick;
-                userAvatar = userData.avatar || "Logo_Archinime.avif";
-
-                uploaderHtml = `
-                    <div class="uploader-container">
-                        <span class="upload-label">Subido por:</span>
-                        <a href="${userData.social || '#'}" ${userData.social ? 'target="_blank"' : 'style="cursor:default"'} class="uploader-chip">
-                            <img src="${userAvatar}" alt="${displayNick}">
-                            <span>${displayNick}</span>
-                        </a>
-                    </div>
-                `;
-            } else {
-                uploaderHtml = `
-                    <div class="uploader-container">
-                        <span class="upload-label">Subido por:</span>
-                        <div class="uploader-chip" style="cursor:default">
-                            <img src="${userAvatar}" alt="User">
-                            <span>${displayNick}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
             let html = `
                 <div class="anime-cover"><img src="${anime.cover}" alt="cover"></div>
                 <h1>${anime.title}</h1>
                 <div class="genres-wrap" id="genres-container">${genreHtml}</div>
                 <p class="desc">${anime.desc}</p>
-                ${uploaderHtml}
+                <div class="uploader-container"></div>
             `;
-
             if(anime.seasons){
                 anime.seasons.forEach((s, index) => {
                     html += `
                     <details ontoggle="toggleSeason(this, ${id}, ${index})">
                         <summary>${s.name || 'Temporada ' + s.num}</summary>
-                        <div class="season-content">
+                         <div class="season-content">
                             ${s.cover ? `<img src="${s.cover}" loading="lazy" style="width:100%; border-radius:5px; margin-bottom:10px; display:block;">` : ''}
                             <div class="video-list" id="list-${index}"></div>
-                            <div id="loading-${index}" style="display:none; text-align:center; padding:10px; color:#aaa;">Cargando...</div>
+                             <div id="loading-${index}" style="display:none; text-align:center; padding:10px; color:#aaa;">Cargando...</div>
                         </div>
                     </details>`;
                 });
@@ -658,11 +799,12 @@
         }
     }
 
-    /* ----------------------------------------------------
-       4. Funciones Auxiliares
-       ---------------------------------------------------- */
-    function toggleSeason(details, animeId, seasonIndex) {
+    // Función toggleSeason modificada para cargar los episodios con el nuevo historial y botón de eliminar individual
+    async function toggleSeason(details, animeId, seasonIndex) {
         if (!details.open) return;
+        
+        playUISound('click');
+
         const listContainer = document.getElementById(`list-${seasonIndex}`);
         if (listContainer.children.length > 0) return; 
 
@@ -673,28 +815,54 @@
         const total = episodes.length;
         const seasonNum = data[animeId].seasons[seasonIndex].num;
         
+        // Cargar los episodios vistos (desde localStorage o Firestore)
+        const watchedData = await loadWatchedEpisodes(animeId);
+        
         let processed = 0;
         const CHUNK_SIZE = 40;
-
         function processChunk() {
             const fragment = document.createDocumentFragment();
             const limit = Math.min(processed + CHUNK_SIZE, total);
 
             for (let i = processed; i < limit; i++) {
                 const ep = episodes[i];
+                const epNum = i+1;
                 const a = document.createElement('a');
-                a.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${i+1}`;
+                a.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
                 a.className = 'ep-btn';
+                a.addEventListener('mouseenter', () => playUISound('hover'));
+                
+                // Botón para eliminar este episodio del historial
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                delBtn.className = 'delete-ep-btn';
+                delBtn.title = 'Eliminar del historial';
+                delBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await removeEpisodeWatched(animeId, seasonNum, epNum);
+                    a.classList.remove('watched');
+                    const watchedDiv = a.querySelector('.watched-tag');
+                    if (watchedDiv) watchedDiv.remove();
+                    showToast('Episodio eliminado del historial', false);
+                });
+                a.appendChild(delBtn);
 
-                const viewedKey = `watched_${animeId}_${seasonNum}_${i+1}`;
-                if(localStorage.getItem(viewedKey)) {
+                // Verificar si está visto
+                let isWatched = false;
+                if (watchedData[seasonNum] && watchedData[seasonNum].includes(epNum)) {
+                    isWatched = true;
+                }
+                if (isWatched) {
                     a.classList.add('watched');
                     a.innerHTML = `
                         <span>▶ ${ep.title}</span>
                         <div class="watched-tag"><i class="fas fa-check"></i> VISTO</div>
                     `;
+                    a.appendChild(delBtn); // reinsertar el botón después de cambiar innerHTML
                 } else {
-                    a.textContent = `▶ ${ep.title}`;
+                    a.innerHTML = `<span>▶ ${ep.title}</span>`;
+                    a.appendChild(delBtn);
                 }
 
                 fragment.appendChild(a);
@@ -702,7 +870,6 @@
 
             listContainer.appendChild(fragment);
             processed += CHUNK_SIZE;
-
             if (processed < total) {
                 requestAnimationFrame(processChunk);
             } else {
@@ -713,6 +880,7 @@
     }
 
     document.getElementById('share-detail').addEventListener('click', () => {
+        playUISound('click');
         navigator.clipboard.writeText(window.location.href);
         const t = document.getElementById('toast');
         t.style.display='block'; setTimeout(()=>t.style.display='none',2000);
@@ -722,14 +890,13 @@
         const grid = document.getElementById('rec-grid');
         const keys = Object.keys(data).filter(k => k != currentId);
         const randomKeys = keys.sort(() => 0.5 - Math.random()).slice(0, 12);
-
         if(randomKeys.length === 0) {
              grid.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No hay más animes cargados.</p>';
              return;
         }
 
         grid.innerHTML = randomKeys.map(k => `
-            <div class="rec-card" onclick="location.href='anime-detail.html?id=${k}'" style="cursor:pointer">
+            <div class="rec-card" onclick="playUISound('click'); location.href='anime-detail.html?id=${k}'" style="cursor:pointer" onmouseenter="playUISound('hover')">
                 <img src="${data[k].cover}" alt="${data[k].title}">
                 <p>${data[k].title}</p>
             </div>
@@ -738,6 +905,14 @@
 
     function escapeHtml(str){
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
     }
 
     /* ----------------------------------------------------
@@ -759,19 +934,18 @@
             const currentParams = new URLSearchParams(location.search);
             const currentId = currentParams.get('id');
 
-            // Filtrar animes ignorando mayúsculas/minúsculas y excluyendo el anime que ya estamos viendo
             const matches = Object.entries(data).filter(([id, anime]) => {
-                return anime.title.toLowerCase().includes(query) && id !== currentId;
+                return anime.title.toLowerCase().startsWith(query) && id !== currentId;
             });
 
             if (matches.length > 0) {
                 const html = matches.map(([id, anime]) => `
-                    <a href="anime-detail.html?id=${id}" class="search-item">
+                    <a href="anime-detail.html?id=${id}" class="search-item" onmouseenter="playUISound('hover')" onclick="playUISound('click')">
                         <img src="${anime.cover}" alt="${anime.title}">
-                        <div class="search-item-info">
+                         <div class="search-item-info">
                             <span class="search-item-title">${anime.title}</span>
                         </div>
-                    </a>
+                     </a>
                 `).join('');
                 searchResults.innerHTML = html;
             } else {
@@ -780,20 +954,49 @@
             searchResults.style.display = 'block';
         });
 
-        // Ocultar resultados si haces clic fuera de la barra
         document.addEventListener('click', function(e) {
             if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
                 searchResults.style.display = 'none';
             }
         });
-        
-        // Volver a mostrar si se hace click de nuevo en el input y tiene texto
+
         searchInput.addEventListener('focus', function() {
             if (this.value.trim().length > 0) {
                 searchResults.style.display = 'block';
             }
         });
     }
+
+    /* ----------------------------------------------------
+       6. Autenticación y listener para actualizar historial en tiempo real
+       ---------------------------------------------------- */
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            // Recargar la vista de temporadas para reflejar el historial de la cuenta
+            if (currentAnimeId) {
+                // Recargar todas las temporadas abiertas (si alguna está abierta)
+                const details = document.querySelectorAll('details[open]');
+                for (let detail of details) {
+                    const summary = detail.querySelector('summary');
+                    if (summary) {
+                        // Forzar recarga: cerrar y abrir de nuevo
+                        detail.open = false;
+                        detail.open = true;
+                    }
+                }
+            }
+        } else {
+            currentUserId = null;
+            if (currentAnimeId) {
+                const details = document.querySelectorAll('details[open]');
+                for (let detail of details) {
+                    detail.open = false;
+                    detail.open = true;
+                }
+            }
+        }
+    });
   </script>
 </body>
 </html>
