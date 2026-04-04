@@ -1,4 +1,4 @@
-/* notification-system.js - Versión mejorada sin notificaciones duplicadas */
+/* notification-system.js - Solo notificaciones de los 5 últimos animes (sin repetir) */
 
 let notificationQueue = [];
 let notificationsHistory = [];
@@ -28,12 +28,19 @@ function saveHistoryToStorage() {
 }
 
 function checkForNewUpdates() {
-    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== 'Ninguna');
+    // 1. Filtrar animes que tengan lastUpdate y updateType (y que no sea "Ninguna")
+    let updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== 'Ninguna');
+    
+    // 2. Ordenar por fecha más reciente (lastUpdate es timestamp)
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
+    
+    // 3. Tomar solo los 5 más recientes
+    const latestFive = updatedAnimes.slice(0, 5);
+    
     let newItemsFound = [];
-    updatedAnimes.forEach(anime => {
+    latestFive.forEach(anime => {
         const notifId = `${anime.id}_${anime.lastUpdate}`;
+        // Solo si no existe ya en el historial
         const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
         
         if (!alreadyExists) {
@@ -50,15 +57,21 @@ function checkForNewUpdates() {
                 seen: false,
                 isFinal: anime.isFinal || false
             };
+            // Insertar al inicio del historial (más reciente primero)
             notificationsHistory.unshift(newNotif);
             newItemsFound.push(newNotif);
         }
     });
-
+    
+    // Limitar historial a 50 elementos para no acumular demasiados
+    if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+    
     if (newItemsFound.length > 0) {
-        if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
+        // La cola de notificaciones serán solo los nuevos encontrados (máximo 5)
         notificationQueue = newItemsFound.slice(0, 5);
+    } else {
+        notificationQueue = [];
     }
 }
 
@@ -154,6 +167,7 @@ function toggleNotifMenu() {
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
+        // Marcar todas como vistas al abrir el menú
         notificationsHistory.forEach(n => n.seen = true);
         saveHistoryToStorage();
     } else {
@@ -178,6 +192,7 @@ function renderNotificationList() {
         listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
         return;
     }
+    // Mostrar las más recientes primero (ya están ordenadas por fecha descendente en el historial)
     const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
     sortedHistory.forEach(item => {
         const div = document.createElement('div');
