@@ -515,7 +515,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Configuración de Firebase (la misma que en index.html)
+    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -729,7 +729,7 @@
         }
     }
 
-    // Función para recargar una temporada específica
+    // Función para recargar una temporada específica (borra el contenido y fuerza reapertura)
     async function reloadSeason(detailsElement, animeId, seasonIndex) {
         if (!detailsElement) return;
         const listContainer = detailsElement.querySelector('.video-list');
@@ -1012,7 +1012,6 @@
             const detailsList = document.querySelectorAll('details');
             for (let detail of detailsList) {
                 if (detail.open) {
-                    // Obtener el índice de la temporada a partir del id del listContainer
                     const listDiv = detail.querySelector('.video-list');
                     if (listDiv && listDiv.id) {
                         const seasonIndex = parseInt(listDiv.id.split('-')[1]);

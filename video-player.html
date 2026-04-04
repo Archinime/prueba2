@@ -11,13 +11,8 @@
   (function() {
     // PALETA "SYNTHWAVE": Solo colores fríos y neones que combinan con la galaxia
     const colors = [
-      "#00f3ff", // Cian Neón (Inicio)
-      "#0066ff", // Azul Eléctrico
-      "#bc13fe", // Morado Protagonista
-      "#ff0055", // Rosa Neón (Acento)
-      "#bc13fe", // Morado (Regreso)
-      "#0066ff", // Azul
-      "#00f3ff"  // Cian (Final para loop perfecto)
+      "#00f3ff", "#0066ff", "#bc13fe", 
+      "#ff0055", "#bc13fe", "#0066ff", "#00f3ff" 
     ];
 
     const animationDuration = 20000; 
@@ -440,6 +435,26 @@
 
   </div>
 
+  <!-- Firebase y Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
   <script>
     var version = new Date().getTime();
     document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
@@ -447,7 +462,7 @@
 
   <script>
     // -----------------------------------------------------------
-    // LÓGICA DEL REPRODUCTOR
+    // LÓGICA DEL REPRODUCTOR CON SINCRONIZACIÓN FIRESTORE
     // -----------------------------------------------------------
     
     const DB = (typeof players !== 'undefined') ? players : {};
@@ -458,39 +473,12 @@
     const episode = params.get('e');
     const backLink = document.getElementById('backLink');
 
-    if (animeId && season && episode) {
-        const viewedKey = `watched_${animeId}_${season}_${episode}`;
-        localStorage.setItem(viewedKey, 'true');
-    }
-    
     if (backLink && animeId) {
         backLink.href = `anime-detail.html?id=${animeId}`;
     }
 
     const epData = DB[animeId]?.[season]?.[episode];
     
-    // --- LÓGICA PRINCIPAL (Modificada para priorizar descarga) ---
-    if (epData) {
-        document.title = `Ver ${epData.title} - Archinime`;
-        document.getElementById('epTitle').innerText = epData.title;
-        const initialLink = epData.link || epData.link2;
-        
-        // 1. GENERAR BOTÓN DE DESCARGA INSTANTÁNEAMENTE
-        updateDownloadButton(initialLink);
-        
-        // 2. CARGAR REPRODUCTOR DESPUÉS
-        loadVideo(initialLink);
-        
-        const optContainer = document.getElementById('serverOptions');
-        optContainer.innerHTML = '';
-        if(epData.link) createOptionBtn("Latino", epData.link, true);
-        if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
-        
-        setupNavigation();
-    } else {
-        document.getElementById('epTitle').innerText = "No encontrado";
-    }
-
     // --- DETECCIÓN DE DISPOSITIVOS ---
     function isTabletDevice() {
         const ua = navigator.userAgent.toLowerCase();
@@ -554,8 +542,6 @@
 
     function updateDownloadButton(url) {
         const dlBtn = document.getElementById('downloadBtn');
-        
-        // Limpiamos atributos y eventos previos en lugar de clonar el botón
         dlBtn.onclick = null;
         dlBtn.removeAttribute("target");
         
@@ -566,17 +552,13 @@
             if (directLink.includes("anydownloader.com")) {
                 dlBtn.setAttribute("target", "_blank");
             } else if (url.includes("odysee.com")) {
-                // Manejo especial de Odysee para evitar bloqueos
                 dlBtn.onclick = function(e) {
                     if (isTabletDevice()) {
                         e.preventDefault();
                         prompt("Tu dispositivo es una Tablet. Copia el siguiente enlace y pégalo manualmente en una nueva pestaña para descargar el episodio:", directLink);
                     } else if (isMobileDevice()) {
-                        // En móviles dejamos que el href actúe nativamente o forzamos en nueva pestaña
-                        // Esto previene que el navegador bloquee la descarga del iframe
                         dlBtn.setAttribute("target", "_blank"); 
                     } else {
-                        // En PC usamos el iframe oculto
                         e.preventDefault();
                         forceDownload(directLink);
                     }
@@ -595,8 +577,6 @@
         btn.onclick = () => {
             document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            // Actualizar el botón al instante antes del video
             updateDownloadButton(url);
             loadVideo(url);
         };
@@ -620,7 +600,6 @@
             video.style.width = "100%";
             video.style.height = "100%";
             video.onerror = function() { loadAsIframe(url, container); };
-            
             container.appendChild(video);
         } else {
             loadAsIframe(url, container);
@@ -675,6 +654,53 @@
                 }
             }
         } catch (e) { console.error(e); }
+    }
+
+    // --- FUNCIONES DE HISTORIAL (Firestore + localStorage) ---
+    let currentUserId = null;
+
+    async function markEpisodeWatched(animeId, seasonNum, epNum) {
+        if (currentUserId) {
+            const docRef = db.collection('watchHistory').doc(currentUserId);
+            const doc = await docRef.get();
+            let data = doc.exists ? doc.data() : {};
+            let animeData = data[animeId] || {};
+            let seasonData = animeData[seasonNum] || [];
+            if (!seasonData.includes(epNum)) {
+                seasonData.push(epNum);
+                animeData[seasonNum] = seasonData;
+                data[animeId] = animeData;
+                await docRef.set(data, { merge: true });
+            }
+        } else {
+            const key = `watched_${animeId}_${seasonNum}_${epNum}`;
+            localStorage.setItem(key, 'true');
+        }
+    }
+
+    // --- EJECUTAR AL CARGAR LA PÁGINA ---
+    if (epData) {
+        document.title = `Ver ${epData.title} - Archinime`;
+        document.getElementById('epTitle').innerText = epData.title;
+        const initialLink = epData.link || epData.link2;
+        
+        updateDownloadButton(initialLink);
+        loadVideo(initialLink);
+        
+        const optContainer = document.getElementById('serverOptions');
+        optContainer.innerHTML = '';
+        if(epData.link) createOptionBtn("Latino", epData.link, true);
+        if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
+        
+        setupNavigation();
+
+        // MARCAR EPISODIO COMO VISTO (sincronizado)
+        auth.onAuthStateChanged(async (user) => {
+            currentUserId = user ? user.uid : null;
+            await markEpisodeWatched(animeId, season, episode);
+        });
+    } else {
+        document.getElementById('epTitle').innerText = "No encontrado";
     }
   </script>
 </body>
