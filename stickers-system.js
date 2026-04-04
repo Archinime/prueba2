@@ -1,6 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS (COMO WHATSAPP)
-// TOTALMENTE INDEPENDIENTE
+// SISTEMA DE STICKERS CON IMGUR (CLIENT ID PÚBLICO)
 // ============================================
 
 let stickersDb = null;
@@ -9,23 +8,19 @@ let stickersCurrentUser = null;
 let userStickersCollection = [];
 let globalStickersList = [];
 
+// Client ID público funcional (puedes usarlo en producción)
+const IMGUR_CLIENT_ID = '546c25a59c58ad7';
+
 // Stickers por defecto
 const DEFAULT_STICKERS = [
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/1.webp",
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/2.webp",
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/3.webp",
     "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/4.webp",
-    "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/5.webp",
-    "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/6.webp",
-    "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/7.webp",
-    "https://cdn.jsdelivr.net/npm/@sticker-js/stickers@1.0.0/assets/8.webp",
     "https://media.tenor.com/V0GiP2u6N1EAAAAi/anime-sticker.gif",
-    "https://media.tenor.com/-7-O6S6tX-kAAAAi/anime-sticker.gif",
-    "https://media.tenor.com/9Y1jV8qVXlQAAAAi/anime-sticker.gif",
-    "https://media.tenor.com/4fq0JhXVpJQAAAAi/anime-sticker.gif"
+    "https://media.tenor.com/-7-O6S6tX-kAAAAi/anime-sticker.gif"
 ];
 
-// Inicializar sistema de stickers
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
@@ -40,7 +35,6 @@ function initStickersSystem(db, auth) {
     });
 }
 
-// Cargar stickers del usuario
 async function loadUserStickers() {
     if (!stickersCurrentUser) return;
     
@@ -52,12 +46,7 @@ async function loadUserStickers() {
             userStickersCollection = doc.data().stickers || [];
         } else {
             userStickersCollection = [...DEFAULT_STICKERS];
-            await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
-                stickers: userStickersCollection,
-                userId: stickersCurrentUser.uid,
-                userName: stickersCurrentUser.displayName || stickersCurrentUser.email.split('@')[0],
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await saveUserStickers();
         }
         renderUserStickers();
     } catch (error) {
@@ -67,7 +56,18 @@ async function loadUserStickers() {
     }
 }
 
-// Cargar stickers globales (de todos los usuarios)
+async function saveUserStickers() {
+    if (!stickersCurrentUser) return;
+    
+    await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
+        stickers: userStickersCollection,
+        userId: stickersCurrentUser.uid,
+        userName: stickersCurrentUser.displayName || stickersCurrentUser.email.split('@')[0],
+        userAvatar: stickersCurrentUser.photoURL || '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
+
 async function loadGlobalStickers() {
     try {
         const snapshot = await stickersDb.collection('userStickers').get();
@@ -81,7 +81,8 @@ async function loadGlobalStickers() {
                         stickerMap.set(sticker, {
                             url: sticker,
                             ownerId: doc.id,
-                            ownerName: data.userName || 'Usuario'
+                            ownerName: data.userName || 'Usuario',
+                            ownerAvatar: data.userAvatar || ''
                         });
                     }
                 });
@@ -97,52 +98,127 @@ async function loadGlobalStickers() {
     }
 }
 
-// Renderizar mis stickers
-function renderUserStickers() {
-    const container = document.getElementById('userStickersContainer');
-    if (!container) return;
-    
-    if (!userStickersCollection.length) {
-        container.innerHTML = '<div class="sticker-empty">📭 No tienes stickers. ¡Roba algunos!</div>';
-        return;
+// ============================================
+// SUBIR STICKER A IMGUR (CLIENT ID PÚBLICO)
+// ============================================
+async function subirStickerAImgur(file) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+        throw new Error('Formato no soportado. Usa JPG, PNG, GIF o WEBP');
     }
     
-    container.innerHTML = userStickersCollection.map((sticker, index) => `
-        <div class="sticker-item" onclick="enviarStickerDesdeSistema(\`${sticker.replace(/`/g, '\\`')}\`)" title="Enviar sticker">
-            <img src="${sticker}" class="sticker-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
-            <button class="sticker-delete-btn" onclick="event.stopPropagation(); eliminarStickerPersonal(${index})" title="Eliminar sticker">✖</button>
-        </div>
-    `).join('');
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error('La imagen debe ser menor a 5MB');
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.data?.error || 'Error al subir a Imgur');
+    }
+
+    const data = await response.json();
+    return data.data.link; // URL pública del sticker
 }
 
-// Renderizar stickers globales (para robar)
-function renderGlobalStickers() {
-    const container = document.getElementById('globalStickersContainer');
-    if (!container) return;
-    
-    if (!globalStickersList.length) {
-        container.innerHTML = '<div class="sticker-empty">🌍 No hay stickers de otros usuarios aún.</div>';
+async function subirStickerDesdePC(fileInput) {
+    if (!stickersCurrentUser) {
+        showToastSticker('🔒 Inicia sesión para subir stickers');
         return;
     }
-    
-    // Filtrar stickers que el usuario ya tiene
-    const availableStickers = globalStickersList.filter(s => !userStickersCollection.includes(s.url));
-    
-    if (!availableStickers.length) {
-        container.innerHTML = '<div class="sticker-empty">✨ Ya tienes todos los stickers disponibles!</div>';
+
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (userStickersCollection.length >= 50) {
+        alert('📦 Límite de 50 stickers alcanzado');
+        fileInput.value = '';
         return;
     }
-    
-    container.innerHTML = availableStickers.map(sticker => `
-        <div class="sticker-item global-sticker" onclick="robarStickerSistema(\`${sticker.url.replace(/`/g, '\\`')}\`)">
-            <img src="${sticker.url}" class="sticker-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
-            <div class="sticker-owner">👤 ${escapeHtmlSticker(sticker.ownerName)}</div>
-            <div class="sticker-steal">🔽 Robar</div>
-        </div>
-    `).join('');
+
+    // Preview
+    const previewDiv = document.getElementById('stickerPreview');
+    const previewImg = document.getElementById('previewImage');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewDiv.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    // UI de carga
+    const btn = document.querySelector('#subirStickerTab .add-sticker-btn');
+    const originalText = btn ? btn.innerHTML : 'Subir';
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Imgur...';
+        btn.disabled = true;
+    }
+
+    try {
+        const imgurUrl = await subirStickerAImgur(file);
+        userStickersCollection.push(imgurUrl);
+        await saveUserStickers();
+        renderUserStickers();
+        await loadGlobalStickers();
+        showToastSticker('✅ Sticker subido a Imgur con éxito!');
+        
+        setTimeout(() => {
+            previewDiv.style.display = 'none';
+            previewImg.src = '';
+        }, 2000);
+    } catch (error) {
+        console.error(error);
+        alert('Error: ' + error.message);
+    } finally {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+        fileInput.value = '';
+    }
 }
 
-// Robar sticker de otro usuario
+async function agregarStickerPorURL() {
+    if (!stickersCurrentUser) {
+        showToastSticker('🔒 Inicia sesión para agregar stickers');
+        return;
+    }
+    
+    const url = prompt('📷 Pega la URL del sticker (jpg, png, gif, webp, avif):');
+    if (!url) return;
+    
+    if (!url.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !url.includes('tenor.com') && !url.includes('giphy.com')) {
+        alert('❌ URL no válida');
+        return;
+    }
+    
+    if (userStickersCollection.length >= 50) {
+        alert('📦 Límite de 50 stickers alcanzado');
+        return;
+    }
+    
+    if (userStickersCollection.includes(url)) {
+        alert('Ya tienes este sticker');
+        return;
+    }
+    
+    userStickersCollection.push(url);
+    await saveUserStickers();
+    renderUserStickers();
+    await loadGlobalStickers();
+    showToastSticker('✅ Sticker agregado por URL');
+}
+
 async function robarStickerSistema(stickerUrl) {
     if (!stickersCurrentUser) {
         showToastSticker('🔒 Inicia sesión para robar stickers');
@@ -159,101 +235,83 @@ async function robarStickerSistema(stickerUrl) {
         return;
     }
     
-    try {
-        userStickersCollection.push(stickerUrl);
-        await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
-            stickers: userStickersCollection,
-            userId: stickersCurrentUser.uid,
-            userName: stickersCurrentUser.displayName || stickersCurrentUser.email.split('@')[0],
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        renderUserStickers();
-        await loadGlobalStickers();
-        showToastSticker('✨ Sticker robado con éxito!');
-    } catch (error) {
-        console.error('Error robando sticker:', error);
-        showToastSticker('Error al robar sticker');
-    }
+    userStickersCollection.push(stickerUrl);
+    await saveUserStickers();
+    renderUserStickers();
+    await loadGlobalStickers();
+    showToastSticker('✨ Sticker robado con éxito!');
 }
 
-// Eliminar sticker propio
 async function eliminarStickerPersonal(index) {
     if (!stickersCurrentUser) return;
     
     if (confirm('¿Eliminar este sticker de tu colección?')) {
         userStickersCollection.splice(index, 1);
-        try {
-            await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
-                stickers: userStickersCollection,
-                userId: stickersCurrentUser.uid,
-                userName: stickersCurrentUser.displayName || stickersCurrentUser.email.split('@')[0],
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            renderUserStickers();
-            showToastSticker('Sticker eliminado');
-        } catch (error) {
-            console.error('Error:', error);
-            showToastSticker('Error al eliminar');
-        }
-    }
-}
-
-// Agregar sticker personalizado por URL
-async function agregarStickerPersonalizado() {
-    if (!stickersCurrentUser) {
-        showToastSticker('Inicia sesión para agregar stickers');
-        return;
-    }
-    
-    const url = prompt('📷 Pega la URL del sticker (jpg, png, gif, webp, avif):');
-    if (!url) return;
-    
-    // Validar URL
-    if (!url.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !url.includes('tenor.com')) {
-        alert('❌ URL no válida. Usa .jpg, .png, .gif, .webp o .avif');
-        return;
-    }
-    
-    if (userStickersCollection.length >= 50) {
-        alert('Límite de 50 stickers alcanzado');
-        return;
-    }
-    
-    if (userStickersCollection.includes(url)) {
-        alert('Ya tienes este sticker');
-        return;
-    }
-    
-    userStickersCollection.push(url);
-    try {
-        await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
-            stickers: userStickersCollection,
-            userId: stickersCurrentUser.uid,
-            userName: stickersCurrentUser.displayName || stickersCurrentUser.email.split('@')[0],
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await saveUserStickers();
         renderUserStickers();
-        await loadGlobalStickers();
-        showToastSticker('✅ Sticker agregado');
-    } catch (error) {
-        console.error('Error:', error);
-        showToastSticker('Error al agregar');
+        showToastSticker('Sticker eliminado');
     }
 }
 
-// Función para enviar sticker (será llamada desde el sistema de comentarios)
-async function enviarStickerDesdeSistema(stickerUrl) {
-    // Esta función se conecta con comentarios.js
+async function enviarStickerSistema(stickerUrl) {
     if (typeof window.enviarStickerAlComentario === 'function') {
         await window.enviarStickerAlComentario(stickerUrl);
+        toggleStickerPanelSistema();
     } else {
-        console.error('Sistema de comentarios no disponible');
         showToastSticker('Error: Sistema de comentarios no disponible');
     }
 }
 
-// Cambiar pestañas de stickers
+function renderUserStickers() {
+    const container = document.getElementById('userStickersContainer');
+    if (!container) return;
+    
+    if (!userStickersCollection.length) {
+        container.innerHTML = '<div class="sticker-empty">📭 No tienes stickers. ¡Sube uno o roba de otros!</div>';
+        return;
+    }
+    
+    container.innerHTML = userStickersCollection.map((sticker, index) => `
+        <div class="sticker-item" onclick="enviarStickerSistema(\`${sticker.replace(/`/g, '\\`')}\`)" title="Enviar sticker">
+            <img src="${sticker}" class="sticker-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
+            <button class="sticker-delete-btn" onclick="event.stopPropagation(); eliminarStickerPersonal(${index})" title="Eliminar sticker">✖</button>
+        </div>
+    `).join('');
+}
+
+function renderGlobalStickers() {
+    const container = document.getElementById('globalStickersContainer');
+    if (!container) return;
+    
+    const availableStickers = globalStickersList.filter(s => !userStickersCollection.includes(s.url));
+    
+    if (!availableStickers.length) {
+        container.innerHTML = '<div class="sticker-empty">✨ No hay stickers nuevos para robar</div>';
+        return;
+    }
+    
+    container.innerHTML = availableStickers.map(sticker => `
+        <div class="sticker-item global-sticker" onclick="robarStickerSistema(\`${sticker.url.replace(/`/g, '\\`')}\`)" title="Robar sticker de ${sticker.ownerName}">
+            <img src="${sticker.url}" class="sticker-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
+            <div class="sticker-owner">👤 ${escapeHtmlSticker(sticker.ownerName)}</div>
+            <div class="sticker-steal">🔽 Robar</div>
+        </div>
+    `).join('');
+}
+
+function toggleStickerPanelSistema() {
+    const panel = document.getElementById('stickerPanelFull');
+    if (panel) {
+        panel.classList.toggle('active');
+        const emojiPanel = document.getElementById('emojiPanel');
+        if (emojiPanel) emojiPanel.classList.remove('active');
+        if (panel.classList.contains('active')) {
+            renderUserStickers();
+            loadGlobalStickers();
+        }
+    }
+}
+
 function switchStickerTab(tab) {
     const tabs = document.querySelectorAll('.sticker-tab');
     const contents = document.querySelectorAll('.sticker-tab-content');
@@ -275,52 +333,28 @@ function switchStickerTab(tab) {
     }
 }
 
-// Alternar panel de stickers
-function toggleStickerPanelSistema() {
-    const panel = document.getElementById('stickerPanelFull');
-    if (panel) {
-        panel.classList.toggle('active');
-        const emojiPanel = document.getElementById('emojiPanel');
-        if (emojiPanel) emojiPanel.classList.remove('active');
-        if (panel.classList.contains('active')) {
-            renderUserStickers();
-            loadGlobalStickers();
+function updateStickersUI() {
+    if (!stickersCurrentUser) {
+        const subirTab = document.getElementById('subirStickerTab');
+        if (subirTab) {
+            subirTab.innerHTML = `
+                <div class="add-sticker-container">
+                    <p class="add-sticker-desc">🔒 Inicia sesión para subir stickers</p>
+                    <button class="add-sticker-btn" onclick="openLoginModalFromStickers()">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+                    </button>
+                </div>
+            `;
         }
     }
 }
 
-// Actualizar UI según autenticación
-function updateStickersUI() {
-    const addStickerSection = document.getElementById('subirStickerTab');
-    if (addStickerSection && !stickersCurrentUser) {
-        addStickerSection.innerHTML = `
-            <div class="add-sticker-container">
-                <p class="add-sticker-desc">🔒 Inicia sesión para agregar stickers</p>
-                <button class="add-sticker-btn" onclick="openLoginModalFromStickers()">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-                </button>
-            </div>
-        `;
-    }
-}
-
-// Toast para stickers
 function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '80px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.backgroundColor = '#00fff7';
-        toast.style.color = '#000';
-        toast.style.padding = '8px 20px';
-        toast.style.borderRadius = '20px';
-        toast.style.zIndex = '1001';
-        toast.style.fontWeight = 'bold';
-        toast.style.fontSize = '0.9rem';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00fff7;color:#000;padding:8px 20px;border-radius:20px;z-index:1001;font-weight:bold';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;

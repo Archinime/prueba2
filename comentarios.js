@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE COMENTARIOS (conectado con stickers)
+// SISTEMA DE COMENTARIOS
 // ============================================
 
 let comentariosDb = null;
@@ -7,7 +7,6 @@ let comentariosAuth = null;
 let comentariosCurrentUser = null;
 let comentariosUnsubscribe = null;
 
-// Inicializar sistema de comentarios
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
@@ -22,7 +21,6 @@ function initComentariosSystem(db, auth) {
     });
 }
 
-// Configurar escucha en tiempo real
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) {
         comentariosUnsubscribe();
@@ -58,7 +56,7 @@ function setupComentariosRealtimeListener() {
             if (c.esSticker && c.stickerUrl) {
                 contenidoHtml = `
                     <div class="comentario-sticker-container">
-                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onerror="this.src='sticker-placeholder.png'">
+                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
                         <button class="steal-sticker-btn" onclick="robarStickerSistema('${c.stickerUrl.replace(/'/g, "\\'")}')">🔽 Robar sticker</button>
                     </div>
                 `;
@@ -83,11 +81,10 @@ function setupComentariosRealtimeListener() {
         
         container.innerHTML = html;
     }, (error) => {
-        console.error('Error:', error);
+        console.error('Error en comentarios:', error);
     });
 }
 
-// Procesar texto (emojis)
 function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto);
@@ -106,7 +103,6 @@ function procesarTextoComentario(texto) {
     return html.replace(/\n/g, '<br>');
 }
 
-// Enviar comentario de texto
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) {
         openLoginModalFromComent();
@@ -146,7 +142,6 @@ async function enviarComentarioTexto() {
     }
 }
 
-// Enviar sticker (conectado con stickers-system.js)
 window.enviarStickerAlComentario = async function(stickerUrl) {
     if (!comentariosCurrentUser) {
         openLoginModalFromComent();
@@ -179,7 +174,6 @@ window.enviarStickerAlComentario = async function(stickerUrl) {
     }
 };
 
-// Eliminar comentario
 async function deleteComentario(commentId) {
     if (!confirm('¿Eliminar?')) return;
     try {
@@ -190,7 +184,6 @@ async function deleteComentario(commentId) {
     }
 }
 
-// Actualizar UI según login
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
@@ -209,7 +202,6 @@ function updateComentariosUI() {
     }
 }
 
-// Alternar panel de emojis
 function toggleEmojiPanelSistema() {
     const panel = document.getElementById('emojiPanel');
     if (panel) {
