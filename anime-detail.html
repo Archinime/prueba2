@@ -283,7 +283,7 @@
 
     /* --- UPLOADER INFO (OCULTO) --- */
     .uploader-container {
-        display: none; /* OCULTO SEGÚN SOLICITUD */
+        display: none;
         align-items: center;
         gap: 10px;
     }
@@ -643,16 +643,14 @@
     /* ----------------------------------------------------
        3. FUNCIONES DE HISTORIAL (Firestore + LocalStorage) - CORREGIDAS
        ---------------------------------------------------- */
-    let currentUserId = null;        // uid del usuario logueado, null si invitado
-    let currentAnimeId = null;       // id del anime actual
-    let authReady = false;            // Para saber si ya se resolvió la autenticación inicial
+    let currentUserId = null;
+    let currentAnimeId = null;
+    let authReady = false;
 
-    // Obtener la clave local para un episodio (invitado)
     function getLocalKey(animeId, seasonNum, epNum) {
         return `watched_${animeId}_${seasonNum}_${epNum}`;
     }
 
-    // Mostrar toast (asegurar que existe)
     function showToast(msg, isError = false) {
         let toast = document.getElementById('toast');
         if (!toast) {
@@ -666,9 +664,8 @@
         setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // Marcar como visto (local o cloud)
     async function markEpisodeWatched(animeId, seasonNum, epNum) {
-        console.log('markEpisodeWatched called', { animeId, seasonNum, epNum, currentUserId });
+        console.log('markEpisodeWatched', { animeId, seasonNum, epNum, currentUserId });
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
@@ -682,26 +679,22 @@
                     data[animeId] = animeData;
                     await docRef.set(data, { merge: true });
                     console.log('Marcado en Firestore');
-                    showToast('Episodio marcado como visto', false);
+                    showToast('Episodio marcado como visto');
                 } else {
-                    console.log('Ya estaba marcado en Firestore');
-                    showToast('Ya estaba marcado', false);
+                    console.log('Ya estaba marcado');
                 }
             } catch (err) {
                 console.error('Error al marcar en Firestore:', err);
                 showToast('Error al marcar: ' + err.message, true);
             }
         } else {
-            const key = getLocalKey(animeId, seasonNum, epNum);
-            localStorage.setItem(key, 'true');
-            console.log('Marcado en localStorage');
-            showToast('Episodio marcado como visto (local)', false);
+            localStorage.setItem(getLocalKey(animeId, seasonNum, epNum), 'true');
+            showToast('Episodio marcado como visto (local)');
         }
     }
 
-    // Eliminar un episodio del historial (local o cloud)
     async function removeEpisodeWatched(animeId, seasonNum, epNum) {
-        console.log('removeEpisodeWatched called', { animeId, seasonNum, epNum, currentUserId });
+        console.log('removeEpisodeWatched', { animeId, seasonNum, epNum, currentUserId });
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
@@ -718,7 +711,9 @@
                         }
                         await docRef.set(data, { merge: true });
                         console.log('Eliminado de Firestore');
-                        showToast('Episodio eliminado del historial', false);
+                        showToast('Episodio eliminado del historial');
+                    } else {
+                        console.log('No existía en Firestore');
                     }
                 }
             } catch (err) {
@@ -726,31 +721,22 @@
                 showToast('Error al eliminar: ' + err.message, true);
             }
         } else {
-            const key = getLocalKey(animeId, seasonNum, epNum);
-            localStorage.removeItem(key);
-            console.log('Eliminado de localStorage');
-            showToast('Episodio eliminado del historial (local)', false);
+            localStorage.removeItem(getLocalKey(animeId, seasonNum, epNum));
+            showToast('Episodio eliminado del historial (local)');
         }
     }
 
-    // Cargar episodios vistos con timeout mejorado
     async function loadWatchedEpisodes(animeId) {
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
-                // Timeout de 8 segundos
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout cargando historial')), 8000)
-                );
-                const doc = await Promise.race([docRef.get(), timeoutPromise]);
+                const doc = await docRef.get();
                 if (doc.exists) {
-                    const data = doc.data();
-                    return data[animeId] || {};
+                    return doc.data()[animeId] || {};
                 }
                 return {};
-            } catch (error) {
-                console.warn('Error loading watched episodes from Firestore:', error);
-                showToast('No se pudo cargar el historial desde la nube, usando modo local', true);
+            } catch (err) {
+                console.warn('Error cargando historial de Firestore:', err);
                 return {};
             }
         } else {
@@ -769,16 +755,15 @@
         }
     }
 
-    // Función para recargar una temporada específica (sin cerrar/abrir, solo vacía y vuelve a cargar)
+    // Recargar una temporada específica (vacía y vuelve a cargar)
     async function reloadSeason(detailsElement, animeId, seasonIndex) {
         if (!detailsElement) return;
         const listContainer = detailsElement.querySelector('.video-list');
         if (listContainer) {
-            // Guardar estado abierto
             const wasOpen = detailsElement.open;
-            // Vaciar contenido
+            // Vaciar completamente
             listContainer.innerHTML = '';
-            // Si estaba abierto, recargar llamando a toggleSeason manualmente
+            // Si estaba abierta, recargar
             if (wasOpen) {
                 await toggleSeason(detailsElement, animeId, seasonIndex);
             }
@@ -786,7 +771,7 @@
     }
 
     /* ----------------------------------------------------
-       4. Renderizado y Lógica Visual (con botones dinámicos)
+       4. Renderizado y Lógica Visual
        ---------------------------------------------------- */
     
     if (typeof data === 'undefined') {
@@ -819,9 +804,7 @@
             if (typeof animes !== 'undefined') {
                 const animeInfo = animes.find(a => String(a.id) === String(id));
                 if (animeInfo && animeInfo.genres && animeInfo.genres.length > 0) {
-                    genreHtml = animeInfo.genres.map(g => 
-                        `<span class="genre-chip">${escapeHtml(g)}</span>`
-                    ).join('');
+                    genreHtml = animeInfo.genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
                 } else {
                     genreHtml = '<span style="color:#aaa; font-size:0.8rem;">Sin géneros</span>';
                 }
@@ -855,7 +838,6 @@
         }
     }
 
-    // Función toggleSeason (se llama desde el atributo ontoggle o desde reloadSeason)
     window.toggleSeason = async function(details, animeId, seasonIndex) {
         if (!details.open) return;
         
@@ -873,7 +855,6 @@
         
         let watchedData = {};
         try {
-            // Esperar a que la autenticación esté lista (si no, esperar un poco)
             if (!authReady && currentUserId === null) {
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
@@ -891,7 +872,7 @@
 
             for (let i = processed; i < limit; i++) {
                 const ep = episodes[i];
-                const epNum = i + 1; // Número de episodio (1-indexado)
+                const epNum = i + 1;
                 const a = document.createElement('a');
                 a.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
                 a.className = 'ep-btn';
@@ -919,7 +900,7 @@
                         } else {
                             await markEpisodeWatched(animeId, seasonNum, epNum);
                         }
-                        // Recargar solo esta temporada
+                        // Recargar la temporada actual
                         await reloadSeason(details, animeId, seasonIndex);
                     } catch (err) {
                         console.error(err);
@@ -953,7 +934,6 @@
         requestAnimationFrame(processChunk);
     };
 
-    // Asignar event listeners a los details después de cargar
     function attachDetailsListeners() {
         const detailsList = document.querySelectorAll('details');
         detailsList.forEach(details => {
@@ -967,7 +947,6 @@
         });
     }
 
-    // Esperar a que el DOM se actualice
     const observer = new MutationObserver(() => {
         attachDetailsListeners();
     });
@@ -1054,7 +1033,7 @@
     }
 
     /* ----------------------------------------------------
-       6. Autenticación y recarga de temporadas abiertas (MEJORADO)
+       6. Autenticación y recarga de temporadas abiertas
        ---------------------------------------------------- */
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -1066,7 +1045,6 @@
         }
         authReady = true;
         
-        // Si ya hay un anime cargado, recargar todas las temporadas abiertas
         if (currentAnimeId && typeof data !== 'undefined' && data[currentAnimeId]) {
             const detailsList = document.querySelectorAll('details');
             for (let detail of detailsList) {
@@ -1081,9 +1059,8 @@
         }
     });
 
-    // --- NUEVO: Refrescar cuando se vuelve a la página (por ejemplo, desde video-player) ---
+    // Refrescar cuando se vuelve a la página (desde video-player)
     window.addEventListener('pageshow', async function(event) {
-        // Se dispara cuando la página se muestra, incluso si viene del bfcache
         if (event.persisted || performance.getEntriesByType('navigation')[0].type === 'back_forward') {
             console.log('Página restaurada desde caché, recargando temporadas abiertas');
             if (currentAnimeId && typeof data !== 'undefined' && data[currentAnimeId]) {
