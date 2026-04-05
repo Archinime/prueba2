@@ -1,5 +1,6 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK (3 PUNTOS + ESTÉTICA MEJORADA)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v2.0
+// (Incluye Z-Index Fix, Doble Clic para responder y Emoji 🖼️)
 // ============================================
 
 let comentariosDb = null;
@@ -41,6 +42,13 @@ function initComentariosSystem(db, auth) {
                 validarBotonPrincipal(this);
             });
         }
+
+        // AUTO-REEMPLAZAR EL ICONO DE STICKER EN EL HTML ORIGINAL POR 🖼️
+        const stickerBtn = document.querySelector('.sticker-btn');
+        if (stickerBtn) {
+            stickerBtn.innerHTML = '🖼️';
+            stickerBtn.style.fontSize = '1.4rem';
+        }
     }, 1000);
     
     // Cierra todos los menús de comentarios si se hace clic fuera
@@ -67,6 +75,8 @@ function injectCommentsCSS() {
     
         /* --- ESTILOS PRINCIPALES DE LOS COMENTARIOS --- */
         .comentario-item { 
+            position: relative;
+            z-index: 1; /* Base z-index */
             animation: fadeIn 0.4s ease-out forwards;
             background: rgba(10, 12, 16, 0.6) !important;
             backdrop-filter: blur(10px);
@@ -89,6 +99,18 @@ function injectCommentsCSS() {
         .comentario-item.is-reply:hover {
             background: rgba(15, 18, 25, 0.6) !important;
             border-left: 2px solid var(--neon-primary);
+        }
+
+        /* Iluminación especial cuando estás respondiendo a este comentario */
+        @keyframes replyPulse {
+            0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.6); border-color: var(--neon-primary); }
+            100% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
+        }
+        .replying-active {
+            animation: replyPulse 1.5s infinite;
+            border-color: var(--neon-primary) !important;
+            background: rgba(0, 255, 247, 0.05) !important;
         }
 
         /* --- MENÚ DE 3 PUNTITOS (KEBAB MENU) --- */
@@ -123,11 +145,11 @@ function injectCommentsCSS() {
             top: 100%;
             right: 0;
             margin-top: 5px;
-            background: rgba(15, 15, 20, 0.95);
-            backdrop-filter: blur(15px);
+            background: rgba(15, 15, 20, 0.98);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--neon-secondary);
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 15px rgba(188, 19, 254, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.95), 0 0 20px rgba(188, 19, 254, 0.3);
             min-width: 150px;
             display: flex;
             flex-direction: column;
@@ -136,7 +158,7 @@ function injectCommentsCSS() {
             transform: translateY(-10px);
             transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
-            z-index: 100;
+            z-index: 100; /* Asegura que el menú siempre esté encima */
         }
         .comment-dropdown.show {
             opacity: 1;
@@ -160,22 +182,11 @@ function injectCommentsCSS() {
             transition: 0.2s;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .comment-dropdown-btn:last-child {
-            border-bottom: none;
-        }
-        .comment-dropdown-btn:hover {
-            background: rgba(188, 19, 254, 0.15);
-            color: #fff;
-            padding-left: 20px;
-        }
-        .comment-dropdown-btn i {
-            width: 16px;
-            text-align: center;
-            color: var(--neon-primary);
-        }
+        .comment-dropdown-btn:last-child { border-bottom: none; }
+        .comment-dropdown-btn:hover { background: rgba(188, 19, 254, 0.15); color: #fff; padding-left: 20px; }
+        .comment-dropdown-btn i { width: 16px; text-align: center; color: var(--neon-primary); }
         .comment-dropdown-btn.report-btn i { color: var(--neon-warn); }
         .comment-dropdown-btn.report-btn:hover { background: rgba(255, 170, 0, 0.15); color: #fff; }
-        
         .comment-dropdown-btn.delete-btn i { color: var(--neon-alert); }
         .comment-dropdown-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.15); color: #fff; }
         
@@ -217,21 +228,25 @@ function injectCommentsCSS() {
     document.head.appendChild(style);
 }
 
-// Control global para el menú de 3 puntos
+// CONTROL GLOBAL PARA MENÚ DE 3 PUNTOS Y CORRECCIÓN DE Z-INDEX
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
+    const parentItem = document.getElementById(`comment-${id}`);
     const isShowing = currentMenu.classList.contains('show');
     
     closeAllCommentMenus(); 
     
     if (!isShowing) {
         currentMenu.classList.add('show');
+        if (parentItem) parentItem.style.zIndex = '50'; // Lo trae al frente para que no se oculte por el comentario de abajo
     }
 };
 
 window.closeAllCommentMenus = function() {
     document.querySelectorAll('.comment-dropdown').forEach(m => m.classList.remove('show'));
+    // Restablece el z-index de todos los comentarios a su estado normal
+    document.querySelectorAll('.comentario-item').forEach(item => item.style.zIndex = '1');
 };
 
 function getNeonColorByString(str) {
@@ -266,7 +281,7 @@ function setupComentariosRealtimeListener() {
         if (!container) return;
         
         if (snapshot.empty) {
-            container.innerHTML = `<div class="empty-comments" style="color: var(--primary-color); text-shadow: 0 0 10px rgba(0, 255, 247, 0.3);"><i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i><p style="font-weight: bold; font-size: 1.1rem; color: #aaa;">Sin comentarios aún. ¡Sé el primero en romper el hielo!</p></div>`;
+            container.innerHTML = `<div class="empty-comments" style="color: var(--neon-primary); text-shadow: 0 0 10px rgba(0, 255, 247, 0.3);"><i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i><p style="font-weight: bold; font-size: 1.1rem; color: #aaa;">Sin comentarios aún. ¡Sé el primero en romper el hielo!</p></div>`;
             return;
         }
   
@@ -376,7 +391,6 @@ function generarHtmlComentario(c, isReply, isNew = false) {
     
     const reportMenuBtn = `<button class="comment-dropdown-btn report-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag"></i> Reportar</button>`;
 
-    // Container de opciones
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)">
@@ -390,8 +404,12 @@ function generarHtmlComentario(c, isReply, isNew = false) {
         </div>
     `;
 
+    // AÑADIDO: ondblclick para la función de responder rápidamente
     return `
-        <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" style="position: relative; border-radius: 12px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
+        <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
+            ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" 
+            title="Doble clic para responder"
+            style="position: relative; border-radius: 12px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
             
             ${optionsMenu}
 
@@ -410,7 +428,6 @@ function generarHtmlComentario(c, isReply, isNew = false) {
     `;
 }
 
-// Función simulada de reporte
 window.reportarComentario = function(id) {
     if(!comentariosCurrentUser) {
         openLoginModalFromComent();
@@ -490,11 +507,16 @@ function procesarTextoComentario(texto) {
 }
 
 window.prepararRespuesta = function(commentId, userName, userId) {
+    if (!comentariosCurrentUser) return openLoginModalFromComent();
+    
     cancelarRespuesta();
     window.respondiendoA = { id: commentId, userName, userId };
 
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (!commentEl) return;
+    
+    // Iluminar el comentario al que estamos respondiendo
+    commentEl.classList.add('replying-active');
 
     const replyBox = document.createElement('div');
     replyBox.id = 'dynamicReplyBox';
@@ -551,6 +573,10 @@ onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
 window.cancelarRespuesta = function() {
     window.respondiendoA = null;
     const box = document.getElementById('dynamicReplyBox');
+    
+    // Quita la iluminación del comentario que estábamos respondiendo
+    document.querySelectorAll('.replying-active').forEach(el => el.classList.remove('replying-active'));
+    
     if (box) {
         box.style.opacity = '0';
         box.style.transform = 'translateY(-10px)';
@@ -572,7 +598,7 @@ onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="th
                 <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);"></video>
                 <br>
                 <button id="stickerModalStealBtn" style="margin-top:20px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:10px 25px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif;transition:all 0.2s;">
-                    <i class="fas fa-mask" style="color: #00fff7; margin-right:5px;"></i> Robar Sticker
+                    🖼️ Robar Sticker
                 </button>
             </div>
         `;
