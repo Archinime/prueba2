@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Archinime - Ver Anime Online Gratis en Alta Calidad</title>
   
@@ -84,7 +84,6 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
   /* --- VARIABLES CYBERPUNK --- */
@@ -331,6 +330,7 @@
     border: 2px solid var(--neon-cyan);
     cursor: pointer;
     transition: 0.2s;
+    /* Ajuste de alineación vertical: baja 2px para alinear con otros botones */
     margin-top: 2px;
   }
   #userAvatarBtn:hover {
@@ -836,511 +836,6 @@
   .mobile-select-popup .opt:hover, .mobile-select-popup .opt:active { background: rgba(188, 19, 254, 0.1); color: white; }
   .mobile-select-popup .opt[aria-selected="true"] { color: var(--neon-cyan); background: rgba(0, 243, 255, 0.05); font-weight: bold; border-left: 3px solid var(--neon-cyan); }
   @keyframes popIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-  
-  /* ===== SISTEMA DE COMENTARIOS CON RESPUESTAS ===== */
-  .comentarios-section {
-      margin-top: 60px;
-      background: rgba(5, 5, 10, 0.6);
-      backdrop-filter: blur(12px);
-      border-radius: 24px;
-      border: 1px solid rgba(0, 255, 247, 0.2);
-      padding: 20px;
-  }
-  
-  .comentarios-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(0, 255, 247, 0.2);
-  }
-  
-  .comentarios-header i {
-      font-size: 2rem;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 10px var(--neon-cyan);
-  }
-  
-  .comentarios-header h3 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.4rem;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-  }
-  
-  /* Formulario flotante sticky */
-  .comentario-form-sticky {
-      position: sticky;
-      bottom: 0;
-      background: rgba(5, 5, 10, 0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--neon-cyan);
-      border-radius: 20px 20px 0 0;
-      padding: 15px;
-      margin-top: 20px;
-      z-index: 100;
-      transition: all 0.3s;
-  }
-  
-  .comentario-form-container {
-      background: rgba(20, 20, 30, 0.8);
-      border-radius: 20px;
-      padding: 20px;
-      border: 1px solid rgba(0, 255, 247, 0.15);
-  }
-  
-  .comentario-user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 15px;
-  }
-  
-  .comentario-user-info img {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      border: 2px solid var(--neon-cyan);
-      object-fit: cover;
-  }
-  
-  .comentario-user-info span {
-      font-weight: 700;
-      font-family: 'Orbitron', sans-serif;
-      color: var(--neon-cyan);
-  }
-  
-  .comentario-input-wrapper {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-  }
-  
-  .comentario-input-wrapper textarea {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(0, 255, 247, 0.3);
-      border-radius: 16px;
-      padding: 15px;
-      color: white;
-      font-family: 'Poppins', sans-serif;
-      resize: vertical;
-      min-height: 80px;
-      transition: all 0.3s;
-  }
-  
-  .comentario-input-wrapper textarea:focus {
-      outline: none;
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 15px rgba(0, 255, 247, 0.3);
-  }
-  
-  .emoji-btn, .sticker-btn {
-      background: rgba(0, 255, 247, 0.1);
-      border: 1px solid rgba(0, 255, 247, 0.3);
-      border-radius: 16px;
-      padding: 12px 18px;
-      cursor: pointer;
-      font-size: 1.3rem;
-      transition: all 0.3s;
-      color: white;
-  }
-  
-  .emoji-btn:hover, .sticker-btn:hover {
-      background: rgba(0, 255, 247, 0.3);
-      transform: translateY(-2px);
-  }
-  
-  .emoji-panel {
-      display: none;
-      background: rgba(15, 15, 20, 0.95);
-      border: 1px solid var(--neon-cyan);
-      border-radius: 16px;
-      padding: 15px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-      gap: 10px;
-      max-height: 200px;
-      overflow-y: auto;
-  }
-  
-  .emoji-panel.active { display: flex; }
-  
-  .emoji-option {
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 8px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      transition: transform 0.2s;
-      width: 50px;
-      text-align: center;
-  }
-  
-  .emoji-option:hover {
-      transform: scale(1.2);
-      background: rgba(0, 255, 247, 0.2);
-  }
-  
-  .comentario-sticker-preview {
-      display: inline-block;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 12px;
-      border: 1px dashed var(--neon-cyan);
-  }
-  
-  .preview-sticker-wrapper {
-      position: relative;
-      display: inline-block;
-  }
-  
-  .remove-sticker-btn {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      background: #ff5555;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      cursor: pointer;
-      font-size: 12px;
-  }
-  
-  .enviar-comentario-btn {
-      background: linear-gradient(135deg, var(--neon-cyan), #0099ff);
-      border: none;
-      color: #000;
-      font-weight: 800;
-      padding: 12px 30px;
-      border-radius: 30px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s;
-  }
-  
-  .enviar-comentario-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 20px var(--neon-cyan);
-  }
-  
-  /* Lista de comentarios */
-  .comentarios-list {
-      max-height: 600px;
-      overflow-y: auto;
-      padding-right: 10px;
-  }
-  
-  .comentario-item {
-      background: linear-gradient(135deg, rgba(15,15,20,0.9), rgba(5,5,10,0.9));
-      border: 1px solid rgba(0, 255, 247, 0.2);
-      border-radius: 20px;
-      margin-bottom: 20px;
-      padding: 20px;
-      transition: all 0.3s;
-  }
-  
-  .comentario-item:hover {
-      transform: translateY(-3px);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 10px 30px rgba(0, 255, 247, 0.1);
-  }
-  
-  .comentario-main {
-      display: flex;
-      gap: 18px;
-  }
-  
-  .comentario-avatar img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 2px solid var(--neon-cyan);
-      object-fit: cover;
-  }
-  
-  .comentario-content {
-      flex: 1;
-  }
-  
-  .comentario-header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed rgba(0, 255, 247, 0.2);
-  }
-  
-  .comentario-user {
-      font-weight: 900;
-      font-family: 'Orbitron', sans-serif;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 5px var(--neon-cyan);
-  }
-  
-  .comentario-fecha {
-      font-size: 0.75rem;
-      color: #888;
-  }
-  
-  .comentario-texto {
-      color: #eee;
-      line-height: 1.5;
-      margin-bottom: 12px;
-  }
-  
-  .comentario-actions {
-      display: flex;
-      gap: 15px;
-      margin-top: 10px;
-  }
-  
-  .reply-btn {
-      background: none;
-      border: none;
-      color: var(--neon-cyan);
-      cursor: pointer;
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 10px;
-      border-radius: 20px;
-      transition: all 0.2s;
-  }
-  
-  .reply-btn:hover {
-      background: rgba(0, 255, 247, 0.1);
-      text-shadow: 0 0 5px var(--neon-cyan);
-  }
-  
-  .delete-btn {
-      background: none;
-      border: none;
-      color: #ff5555;
-      cursor: pointer;
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 10px;
-      border-radius: 20px;
-  }
-  
-  .delete-btn:hover {
-      background: rgba(255, 85, 85, 0.2);
-  }
-  
-  /* Respuestas */
-  .respuestas-container {
-      margin-top: 15px;
-      margin-left: 40px;
-      padding-left: 20px;
-      border-left: 2px solid var(--neon-purple);
-  }
-  
-  .respuesta-item {
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 16px;
-      padding: 15px;
-      margin-bottom: 12px;
-  }
-  
-  .respuesta-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-  }
-  
-  .respuesta-user {
-      font-weight: 700;
-      color: var(--neon-purple);
-  }
-  
-  .respuesta-fecha {
-      font-size: 0.7rem;
-      color: #777;
-  }
-  
-  .respuesta-texto {
-      color: #ddd;
-      line-height: 1.4;
-  }
-  
-  .reply-form {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 16px;
-  }
-  
-  .reply-form.active {
-      display: block;
-  }
-  
-  .reply-textarea {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid var(--neon-cyan);
-      border-radius: 12px;
-      padding: 12px;
-      color: white;
-      resize: vertical;
-      margin-bottom: 10px;
-  }
-  
-  .reply-submit {
-      background: var(--neon-cyan);
-      border: none;
-      color: #000;
-      font-weight: 700;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-  }
-  
-  .reply-cancel {
-      background: #333;
-      border: none;
-      color: white;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-left: 10px;
-  }
-  
-  /* Stickers panel */
-  .sticker-panel-full {
-      display: none;
-      background: rgba(15, 15, 20, 0.98);
-      border: 1px solid var(--neon-cyan);
-      border-radius: 16px;
-      margin-bottom: 15px;
-  }
-  
-  .sticker-panel-full.active { display: block; }
-  
-  .sticker-tabs {
-      display: flex;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  
-  .sticker-tab {
-      flex: 1;
-      padding: 12px;
-      background: none;
-      border: none;
-      color: #888;
-      cursor: pointer;
-      font-weight: 700;
-      font-family: 'Orbitron', sans-serif;
-  }
-  
-  .sticker-tab.active {
-      color: var(--neon-cyan);
-      border-bottom: 2px solid var(--neon-cyan);
-  }
-  
-  .sticker-tab-content {
-      display: none;
-      padding: 15px;
-      max-height: 300px;
-      overflow-y: auto;
-  }
-  
-  .sticker-tab-content.active { display: block; }
-  
-  .stickers-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-  }
-  
-  .sticker-item {
-      background: rgba(0,0,0,0.4);
-      border-radius: 12px;
-      padding: 8px;
-      cursor: pointer;
-      text-align: center;
-      position: relative;
-  }
-  
-  .sticker-item:hover {
-      background: rgba(0, 255, 247, 0.1);
-      transform: scale(1.05);
-  }
-  
-  .sticker-img {
-      width: 100%;
-      aspect-ratio: 1/1;
-      object-fit: contain;
-      border-radius: 8px;
-  }
-  
-  .sticker-delete-btn {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #ff5555;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 10px;
-      cursor: pointer;
-  }
-  
-  .upload-sticker-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, var(--neon-cyan), #0099ff);
-      padding: 12px 24px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: 800;
-  }
-  
-  @media (max-width: 768px) {
-      .comentarios-section {
-          padding: 15px;
-          margin-top: 30px;
-      }
-      
-      .comentario-main {
-          flex-direction: column;
-          gap: 10px;
-      }
-      
-      .respuestas-container {
-          margin-left: 15px;
-          padding-left: 12px;
-      }
-      
-      .stickers-grid {
-          grid-template-columns: repeat(3, 1fr);
-      }
-      
-      .comentario-header {
-          gap: 8px;
-      }
-  }
 </style>
 </head>
 <body>
@@ -1546,88 +1041,6 @@
     </noscript>
 
     <div class="grid" id="grid"></div>
-    
-    <!-- SECCIÓN DE COMENTARIOS GLOBAL (para la página de inicio/detalle) -->
-    <div class="comentarios-section" id="comentariosSection" style="display: none;">
-        <div class="comentarios-header">
-            <i class="fas fa-comments"></i>
-            <h3>FORO DE DISCUSIÓN</h3>
-        </div>
-        
-        <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none; text-align: center; padding: 30px;">
-            <i class="fas fa-lock" style="font-size: 2rem; color: var(--neon-cyan);"></i>
-            <p style="margin-top: 15px;">Inicia sesión para comentar y participar en la comunidad</p>
-            <button class="login-link-btn" onclick="openLoginModalFromComent()" style="margin-top: 15px;">
-                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-            </button>
-        </div>
-        
-        <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
-            <div class="comentario-user-info">
-                <img id="comentarioUserAvatar" src="invitado.avif">
-                <span id="comentarioUserName">Usuario</span>
-            </div>
-            
-            <div class="comentario-input-wrapper">
-                <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar)" maxlength="500"></textarea>
-                <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
-                <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
-                    <i class="fas fa-sticky-note"></i>
-                </button>
-            </div>
-            
-            <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
-                <div class="preview-sticker-wrapper">
-                    <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px;">
-                    <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px;"></video>
-                    <button class="remove-sticker-btn" onclick="quitarStickerPreview()">✖</button>
-                </div>
-            </div>
-            
-            <div id="emojiPanel" class="emoji-panel"></div>
-            
-            <div id="stickerPanelFull" class="sticker-panel-full">
-                <div class="sticker-tabs">
-                    <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
-                    <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
-                </div>
-        
-                <div id="misStickersTab" class="sticker-tab-content active">
-                    <div id="userStickersContainer" class="stickers-grid">
-                        <div class="sticker-empty">Cargando...</div>
-                    </div>
-                </div>
-         
-                <div id="subirStickersTab" class="sticker-tab-content">
-                    <div class="add-sticker-container" style="text-align: center;">
-                        <p>📸 Sube imágenes o videos desde tu computadora</p>
-                        <p style="font-size: 0.8rem; color: #aaa;">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 50MB)</p>
-                        <div class="upload-sticker-area" style="margin-top: 15px;">
-                            <label for="stickerFileInput" class="upload-sticker-label">
-                                <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
-                            </label>
-                            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
-                            
-                            <div class="upload-preview" id="stickerPreview" style="display:none; margin-top: 15px;">
-                                <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
-                                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-           
-            <div class="comentario-actions">
-                <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioPrincipal()">
-                    <i class="fas fa-paper-plane"></i> Publicar comentario
-                </button>
-            </div>
-        </div>
-        
-        <div id="comentariosList" class="comentarios-list">
-            <div class="empty-comments">Cargando comentarios...</div>
-        </div>
-    </div>
   </main>
 
   <div class="stage" aria-hidden="true">
@@ -1668,9 +1081,9 @@
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
     firebase.initializeApp(firebaseConfig);
+    // Forzar persistencia LOCAL para que la sesión no se pierda al abrir otra pestaña
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const auth = firebase.auth();
-    const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
   </script>
 
@@ -1681,8 +1094,6 @@
     document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
     document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
     document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="comentarios-respuestas.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="stickers-system.js?v=' + version + '" defer><\/script>');
     document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
   </script>
   
@@ -1756,7 +1167,7 @@
 
     function logoutUser() {
       auth.signOut().then(() => {
-        location.reload();
+        location.reload(); // Recargar la página para un cierre profesional
       });
     }
 
@@ -1774,6 +1185,7 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
+        // Si es admin, mostrar botón admin
         if (user.email === 'archinime12@gmail.com') {
           document.getElementById('adminBtn').style.display = 'flex';
         } else {
@@ -1789,6 +1201,7 @@
       }
     }
 
+    // Menú desplegable de usuario
     const userAvatarBtn = document.getElementById('userAvatarBtn');
     const userDropdown = document.getElementById('userDropdown');
     userAvatarBtn.addEventListener('click', (e) => {
@@ -1803,18 +1216,14 @@
 
     auth.onAuthStateChanged(user => {
       updateUserUI(user);
-      if (typeof initComentariosSystem === 'function') {
-        initComentariosSystem(db, auth);
-      }
-      if (typeof initStickersSystem === 'function') {
-        initStickersSystem(db, auth);
-      }
     });
 
+    // --- BOTÓN ADMIN ---
     document.getElementById('adminBtn').addEventListener('click', () => {
       window.open('Archinime%20CMS%20-%20Creador.html', '_blank');
     });
 
+    // --- FUNCIONES GLOBALES PARA NOTIFICACIONES ---
     window.toggleNotifMenu = function() {
       const menu = document.getElementById('notifMenu');
       menu.classList.toggle('active');
@@ -1822,13 +1231,22 @@
         document.getElementById('notifBadge').style.display = 'none';
       }
     };
+    function showToast(msg, isError) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    }
 
+    // --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(e => console.log('SW Error:', e));
       });
     }
 
+    // --- LOADER ---
     window.addEventListener('load', () => {
       const loader = document.getElementById('page-loader');
       const bgVideo = document.getElementById('bg-video');
@@ -1851,6 +1269,7 @@
       }, delay);
     });
 
+    // --- TILT EN CARDS ---
     const gridObserver = new MutationObserver(() => {
       document.querySelectorAll('.card').forEach(card => {
         if (card.dataset.tiltInit) return;
@@ -1870,10 +1289,6 @@
     });
     const gridEl = document.getElementById('grid');
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
-    
-    window.openLoginModalFromComent = function() {
-      showAuthModal();
-    };
   </script>
 
 </body>
