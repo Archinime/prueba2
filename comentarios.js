@@ -66,23 +66,21 @@ function injectCommentsCSS() {
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
     style.innerHTML = `
-        /* Botones de acción */
-        .action-btn { background: none; border: none; font-size: 0.85rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; transition: all 0.2s ease-out; }
-        .action-btn.reply-btn { color: var(--primary-color, #00fff7); background: rgba(0, 255, 247, 0.05); border: 1px solid rgba(0, 255, 247, 0.2); }
-        .action-btn.reply-btn:hover { background: rgba(0, 255, 247, 0.15); box-shadow: 0 4px 10px rgba(0, 255, 247, 0.2); transform: translateY(-1px); color: #fff; }
-        .action-btn.delete-btn { color: #ff5555; background: rgba(255, 85, 85, 0.05); border: 1px solid rgba(255, 85, 85, 0.2); }
-        .action-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.15); box-shadow: 0 4px 10px rgba(255, 85, 85, 0.2); transform: translateY(-1px); color: #fff; }
+        /* Botones de acción Premium */
+        .action-btn { background: transparent; border: none; font-size: 0.85rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; color: #888; }
+        .action-btn.reply-btn:hover { color: var(--primary-color, #00fff7); background: rgba(0, 255, 247, 0.1); transform: translateY(-1px); }
+        .action-btn.delete-btn:hover { color: #ff5555; background: rgba(255, 85, 85, 0.1); transform: translateY(-1px); }
         
-        /* Árbol de respuestas mejorado */
-        .respuestas-wrapper { margin-left: 65px; margin-top: -5px; margin-bottom: 25px; position: relative; }
-        .respuestas-line { position: absolute; left: -32px; top: 0; bottom: 20px; width: 2px; background: linear-gradient(to bottom, rgba(0, 255, 247, 0.3) 0%, rgba(0, 255, 247, 0.05) 100%); border-radius: 2px; transition: 0.3s; }
-        .respuestas-wrapper:hover .respuestas-line { background: linear-gradient(to bottom, rgba(0, 255, 247, 0.6) 0%, rgba(0, 255, 247, 0.1) 100%); box-shadow: 0 0 8px rgba(0, 255, 247, 0.4); }
+        /* Árbol de respuestas elegante */
+        .respuestas-wrapper { margin-left: 55px; margin-top: 8px; margin-bottom: 20px; position: relative; }
+        .respuestas-line { position: absolute; left: -26px; top: 0; bottom: 25px; width: 2px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; transition: 0.3s; }
+        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.4); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
         
         /* Botones de ver respuestas */
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--primary-color, #00fff7); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; transition: 0.2s; padding: 5px 15px; border-radius: 20px; opacity: 0.8; }
-        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; transform: translateX(5px); }
-        .show-more-replies-btn { background: rgba(188, 19, 254, 0.1); border: 1px dashed rgba(188, 19, 254, 0.4); color: #bc13fe; border-radius: 12px; padding: 10px; cursor: pointer; font-weight: bold; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; }
-        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.2); border-style: solid; color: #fff; }
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--primary-color, #00fff7); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
+        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
+        .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: #bc13fe; border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
+        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.1); border-style: solid; color: #fff; }
         
         /* Animaciones base */
         .comentario-item { animation: fadeIn 0.4s ease-out forwards; }
@@ -93,16 +91,15 @@ function injectCommentsCSS() {
         .char-counter.limit { color: #ff5555; }
         .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
-        /* Responsivo */
+        /* Responsivo - ALINEACIÓN MÓVIL CORREGIDA */
         @media (max-width: 768px) {
-            .respuestas-wrapper { margin-left: 20px; }
-            .respuestas-line { left: -10px; }
-            .comentario-item { padding: 15px !important; flex-direction: column; gap: 12px !important; }
-            .comentario-item.is-reply { padding: 12px !important; }
-            .comentario-avatar img { width: 40px !important; height: 40px !important; }
-            .is-reply .comentario-avatar img { width: 32px !important; height: 32px !important; }
-            .action-btn { padding: 6px 12px; font-size: 0.8rem; }
-            .comentario-header { flex-direction: column; align-items: flex-start !important; }
+            .respuestas-wrapper { margin-left: 48px; }
+            .respuestas-line { left: -22px; }
+            .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
+            .comentario-item.is-reply { padding: 10px !important; }
+            .comentario-avatar img { width: 38px !important; height: 38px !important; }
+            .is-reply .comentario-avatar img { width: 30px !important; height: 30px !important; }
+            .action-btn { padding: 6px 10px; font-size: 0.8rem; }
         }
     `;
     document.head.appendChild(style);
@@ -154,6 +151,7 @@ function setupComentariosRealtimeListener() {
         allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
       
         const roots = [];
+     
         allComments.forEach(c => {
             if (c.replyToId && commentMap.has(c.replyToId)) {
                 let rootId = c.replyToId;
@@ -186,7 +184,7 @@ function setupComentariosRealtimeListener() {
                             <span id="text-${root.id}">${textoBtn}</span>
                          </button>`;
 
-                html += `<div class="respuestas-container" id="container-${root.id}" style="display: none; flex-direction: column; gap: 10px;">`;
+                html += `<div class="respuestas-container" id="container-${root.id}" style="display: none; flex-direction: column; gap: 8px;">`;
                 root.replies.forEach((reply, index) => {
                     const isHidden = index >= 5 ? 'display: none;' : '';
                     const hiddenClass = index >= 5 ? `hidden-reply-${root.id}` : '';
@@ -220,7 +218,7 @@ function generarHtmlComentario(c, isReply) {
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     
     if (c.replyToUser) {
-        contenidoHtml = `<span style="color: ${neonColor}; font-weight: 800; margin-right: 5px; background: rgba(${rgbColor}, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(${rgbColor}, 0.2); font-size: 0.9em;">@${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
+        contenidoHtml = `<span style="color: ${neonColor}; font-weight: 700; margin-right: 5px; font-size: 0.95em;">@${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
     }
 
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
@@ -228,42 +226,42 @@ function generarHtmlComentario(c, isReply) {
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
             <div class="comentario-sticker-container" style="margin-top: 12px; display: inline-block;">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 160px; max-height: 160px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s; border: 1px solid rgba(${rgbColor}, 0.2);"
-                onmouseover="this.style.transform='scale(1.03)';" onmouseout="this.style.transform='scale(1)';" title="Clic para ver/robar"></${isVideo ? 'video' : 'img'}>
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.2); transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="Clic para ver/robar"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
     
-    const padding = isReply ? '14px 18px' : '20px';
-    const avatarSize = isReply ? '40px' : '50px';
-    const titleSize = isReply ? '1rem' : '1.1rem';
+    const padding = isReply ? '10px 14px' : '16px';
+    const avatarSize = isReply ? '30px' : '45px';
+    const titleSize = isReply ? '0.9rem' : '1rem';
     
-    // Cero blur para máximo rendimiento
-    const bgStyle = isReply ? `background: rgba(15, 15, 20, 0.95);` : `background: linear-gradient(135deg, rgba(18,18,24,0.95) 0%, rgba(10,10,15,0.95) 100%);`;
+    // Fondos limpios y profesionales
+    const bgStyle = isReply ? `background: transparent;` : `background: rgba(20, 20, 25, 0.4);`;
+    const borderStyle = isReply ? `border: none;` : `border: 1px solid rgba(255,255,255,0.03);`;
     
-    const replyBtn = comentariosCurrentUser ? `<button class="action-btn reply-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}')"><i class="fas fa-reply"></i> Responder</button>` : '';
-    const deleteBtn = isOwner ? `<button class="action-btn delete-btn" onclick="deleteComentario('${c.id}')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : '';
+    const replyBtn = comentariosCurrentUser ?
+        `<button class="action-btn reply-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}')"><i class="fas fa-reply"></i> Responder</button>` : '';
+    const deleteBtn = isOwner ?
+        `<button class="action-btn delete-btn" onclick="deleteComentario('${c.id}')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : '';
     
     return `
-        <div class="comentario-item ${isReply ? 'is-reply' : ''}" id="comment-${c.id}" style="position: relative; overflow: hidden; ${bgStyle} border: 1px solid rgba(${rgbColor}, 0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-radius: 14px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; gap: 15px; transition: border-color 0.3s;"
-        onmouseover="this.style.borderColor='rgba(${rgbColor}, 0.5)';" onmouseout="this.style.borderColor='rgba(${rgbColor}, 0.2)';">
-            <div style="position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: ${neonColor}; box-shadow: 0 0 10px ${neonColor}; opacity: 0.8;"></div>
+        <div class="comentario-item ${isReply ? 'is-reply' : ''}" id="comment-${c.id}" style="position: relative; overflow: visible; ${bgStyle} ${borderStyle} border-radius: 12px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; flex-direction: row; gap: 12px; transition: background 0.3s;"
+        onmouseover="if(!${isReply}) this.style.background='rgba(30, 30, 35, 0.6)';" onmouseout="if(!${isReply}) this.style.background='rgba(20, 20, 25, 0.4)';">
             
-            <div class="comentario-avatar" style="flex-shrink: 0; margin-top: 2px;">
-                <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 10px rgba(${rgbColor}, 0.4);">
+            <div class="comentario-avatar" style="flex-shrink: 0; padding-top: 2px;">
+                <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid rgba(${rgbColor}, 0.5);">
             </div>
             
             <div class="comentario-content" style="flex: 1; min-width: 0;">
-                <div class="comentario-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: baseline; gap: 10px;">
-                        <span class="comentario-user" style="color: #fff; text-shadow: 0 0 3px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 0.5px; font-size: ${titleSize};">${escapeHtmlComent(userName)}</span>
-                        <span class="comentario-fecha" style="color: #777; font-size: 0.8rem; font-weight: 600;">${fecha}</span>
-                    </div>
+                <div class="comentario-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 4px; gap: 8px;">
+                    <span class="comentario-user" style="color: #fff; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #666; font-size: 0.75rem; font-weight: 500;">${fecha}</span>
                 </div>
                 
-                <div class="comentario-texto" style="color: #e2e2e2; font-size: 1rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
+                <div class="comentario-texto" style="color: #ccc; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
                 
-                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
                     ${replyBtn}
                     ${deleteBtn}
                 </div>
@@ -321,20 +319,21 @@ function procesarTextoComentario(texto) {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `
-        <div class="comentario-sticker-container" style="margin-top: 10px; display: inline-block;">
-            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 160px; max-height: 160px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s; border: 1px solid rgba(0, 255, 247, 0.2);" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
+        <div class="comentario-sticker-container" style="margin-top: 8px; display: inline-block;">
+            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
         </div>`;
     });
+
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
         let palabra = palabras[i];
         if (palabra.startsWith('http://') || palabra.startsWith('https://')) {
             if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.2); margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">`;
+                palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 8px;">`;
             } else if (palabra.match(/\.(mp4|webm)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.2); margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"></video>`;
+                palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 8px;"></video>`;
             } else if (!palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--primary-color); text-decoration: none; border-bottom: 1px dashed var(--primary-color); transition: opacity 0.2s;">${palabra}</a>`;
+                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--primary-color); text-decoration: none; transition: opacity 0.2s;">${palabra}</a>`;
             }
         }
     }
@@ -345,7 +344,7 @@ function procesarTextoComentario(texto) {
  * SISTEMA PREMIUM PARA RESPONDER (YouTube Style Mejorado)
  */
 window.prepararRespuesta = function(commentId, userName, userId) {
-    cancelarRespuesta(); 
+    cancelarRespuesta();
     window.respondiendoA = { id: commentId, userName, userId };
 
     const commentEl = document.getElementById(`comment-${commentId}`);
@@ -354,38 +353,34 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     // Crear la caja de respuesta dinámica con UI Premium
     const replyBox = document.createElement('div');
     replyBox.id = 'dynamicReplyBox';
-    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 15px; background: rgba(12, 12, 16, 0.98); border-left: 3px solid var(--primary-color); border-radius: 0 10px 10px 0; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 65px;";
-
+    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.8); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 55px; border: 1px solid rgba(0, 255, 247, 0.2);";
+    
     replyBox.innerHTML = `
-        <div style="color:#aaa; font-size:0.85rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
             <span>Respondiendo a <b style="color:var(--primary-color)">@${escapeHtmlComent(userName)}</b></span>
-            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#888; cursor:pointer; font-size: 1.1rem; transition: 0.2s;" onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#888'" title="Cancelar"><i class="fas fa-times"></i></button>
+            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
         </div>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border: 1px solid rgba(0, 255, 247, 0.3);">
+            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <textarea id="dynamicReplyText" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 8px 0; color: white; font-family: 'Poppins', sans-serif; resize: none; min-height: 35px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--primary-color)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.2)';"></textarea>
+                <textarea id="dynamicReplyText" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--primary-color)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
                     <span id="dynamicCharCount" class="char-counter">0/500</span>
-                    <button id="btnEnviarRespuesta" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--primary-color); border: none; color: #000; font-weight: 700; padding: 6px 18px; border-radius: 20px; cursor: pointer; transition: 0.2s;"><i class="fas fa-paper-plane" style="margin-right: 5px;"></i> Responder</button>
+                    <button id="btnEnviarRespuesta" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--primary-color); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s;"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
                 </div>
             </div>
         </div>
     `;
-
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
 
     const textArea = document.getElementById('dynamicReplyText');
     const btnEnviar = document.getElementById('btnEnviarRespuesta');
     const charCount = document.getElementById('dynamicCharCount');
-    
+
     if(textArea) {
         textArea.focus();
-        
-        // Auto-expandir, actualizar contador y habilitar botón
         textArea.addEventListener('input', function() {
             autoResizeTextarea(this);
-            
             const len = this.value.length;
             charCount.innerText = len + '/500';
             if(len >= 500) charCount.classList.add('limit');
@@ -393,14 +388,10 @@ window.prepararRespuesta = function(commentId, userName, userId) {
             
             if(this.value.trim().length > 0) {
                 btnEnviar.classList.remove('btn-disabled');
-                btnEnviar.style.boxShadow = '0 0 10px rgba(0,255,247,0.4)';
             } else {
                 btnEnviar.classList.add('btn-disabled');
-                btnEnviar.style.boxShadow = 'none';
             }
         });
-
-        // Atajo Enter
         textArea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -430,12 +421,12 @@ window.openStickerModal = function(url) {
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s; padding: 20px;';
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
-                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;text-shadow:0 0 10px #ff0055; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.2)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
-                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:16px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
-                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:16px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);"></video>
+                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
+                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
+                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3);"></video>
                 <br>
-                <button id="stickerModalStealBtn" style="margin-top:25px;background:linear-gradient(135deg, rgba(0,255,247,0.1), rgba(188,19,254,0.2));border:1px solid #00fff7;color:#fff;padding:12px 30px;border-radius:30px;font-size:1.1rem;cursor:pointer;font-weight:900;font-family:'Orbitron',sans-serif;box-shadow:0 0 20px rgba(0,255,247,0.3);transition:all 0.2s;letter-spacing:1px;text-transform:uppercase;">
-                    <i class="fas fa-mask" style="color: #00fff7;"></i> Robar Sticker
+                <button id="stickerModalStealBtn" style="margin-top:20px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:10px 25px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif;transition:all 0.2s;">
+                    <i class="fas fa-mask" style="color: #00fff7; margin-right:5px;"></i> Robar Sticker
                 </button>
             </div>
         `;
@@ -490,7 +481,6 @@ window.validarBotonPrincipal = function(textarea) {
     
     const tieneTexto = textarea.value.trim().length > 0;
     const tieneSticker = window.stickerSeleccionadoParaEnviar != null;
-    
     if(tieneTexto || tieneSticker) {
         btn.classList.remove('btn-disabled');
         btn.style.opacity = '1';
@@ -507,7 +497,6 @@ window.validarBotonPrincipal = function(textarea) {
  */
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
-    
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
 
@@ -524,7 +513,6 @@ async function enviarComentarioTexto() {
     }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-    
     textoInput.value = '';
     textoInput.style.height = 'auto'; // Reset height
     quitarStickerPreview();
@@ -565,7 +553,6 @@ async function enviarComentarioTexto() {
  */
 window.enviarRespuestaDinamica = async function() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
-
     const textoInput = document.getElementById('dynamicReplyText');
     if (!textoInput) return;
 
@@ -581,7 +568,6 @@ window.enviarRespuestaDinamica = async function() {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     }
     textoInput.disabled = true;
-
     try {
         await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
@@ -598,7 +584,7 @@ window.enviarRespuestaDinamica = async function() {
             replyToUserId: replyContext.userId,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-
+        
         // Notificación
         if (replyContext.userId !== comentariosCurrentUser.uid) {
             await comentariosDb.collection('user_notifications').add({
@@ -647,7 +633,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     previewContainer.style.display = 'inline-block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
-    
     // Validar el botón al elegir sticker
     validarBotonPrincipal(document.getElementById('comentarioTexto'));
 };
@@ -661,7 +646,6 @@ window.quitarStickerPreview = function() {
     if(previewContainer) previewContainer.style.display = 'none';
     if(previewImg) previewImg.src = '';
     if(previewVid) previewVid.src = '';
-    
     // Validar el botón al quitar sticker
     validarBotonPrincipal(document.getElementById('comentarioTexto'));
 };
@@ -732,7 +716,7 @@ function showToastComent(msg) {
     if (!toast) {
         toast = document.createElement('div'); 
         toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1000;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1000;font-weight:bold; border: 1px solid #00fff7; transition: all 0.3s;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; 

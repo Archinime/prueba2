@@ -55,10 +55,10 @@
         display: flex;
         justify-content: space-between; align-items: center;
         flex-wrap: wrap; gap: 10px;
-        background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
+        background: rgba(20, 20, 25, 0.6);
         padding: 10px;
         border-radius: 0 0 15px 15px;
-        border-bottom: 1px solid rgba(140, 82, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     
     .back-btn { 
@@ -66,7 +66,8 @@
         align-items: center; gap: 8px;
         color: #eee; text-decoration: none; font-weight: 600; font-size: 0.85rem;
         background: rgba(0, 0, 0, 0.5); 
-        padding: 8px 18px; border-radius: 50px;
+        padding: 8px 18px;
+        border-radius: 50px;
         border: 1px solid rgba(0, 255, 247, 0.3);
         transition: all 0.3s;
     }
@@ -74,7 +75,6 @@
     .back-btn:hover {
         background: rgba(0, 255, 247, 0.15);
         border-color: var(--primary-color);
-        box-shadow: 0 0 20px var(--primary-color);
     }
     
     /* ===== REPRODUCTOR ===== */
@@ -82,7 +82,7 @@
         position: relative;
         padding-bottom: 56.25%; height: 0;
         background: #000; border-radius: 16px;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.05);
         overflow: hidden;
     }
     
@@ -121,7 +121,7 @@
     .opt-btn { 
         padding: 6px 14px;
         background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255,255,255,0.2); color: #ccc;
+        border: 1px solid rgba(255,255,255,0.1); color: #ccc;
         cursor: pointer; border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         transition: all 0.3s;
@@ -129,8 +129,8 @@
     
     .opt-btn.active { 
         border-color: var(--primary-color);
-        background: var(--primary-color); color: #000;
-        font-weight: 700; box-shadow: 0 0 15px var(--primary-color);
+        background: rgba(0, 255, 247, 0.1); color: #00fff7;
+        font-weight: 700; 
     }
     
     /* ===== TÍTULO ===== */
@@ -150,7 +150,7 @@
     .btn { 
         padding: 12px 28px;
         background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255,255,255,0.1); color: #fff;
+        border: 1px solid rgba(255,255,255,0.05); color: #fff;
         text-decoration: none; border-radius: 50px;
         display: inline-flex; align-items: center;
         gap: 8px; transition: all 0.3s; font-weight: 600;
@@ -158,9 +158,8 @@
     
     .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
     .nav-btn:hover {
-        background: rgba(0, 255, 247, 0.15);
+        background: rgba(0, 255, 247, 0.1);
         border-color: var(--primary-color);
-        box-shadow: 0 0 25px var(--primary-color);
     }
     
     #downloadBtn {
@@ -174,10 +173,9 @@
     .comentarios-section {
         margin-top: 40px;
         padding: 25px;
-        background: rgba(10, 10, 15, 0.75);
+        background: rgba(10, 10, 15, 0.4);
         border-radius: 20px;
-        border: 1px solid rgba(0, 255, 247, 0.2);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 255, 247, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         position: relative;
     }
     
@@ -185,120 +183,101 @@
         display: flex;
         align-items: center; gap: 12px;
         margin-bottom: 25px; padding-bottom: 15px;
-        border-bottom: 1px dashed rgba(255,255,255,0.15);
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
     }
     
-    .comentarios-header i { font-size: 2rem; color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+    .comentarios-header i { font-size: 2rem; color: var(--primary-color); text-shadow: 0 0 10px rgba(0,255,247,0.3); }
     .comentarios-header h3 { font-size: 1.4rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;}
     
     .comentario-login-message {
         background: rgba(0, 255, 247, 0.05);
-        border: 1px solid rgba(0, 255, 247, 0.3);
+        border: 1px solid rgba(0, 255, 247, 0.2);
         border-radius: 16px; padding: 30px; text-align: center;
-        box-shadow: inset 0 0 20px rgba(0, 255, 247, 0.05);
         margin-bottom: 40px;
     }
     
     .login-link-btn {
-        background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none; color: #000; font-weight: 800;
-        padding: 12px 28px; border-radius: 30px;
+        background: rgba(0, 255, 247, 0.1);
+        border: 1px solid var(--primary-color); color: #00fff7; font-weight: 800;
+        padding: 10px 24px; border-radius: 30px;
         cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-        margin-top: 15px; box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
-        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 15px; transition: 0.2s;
     }
-    .login-link-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 255, 247, 0.6); }
+    .login-link-btn:hover { background: var(--primary-color); color: #000; transform: translateY(-2px); }
     
     /* --- CAJA DE TEXTO ESTÁTICA --- */
     .comentario-form-container {
-        background: rgba(15, 15, 20, 0.95);
+        background: rgba(15, 15, 20, 0.6);
         border-radius: 16px; padding: 20px;
-        border: 1px solid var(--primary-color);
-        box-shadow: 0 -10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,255,247,0.1);
-        transition: all 0.3s;
-        margin-top: 20px;
-        margin-bottom: 40px;
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        margin-top: 20px; margin-bottom: 40px;
     }
     
     .comentario-user-info { 
-        display: flex;
-        flex-direction: row !important; 
-        align-items: center; 
-        gap: 12px; 
-        margin-bottom: 15px; 
-        flex-wrap: nowrap !important;
+        display: flex; flex-direction: row !important; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: nowrap !important;
     }
     .comentario-user-info img {
         width: 45px; height: 45px; border-radius: 50%;
         border: 2px solid var(--primary-color); object-fit: cover;
-        box-shadow: 0 0 10px rgba(0, 255, 247, 0.5);
     }
-    .comentario-user-info span { font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: #fff; }
+    .comentario-user-info span { font-weight: 700; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px; color: #fff; }
     
     .comentario-input-wrapper { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .comentario-input-wrapper textarea {
         flex: 1;
-        background: rgba(5, 5, 10, 0.6);
-        border: 1px solid rgba(0, 255, 247, 0.4); 
+        background: rgba(5, 5, 10, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1); 
         border-radius: 12px; padding: 15px; color: white;
         font-family: 'Poppins', sans-serif; 
         resize: vertical; min-height: 90px;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         transition: all 0.3s;
     }
-    .comentario-input-wrapper textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 255, 247, 0.3), inset 0 0 10px rgba(0,0,0,0.5); }
+    .comentario-input-wrapper textarea:focus { outline: none; border-color: var(--primary-color); background: rgba(5, 5, 10, 0.8); }
     
     .emoji-btn, .sticker-btn {
-        background: rgba(0, 255, 247, 0.05);
-        border: 1px solid rgba(0, 255, 247, 0.3);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px; padding: 12px 18px; cursor: pointer; font-size: 1.4rem;
-        transition: all 0.3s;
-        color: white; display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s; color: white; display: flex; align-items: center; justify-content: center;
     }
-    .emoji-btn:hover, .sticker-btn:hover { background: rgba(0, 255, 247, 0.2); box-shadow: 0 0 15px rgba(0, 255, 247, 0.3); transform: translateY(-2px); }
+    .emoji-btn:hover, .sticker-btn:hover { background: rgba(0, 255, 247, 0.1); border-color: var(--primary-color); color: var(--primary-color); transform: translateY(-2px); }
     
     .emoji-panel {
-        display: none;
-        background: rgba(20, 20, 30, 0.95); border: 1px solid var(--primary-color);
-        border-radius: 12px; padding: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;
-        max-height: 200px; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        display: none; background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; max-height: 200px; overflow-y: auto;
     }
     .emoji-panel.active { display: flex; }
     .emoji-option { font-size: 1.6rem; cursor: pointer; padding: 5px; background: rgba(255,255,255,0.02); border-radius: 8px; width: 45px; text-align: center; transition: transform 0.2s; }
-    .emoji-option:hover { transform: scale(1.3); background: rgba(0, 255, 247, 0.2); }
+    .emoji-option:hover { transform: scale(1.3); background: rgba(255,255,255,0.1); }
     
-    .comentario-sticker-preview { margin-bottom: 15px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 12px; border: 1px dashed rgba(0, 255, 247, 0.5); display: inline-block; }
+    .comentario-sticker-preview { margin-bottom: 15px; padding: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); display: inline-block; }
     .preview-sticker-wrapper { position: relative; display: inline-block; }
-    .remove-sticker-btn { position: absolute; top: -10px; right: -10px; background: #ff5555; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-size: 12px; cursor: pointer; box-shadow: 0 2px 10px rgba(255,85,85,0.6); transition: 0.2s; }
+    .remove-sticker-btn { position: absolute; top: -10px; right: -10px; background: #ff5555; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-size: 12px; cursor: pointer; transition: 0.2s; }
     .remove-sticker-btn:hover { transform: scale(1.1); }
 
     .enviar-comentario-btn {
-        background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none;
-        color: #000; font-weight: 800; padding: 12px 30px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-        transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; width: 100%; justify-content: center;
+        background: var(--primary-color); border: none; color: #000; font-weight: 800; padding: 10px 25px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; text-transform: uppercase; justify-content: center;
     }
-    .enviar-comentario-btn:hover { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); transform: translateY(-2px); }
+    .enviar-comentario-btn:hover { background: #fff; transform: translateY(-2px); }
     
     .comentarios-list { margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px; }
     
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
     .comentario-link { color: var(--primary-color); text-decoration: underline; word-break: break-all; transition: opacity 0.2s; }
     .comentario-link:hover { opacity: 0.8; }
-    .comentario-texto { word-break: break-word; line-height: 1.5; margin-top: 5px; }
-    .comentario-sticker { max-width: 120px; max-height: 120px; border-radius: 12px; margin-top: 5px;}
-    .comentario-imagen { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 5px;}
     .empty-comments { text-align: center; padding: 40px; color: #888; }
     
-    /* --- RESPONSIVE COMENTARIOS --- */
+    /* --- RESPONSIVE COMENTARIOS MEJORADO --- */
     @media (max-width: 768px) {
         .comentarios-section { padding: 15px; }
-        .comentario-item { padding: 15px !important; gap: 12px !important; flex-direction: column; }
-        .comentario-header { flex-wrap: wrap; }
-        .comentario-avatar { display: flex; align-items: center; gap: 10px; }
-        .comentario-avatar img { width: 45px !important; height: 45px !important; position: static !important; }
-        .comentario-content { width: 100%; }
+        
+        /* ¡AQUI ESTA LA MAGIA PARA EL ALINEAMIENTO! */
+        .comentario-item { padding: 12px !important; gap: 10px !important; flex-direction: row !important; }
+        .comentario-header { flex-wrap: wrap; align-items: center; }
+        .comentario-avatar { display: block; }
+        .comentario-avatar img { width: 38px !important; height: 38px !important; }
+        
         .comentario-form-container { padding: 15px; bottom: 10px; }
         .comentario-input-wrapper { flex-direction: column; }
         .emoji-btn, .sticker-btn { padding: 10px; }
@@ -306,22 +285,16 @@
     
     /* ===== STICKERS MODAL ===== */
     .sticker-panel-full {
-        display: none;
-        background: rgba(15, 15, 20, 0.98); 
-        border: 1px solid var(--primary-color); border-radius: 16px; margin-bottom: 15px; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        overflow: hidden;
+        display: none; background: rgba(15, 15, 20, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 15px; overflow: hidden;
     }
     .sticker-panel-full.active { display: block; }
     
-    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.7); }
+    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); }
     .sticker-tab { 
-        flex: 1; padding: 15px 10px;
-        background: none; border: none; color: #888; 
-        cursor: pointer; font-size: 0.8rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; transition: 0.3s;
+        flex: 1; padding: 12px 10px; background: none; border: none; color: #888; cursor: pointer; font-size: 0.8rem; font-weight: 700; font-family: 'Poppins', sans-serif; transition: 0.3s;
     }
     .sticker-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-    .sticker-tab.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); background: rgba(0, 255, 247, 0.05);}
+    .sticker-tab.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background: rgba(0, 255, 247, 0.05);}
     
     .sticker-tab-content { display: none; padding: 20px; max-height: 350px; overflow-y: auto; }
     .sticker-tab-content.active { display: block; }
@@ -329,68 +302,50 @@
     .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     
     .sticker-item {
-        position: relative;
-        background: rgba(0,0,0,0.4); border-radius: 12px;
-        padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05);
+        position: relative; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 6px; cursor: pointer; text-align: center; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05);
     }
-    .sticker-item:hover { 
-        background: rgba(0, 255, 247, 0.1);
-        transform: scale(1.05); 
-        border-color: rgba(0, 255, 247, 0.5); box-shadow: 0 0 15px rgba(0, 255, 247, 0.2);
-    }
-    .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
+    .sticker-item:hover { background: rgba(0, 255, 247, 0.1); transform: scale(1.05); border-color: rgba(0, 255, 247, 0.3); }
+    .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 6px; }
     
-    .sticker-delete-btn {
-        position: absolute;
-        top: -5px; right: -5px; background: rgba(255, 0, 85, 0.9); border: none;
-        color: white; border-radius: 50%; width: 22px; height: 22px;
-        font-size: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(255,0,85,0.5); transition: 0.2s;
-    }
+    .sticker-delete-btn { position: absolute; top: -5px; right: -5px; background: rgba(255, 0, 85, 0.9); border: none; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 10px; cursor: pointer; transition: 0.2s; }
     .sticker-delete-btn:hover { transform: scale(1.2); }
     
     .sticker-empty { text-align: center; padding: 30px; color: #888; grid-column: 1/-1; font-style: italic;}
     
     .upload-sticker-area { text-align: center; margin: 15px 0; }
     .upload-sticker-label {
-        display: inline-flex; align-items: center; gap: 10px;
-        background: linear-gradient(135deg, var(--primary-color), #0099ff); color: #000;
-        padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 800; transition: all 0.3s;
-        box-shadow: 0 0 10px rgba(0, 255, 247, 0.3); text-transform: uppercase; letter-spacing: 1px;
+        display: inline-flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 700; transition: all 0.3s;
     }
-    .upload-sticker-label:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary-color); }
+    .upload-sticker-label:hover { background: rgba(255,255,255,0.1); }
     
-    .upload-preview { margin-top: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px dashed rgba(0,255,247,0.3);}
+    .upload-preview { margin-top: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);}
     
     .add-sticker-container { text-align: center; padding: 10px; }
-    .add-sticker-desc { margin-bottom: 10px; font-weight: 700; color: #eee; font-size: 1.1rem; }
-    .add-sticker-hint { font-size: 0.8rem; color: #aaa; margin-bottom: 20px; }
+    .add-sticker-desc { margin-bottom: 10px; font-weight: 600; color: #eee; font-size: 1rem; }
+    .add-sticker-hint { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
     
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.95); z-index: 10001;
-        display: flex; justify-content: center; align-items: center;
-        opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
     }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
     .auth-card {
-        background: #0f0f13; border: 1px solid var(--primary-color);
-        border-radius: 20px;
-        width: 100%; max-width: 400px; padding: 30px; position: relative;
+        background: #0f0f13; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 100%; max-width: 400px; padding: 30px; position: relative;
     }
-    .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
+    .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; }
     
-    .auth-tabs { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .auth-tab { padding: 10px 0; cursor: pointer; font-weight: 700; color: #aaa; border-bottom: 2px solid transparent; }
+    .auth-tabs { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .auth-tab { padding: 10px 0; cursor: pointer; font-weight: 700; color: #888; border-bottom: 2px solid transparent; }
     .auth-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
     
     .auth-form { display: flex; flex-direction: column; gap: 15px; }
     .auth-form input { background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 8px; color: white; }
-    .auth-form button { background: var(--primary-color); color: #000; border: none; padding: 14px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+    .auth-form button { background: var(--primary-color); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s;}
+    .auth-form button:hover { background: #fff; }
     
     .auth-providers { margin-top: 20px; }
-    .provider-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: white; }
+    .provider-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: white; transition: 0.2s;}
+    .provider-btn:hover { background: rgba(255,255,255,0.1); }
     .auth-error { color: #ff4757; font-size: 0.85rem; margin-top: 10px; text-align: center; }
     
     /* ===== RESPONSIVE GLOBALES ===== */
@@ -444,10 +399,10 @@
         </div>
 
         <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
-            <i class="fas fa-lock" style="font-size: 2rem; color: #aaa; margin-bottom: 10px;"></i>
-            <p style="font-size: 1.1rem; color: #eee;">Inicia sesión para comentar y robar stickers animados de la comunidad</p>
+            <i class="fas fa-lock" style="font-size: 2rem; color: #888; margin-bottom: 10px;"></i>
+            <p style="font-size: 1rem; color: #ccc;">Inicia sesión para comentar y robar stickers animados de la comunidad</p>
             <button class="login-link-btn" onclick="openLoginModalFromComent()">
-                <i class="fas fa-sign-in-alt"></i> ✨ Iniciar sesión / Registrarse ✨
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión / Registrarse
             </button>
         </div>
 
@@ -735,8 +690,6 @@
         const eNum = parseInt(params.get('e'));
 
         if (!aId || isNaN(sNum) || isNaN(eNum)) return;
-
-        // Se ejecuta una vez que el estado de autenticación de Firebase esté listo
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 try {
@@ -750,6 +703,7 @@
                         seasonData.push(eNum);
                         animeData[sNum] = seasonData;
                         data[aId] = animeData;
+                       
                         await docRef.set(data, { merge: true });
                         console.log("Episodio auto-marcado como visto en Firestore");
                     }
@@ -757,13 +711,11 @@
                     console.error("Error al auto-marcar episodio en Firestore:", e);
                 }
             } else {
-                // Si el usuario no está logueado, lo guarda en el localStorage para invitados
                 localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
                 console.log("Episodio auto-marcado como visto en modo Local");
             }
         });
     };
-
     if (epData) {
       document.title = `Ver ${epData.title} - Archinime`;
       document.getElementById('epTitle').innerText = epData.title;
@@ -775,9 +727,7 @@
       if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
       setupNavigation();
       
-      // Llamar al auto-marcado de episodios
       autoMarkEpisodeWatched();
-
       const checkScriptsInterval = setInterval(() => {
         if (typeof initStickersSystem === 'function' && typeof initComentariosSystem === 'function') {
           clearInterval(checkScriptsInterval);
