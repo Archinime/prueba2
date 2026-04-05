@@ -111,12 +111,15 @@
     }
     
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+        0% { opacity: 0.8;
+        text-shadow: 0 0 5px var(--primary-color); }
+        100% { opacity: 1;
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
     }
     
     /* ===== SERVIDORES ===== */
-    .options { display: flex; gap: 10px; justify-content: flex-end; }
+    .options { display: flex;
+        gap: 10px; justify-content: flex-end; }
     
     .opt-btn { 
         padding: 6px 14px;
@@ -134,7 +137,8 @@
     }
     
     /* ===== TÍTULO ===== */
-    h1 { text-align: center; font-size: 1.3rem; margin: 5px 0; }
+    h1 { text-align: center;
+        font-size: 1.3rem; margin: 5px 0; }
     
     /* ===== CONTROLES ===== */
     .controls { 
@@ -152,7 +156,8 @@
         background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255,255,255,0.1); color: #fff;
         text-decoration: none; border-radius: 50px;
-        display: inline-flex; align-items: center; gap: 8px;
+        display: inline-flex; align-items: center;
+        gap: 8px;
         transition: all 0.3s; font-weight: 600;
     }
     
@@ -180,7 +185,8 @@
     }
     
     .comentarios-header {
-        display: flex; align-items: center; gap: 12px;
+        display: flex;
+        align-items: center; gap: 12px;
         margin-bottom: 20px; padding-bottom: 12px;
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
@@ -208,18 +214,21 @@
     }
     
     .comentario-user-info {
-        display: flex; align-items: center; gap: 12px;
+        display: flex;
+        align-items: center; gap: 12px;
         margin-bottom: 12px;
     }
     
     .comentario-user-info img {
-        width: 40px; height: 40px; border-radius: 50%;
+        width: 40px;
+        height: 40px; border-radius: 50%;
         border: 2px solid var(--primary-color);
         object-fit: cover;
     }
     
     .comentario-input-wrapper {
-        display: flex; gap: 10px; margin-bottom: 12px;
+        display: flex;
+        gap: 10px; margin-bottom: 12px;
         flex-wrap: wrap;
     }
     
@@ -228,7 +237,8 @@
         background: rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px; padding: 12px;
-        color: white; font-family: 'Poppins', sans-serif;
+        color: white;
+        font-family: 'Poppins', sans-serif;
         resize: vertical; min-height: 80px;
     }
     
@@ -241,7 +251,8 @@
     }
     
     .emoji-panel {
-        display: none; background: rgba(20, 20, 30, 0.95);
+        display: none;
+        background: rgba(20, 20, 30, 0.95);
         border: 1px solid var(--primary-color);
         border-radius: 12px; padding: 10px;
         margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
@@ -251,7 +262,8 @@
     .emoji-panel.active { display: flex; }
     
     .emoji-option {
-        font-size: 1.5rem; cursor: pointer; padding: 5px;
+        font-size: 1.5rem;
+        cursor: pointer; padding: 5px;
         background: rgba(255,255,255,0.05); border-radius: 8px;
         width: 45px; text-align: center; transition: transform 0.2s;
     }
@@ -268,12 +280,14 @@
         display: inline-block;
     }
     .preview-sticker-wrapper { position: relative; display: inline-block; }
-    #previewStickerImgObj { max-width: 100px; max-height: 100px; border-radius: 8px; }
+    
     .remove-sticker-btn {
-        position: absolute; top: -8px; right: -8px;
+        position: absolute; top: -8px;
+        right: -8px;
         background: #ff5555; color: white; border: none;
         border-radius: 50%; width: 22px; height: 22px;
-        font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        font-size: 12px; cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
 
     .enviar-comentario-btn {
@@ -291,14 +305,16 @@
     }
 
     .comentario-item {
-        display: flex; gap: 15px; padding: 15px;
+        display: flex;
+        gap: 15px; padding: 15px;
         background: rgba(255,255,255,0.03);
         border-radius: 12px; margin-bottom: 12px;
         border: 1px solid rgba(255,255,255,0.03);
     }
     
     .comentario-avatar img {
-        width: 40px; height: 40px; border-radius: 50%;
+        width: 40px;
+        height: 40px; border-radius: 50%;
         border: 1px solid var(--primary-color); object-fit: cover;
     }
     
@@ -306,13 +322,15 @@
     .comentario-fecha { font-size: 0.7rem; color: #888; }
     
     .comentario-link {
-        color: var(--primary-color); text-decoration: underline;
+        color: var(--primary-color);
+        text-decoration: underline;
         word-break: break-all; transition: opacity 0.2s;
     }
     .comentario-link:hover { opacity: 0.8; }
     
     .comentario-delete {
-        background: none; border: none; color: #ff5555;
+        background: none;
+        border: none; color: #ff5555;
         cursor: pointer; margin-left: auto; padding: 4px 8px;
         border-radius: 6px; transition: background 0.2s;
     }
@@ -334,7 +352,8 @@
     
     /* ===== STICKERS ===== */
     .sticker-panel-full {
-        display: none; background: rgba(20, 20, 30, 0.98);
+        display: none;
+        background: rgba(20, 20, 30, 0.98);
         border: 1px solid var(--primary-color);
         border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(10px);
     }
@@ -342,12 +361,14 @@
     .sticker-panel-full.active { display: block; }
     
     .sticker-tabs {
-        display: flex; border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
         background: rgba(0,0,0,0.5);
     }
     
     .sticker-tab {
-        flex: 1; padding: 10px; background: none; border: none;
+        flex: 1;
+        padding: 10px; background: none; border: none;
         color: #ccc; cursor: pointer; font-size: 0.75rem; font-weight: 600;
     }
     
@@ -359,7 +380,8 @@
     .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     
     .sticker-item {
-        position: relative; background: rgba(255,255,255,0.05);
+        position: relative;
+        background: rgba(255,255,255,0.05);
         border-radius: 12px; padding: 8px; cursor: pointer;
         text-align: center; transition: all 0.2s;
     }
@@ -369,7 +391,8 @@
     .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
     
     .sticker-delete-btn {
-        position: absolute; top: 2px; right: 2px;
+        position: absolute;
+        top: 2px; right: 2px;
         background: rgba(255, 0, 85, 0.8); border: none;
         color: white; border-radius: 50%; width: 20px; height: 20px;
         font-size: 10px; cursor: pointer;
@@ -380,10 +403,12 @@
     .upload-sticker-area { text-align: center; margin: 15px 0; }
     
     .upload-sticker-label {
-        display: inline-flex; align-items: center; gap: 10px;
+        display: inline-flex;
+        align-items: center; gap: 10px;
         background: linear-gradient(135deg, var(--primary-color), #0099ff);
         color: #000; padding: 12px 24px; border-radius: 30px;
-        cursor: pointer; font-weight: 700; transition: all 0.3s;
+        cursor: pointer; font-weight: 700;
+        transition: all 0.3s;
     }
     
     .upload-sticker-label:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--primary-color); }
@@ -404,7 +429,8 @@
     
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
         z-index: 10001; display: flex; justify-content: center; align-items: center;
         opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
@@ -413,7 +439,8 @@
     .auth-modal.show { opacity: 1; pointer-events: auto; }
     
     .auth-card {
-        background: #0f0f13; border: 1px solid var(--primary-color);
+        background: #0f0f13;
+        border: 1px solid var(--primary-color);
         border-radius: 20px; width: 100%; max-width: 400px;
         padding: 30px; position: relative;
     }
@@ -489,8 +516,8 @@
 
         <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
             <i class="fas fa-lock"></i>
-            <p>🔒 Inicia sesión para comentar y usar stickers</p>
-            <button class="login-link-btn" onclick="openLoginModalFromComent()">
+            <p>🔒 Inicia sesión para comentar y usar stickers animados</p>
+             <button class="login-link-btn" onclick="openLoginModalFromComent()">
                 <i class="fas fa-sign-in-alt"></i> ✨ Iniciar sesión / Registrarse ✨
             </button>
         </div>
@@ -511,7 +538,8 @@
             
             <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
                 <div class="preview-sticker-wrapper">
-                    <img id="previewStickerImgObj" src="">
+                    <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;">
+                    <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;"></video>
                     <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
                 </div>
             </div>
@@ -532,15 +560,17 @@
          
                 <div id="subirStickersTab" class="sticker-tab-content">
                     <div class="add-sticker-container">
-                        <p class="add-sticker-desc">📸 Sube una imagen desde tu computadora</p>
-                        <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, WEBP, AVIF (máx. 50MB)</p>
+                        <p class="add-sticker-desc">📸 Sube imágenes o videos desde tu computadora</p>
+                        <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 50MB)</p>
                         <div class="upload-sticker-area">
                             <label for="stickerFileInput" class="upload-sticker-label">
-                                <i class="fas fa-cloud-upload-alt"></i> Seleccionar imagen
+                                <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
                             </label>
-                            <input type="file" id="stickerFileInput" accept="image/jpeg,image/png,image/gif,image/webp,image/avif" style="display:none" onchange="subirStickerDesdePC(this)">
+                            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
+                            
                             <div class="upload-preview" id="stickerPreview" style="display:none;">
-                                <img id="previewImage" style="max-width:100px; max-height:100px; border-radius:12px;">
+                                <img id="previewImage" style="display:none; max-width:100px; max-height:100px; border-radius:12px;">
+                                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:100px; max-height:100px; border-radius:12px;"></video>
                             </div>
                         </div>
                         <div class="divider">o</div>
@@ -548,12 +578,11 @@
                         <button class="add-sticker-btn" onclick="agregarStickerPorURL()">
                             <i class="fas fa-link"></i> Agregar por URL
                         </button>
-                     
-                        <p class="add-sticker-note">💡 Tip: Ahora, cuando robes un sticker de los comentarios, aparecerá aquí automáticamente.</p>
+                        <p class="add-sticker-note">💡 Tip: Ahora puedes subir videos cortos. ¡Se reproducirán automáticamente como si fueran GIFs pero en HD!</p>
                     </div>
                 </div>
             </div>
-            
+           
             <div class="comentario-actions">
                 <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
                     <i class="fas fa-paper-plane"></i> Enviar
@@ -609,7 +638,6 @@
     const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     
-    // Generar emojis automáticamente
     const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
     const emojiPanel = document.getElementById('emojiPanel');
@@ -672,7 +700,6 @@
   </script>
 
   <script>
-    // Cargar scripts en orden
     const version = Date.now();
     document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
     document.write('<script src="stickers-system.js?v=' + version + '"><\/script>');
@@ -680,7 +707,6 @@
   </script>
 
   <script>
-    // Lógica del reproductor
     const DB = (typeof players !== 'undefined') ? players : {};
     const params = new URLSearchParams(location.search);
     const animeId = params.get('anime');
@@ -765,7 +791,6 @@
       const idx = flatList.findIndex(i => String(i.s) === String(season) && String(i.e) === String(episode));
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
-      
       if (idx > 0) {
         prevBtn.classList.remove('btn-hidden');
         prevBtn.href = `?anime=${animeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`;

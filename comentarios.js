@@ -7,13 +7,11 @@ let comentariosAuth = null;
 let comentariosCurrentUser = null;
 let comentariosUnsubscribe = null;
 
-// Variable global para guardar el sticker que se va a enviar
 window.stickerSeleccionadoParaEnviar = null;
 
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
-
     auth.onAuthStateChanged(async (user) => {
         comentariosCurrentUser = user;
         updateComentariosUI();
@@ -23,7 +21,6 @@ function initComentariosSystem(db, auth) {
         }
     });
 
-    // Enviar comentario con Enter (Shift+Enter para nueva línea)
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
@@ -37,17 +34,9 @@ function initComentariosSystem(db, auth) {
     }, 1000);
 }
 
-// === FUNCIONES PARA COLORES NEÓN ALEATORIOS POR USUARIO ===
 function getNeonColorByString(str) {
     const neonColors = [
-        '#00fff7', // Cyan
-        '#ff0055', // Rosa neón
-        '#bc13fe', // Morado brillante
-        '#00ff33', // Verde tóxico
-        '#ffff00', // Amarillo láser
-        '#ffaa00', // Naranja fuego
-        '#ff00aa', // Magenta
-        '#00aaff'  // Azul eléctrico
+        '#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'
     ];
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -65,7 +54,6 @@ function hexToRgbStr(hex) {
     }
     return `${r}, ${g}, ${b}`;
 }
-// ==========================================================
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) {
@@ -101,28 +89,34 @@ function setupComentariosRealtimeListener() {
             const avatar = c.userAvatar || 'invitado.avif';
             const userName = c.userName || 'Usuario';
             
-            // Generar el color Neón basado en el ID o Nombre del usuario
             const neonColor = getNeonColorByString(c.userId || userName);
             const rgbColor = hexToRgbStr(neonColor);
             
             let contenidoHtml = procesarTextoComentario(c.texto || '');
-           
-            // Si el comentario contiene un sticker principal (retrocompatibilidad) sin ensuciar espacios
+
             if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
-                contenidoHtml += `
-                    <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
-                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
-                    </div>
-                `;
+                const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
+                if (isVideo) {
+                     contenidoHtml += `
+                        <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+                            <video src="${c.stickerUrl}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></video>
+                        </div>
+                    `;
+                } else {
+                     contenidoHtml += `
+                        <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+                            <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
+                        </div>
+                    `;
+                }
             }
             
-            // HTML DEL COMENTARIO (NEGRO PURO Y NEÓN MÁXIMO)
             html += `
                 <div class="comentario-item" style="background: #050505; border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.8), inset 0 0 15px rgba(${rgbColor}, 0.05); animation: fadeIn 0.4s ease-in-out; border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; gap: 15px;">
                     <div class="comentario-avatar">
                         <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 12px rgba(${rgbColor}, 0.8);">
                     </div>
-                    <div class="comentario-content" style="flex: 1; min-width: 0;">
+                   <div class="comentario-content" style="flex: 1; min-width: 0;">
                         <div class="comentario-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; border-bottom: 1px dashed rgba(${rgbColor}, 0.2); padding-bottom: 6px;">
                             <span class="comentario-user" style="color: #fff; text-shadow: 0 0 4px #fff, 0 0 10px ${neonColor}, 0 0 20px ${neonColor}, 0 0 35px ${neonColor}; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 1.05rem;">${escapeHtmlComent(userName)}</span>
                             <span class="comentario-fecha" style="color: #666; font-size: 0.75rem;">${fecha}</span>
@@ -152,7 +146,6 @@ function obtenerTiempoRelativo(fecha) {
 
 function procesarTextoComentario(texto) {
     if (!texto) return '';
-    // Limpiar espacios extra al principio o final para que no se vea vacío arriba
     let html = escapeHtmlComent(texto.trim());
 
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
@@ -160,16 +153,25 @@ function procesarTextoComentario(texto) {
         html = html.split(code).join(emoji);
     }
     
-    // Evitar múltiples saltos de línea innecesarios
     html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
-    
-    // Extraer stickers y hacer que al presionarlos se abra el modal (SIN el botón feo debajo)
+
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
-    html = html.replace(stickerRegex, (match, url) => `
-        <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
-            <img src="${url}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
-        </div>
-    `);
+    html = html.replace(stickerRegex, (match, url) => {
+        const isVideo = url.match(/\.(mp4|webm)$/i);
+        if (isVideo) {
+            return `
+            <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+                <video src="${url}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></video>
+            </div>
+            `;
+        } else {
+             return `
+            <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+                <img src="${url}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
+            </div>
+            `;
+        }
+    });
 
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
@@ -177,19 +179,20 @@ function procesarTextoComentario(texto) {
         if (palabra.startsWith('http://') || palabra.startsWith('https://')) {
             if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); margin-top: 5px;">`;
-            } 
+            } else if (palabra.match(/\.(mp4|webm)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
+                palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); margin-top: 5px;"></video>`;
+            }
             else if (!palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: #00fff7; text-shadow: 0 0 5px rgba(0,255,247,0.5);">${palabra}</a>`;
             }
         }
     }
     
-    // Unir todo y eliminar <br> iniciales si solo se envió un sticker
     html = palabras.join('').replace(/^(<br>)+/, '').trim();
     return html;
 }
 
-// === SISTEMA DE POP-UP (MODAL) PARA VER Y ROBAR STICKERS ===
+// === SISTEMA DE POP-UP PARA VER STICKERS ===
 window.openStickerModal = function(url) {
     let modal = document.getElementById('stickerViewModal');
     if (!modal) {
@@ -199,7 +202,10 @@ window.openStickerModal = function(url) {
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
                 <button onclick="closeStickerModal()" style="position:absolute;top:-45px;right:0;background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;text-shadow:0 0 10px #ff0055; transition: 0.2s;" onmouseover="this.style.color='#ff0055'" onmouseout="this.style.color='#fff'">&times;</button>
-                <img id="stickerModalImg" src="" style="max-width:100%;max-height:65vh;border-radius:15px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
+                
+                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:15px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
+                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:15px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);"></video>
+                
                 <br>
                 <button id="stickerModalStealBtn" style="margin-top:25px;background:linear-gradient(135deg, rgba(0,255,247,0.1), rgba(188,19,254,0.1));border:1px solid #00fff7;color:#fff;padding:12px 30px;border-radius:30px;font-size:1.1rem;cursor:pointer;font-weight:900;font-family:'Orbitron',sans-serif;box-shadow:0 0 20px rgba(0,255,247,0.4), inset 0 0 10px rgba(0,255,247,0.2);transition:all 0.3s;letter-spacing:1px;text-transform:uppercase;">
                     <i class="fas fa-mask" style="color: #00fff7;"></i> Robar Sticker
@@ -209,7 +215,20 @@ window.openStickerModal = function(url) {
         document.body.appendChild(modal);
     }
     
-    document.getElementById('stickerModalImg').src = url;
+    const isVideo = url.match(/\.(mp4|webm)$/i);
+    const imgEl = document.getElementById('stickerModalImg');
+    const vidEl = document.getElementById('stickerModalVid');
+    
+    if (isVideo) {
+        imgEl.style.display = 'none';
+        vidEl.src = url;
+        vidEl.style.display = 'inline-block';
+    } else {
+        vidEl.style.display = 'none';
+        imgEl.src = url;
+        imgEl.style.display = 'inline-block';
+    }
+    
     document.getElementById('stickerModalStealBtn').onclick = function() {
         if(typeof window.robarStickerSistema === 'function') {
             window.robarStickerSistema(url);
@@ -227,10 +246,12 @@ window.closeStickerModal = function() {
     let modal = document.getElementById('stickerViewModal');
     if (modal) {
         modal.style.opacity = '0';
-        setTimeout(() => modal.style.display = 'none', 300);
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('stickerModalVid').src = ''; // Cortar video al cerrar
+        }, 300);
     }
 };
-// ==========================================================
 
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) {
@@ -240,7 +261,6 @@ async function enviarComentarioTexto() {
     
     const texto = document.getElementById('comentarioTexto').value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
-
     if (!texto && !stickerUrl) {
         showToastComent('⚠️ No puedes enviar un comentario vacío');
         return;
@@ -253,7 +273,6 @@ async function enviarComentarioTexto() {
     
     let textoFinal = texto;
     if (stickerUrl) {
-        // Agrega el sticker al final del texto asegurando que haya un salto si hay texto
         textoFinal += (textoFinal ? '\n' : '') + `[Sticker](${stickerUrl})`;
     }
     
@@ -270,8 +289,6 @@ async function enviarComentarioTexto() {
             stickerUrl: stickerUrl || null,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        // Limpiar todo después de enviar
         document.getElementById('comentarioTexto').value = '';
         quitarStickerPreview();
         showToastComent('✅ Comentario enviado');
@@ -283,16 +300,24 @@ async function enviarComentarioTexto() {
     }
 }
 
-// Manda el sticker al preview en vez de enviarlo directo
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
     const previewImg = document.getElementById('previewStickerImgObj');
+    const previewVid = document.getElementById('previewStickerVidObj');
     
-    previewImg.src = url;
+    if (url.match(/\.(mp4|webm)$/i)) {
+        previewImg.style.display = 'none';
+        previewVid.src = url;
+        previewVid.style.display = 'inline-block';
+    } else {
+        previewVid.style.display = 'none';
+        previewImg.src = url;
+        previewImg.style.display = 'inline-block';
+    }
+    
     previewContainer.style.display = 'inline-block';
-
-    // Cierra el panel de stickers para que veas el input
+    
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
 };
@@ -301,6 +326,7 @@ window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     document.getElementById('comentarioStickerPreview').style.display = 'none';
     document.getElementById('previewStickerImgObj').src = '';
+    document.getElementById('previewStickerVidObj').src = '';
 };
 
 async function deleteComentario(commentId) {
@@ -316,14 +342,12 @@ async function deleteComentario(commentId) {
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
-
     if (!comentariosCurrentUser) {
         if (loginMsg) loginMsg.style.display = 'block';
         if (formContainer) formContainer.style.display = 'none';
     } else {
         if (loginMsg) loginMsg.style.display = 'none';
         if (formContainer) formContainer.style.display = 'block';
-
         const avatar = document.getElementById('comentarioUserAvatar');
         if (avatar) avatar.src = comentariosCurrentUser.photoURL || 'invitado.avif';
         const name = document.getElementById('comentarioUserName');
