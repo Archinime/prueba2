@@ -32,40 +32,33 @@ function injectReaccionesCSS() {
             align-items: center;
         }
 
-        /* Botón exclusivo de Reacción Minimalista */
-        .btn-reaccion-icon {
+        .btn-accion-footer {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             color: #aaa;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: flex;
             align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
         }
-        .btn-reaccion-icon:hover { 
+        .btn-accion-footer:hover { 
             color: #fff;
             background: rgba(0, 243, 255, 0.1);
             border-color: rgba(0, 243, 255, 0.4);
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-            transform: translateY(-2px) scale(1.05);
-        }
-        .btn-reaccion-icon.user-reacted {
-            background: rgba(255,255,255,0.08);
-            box-shadow: inset 0 0 10px currentColor;
-            border-color: currentColor;
-        }
-        .btn-reaccion-icon.user-reacted:hover {
-            box-shadow: 0 0 20px currentColor, inset 0 0 15px currentColor;
+            transform: translateY(-2px);
         }
 
         .reactions-picker {
             position: absolute;
-            bottom: calc(100% + 15px);
-            left: -5px;
+            bottom: calc(100% + 10px);
+            left: -10px;
             background: rgba(10, 10, 15, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid var(--neon-primary, #00f3ff);
@@ -141,10 +134,20 @@ function injectReaccionesCSS() {
         .reactions-summary span:nth-child(3) { z-index: 3; }
         .reactions-summary span:last-of-type { margin-right: 6px; }
 
+        .user-reacted {
+            font-weight: 800;
+            background: rgba(255,255,255,0.08);
+            box-shadow: inset 0 0 10px currentColor;
+            border-color: currentColor;
+        }
+        .user-reacted:hover {
+            box-shadow: 0 0 20px currentColor, inset 0 0 15px currentColor;
+        }
+
         /* --- ADAPTACIÓN EXTREMA PARA MÓVILES (Evita que el menú se desborde) --- */
         @media (max-width: 768px) {
             .reactions-picker {
-                left: -5px;
+                left: -5px; /* Ajustado para que no se salga a la izquierda */
                 padding: 8px 12px;
                 gap: 8px; /* Menos espacio entre emojis */
                 border-radius: 25px;
@@ -155,9 +158,9 @@ function injectReaccionesCSS() {
             .reaction-icon:hover {
                 transform: scale(1.4) translateY(-5px);
             }
-            .btn-reaccion-icon {
-                width: 32px;
-                height: 32px;
+            .btn-accion-footer {
+                padding: 5px 10px;
+                font-size: 0.75rem;
             }
         }
     `;
@@ -208,28 +211,27 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         const type = reactions[uid];
         counts[type] = (counts[type] || 0) + 1;
     });
-    
+
     const sortedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
     const topIconsHTML = sortedTypes.map(type => `<span>${REACTIONS_MAP[type].emoji}</span>`).join('');
-    
+
     const summaryHTML = total > 0 ? 
         `<div class="reactions-summary" title="${total} reacciones en total">
             ${topIconsHTML} <strong style="color: #fff; font-family: 'Orbitron'; margin-left: 5px; font-size: 1rem;">${total}</strong>
         </div>` : '';
-        
+
     let btnReaccionarHTML = '';
-    
     if (currentUserReaction && REACTIONS_MAP[currentUserReaction]) {
         const rData = REACTIONS_MAP[currentUserReaction];
         btnReaccionarHTML = `
-            <button class="btn-reaccion-icon user-reacted" style="color: ${rData.color}" onclick="quitarReaccion('${commentId}')" title="${rData.name} (Clic para quitar)">
-                <span style="font-size: 1.2rem; filter: drop-shadow(0 0 5px ${rData.color});">${rData.emoji}</span>
+            <button class="btn-accion-footer user-reacted" style="color: ${rData.color}" onclick="quitarReaccion('${commentId}')" title="Clic para quitar reacción">
+                <span style="font-size: 1.2rem; filter: drop-shadow(0 0 5px ${rData.color});">${rData.emoji}</span> ${rData.name}
             </button>
         `;
     } else {
         btnReaccionarHTML = `
-            <button class="btn-reaccion-icon" title="Reaccionar">
-                <i class="far fa-thumbs-up" style="font-size: 1.2rem;"></i>
+            <button class="btn-accion-footer">
+                <i class="far fa-thumbs-up" style="font-size: 1.1rem;"></i> Reaccionar
             </button>
         `;
     }
