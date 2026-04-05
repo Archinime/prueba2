@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v5.0
-// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis, Stickers y REACCIONES)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v6.0
+// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis, Stickers, REACCIONES y Nombres Dinámicos)
 // ============================================
 
 let comentariosDb = null;
@@ -16,6 +16,7 @@ function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
+    
     auth.onAuthStateChanged(async (user) => {
         comentariosCurrentUser = user;
         updateComentariosUI();
@@ -24,6 +25,7 @@ function initComentariosSystem(db, auth) {
             setupComentariosRealtimeListener();
         }
     });
+
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
@@ -43,10 +45,10 @@ function initComentariosSystem(db, auth) {
 
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) {
-            stickerBtn.innerHTML = '🖼️';
-            stickerBtn.style.fontSize = '1.4rem';
+            stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
         }
     }, 1000);
+    
     // Cierra todos los menús de comentarios si se hace clic fuera
     document.addEventListener('click', () => closeAllCommentMenus());
 }
@@ -56,6 +58,9 @@ function autoResizeTextarea(el) {
     el.style.height = (el.scrollHeight) + 'px';
 }
 
+// ============================================
+// CSS INYECTADO (DISEÑO MEJORADO Y RESPONSIVE)
+// ============================================
 function injectCommentsCSS() {
     if (document.getElementById('archinime-comments-css')) return;
     const style = document.createElement('style');
@@ -68,48 +73,55 @@ function injectCommentsCSS() {
             --neon-warn: #ffaa00;
         }
     
+        /* Tarjeta Principal de Comentario */
         .comentario-item { 
             position: relative;
             z-index: 1;
-            background: rgba(10, 12, 16, 0.7) !important;
-            backdrop-filter: blur(10px);
+            background: linear-gradient(145deg, rgba(15, 18, 25, 0.8), rgba(5, 5, 8, 0.95)) !important;
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-            border-radius: 12px;
-            /* IMPORTANTE: overflow visible para que el menú de reacciones no se corte */
-            overflow: visible; 
+            /* Borde izquierdo dinámico basado en el color del usuario */
+            border-left: 3px solid var(--user-color, var(--neon-primary)) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 0 16px 16px 16px;
+            overflow: visible;
+            margin-bottom: 12px;
         }
         .comentario-item:hover {
-            background: rgba(15, 18, 25, 0.9) !important;
-            border-color: rgba(0, 243, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.05);
+            background: linear-gradient(145deg, rgba(20, 24, 32, 0.95), rgba(10, 10, 15, 1)) !important;
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8), 0 0 15px var(--user-color, rgba(0,255,247,0.2));
+            transform: translateY(-2px);
         }
 
+        /* Diseño de Respuestas */
         .comentario-item.is-reply {
-            background: rgba(5, 5, 8, 0.4) !important;
-            box-shadow: none;
-            border: none;
-            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(10, 12, 16, 0.6), rgba(5, 5, 8, 0.8)) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.02);
+            border-left: 2px solid var(--user-color, var(--neon-primary)) !important;
+            border-radius: 0 12px 12px 12px;
         }
         .comentario-item.is-reply:hover {
-            background: rgba(15, 18, 25, 0.7) !important;
+            background: rgba(15, 18, 25, 0.8) !important;
         }
 
+        /* Hilos Visuales (Líneas conectoras) */
         .comentario-item.is-reply::before {
             content: '';
             position: absolute;
-            left: -22px; 
+            left: -24px; 
             top: var(--branch-top, 25px);
-            width: 22px;
+            width: 24px;
             height: 2px;
             background: rgba(255, 255, 255, 0.1);
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
             border-radius: 2px 0 0 2px;
         }
         .comentario-item.is-reply:hover::before {
-            background: var(--neon-primary);
-            box-shadow: 0 0 8px rgba(0, 255, 247, 0.4);
+            background: var(--user-color, var(--neon-primary));
+            box-shadow: 0 0 8px var(--user-color, var(--neon-primary));
         }
 
         .replies-thread {
@@ -122,7 +134,7 @@ function injectCommentsCSS() {
             transition: border-color 0.3s ease;
         }
         .replies-thread:hover {
-            border-left-color: rgba(0, 255, 247, 0.3);
+            border-left-color: rgba(255, 255, 255, 0.3);
         }
 
         .nested-reply .replies-thread {
@@ -134,6 +146,7 @@ function injectCommentsCSS() {
             width: 15px;
         }
 
+        /* Animación cuando estás respondiendo */
         @keyframes replyPulse {
             0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
             50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); border: 1px solid var(--neon-primary) !important; }
@@ -142,46 +155,47 @@ function injectCommentsCSS() {
         .replying-active {
             animation: replyPulse 1.5s infinite;
             background: rgba(0, 255, 247, 0.05) !important;
-            border-radius: 12px;
         }
 
+        /* Menú de opciones (Tres puntos) */
         .comment-options-container {
             position: absolute;
-            top: 8px;
+            top: 10px;
             right: 12px;
             z-index: 10;
         }
         .kebab-btn {
-            background: transparent;
-            border: none;
-            color: #666;
-            font-size: 1.1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid transparent;
+            color: #888;
+            font-size: 1rem;
             cursor: pointer;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
         .kebab-btn:hover {
-            color: var(--neon-primary);
-            background: rgba(0, 255, 247, 0.1);
-            transform: scale(1.1);
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            transform: scale(1.05);
         }
         
         .comment-dropdown {
             position: absolute;
             top: 100%;
             right: 0;
-            margin-top: 5px;
+            margin-top: 8px;
             background: rgba(15, 15, 20, 0.98);
             backdrop-filter: blur(20px);
             border: 1px solid var(--neon-secondary);
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.95), 0 0 20px rgba(188, 19, 254, 0.3);
-            min-width: 150px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.95), 0 0 20px rgba(188, 19, 254, 0.2);
+            min-width: 160px;
             display: flex;
             flex-direction: column;
             opacity: 0;
@@ -201,7 +215,7 @@ function injectCommentsCSS() {
             background: transparent;
             border: none;
             color: #ddd;
-            padding: 12px 15px;
+            padding: 12px 18px;
             text-align: left;
             font-family: 'Poppins', sans-serif;
             font-size: 0.85rem;
@@ -214,20 +228,59 @@ function injectCommentsCSS() {
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .comment-dropdown-btn:last-child { border-bottom: none; }
-        .comment-dropdown-btn:hover { background: rgba(188, 19, 254, 0.15); color: #fff; padding-left: 20px; }
+        .comment-dropdown-btn:hover { background: rgba(188, 19, 254, 0.15); color: #fff; padding-left: 22px; }
         .comment-dropdown-btn i { width: 16px; text-align: center; color: var(--neon-primary); }
         .comment-dropdown-btn.report-btn i { color: var(--neon-warn); }
         .comment-dropdown-btn.report-btn:hover { background: rgba(255, 170, 0, 0.15); color: #fff; }
         .comment-dropdown-btn.edit-btn i { color: var(--neon-primary); }
         .comment-dropdown-btn.edit-btn:hover { background: rgba(0, 255, 247, 0.15); color: #fff; }
         
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; margin-top: 4px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
-        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
+        /* Botones de respuestas */
+        .toggle-respuestas-btn { 
+            background: rgba(0,255,247,0.05);
+            border: 1px solid rgba(0,255,247,0.2); 
+            color: var(--neon-primary); 
+            cursor: pointer; 
+            font-family: 'Poppins', sans-serif; 
+            font-weight: 600; 
+            font-size: 0.8rem; 
+            margin-bottom: 8px; 
+            margin-top: 4px; 
+            display: inline-flex;
+            align-items: center; 
+            gap: 8px; 
+            transition: 0.2s; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+        }
+        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.15); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
         
-        .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
-        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.1); border-style: solid; color: #fff; }
+        .show-more-replies-btn { 
+            background: transparent;
+            border: 1px dashed rgba(188, 19, 254, 0.4); 
+            color: var(--neon-secondary); 
+            border-radius: 8px; 
+            padding: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            margin-top: 5px;
+            transition: 0.2s; 
+            width: 100%; 
+            text-align: center; 
+            font-size: 0.85rem; 
+        }
+        .show-more-replies-btn:hover { 
+            background: rgba(188, 19, 254, 0.1);
+            border-style: solid; 
+            color: #fff; 
+            box-shadow: 0 0 10px rgba(188, 19, 254, 0.2);
+        }
         
-        @keyframes fadeInReplyBox { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        /* Animaciones Nuevas */
+        @keyframes fadeInReplyBox { 
+            from { opacity: 0; transform: translateY(-10px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
         
         @keyframes slideInGlow {
             0% { opacity: 0; transform: translateY(-20px) scale(0.95); box-shadow: 0 0 0 transparent; }
@@ -240,16 +293,40 @@ function injectCommentsCSS() {
         .char-counter.limit { color: var(--neon-alert); }
         .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
+        /* ADAPTACIÓN MÓVIL EXTREMA */
         @media (max-width: 768px) {
-            .replies-thread { margin-left: 19px; padding-left: 18px; }
-            .nested-reply .replies-thread { margin-left: 14px; padding-left: 14px; }
-            .comentario-item.is-reply::before { left: -18px; width: 18px; }
-            .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
-            .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
-            .comentario-item.is-reply { padding: 8px 10px !important; }
-            .comentario-avatar img { width: 38px !important; height: 38px !important; }
-            .is-reply .comentario-avatar img { width: 28px !important; height: 28px !important; }
-            .comment-options-container { right: 5px; top: 5px; }
+            .comentario-item { 
+                padding: 15px !important; 
+                flex-direction: column !important; /* Apila avatar y contenido */
+                align-items: flex-start !important; 
+                gap: 10px !important; 
+                border-radius: 12px;
+            }
+            .comentario-item.is-reply { padding: 12px !important; }
+            
+            /* Avatar y Nombre en la misma línea superior */
+            .comentario-header-wrap {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+            }
+            .comentario-avatar img { width: 40px !important; height: 40px !important; }
+            .is-reply .comentario-avatar img { width: 32px !important; height: 32px !important; }
+            
+            .comentario-content { width: 100%; padding-right: 0 !important; }
+            
+            /* Ajustes de indentación de hilos en móvil */
+            .replies-thread { margin-left: 12px; padding-left: 12px; }
+            .nested-reply .replies-thread { margin-left: 8px; padding-left: 8px; }
+            .comentario-item.is-reply::before { left: -12px; width: 12px; }
+            .nested-reply .comentario-item.is-reply::before { left: -8px; width: 8px; }
+            
+            .comment-options-container { right: 8px; top: 8px; }
+            .kebab-btn { width: 28px; height: 28px; font-size: 0.9rem; }
+            
+            .comentario-texto { font-size: 0.9rem !important; }
+            .comentario-user { max-width: 180px !important; font-size: 0.9rem !important; }
         }
     `;
     document.head.appendChild(style);
@@ -290,6 +367,9 @@ function hexToRgbStr(hex) {
     return `${r}, ${g}, ${b}`;
 }
 
+// ============================================
+// LÓGICA DE FIRESTORE (Lectura y Renderizado)
+// ============================================
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
@@ -299,7 +379,7 @@ function setupComentariosRealtimeListener() {
         .where('episode', '==', parseInt(window.comentariosEpisode))
         .orderBy('timestamp', 'desc') 
         .limit(100);
-
+        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
@@ -334,7 +414,7 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-
+        
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -350,7 +430,7 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
-
+            
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 if (level === 0) {
@@ -389,9 +469,7 @@ function setupComentariosRealtimeListener() {
         let html = '';
         roots.forEach(root => {
             html += renderNode(root, 0, false, null);
-            html += `<div style="height: 12px;"></div>`; 
         });
-
         container.innerHTML = html;
 
         openContainers.forEach(id => {
@@ -403,7 +481,6 @@ function setupComentariosRealtimeListener() {
                 if (icon) icon.style.transform = 'rotate(0deg)';
             }
         });
-
         openMoreReplies.forEach(className => {
             document.querySelectorAll(`.${className}`).forEach(el => {
                 el.style.display = 'block';
@@ -413,11 +490,13 @@ function setupComentariosRealtimeListener() {
             const btn = document.getElementById(`showMore-${rootId}`);
             if (btn) btn.style.display = 'none';
         });
-
         window.lastPostedCommentId = null;
     }, (error) => console.error('Error en el onSnapshot de comentarios:', error));
 }
 
+// ============================================
+// RENDERIZADO VISUAL DEL COMENTARIO (HTML)
+// ============================================
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
@@ -425,33 +504,33 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const isOwner = comentariosCurrentUser?.uid === c.userId;
     const avatar = c.userAvatar || 'invitado.avif';
     const userName = c.userName || 'Usuario';
+    
+    // 🔥 EL CORAZÓN DEL EFECTO: Color calculable
     const neonColor = getNeonColorByString(c.userId || userName);
     const rgbColor = hexToRgbStr(neonColor);
-
+    
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span style="font-size:0.7rem; color:#888; font-style:italic; margin-left:6px;">(Editado)</span>' : '';
-
+    
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
             <div class="comentario-sticker-container" style="margin-top: 12px; display: block; width: fit-content;">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.2); transition: transform 0.2s;"
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 4px 15px rgba(${rgbColor}, 0.15); transition: transform 0.2s;"
                 onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="Clic para ver/robar"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
     
-    const padding = level === 0 ? '16px' : (level === 1 ? '10px 14px' : '8px 12px');
-    const avatarSize = level === 0 ? '45px' : (level === 1 ? '30px' : '24px');
-    const titleSize = level === 0 ? '1rem' : (level === 1 ? '0.9rem' : '0.85rem');
-    const branchTop = level === 1 ? '25px' : '20px'; 
+    const padding = level === 0 ? '20px' : (level === 1 ? '15px' : '12px 15px');
+    const avatarSize = level === 0 ? '48px' : (level === 1 ? '35px' : '28px');
+    const titleSize = level === 0 ? '1.05rem' : (level === 1 ? '0.95rem' : '0.9rem');
+    const branchTop = level === 1 ? '25px' : '20px';
     const newFxClass = isNew ? 'new-comment-fx' : '';
-    const borderTopColor = level === 0 ? `border-top: 2px solid ${neonColor};` : '';
 
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn edit-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn report-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag"></i> Reportar</button>`;
-    
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)">
@@ -464,35 +543,43 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         </div>
     `;
 
-    // Integración del sistema de Reacciones
+    // Reacciones
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') {
         reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     }
     
-    // El botón responder con clase base para alinear
-    const botonResponderDirecto = comentariosCurrentUser ? `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" style="margin-top: 10px;"><i class="fas fa-reply"></i> Responder</button>` : '';
+    const botonResponderDirecto = comentariosCurrentUser ?
+        `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" style="margin-top: 10px;"><i class="fas fa-reply"></i> Responder</button>` : '';
 
+    // ESTRUCTURA PRINCIPAL HTML
+    // Observa cómo pasamos el color a --user-color para que el CSS lo use en los bordes
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             title="Doble clic para responder"
-            style="--branch-top: ${branchTop}; border-radius: 12px; padding: ${padding}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
+            style="--branch-top: ${branchTop}; --user-color: ${neonColor}; padding: ${padding}; display: flex; flex-direction: row; gap: 15px;">
             
             ${optionsMenu}
 
-            <div class="comentario-avatar" style="flex-shrink: 0; padding-top: 2px;">
-                <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid rgba(${rgbColor}, 0.5); 
-                box-shadow: 0 0 10px rgba(${rgbColor}, 0.2);">
+            <div class="comentario-header-wrap">
+                <div class="comentario-avatar" style="flex-shrink: 0;">
+                    <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 12px rgba(${rgbColor}, 0.4);">
+                </div>
+                
+                <div class="comentario-header mobile-only-header" style="display: none; align-items: baseline; gap: 8px;">
+                    <span class="comentario-user" style="color: ${neonColor}; text-shadow: 0 0 10px rgba(${rgbColor}, 0.6), 0 0 20px rgba(${rgbColor}, 0.3); font-weight: 900; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #888; font-size: 0.7rem; font-weight: 500;">${fecha}${badgeEditado}</span>
+                </div>
             </div>
             
             <div class="comentario-content" style="flex: 1; min-width: 0; padding-right: 25px;">
-                <div class="comentario-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 4px; gap: 8px;">
-                    <span class="comentario-user" style="color: #fff; text-shadow: 0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
+                <div class="comentario-header desktop-only-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 6px; gap: 10px;">
+                    <span class="comentario-user" style="color: ${neonColor}; text-shadow: 0 0 10px rgba(${rgbColor}, 0.6), 0 0 20px rgba(${rgbColor}, 0.3); font-weight: 900; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
                     <span class="comentario-fecha" style="color: #888; font-size: 0.75rem; font-weight: 500;">${fecha}${badgeEditado}</span>
                 </div>
                 
-                <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #eee; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
+                <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #e0e0e0; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;">${contenidoHtml}</div>
                 
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                     ${reaccionesBar}
@@ -517,11 +604,11 @@ window.iniciarEdicion = function(commentId) {
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
 
     textContainer.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-            <textarea id="edit-input-${commentId}" style="width: 100%; background: rgba(5,5,10,0.6); border: 1px solid var(--neon-primary); border-radius: 8px; padding: 10px; color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 60px; outline:none;" onfocus="this.style.boxShadow='0 0 10px rgba(0,255,247,0.3)'" onblur="this.style.boxShadow='none'">${escapeHtmlComent(plainText)}</textarea>
-            <div style="display:flex; gap:8px; justify-content: flex-end;">
-                <button onclick="cancelarEdicion('${commentId}')" style="background: transparent; border: 1px solid #888; color: #aaa; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition:0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff'" onmouseout="this.style.color='#aaa'; this.style.borderColor='#888'">Cancelar</button>
-                <button onclick="guardarEdicion('${commentId}')" style="background: var(--neon-primary); border: none; color: black; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition:0.2s;" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--neon-primary)'">Guardar</button>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+            <textarea id="edit-input-${commentId}" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--neon-primary); border-radius: 12px; padding: 12px; color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 70px; outline:none; transition: 0.3s;" onfocus="this.style.boxShadow='0 0 15px rgba(0,255,247,0.2) inset'">${escapeHtmlComent(plainText)}</textarea>
+            <div style="display:flex; gap:10px; justify-content: flex-end;">
+                <button onclick="cancelarEdicion('${commentId}')" style="background: transparent; border: 1px solid #666; color: #aaa; padding: 6px 18px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition:0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff'" onmouseout="this.style.color='#aaa'; this.style.borderColor='#666'">Cancelar</button>
+                <button onclick="guardarEdicion('${commentId}')" style="background: var(--neon-primary); border: none; color: black; padding: 6px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition:0.2s; box-shadow: 0 0 10px rgba(0,255,247,0.4);" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--neon-primary)'">Guardar</button>
             </div>
         </div>
     `;
@@ -582,12 +669,11 @@ window.toggleRespuestas = function(rootId) {
         icon.style.transform = 'rotate(-90deg)';
     }
 };
-
 window.showMoreReplies = function(rootId) {
     const hiddenReplies = document.querySelectorAll(`.hidden-reply-${rootId}`);
     hiddenReplies.forEach(el => {
         el.style.display = 'block';
-        el.style.animation = 'fadeIn 0.4s ease-out forwards';
+        el.style.animation = 'fadeInReplyBox 0.4s ease-out forwards';
     });
     const btn = document.getElementById(`showMore-${rootId}`);
     if(btn) btn.style.display = 'none';
@@ -620,8 +706,8 @@ function procesarTextoComentario(texto) {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `
-        <div class="comentario-sticker-container" style="margin-top: 8px; display: block; width: fit-content;">
-            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
+        <div class="comentario-sticker-container" style="margin-top: 10px; display: block; width: fit-content;">
+            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.3); box-shadow: 0 4px 15px rgba(0,255,247,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
         </div>`;
     });
 
@@ -634,7 +720,7 @@ function procesarTextoComentario(texto) {
             } else if (palabra.match(/\.(mp4|webm)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 8px; display: block;"></video>`;
             } else if (!palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--neon-primary); text-decoration: none; transition: opacity 0.2s;">${palabra}</a>`;
+                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--neon-primary); text-decoration: underline; transition: opacity 0.2s;">${palabra}</a>`;
             }
         }
     }
@@ -644,7 +730,6 @@ function procesarTextoComentario(texto) {
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
     const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
-    
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
@@ -671,27 +756,28 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
-    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 20px; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);";
+    // Estilo adaptado al diseño Cyberpunk Consola
+    replyBox.style.cssText = "margin-top: 10px; margin-bottom: 20px; padding: 15px; background: rgba(10, 10, 15, 0.95); border-radius: 12px; display: flex; flex-direction: column; gap: 10px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 20px; border: 1px solid var(--neon-secondary); box-shadow: 0 5px 25px rgba(188, 19, 254, 0.15);";
     replyBox.innerHTML = `
-        <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <div style="color:#aaa; font-size:0.85rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <span>Respondiendo a <b style="color:var(--neon-primary)">@${escapeHtmlComent(userName)}</b></span>
-            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
+            <button onclick="cancelarRespuesta()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:50%; width: 28px; height: 28px; display: flex; align-items:center; justify-content:center; color:#888; cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='#ff0055'; this.style.borderColor='#ff0055';" onmouseout="this.style.color='#888'; this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)';" title="Cancelar"><i class="fas fa-times"></i></button>
         </div>
-        <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border: 1px solid var(--neon-primary);">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border: 1px solid var(--neon-secondary);">
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <textarea id="dynamicReplyText-${commentId}" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--neon-primary)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
+                <textarea id="dynamicReplyText-${commentId}" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; color: white; font-family: 'Poppins', sans-serif; font-size: 0.95rem; resize: vertical; min-height: 45px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderColor='var(--neon-secondary)'; this.style.boxShadow='0 0 10px rgba(188, 19, 254, 0.2) inset';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';"></textarea>
                 
-                <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
-                    <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">😊</button>
-                    <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; font-size: 1.1rem; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">🖼️</button>
+                <div style="display: flex; gap: 8px; margin-top: 10px; align-items: center;">
+                    <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: white; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-secondary)'; this.style.color='var(--neon-secondary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">😊</button>
+                    <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: white; font-size: 1.1rem; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-secondary)'; this.style.color='var(--neon-secondary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';"><i class="fas fa-sticky-note"></i></button>
                 </div>
 
                 <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 10px;"></div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                     <span id="dynamicCharCount-${commentId}" class="char-counter">0/500</span>
-                    <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--neon-primary); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
+                    <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--neon-secondary); border: none; color: #fff; font-weight: 700; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
                 </div>
             </div>
         </div>
@@ -747,6 +833,7 @@ window.cancelarRespuesta = function(forzarSync = false) {
 
     restaurarPanelesGlobales();
     quitarStickerPreview();
+    
     if (box) {
         if (forzarSync) {
             box.remove();
@@ -764,15 +851,15 @@ window.openStickerModal = function(url) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'stickerViewModal';
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);backdrop-filter: blur(5px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;padding: 20px;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);backdrop-filter: blur(8px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s ease;padding: 20px;';
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
-                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
-                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);">
-                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);"></video>
+                <button onclick="closeStickerModal()" style="position:absolute;top:-45px;right:-15px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2); border-radius:50%; width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; color:#fff;font-size:1.5rem;cursor:pointer; transition: 0.2s;" onmouseover="this.style.background='#ff0055'; this.style.borderColor='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'; transform='scale(1)';">&times;</button>
+                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:16px; object-fit:contain; border: 1px solid rgba(0,255,247,0.4); box-shadow: 0 10px 40px rgba(0, 255, 247, 0.2);">
+                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:16px; object-fit:contain; border: 1px solid rgba(0,255,247,0.4); box-shadow: 0 10px 40px rgba(0, 255, 247, 0.2);"></video>
                 <br>
-                <button id="stickerModalStealBtn" style="margin-top:20px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:10px 25px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif;transition:all 0.2s;">
-                    🖼️ Robar Sticker
+                <button id="stickerModalStealBtn" style="margin-top:25px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:12px 30px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Orbitron',sans-serif;letter-spacing:1px; transition:all 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.2);">
+                    <i class="fas fa-mask"></i> ROBAR STICKER
                 </button>
             </div>
         `;
@@ -814,7 +901,7 @@ window.closeStickerModal = function() {
             modal.style.display = 'none'; 
             const vid = document.getElementById('stickerModalVid');
             if(vid) vid.src = ''; 
-        }, 200);
+        }, 300);
     }
 };
 
@@ -851,7 +938,7 @@ async function enviarComentarioTexto() {
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
     }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
@@ -874,12 +961,11 @@ async function enviarComentarioTexto() {
             replyToId: null,
             replyToUser: null,
             replyToUserId: null,
-            reactions: {}, // <-- AGREGADO: Campo de reacciones inicializado
+            reactions: {},
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         window.lastPostedCommentId = docRef.id;
-        showToastComent('✅ Comentario publicado');
+        showToastComent('✅ Comentario publicado con éxito');
     } catch (error) {
         console.error('Error enviando comentario:', error);
         alert('Error: ' + error.message);
@@ -929,7 +1015,7 @@ window.enviarRespuestaDinamica = async function() {
             replyToId: replyContext.id,
             replyToUser: replyContext.userName,
             replyToUserId: replyContext.userId,
-            reactions: {}, // <-- AGREGADO: Campo de reacciones inicializado
+            reactions: {},
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
@@ -948,7 +1034,7 @@ window.enviarRespuestaDinamica = async function() {
             });
         }
 
-        showToastComent('✅ Respuesta publicada');
+        showToastComent('✅ Respuesta enviada');
         cancelarRespuesta(true);
     } catch (error) {
         console.error('Error enviando respuesta:', error);
@@ -1055,7 +1141,7 @@ function showToastComent(msg) {
     if (!toast) {
         toast = document.createElement('div'); 
         toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15, 15, 20, 0.95);backdrop-filter: blur(10px);color:var(--neon-primary);padding:12px 25px;border-radius:30px;z-index:10000;font-weight:bold;border: 1px solid var(--neon-primary);box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15, 15, 20, 0.95);backdrop-filter: blur(10px);color:var(--neon-primary);padding:14px 28px;border-radius:30px;z-index:10000;font-weight:bold; font-family:"Orbitron", sans-serif; letter-spacing:1px; border: 1px solid var(--neon-primary);box-shadow: 0 0 25px rgba(0, 243, 255, 0.3); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; 
