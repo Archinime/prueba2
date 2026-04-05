@@ -1,5 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS CON RESPUESTAS (ESTILO YOUTUBE) Y NOTIFICACIONES
+// VERSIÓN CORREGIDA - ERROR DE NULL VALUE SOLUCIONADO
 // ============================================
 
 let comentariosDb = null;
@@ -134,6 +135,7 @@ function setupComentariosRealtimeListener() {
 
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
+        if (!container) return;
         
         if (snapshot.empty) {
             container.innerHTML = `<div class="empty-comments" style="color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color);"><i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block; opacity: 0.5;"></i><p style="font-weight: bold; font-size: 1.1rem;">Sin comentarios aún. ¡Sé el primero en iniciar la conversación!</p></div>`;
@@ -267,14 +269,16 @@ window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const icon = document.getElementById(`icon-${rootId}`);
     
-    if (container.style.display === 'none') {
-        container.style.display = 'flex';
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-    } else {
-        container.style.display = 'none';
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
+    if (container && icon) {
+        if (container.style.display === 'none') {
+            container.style.display = 'flex';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            container.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
     }
 };
 
@@ -338,7 +342,13 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         banner.id = 'replyInfoBanner';
         banner.style.cssText = "margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,255,247,0.1); padding: 10px 20px; border-radius: 12px; border-left: 4px solid var(--primary-color); backdrop-filter: blur(5px); animation: fadeIn 0.3s ease-out;";
         const formWrapper = document.querySelector('.comentario-input-wrapper');
-        formWrapper.parentNode.insertBefore(banner, formWrapper);
+        if (formWrapper && formWrapper.parentNode) {
+            formWrapper.parentNode.insertBefore(banner, formWrapper);
+        } else {
+            // Fallback: insertar antes del formulario si no se encuentra el wrapper
+            const formContainer = document.getElementById('comentarioFormContainer');
+            if (formContainer) formContainer.insertBefore(banner, formContainer.firstChild);
+        }
     }
     
     banner.innerHTML = `<span style="color:var(--primary-color); font-size:0.95rem; font-weight: bold;"><i class="fas fa-reply"></i> Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span> 
@@ -355,7 +365,8 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         formContainer.style.marginBottom = "20px";
     }
 
-    document.getElementById('comentarioTexto').focus();
+    const textarea = document.getElementById('comentarioTexto');
+    if (textarea) textarea.focus();
 };
 
 window.cancelarRespuesta = function() {
@@ -399,19 +410,28 @@ window.openStickerModal = function(url) {
     const vidEl = document.getElementById('stickerModalVid');
     
     if (isVideo) {
-        imgEl.style.display = 'none'; vidEl.src = url;
-        vidEl.style.display = 'inline-block';
+        if (imgEl) imgEl.style.display = 'none';
+        if (vidEl) {
+            vidEl.src = url;
+            vidEl.style.display = 'inline-block';
+        }
     } else {
-        vidEl.style.display = 'none'; imgEl.src = url;
-        imgEl.style.display = 'inline-block';
+        if (vidEl) vidEl.style.display = 'none';
+        if (imgEl) {
+            imgEl.src = url;
+            imgEl.style.display = 'inline-block';
+        }
     }
     
-    document.getElementById('stickerModalStealBtn').onclick = function() {
-        if(typeof window.robarStickerSistema === 'function') {
-            window.robarStickerSistema(url);
-            closeStickerModal();
-        } else alert("El sistema no ha cargado. Inicia sesión primero.");
-    };
+    const stealBtn = document.getElementById('stickerModalStealBtn');
+    if (stealBtn) {
+        stealBtn.onclick = function() {
+            if(typeof window.robarStickerSistema === 'function') {
+                window.robarStickerSistema(url);
+                closeStickerModal();
+            } else alert("El sistema no ha cargado. Inicia sesión primero.");
+        };
+    }
     
     modal.style.display = 'flex';
     setTimeout(() => modal.style.opacity = '1', 10);
@@ -421,21 +441,35 @@ window.closeStickerModal = function() {
     let modal = document.getElementById('stickerViewModal');
     if (modal) {
         modal.style.opacity = '0';
-        setTimeout(() => { modal.style.display = 'none'; document.getElementById('stickerModalVid').src = ''; }, 300);
+        setTimeout(() => { 
+            modal.style.display = 'none'; 
+            const vidEl = document.getElementById('stickerModalVid');
+            if (vidEl) vidEl.src = ''; 
+        }, 300);
     }
 };
 
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     
-    const texto = document.getElementById('comentarioTexto').value.trim();
+    const textarea = document.getElementById('comentarioTexto');
+    if (!textarea) {
+        console.error("No se encontró el textarea de comentarios");
+        showToastComent("Error interno, recarga la página");
+        return;
+    }
+    
+    const texto = textarea.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     if (!texto && !stickerUrl) return showToastComent('⚠️ No puedes enviar un comentario vacío');
     
     const btn = document.getElementById('enviarComentarioBtn');
-    btn.disabled = true;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    if (btn) {
+        btn.disabled = true;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    }
+    
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     try {
         await comentariosDb.collection('comments').add({
@@ -468,15 +502,20 @@ async function enviarComentarioTexto() {
             });
         }
 
-        document.getElementById('comentarioTexto').value = '';
+        // Limpiar solo si el textarea sigue existiendo
+        const textareaAfter = document.getElementById('comentarioTexto');
+        if (textareaAfter) textareaAfter.value = '';
         quitarStickerPreview();
         cancelarRespuesta();
         showToastComent('✅ Comentario publicado');
     } catch (error) {
         alert('Error: ' + error.message);
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+        const btnAfter = document.getElementById('enviarComentarioBtn');
+        if (btnAfter) {
+            btnAfter.disabled = false;
+            btnAfter.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Comentario';
+        }
     }
 }
 
@@ -486,24 +525,31 @@ window.seleccionarStickerParaEnviar = function(url) {
     const previewImg = document.getElementById('previewStickerImgObj');
     const previewVid = document.getElementById('previewStickerVidObj');
     
-    if (url.match(/\.(mp4|webm)$/i)) {
-        previewImg.style.display = 'none'; previewVid.src = url;
-        previewVid.style.display = 'inline-block';
-    } else {
-        previewVid.style.display = 'none'; previewImg.src = url;
-        previewImg.style.display = 'inline-block';
+    if (previewContainer && previewImg && previewVid) {
+        if (url.match(/\.(mp4|webm)$/i)) {
+            previewImg.style.display = 'none'; 
+            previewVid.src = url;
+            previewVid.style.display = 'inline-block';
+        } else {
+            previewVid.style.display = 'none'; 
+            previewImg.src = url;
+            previewImg.style.display = 'inline-block';
+        }
+        previewContainer.style.display = 'inline-block';
     }
     
-    previewContainer.style.display = 'inline-block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
 };
 
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
-    document.getElementById('comentarioStickerPreview').style.display = 'none';
-    document.getElementById('previewStickerImgObj').src = '';
-    document.getElementById('previewStickerVidObj').src = '';
+    const previewContainer = document.getElementById('comentarioStickerPreview');
+    if (previewContainer) previewContainer.style.display = 'none';
+    const previewImg = document.getElementById('previewStickerImgObj');
+    if (previewImg) previewImg.src = '';
+    const previewVid = document.getElementById('previewStickerVidObj');
+    if (previewVid) previewVid.src = '';
 };
 
 async function deleteComentario(commentId) {
@@ -550,11 +596,11 @@ function toggleStickerPanelSistema() {
 
 function agregarEmojiAlTexto(emoji) {
     const textarea = document.getElementById('comentarioTexto');
-    if (textarea) {
-        const start = textarea.selectionStart; const text = textarea.value;
-        textarea.value = text.substring(0, start) + emoji + text.substring(start);
-        textarea.focus();
-    }
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const text = textarea.value;
+    textarea.value = text.substring(0, start) + emoji + text.substring(start);
+    textarea.focus();
 }
 
 function showToastComent(msg) {
@@ -564,10 +610,18 @@ function showToastComent(msg) {
         toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1000;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
         document.body.appendChild(toast);
     }
-    toast.innerHTML = msg; toast.style.display = 'block';
+    toast.innerHTML = msg; 
+    toast.style.display = 'block';
     setTimeout(() => toast.style.display = 'none', 2500);
 }
 
-function openLoginModalFromComent() { const modal = document.getElementById('authModal'); if (modal) modal.classList.add('show'); }
-function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text;
-return div.innerHTML; }
+function openLoginModalFromComent() { 
+    const modal = document.getElementById('authModal'); 
+    if (modal) modal.classList.add('show'); 
+}
+
+function escapeHtmlComent(text) { 
+    const div = document.createElement('div'); 
+    div.textContent = text;
+    return div.innerHTML; 
+}

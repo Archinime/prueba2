@@ -1,5 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
+// VERSIÓN CORREGIDA - MANEJO SEGURO DE DOM
 // ============================================
 
 let stickersDb = null;
@@ -134,22 +135,26 @@ async function subirStickerDesdePC(input) {
     const previewVid = document.getElementById('previewVideo');
     const isVideoFile = file.type.startsWith('video/');
 
-    if (isVideoFile) {
-        previewImg.style.display = 'none';
-        previewVid.src = URL.createObjectURL(file);
-        previewVid.style.display = 'inline-block';
-    } else {
-        previewVid.style.display = 'none';
-        previewImg.src = URL.createObjectURL(file);
-        previewImg.style.display = 'inline-block';
+    if (previewContainer && previewImg && previewVid) {
+        if (isVideoFile) {
+            previewImg.style.display = 'none';
+            previewVid.src = URL.createObjectURL(file);
+            previewVid.style.display = 'inline-block';
+        } else {
+            previewVid.style.display = 'none';
+            previewImg.src = URL.createObjectURL(file);
+            previewImg.style.display = 'inline-block';
+        }
+        previewContainer.style.display = 'block';
     }
     
-    previewContainer.style.display = 'block';
-    
     const btnSubir = document.querySelector('.upload-sticker-label');
-    const oldText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
-    btnSubir.style.pointerEvents = 'none';
+    let oldText = '';
+    if (btnSubir) {
+        oldText = btnSubir.innerHTML;
+        btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
+        btnSubir.style.pointerEvents = 'none';
+    }
 
     try {
         const formData = new FormData();
@@ -165,7 +170,7 @@ async function subirStickerDesdePC(input) {
         
         if (data.secure_url) {
             await guardarStickerEnColeccion(data.secure_url);
-            previewContainer.style.display = 'none';
+            if (previewContainer) previewContainer.style.display = 'none';
             input.value = '';
             showToastSticker('✅ Archivo subido y guardado exitosamente');
             switchStickerTab('mis');
@@ -177,8 +182,10 @@ async function subirStickerDesdePC(input) {
         console.error("Error de subida:", error);
         alert("Error al subir el archivo: Revisa tu conexión a internet o configuración.");
     } finally {
-        btnSubir.innerHTML = oldText;
-        btnSubir.style.pointerEvents = 'auto';
+        if (btnSubir) {
+            btnSubir.innerHTML = oldText;
+            btnSubir.style.pointerEvents = 'auto';
+        }
     }
 }
 
