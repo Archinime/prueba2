@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS CON RESPUESTAS (ESTILO YOUTUBE) Y NOTIFICACIONES
-// VERSIÓN CORREGIDA - ERROR DE NULL VALUE SOLUCIONADO
+// VERSIÓN CORREGIDA - FORMULARIO SIEMPRE VISIBLE Y REUTILIZABLE
 // ============================================
 
 let comentariosDb = null;
@@ -15,7 +15,6 @@ function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
 
-    // Inyectar CSS Mejorado y Responsivo automáticamente
     injectCommentsCSS();
 
     auth.onAuthStateChanged(async (user) => {
@@ -345,7 +344,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         if (formWrapper && formWrapper.parentNode) {
             formWrapper.parentNode.insertBefore(banner, formWrapper);
         } else {
-            // Fallback: insertar antes del formulario si no se encuentra el wrapper
             const formContainer = document.getElementById('comentarioFormContainer');
             if (formContainer) formContainer.insertBefore(banner, formContainer.firstChild);
         }
@@ -464,9 +462,10 @@ async function enviarComentarioTexto() {
     if (!texto && !stickerUrl) return showToastComent('⚠️ No puedes enviar un comentario vacío');
     
     const btn = document.getElementById('enviarComentarioBtn');
+    let originalText = '';
     if (btn) {
+        originalText = btn.innerHTML;
         btn.disabled = true;
-        const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     }
     
@@ -502,19 +501,23 @@ async function enviarComentarioTexto() {
             });
         }
 
-        // Limpiar solo si el textarea sigue existiendo
+        // Limpiar el textarea después de enviar
         const textareaAfter = document.getElementById('comentarioTexto');
         if (textareaAfter) textareaAfter.value = '';
         quitarStickerPreview();
+        
+        // IMPORTANTE: Cancelar respuesta para devolver el formulario a su lugar original
         cancelarRespuesta();
+        
         showToastComent('✅ Comentario publicado');
     } catch (error) {
+        console.error("Error al enviar comentario:", error);
         alert('Error: ' + error.message);
     } finally {
         const btnAfter = document.getElementById('enviarComentarioBtn');
         if (btnAfter) {
             btnAfter.disabled = false;
-            btnAfter.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Comentario';
+            btnAfter.innerHTML = originalText || '<i class="fas fa-paper-plane"></i> Enviar Comentario';
         }
     }
 }

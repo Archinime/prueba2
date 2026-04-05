@@ -35,15 +35,12 @@ async function loadUserStickers() {
     if (!stickersCurrentUser) return;
 
     try {
-        // LEEMOS DE LA COLECCIÓN CORRECTA (userStickers)
         const doc = await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).get();
         
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers;
         } else {
             userStickersCollection = [...DEFAULT_STICKERS];
-            
-            // GUARDAMOS EN LA COLECCIÓN CORRECTA
             await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
                 stickers: userStickersCollection
             }, { merge: true });
@@ -58,7 +55,6 @@ function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
 
-    // Limpieza agresiva de nulos, vacíos y corruptos
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
 
     if (validStickers.length === 0) {
@@ -99,13 +95,11 @@ async function eliminarSticker(urlSticker, event) {
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
     
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
 
-        // Actualizar visualmente
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
@@ -198,13 +192,11 @@ async function guardarStickerEnColeccion(url) {
     }
 
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
 
-        // Actualizamos localmente para no tener que recargar
         userStickersCollection.push(url);
         renderUserStickers();
 
@@ -221,20 +213,17 @@ window.robarStickerSistema = async function(url) {
     
     const cleanUrl = url.trim();
 
-    // Verificación rápida antes de ir a la base de datos
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
     
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
 
-        // Solo si funcionó, lo añadimos a nuestra vista local
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
