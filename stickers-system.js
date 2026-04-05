@@ -38,8 +38,10 @@ function initStickersSystem(db, auth) {
 
 async function loadUserStickers() {
     if (!stickersCurrentUser) return;
+
     try {
         const doc = await stickersDb.collection('users').doc(stickersCurrentUser.uid).get();
+
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers;
         } else {
@@ -58,38 +60,39 @@ function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
 
-    // CORRECCIÓN: Filtra cualquier espacio vacío, nulo o dañado
+    // Filtra cualquier espacio vacío, nulo o dañado
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
 
     if (validStickers.length === 0) {
-        container.innerHTML = '<div class="sticker-empty">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
+        container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
     }
 
     let html = '';
+
     // Mapeamos sobre el array original para mantener el índice correcto al eliminar
     userStickersCollection.forEach((url, index) => {
         if (!url || typeof url !== 'string' || url.trim() === '') return; // Ignora los vacíos en el loop
         
         html += `
-            <div class="sticker-item">
+            <div class="sticker-item" style="border: 1px solid rgba(0, 255, 247, 0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                 <img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">
-                <button class="sticker-delete-btn" onclick="eliminarSticker(${index}, event)">✖</button>
+                <button class="sticker-delete-btn" onclick="eliminarSticker(${index}, event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
 window.switchStickerTab = function(tabName) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
-    
+
     // Tab active
     const btn = document.querySelector(`.sticker-tab[onclick="switchStickerTab('${tabName}')"]`);
     if (btn) btn.classList.add('active');
-    
+
     // Content active
     const content = document.getElementById(`${tabName}StickersTab`);
     if (content) content.classList.add('active');
@@ -98,7 +101,7 @@ window.switchStickerTab = function(tabName) {
 async function eliminarSticker(index, event) {
     event.stopPropagation(); // Evita que se seleccione el sticker para enviar
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
-    
+
     userStickersCollection.splice(index, 1);
     renderUserStickers();
     
@@ -106,6 +109,7 @@ async function eliminarSticker(index, event) {
         await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
             stickers: userStickersCollection
         }, { merge: true });
+
         showToastSticker('🗑️ Sticker eliminado');
     } catch (e) {
         console.error(e);
@@ -175,6 +179,7 @@ window.agregarStickerPorURL = async function() {
     }
     
     const url = prompt("Pega el link (URL) directo de la imagen (.gif, .png, .jpg):");
+
     if (!url) return;
     
     if (!url.match(/^https?:\/\/.+/)) {
@@ -188,6 +193,10 @@ window.agregarStickerPorURL = async function() {
 };
 
 async function guardarStickerEnColeccion(url) {
+    if (!userStickersCollection) {
+        userStickersCollection = [...DEFAULT_STICKERS];
+    }
+
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Ya tienes este sticker');
         return;
@@ -195,7 +204,7 @@ async function guardarStickerEnColeccion(url) {
     
     userStickersCollection.push(url);
     renderUserStickers();
-    
+
     try {
         await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
             stickers: userStickersCollection
@@ -205,36 +214,49 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
-// CORRECCIÓN: Roba y guarda directamente en los stickers del usuario
+// CORRECCIÓN TOTAL: Sistema robusto para Robar Stickers
 window.robarStickerSistema = async function(url) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
         return;
     }
     
-    if (userStickersCollection.includes(url)) {
+    // Seguro en caso de que la colección no haya cargado a tiempo
+    if (!userStickersCollection || !Array.isArray(userStickersCollection)) {
+        userStickersCollection = [...DEFAULT_STICKERS];
+    }
+
+    const cleanUrl = url.trim(); // Limpiamos la URL por si acaso
+    
+    if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Ya tienes este sticker en tu colección');
         return;
     }
     
-    userStickersCollection.push(url);
+    // Lo empujamos temporalmente al frontend
+    userStickersCollection.push(cleanUrl);
     renderUserStickers();
-    
+
     try {
+        // Obligamos a Firebase a guardarlo con la cuenta específica
         await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
             stickers: userStickersCollection
         }, { merge: true });
         
-        showToastSticker('✅ ¡Sticker robado y guardado en Mis Stickers!');
+        showToastSticker('✅ ¡Sticker robado y guardado!');
     } catch (e) {
-        console.error("Error al robar sticker:", e);
-        alert("Error al guardar el sticker.");
+        console.error("Error crítico al robar sticker:", e);
+        // Revertir si hay error
+        userStickersCollection.pop();
+        renderUserStickers();
+        alert("Error al guardar el sticker en tu cuenta. Revisa tu conexión.");
     }
 };
 
 function updateStickersUI() {
     if (!stickersCurrentUser) {
         const subirTab = document.getElementById('subirStickerTab');
+
         if (subirTab) {
             subirTab.innerHTML = `
                 <div class="add-sticker-container">
@@ -250,10 +272,11 @@ function updateStickersUI() {
 
 function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
+
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00fff7;color:#000;padding:8px 20px;border-radius:20px;z-index:1001;font-weight:bold';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;
