@@ -7,6 +7,9 @@ let comentariosAuth = null;
 let comentariosCurrentUser = null;
 let comentariosUnsubscribe = null;
 
+// Variable global para guardar el sticker que se va a enviar
+window.stickerSeleccionadoParaEnviar = null;
+
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
@@ -20,13 +23,13 @@ function initComentariosSystem(db, auth) {
         }
     });
 
-    // Añadir listener para enviar comentario con Enter (Shift+Enter para nueva línea)
+    // Enviar comentario con Enter (Shift+Enter para nueva línea)
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault(); // Evita el salto de línea
+                    e.preventDefault(); 
                     enviarComentarioTexto();
                 }
             });
@@ -39,7 +42,6 @@ function setupComentariosRealtimeListener() {
         comentariosUnsubscribe();
     }
     
-    // MEJORA: Se agrega limit(50) para no saturar las lecturas en la base de datos
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
@@ -61,7 +63,6 @@ function setupComentariosRealtimeListener() {
             const c = doc.data();
             let fecha = 'Justo ahora';
             
-            // MEJORA: Formato de tiempo relativo
             if (c.timestamp?.toDate) {
                 fecha = obtenerTiempoRelativo(c.timestamp.toDate());
             }
@@ -70,16 +71,15 @@ function setupComentariosRealtimeListener() {
             const avatar = c.userAvatar || 'invitado.avif';
             const userName = c.userName || 'Usuario';
             
-            let contenidoHtml = '';
-            if (c.esSticker && c.stickerUrl) {
-                contenidoHtml = `
+            let contenidoHtml = procesarTextoComentario(c.texto || '');
+            
+            // Si el comentario contiene un sticker principal (retrocompatibilidad)
+            if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
+                contenidoHtml += `
                     <div class="comentario-sticker-container">
-                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3E?%3C/text%3E%3C/svg%3E'">
-                        <button class="steal-sticker-btn" onclick="robarStickerSistema('${c.stickerUrl.replace(/'/g, "\\'")}')">🔽 Robar sticker</button>
+                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy">
                     </div>
                 `;
-            } else {
-                contenidoHtml = procesarTextoComentario(c.texto || '');
             }
             
             html += `
@@ -103,7 +103,6 @@ function setupComentariosRealtimeListener() {
     });
 }
 
-// Función auxiliar para tiempo relativo
 function obtenerTiempoRelativo(fecha) {
     const ahora = new Date();
     const diffSegundos = Math.floor((ahora - fecha) / 1000);
@@ -119,26 +118,28 @@ function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto);
 
-    // Emojis básicos
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
     for (const [code, emoji] of Object.entries(emojisMap)) {
         html = html.split(code).join(emoji);
     }
     
-    // Procesar Stickers en formato texto
+    // Extraer stickers y ponerles botón de robar
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
-    html = html.replace(stickerRegex, (match, url) => `<img src="${url}" class="comentario-sticker" loading="lazy">`);
+    html = html.replace(stickerRegex, (match, url) => `
+        <div class="comentario-sticker-container" style="margin-top: 5px;">
+            <img src="${url}" class="comentario-sticker" loading="lazy">
+            <br>
+            <button class="steal-sticker-btn" onclick="robarStickerSistema('${url.replace(/'/g, "\\'")}')">🔽 Robar sticker</button>
+        </div>
+    `);
     
-    // MEJORA: Convertir URLs en enlaces clickeables o imágenes
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
         let palabra = palabras[i];
         if (palabra.startsWith('http://') || palabra.startsWith('https://')) {
-            // Si es imagen, la renderiza
-            if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i)) {
+            if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy">`;
             } 
-            // Si no es imagen (y no es parte del código del sticker), la hace clickeable
             else if (!palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link">${palabra}</a>`;
             }
@@ -156,7 +157,9 @@ async function enviarComentarioTexto() {
     }
     
     const texto = document.getElementById('comentarioTexto').value.trim();
-    if (!texto) {
+    const stickerUrl = window.stickerSeleccionadoParaEnviar;
+    
+    if (!texto && !stickerUrl) {
         showToastComent('⚠️ No puedes enviar un comentario vacío');
         return;
     }
@@ -166,6 +169,12 @@ async function enviarComentarioTexto() {
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     
+    let textoFinal = texto;
+    if (stickerUrl) {
+        // Agrega el sticker al final del texto
+        textoFinal += (textoFinal ? '\n' : '') + `[Sticker](${stickerUrl})`;
+    }
+    
     try {
         await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
@@ -174,12 +183,15 @@ async function enviarComentarioTexto() {
             userId: comentariosCurrentUser.uid,
             userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif',
-            texto: texto,
-            esSticker: false,
+            texto: textoFinal,
+            esSticker: !!stickerUrl,
+            stickerUrl: stickerUrl || null,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
+        // Limpiar todo después de enviar
         document.getElementById('comentarioTexto').value = '';
+        quitarStickerPreview();
         showToastComent('✅ Comentario enviado');
     } catch (error) {
         alert('Error: ' + error.message);
@@ -189,41 +201,29 @@ async function enviarComentarioTexto() {
     }
 }
 
-window.enviarStickerAlComentario = async function(stickerUrl) {
-    if (!comentariosCurrentUser) {
-        openLoginModalFromComent();
-        return;
-    }
+// Nueva función: Manda el sticker al preview en vez de enviarlo directo
+window.seleccionarStickerParaEnviar = function(url) {
+    window.stickerSeleccionadoParaEnviar = url;
     
-    const btn = document.getElementById('enviarComentarioBtn');
-    btn.disabled = true;
+    const previewContainer = document.getElementById('comentarioStickerPreview');
+    const previewImg = document.getElementById('previewStickerImgObj');
     
-    try {
-        await comentariosDb.collection('comments').add({
-            animeId: window.comentariosAnimeId,
-            season: parseInt(window.comentariosSeason),
-            episode: parseInt(window.comentariosEpisode),
-            userId: comentariosCurrentUser.uid,
-            userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
-            userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif',
-            texto: `[Sticker](${stickerUrl})`,
-            esSticker: true,
-            stickerUrl: stickerUrl,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        showToastComent('✅ Sticker enviado');
-        toggleStickerPanelSistema();
-    } catch (error) {
-        alert('Error: ' + error.message);
-    } finally {
-        btn.disabled = false;
-    }
+    previewImg.src = url;
+    previewContainer.style.display = 'inline-block';
+    
+    // Cierra el panel de stickers para que veas el input
+    const panel = document.getElementById('stickerPanelFull');
+    if (panel) panel.classList.remove('active');
+};
+
+window.quitarStickerPreview = function() {
+    window.stickerSeleccionadoParaEnviar = null;
+    document.getElementById('comentarioStickerPreview').style.display = 'none';
+    document.getElementById('previewStickerImgObj').src = '';
 };
 
 async function deleteComentario(commentId) {
     if (!confirm('¿Seguro que deseas eliminar este comentario?')) return;
-    
     try {
         await comentariosDb.collection('comments').doc(commentId).delete();
         showToastComent('🗑️ Comentario eliminado');
@@ -259,6 +259,15 @@ function toggleEmojiPanelSistema() {
     }
 }
 
+function toggleStickerPanelSistema() {
+    const panel = document.getElementById('stickerPanelFull');
+    if (panel) {
+        panel.classList.toggle('active');
+        const emojiPanel = document.getElementById('emojiPanel');
+        if (emojiPanel) emojiPanel.classList.remove('active');
+    }
+}
+
 function agregarEmojiAlTexto(emoji) {
     const textarea = document.getElementById('comentarioTexto');
     if (textarea) {
@@ -267,7 +276,7 @@ function agregarEmojiAlTexto(emoji) {
         textarea.value = text.substring(0, start) + emoji + text.substring(start);
         textarea.focus();
     }
-    toggleEmojiPanelSistema();
+    // ¡CORRECCIÓN! Ya no cerramos el panel de emojis aquí
 }
 
 function showToastComent(msg) {

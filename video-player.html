@@ -237,7 +237,7 @@
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px; padding: 12px;
         cursor: pointer; font-size: 1.2rem;
-        transition: all 0.2s;
+        transition: all 0.2s; color: white;
     }
     
     .emoji-panel {
@@ -258,6 +258,24 @@
     
     .emoji-option:hover { transform: scale(1.2); background: rgba(0, 255, 247, 0.2); }
     
+    /* ===== PREVIEW DE STICKER ===== */
+    .comentario-sticker-preview {
+        margin-bottom: 12px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        border: 1px dashed rgba(0, 255, 247, 0.3);
+        display: inline-block;
+    }
+    .preview-sticker-wrapper { position: relative; display: inline-block; }
+    #previewStickerImgObj { max-width: 100px; max-height: 100px; border-radius: 8px; }
+    .remove-sticker-btn {
+        position: absolute; top: -8px; right: -8px;
+        background: #ff5555; color: white; border: none;
+        border-radius: 50%; width: 22px; height: 22px;
+        font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
     .enviar-comentario-btn {
         background: linear-gradient(135deg, var(--primary-color), #0099ff);
         border: none; color: #000; font-weight: 700;
@@ -267,7 +285,6 @@
     
     .comentarios-list { max-height: 500px; overflow-y: auto; overflow-x: hidden; }
     
-    /* MEJORA: Animación de entrada para los comentarios */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -282,19 +299,15 @@
     
     .comentario-avatar img {
         width: 40px; height: 40px; border-radius: 50%;
-        border: 1px solid var(--primary-color);
-        object-fit: cover;
+        border: 1px solid var(--primary-color); object-fit: cover;
     }
     
     .comentario-user { font-weight: 700; color: var(--primary-color); }
     .comentario-fecha { font-size: 0.7rem; color: #888; }
     
-    /* MEJORA: Estilo para links en comentarios */
     .comentario-link {
-        color: var(--primary-color);
-        text-decoration: underline;
-        word-break: break-all;
-        transition: opacity 0.2s;
+        color: var(--primary-color); text-decoration: underline;
+        word-break: break-all; transition: opacity 0.2s;
     }
     .comentario-link:hover { opacity: 0.8; }
     
@@ -323,8 +336,7 @@
     .sticker-panel-full {
         display: none; background: rgba(20, 20, 30, 0.98);
         border: 1px solid var(--primary-color);
-        border-radius: 16px; margin-bottom: 15px;
-        backdrop-filter: blur(10px);
+        border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(10px);
     }
     
     .sticker-panel-full.active { display: block; }
@@ -363,8 +375,6 @@
         font-size: 10px; cursor: pointer;
     }
     
-    .sticker-owner { font-size: 0.6rem; color: #888; margin-top: 4px; }
-    .sticker-steal { font-size: 0.6rem; color: var(--primary-color); margin-top: 4px; }
     .sticker-empty { text-align: center; padding: 20px; color: #888; grid-column: 1/-1; }
     
     .upload-sticker-area { text-align: center; margin: 15px 0; }
@@ -494,7 +504,16 @@
             <div class="comentario-input-wrapper">
                 <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
                 <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
-                <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">🎨</button>
+                <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
+                    <i class="fas fa-sticky-note"></i>
+                </button>
+            </div>
+            
+            <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
+                <div class="preview-sticker-wrapper">
+                    <img id="previewStickerImgObj" src="">
+                    <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
+                </div>
             </div>
             
             <div id="emojiPanel" class="emoji-panel"></div>
@@ -502,7 +521,6 @@
             <div id="stickerPanelFull" class="sticker-panel-full">
                 <div class="sticker-tabs">
                     <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
-                    <button class="sticker-tab" onclick="switchStickerTab('global')">🌍 ROBAR</button>
                     <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
                 </div>
             
@@ -511,14 +529,8 @@
                         <div class="sticker-empty">Cargando...</div>
                     </div>
                 </div>
-          
-                <div id="globalStickersTab" class="sticker-tab-content">
-                    <div id="globalStickersContainer" class="stickers-grid">
-                        <div class="sticker-empty">Cargando...</div>
-                    </div>
-                </div>
          
-                <div id="subirStickerTab" class="sticker-tab-content">
+                <div id="subirStickersTab" class="sticker-tab-content">
                     <div class="add-sticker-container">
                         <p class="add-sticker-desc">📸 Sube una imagen desde tu computadora</p>
                         <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, WEBP, AVIF (máx. 50MB)</p>
@@ -537,7 +549,7 @@
                             <i class="fas fa-link"></i> Agregar por URL
                         </button>
                      
-                        <p class="add-sticker-note">💡 Tip: Puedes robar stickers de otros usuarios en la pestaña "ROBAR"</p>
+                        <p class="add-sticker-note">💡 Tip: Ahora, cuando robes un sticker de los comentarios, aparecerá aquí automáticamente.</p>
                     </div>
                 </div>
             </div>
@@ -583,7 +595,6 @@
   </div>
 
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
