@@ -239,7 +239,17 @@
         gap: 10px;
     }
 
-
+    /* 🔥 NOMBRES DE USUARIO A COLOR - ELIMINADO/COMENTADO SEGÚN SOLICITUD 🔥 */
+    /*
+    .comentario-user-info span, .comentario-user-name {
+        font-weight: 900;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        color: var(--primary-color);
+        text-shadow: 0 0 8px var(--primary-color), 0 0 20px rgba(0, 255, 247, 0.4);
+    }
+    */
 
     .comentario-fecha {
         font-size: 0.75rem;
@@ -335,16 +345,16 @@
     
     .empty-comments { text-align: center; padding: 50px 20px; color: #888; font-style: italic; font-size: 1.1rem; }
     
-    /* --- RESPONSIVE COMENTARIOS --- */
+    /* --- RESPONSIVE COMENTARIOS (se han comentado las reglas solicitadas) --- */
     @media (max-width: 768px) {
         .comentarios-section { padding: 20px 15px; }
-        .comentario-item { padding: 15px !important; gap: 12px !important; flex-direction: column !important; }
-        .comentario-header-info { flex-direction: column; align-items: flex-start; gap: 5px; }
+        /* .comentario-item { padding: 15px !important; gap: 12px !important; flex-direction: column !important; } */
+        /* .comentario-header-info { flex-direction: column; align-items: flex-start; gap: 5px; } */
         .comentario-fecha { margin-left: 0; }
-        .comentario-avatar { display: flex; align-items: center; gap: 12px; }
-        .comentario-avatar img { width: 40px !important; height: 40px !important; }
+        /* .comentario-avatar { display: flex; align-items: center; gap: 12px; } */
+        /* .comentario-avatar img { width: 40px !important; height: 40px !important; } */
         .comentario-form-container { padding: 18px; }
-        .comentario-input-wrapper { flex-direction: column; }
+        /* .comentario-input-wrapper { flex-direction: column; } */
         .emoji-btn, .sticker-btn { padding: 12px; }
     }
     
