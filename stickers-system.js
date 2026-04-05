@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS (CLOUDINARY PARA VIDEOS E IMÁGENES)
+// SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
 // ============================================
 
 let stickersDb = null;
@@ -8,8 +8,6 @@ let stickersCurrentUser = null;
 let userStickersCollection = [];
 
 // ⚙️ CONFIGURACIÓN DE CLOUDINARY (GRATIS Y SIN TARJETA)
-// Reemplaza 'dbcqcai1q' con tu Cloud Name de Cloudinary
-// Reemplaza 'stickers_archinime' con el nombre del preset "Unsigned" que creaste
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
 
@@ -26,6 +24,7 @@ const DEFAULT_STICKERS = [
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
+
     auth.onAuthStateChanged(user => {
         stickersCurrentUser = user;
         updateStickersUI();
@@ -40,8 +39,10 @@ function initStickersSystem(db, auth) {
 
 async function loadUserStickers() {
     if (!stickersCurrentUser) return;
+
     try {
         const doc = await stickersDb.collection('users').doc(stickersCurrentUser.uid).get();
+
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers;
         } else {
@@ -59,17 +60,18 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
-    
+
     // Limpieza agresiva de nulos, vacíos y corruptos
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-    
+
     if (validStickers.length === 0) {
         container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
     }
 
     let html = '';
-    validStickers.forEach((url, index) => {
+
+    validStickers.forEach((url) => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo 
             ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
@@ -82,6 +84,7 @@ function renderUserStickers() {
             </div>
         `;
     });
+
     container.innerHTML = html;
 }
 
@@ -98,19 +101,25 @@ window.switchStickerTab = function(tabName) {
 
 async function eliminarSticker(urlSticker, event) {
     event.stopPropagation();
+
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
     
-    userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
-    renderUserStickers();
-    
     try {
-        await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
-            stickers: userStickersCollection
-        }, { merge: true });
+        const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
+        
+        // Forma infalible de remover del array en Firebase
+        await userRef.update({
+            stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
+        });
+
+        // Actualizar visualmente
+        userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
+        renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
+
     } catch (e) {
         console.error(e);
-        alert("Error al eliminar");
+        alert("Error al eliminar el sticker de la base de datos.");
     }
 }
 
@@ -122,6 +131,7 @@ async function subirStickerDesdePC(input) {
     
     const file = input.files[0];
     if (!file) return;
+
     if (file.size > 50 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 50MB.');
         return;
@@ -130,6 +140,7 @@ async function subirStickerDesdePC(input) {
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
+
     const isVideoFile = file.type.startsWith('video/');
 
     if (isVideoFile) {
@@ -148,83 +159,68 @@ async function subirStickerDesdePC(input) {
     const oldText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
     btnSubir.style.pointerEvents = 'none';
-    
+
     try {
         // USAMOS CLOUDINARY PARA TODO (Imágenes y Videos)
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
         
-        // Cloudinary detecta automáticamente si es imagen o video
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
         });
-        
+
         const data = await response.json();
         
         if (data.secure_url) {
             await guardarStickerEnColeccion(data.secure_url);
-            
+
             previewContainer.style.display = 'none';
             input.value = '';
             showToastSticker('✅ Archivo subido y guardado exitosamente');
             switchStickerTab('mis');
+
         } else {
             throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
         }
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir el archivo: Revisa que hayas configurado el Cloud Name y el Preset correctamente.");
+        alert("Error al subir el archivo: Revisa tu conexión a internet o configuración.");
+
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
     }
 }
 
-window.agregarStickerPorURL = async function() {
-    if (!stickersCurrentUser) {
-        openLoginModalFromStickers();
-        return;
-    }
-    
-    const url = prompt("Pega el link (URL) directo de la imagen o video (.gif, .png, .jpg, .mp4, .webm):");
-    if (!url) return;
-    
-    if (!url.match(/^https?:\/\/.+/)) {
-        alert("Por favor, ingresa una URL válida que empiece con http:// o https://");
-        return;
-    }
-    
-    await guardarStickerEnColeccion(url);
-    showToastSticker('✅ Archivo agregado');
-    switchStickerTab('mis');
-};
-
 async function guardarStickerEnColeccion(url) {
-    if (!userStickersCollection) {
-        userStickersCollection = [...DEFAULT_STICKERS];
-    }
-
+    if (!stickersCurrentUser) return;
+    
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Ya tienes esto en tu colección');
         return;
     }
-    
-    userStickersCollection.push(url);
-    renderUserStickers();
-    
+
     try {
-        await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
-            stickers: userStickersCollection
+        const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
+        
+        // Forma infalible de agregar al array sin que se borre jamás
+        await userRef.set({
+            stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
+
+        // Actualizamos localmente para no tener que recargar
+        userStickersCollection.push(url);
+        renderUserStickers();
+
     } catch (e) {
         console.error("Error guardando URL en Firebase:", e);
     }
 }
 
-// CORRECCIÓN TOTAL DEL ROBO DE STICKERS: Lectura estricta desde Firebase
+// CORRECCIÓN TOTAL DEL ROBO DE STICKERS: Guarda de manera definitiva usando arrayUnion
 window.robarStickerSistema = async function(url) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
@@ -232,36 +228,23 @@ window.robarStickerSistema = async function(url) {
     }
     
     const cleanUrl = url.trim();
-    
+
     try {
-        // 1. Siempre bajamos la colección actual directo del servidor para evitar desincronizaciones
         const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
-        const doc = await userRef.get();
-        
-        let dbStickers = [];
-        if (doc.exists && doc.data().stickers) {
-            dbStickers = doc.data().stickers;
-        } else {
-            dbStickers = [...DEFAULT_STICKERS];
+
+        // 1. Inyectamos directamente el link al Array de Firebase de forma segura.
+        // Esto evita que si hay un array desactualizado localmente, borre los datos de Firebase.
+        await userRef.set({ 
+            stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
+        }, { merge: true });
+
+        // 2. Solo si funcionó, lo añadimos a nuestra vista local
+        if (!userStickersCollection.includes(cleanUrl)) {
+            userStickersCollection.push(cleanUrl);
+            renderUserStickers();
         }
 
-        // 2. Comprobamos si el usuario ya lo tiene
-        if (dbStickers.includes(cleanUrl)) {
-            showToastSticker('⚠️ Ya tienes este sticker en tu colección');
-            return;
-        }
-
-        // 3. Añadimos y aseguramos que no haya nulos o duplicados
-        dbStickers.push(cleanUrl);
-        const safeStickers = [...new Set(dbStickers)].filter(s => typeof s === 'string' && s.trim() !== '');
-        
-        // 4. Guardamos agresivamente en Firebase
-        await userRef.set({ stickers: safeStickers }, { merge: true });
-        
-        // 5. Solo si funcionó, actualizamos la vista
-        userStickersCollection = safeStickers;
-        renderUserStickers();
-        showToastSticker('✅ ¡Sticker robado y guardado!');
+        showToastSticker('✅ ¡Sticker robado y guardado permanentemente!');
 
     } catch (e) {
         console.error("Error crítico al robar sticker:", e);
@@ -272,6 +255,7 @@ window.robarStickerSistema = async function(url) {
 function updateStickersUI() {
     if (!stickersCurrentUser) {
         const subirTab = document.getElementById('subirStickersTab');
+
         if (subirTab) {
             subirTab.innerHTML = `
                 <div class="add-sticker-container">
@@ -287,9 +271,11 @@ function updateStickersUI() {
 
 function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
+
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
+
         toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
         document.body.appendChild(toast);
     }

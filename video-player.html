@@ -6,7 +6,7 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
   
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -154,8 +154,7 @@
         border: 1px solid rgba(255,255,255,0.1); color: #fff;
         text-decoration: none; border-radius: 50px;
         display: inline-flex; align-items: center;
-        gap: 8px;
-        transition: all 0.3s; font-weight: 600;
+        gap: 8px; transition: all 0.3s; font-weight: 600;
     }
     
     .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
@@ -174,190 +173,222 @@
     
     /* ===== COMENTARIOS ===== */
     .comentarios-section {
-        margin-top: 30px; padding: 20px;
-        background: rgba(0, 0, 0, 0.4); border-radius: 16px;
-        border-top: 1px solid rgba(0, 255, 247, 0.2);
+        margin-top: 40px;
+        padding: 25px;
+        background: rgba(10, 10, 15, 0.75);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 247, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 255, 247, 0.05);
     }
     
     .comentarios-header {
         display: flex; align-items: center; gap: 12px;
-        margin-bottom: 20px; padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 25px; padding-bottom: 15px;
+        border-bottom: 1px dashed rgba(255,255,255,0.15);
     }
     
-    .comentarios-header i { font-size: 1.8rem; color: var(--primary-color); }
-    .comentarios-header h3 { font-size: 1.2rem; font-weight: 700; }
+    .comentarios-header i { font-size: 2rem; color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+    .comentarios-header h3 { font-size: 1.4rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;}
     
     .comentario-login-message {
-        background: rgba(0, 255, 247, 0.1); border: 1px solid rgba(0, 255, 247, 0.3);
-        border-radius: 12px; padding: 20px; text-align: center;
+        background: rgba(0, 255, 247, 0.05);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 16px; padding: 30px; text-align: center;
+        box-shadow: inset 0 0 20px rgba(0, 255, 247, 0.05);
     }
     
     .login-link-btn {
         background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none; color: #000; font-weight: 700;
-        padding: 10px 24px; border-radius: 30px;
+        border: none; color: #000; font-weight: 800;
+        padding: 12px 28px; border-radius: 30px;
         cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        margin-top: 15px; box-shadow: 0 0 15px rgba(0, 255, 247, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .login-link-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(0, 255, 247, 0.6);
     }
     
     .comentario-form-container {
-        background: rgba(20, 20, 30, 0.6); border-radius: 16px; padding: 15px;
-        border: 1px solid rgba(255,255,255,0.05);
+        background: rgba(20, 20, 30, 0.8);
+        border-radius: 16px; padding: 20px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
     }
     
     .comentario-user-info {
-        display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+        display: flex; align-items: center; gap: 12px; margin-bottom: 15px;
     }
     
     .comentario-user-info img {
-        width: 40px; height: 40px; border-radius: 50%;
+        width: 45px; height: 45px; border-radius: 50%;
         border: 2px solid var(--primary-color); object-fit: cover;
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.5);
+    }
+    .comentario-user-info span {
+        font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: #fff;
     }
     
     .comentario-input-wrapper {
-        display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
+        display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;
     }
     
     .comentario-input-wrapper textarea {
-        flex: 1; background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(0, 255, 247, 0.3); border-radius: 12px; padding: 12px;
-        color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 80px;
+        flex: 1;
+        background: rgba(5, 5, 10, 0.6);
+        border: 1px solid rgba(0, 255, 247, 0.4); 
+        border-radius: 12px; padding: 15px;
+        color: white; font-family: 'Poppins', sans-serif; 
+        resize: vertical; min-height: 90px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        transition: all 0.3s;
+    }
+    .comentario-input-wrapper textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.3), inset 0 0 10px rgba(0,0,0,0.5);
     }
     
     .emoji-btn, .sticker-btn {
-        background: rgba(0, 255, 247, 0.1); border: 1px solid rgba(0, 255, 247, 0.3);
-        border-radius: 12px; padding: 12px; cursor: pointer; font-size: 1.2rem;
-        transition: all 0.2s; color: white;
+        background: rgba(0, 255, 247, 0.05);
+        border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 12px; padding: 12px 18px; cursor: pointer; font-size: 1.4rem;
+        transition: all 0.3s; color: white; display: flex; align-items: center; justify-content: center;
+    }
+    .emoji-btn:hover, .sticker-btn:hover {
+        background: rgba(0, 255, 247, 0.2);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.3);
+        transform: translateY(-2px);
     }
     
     .emoji-panel {
-        display: none; background: rgba(20, 20, 30, 0.95); border: 1px solid var(--primary-color);
-        border-radius: 12px; padding: 10px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
-        max-height: 200px; overflow-y: auto;
+        display: none; background: rgba(20, 20, 30, 0.95); 
+        border: 1px solid var(--primary-color);
+        border-radius: 12px; padding: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;
+        max-height: 200px; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.8);
     }
     
     .emoji-panel.active { display: flex; }
     
     .emoji-option {
-        font-size: 1.5rem; cursor: pointer; padding: 5px;
-        background: rgba(255,255,255,0.05); border-radius: 8px;
+        font-size: 1.6rem; cursor: pointer; padding: 5px;
+        background: rgba(255,255,255,0.02); border-radius: 8px;
         width: 45px; text-align: center; transition: transform 0.2s;
     }
-    
-    .emoji-option:hover { transform: scale(1.2); background: rgba(0, 255, 247, 0.2); }
+    .emoji-option:hover { transform: scale(1.3); background: rgba(0, 255, 247, 0.2); }
     
     /* ===== PREVIEW DE STICKER ===== */
     .comentario-sticker-preview {
-        margin-bottom: 12px; padding: 10px; background: rgba(0, 0, 0, 0.3);
-        border-radius: 12px; border: 1px dashed rgba(0, 255, 247, 0.3); display: inline-block;
+        margin-bottom: 15px; padding: 10px; 
+        background: rgba(0, 0, 0, 0.5); border-radius: 12px; 
+        border: 1px dashed rgba(0, 255, 247, 0.5); display: inline-block;
     }
     .preview-sticker-wrapper { position: relative; display: inline-block; }
     
     .remove-sticker-btn {
-        position: absolute; top: -8px; right: -8px;
+        position: absolute; top: -10px; right: -10px;
         background: #ff5555; color: white; border: none; border-radius: 50%;
-        width: 22px; height: 22px; font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        width: 25px; height: 25px; font-size: 12px; cursor: pointer;
+        box-shadow: 0 2px 10px rgba(255,85,85,0.6); transition: 0.2s;
     }
+    .remove-sticker-btn:hover { transform: scale(1.1); }
 
     .enviar-comentario-btn {
         background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none; color: #000; font-weight: 700; padding: 10px 24px; border-radius: 30px;
+        border: none; color: #000; font-weight: 800; padding: 12px 30px; border-radius: 30px;
         cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .enviar-comentario-btn:hover {
+        box-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
+        transform: translateY(-2px);
     }
     
-    .comentarios-list { max-height: 500px; overflow-y: auto; overflow-x: hidden; }
+    .comentarios-list { max-height: 600px; overflow-y: auto; overflow-x: hidden; margin-top: 25px; padding-right: 5px;}
+    .comentarios-list::-webkit-scrollbar { width: 6px; }
+    .comentarios-list::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
     
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
     }
-
-    .comentario-item {
-        display: flex; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03);
-        border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03);
-    }
-    
-    .comentario-avatar img {
-        width: 40px; height: 40px; border-radius: 50%;
-        border: 1px solid var(--primary-color); object-fit: cover;
-    }
-    
-    .comentario-user { font-weight: 700; color: var(--primary-color); }
-    .comentario-fecha { font-size: 0.7rem; color: #888; }
     
     .comentario-link { color: var(--primary-color); text-decoration: underline; word-break: break-all; transition: opacity 0.2s; }
     .comentario-link:hover { opacity: 0.8; }
-    
-    .comentario-delete {
-        background: none; border: none; color: #ff5555;
-        cursor: pointer; margin-left: auto; padding: 4px 8px;
-        border-radius: 6px; transition: background 0.2s;
-    }
-    .comentario-delete:hover { background: rgba(255, 85, 85, 0.1); }
-    
     .comentario-texto { word-break: break-word; line-height: 1.5; margin-top: 5px; }
     .comentario-sticker { max-width: 120px; max-height: 120px; border-radius: 12px; margin-top: 5px;}
     .comentario-imagen { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 5px;}
     
     .empty-comments { text-align: center; padding: 40px; color: #888; }
     
-    /* ===== STICKERS ===== */
+    /* ===== STICKERS MODAL ===== */
     .sticker-panel-full {
-        display: none; background: rgba(20, 20, 30, 0.98); border: 1px solid var(--primary-color);
-        border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(10px);
+        display: none; background: rgba(15, 15, 20, 0.98); 
+        border: 1px solid var(--primary-color);
+        border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(15px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden;
     }
     
     .sticker-panel-full.active { display: block; }
     
-    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); }
-    .sticker-tab { flex: 1; padding: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
-    .sticker-tab.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.7); }
+    .sticker-tab { 
+        flex: 1; padding: 15px 10px; background: none; border: none; color: #888; 
+        cursor: pointer; font-size: 0.8rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; transition: 0.3s;
+    }
+    .sticker-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .sticker-tab.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); background: rgba(0, 255, 247, 0.05);}
     
-    .sticker-tab-content { display: none; padding: 15px; max-height: 350px; overflow-y: auto; }
+    .sticker-tab-content { display: none; padding: 20px; max-height: 350px; overflow-y: auto; }
     .sticker-tab-content.active { display: block; }
     
-    .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     
     .sticker-item {
-        position: relative; background: rgba(255,255,255,0.05); border-radius: 12px;
+        position: relative; background: rgba(0,0,0,0.4); border-radius: 12px;
         padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s;
+        border: 1px solid rgba(255,255,255,0.05);
     }
     
-    .sticker-item:hover { background: rgba(0, 255, 247, 0.15); transform: scale(1.02); }
+    .sticker-item:hover { 
+        background: rgba(0, 255, 247, 0.1); transform: scale(1.05); 
+        border-color: rgba(0, 255, 247, 0.5); box-shadow: 0 0 15px rgba(0, 255, 247, 0.2);
+    }
     .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
     
     .sticker-delete-btn {
-        position: absolute; top: 2px; right: 2px; background: rgba(255, 0, 85, 0.8); border: none;
-        color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer;
+        position: absolute; top: -5px; right: -5px; background: rgba(255, 0, 85, 0.9); border: none;
+        color: white; border-radius: 50%; width: 22px; height: 22px;
+        font-size: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(255,0,85,0.5); transition: 0.2s;
     }
+    .sticker-delete-btn:hover { transform: scale(1.2); }
     
-    .sticker-empty { text-align: center; padding: 20px; color: #888; grid-column: 1/-1; }
+    .sticker-empty { text-align: center; padding: 30px; color: #888; grid-column: 1/-1; font-style: italic;}
     
     .upload-sticker-area { text-align: center; margin: 15px 0; }
     .upload-sticker-label {
         display: inline-flex; align-items: center; gap: 10px;
         background: linear-gradient(135deg, var(--primary-color), #0099ff); color: #000;
-        padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 700; transition: all 0.3s;
+        padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 800; transition: all 0.3s;
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.3); text-transform: uppercase; letter-spacing: 1px;
     }
-    .upload-sticker-label:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--primary-color); }
+    .upload-sticker-label:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary-color); }
     
-    .upload-preview { margin-top: 15px; text-align: center; }
-    .divider { text-align: center; color: #888; margin: 15px 0; font-size: 0.8rem; }
+    .upload-preview { margin-top: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px dashed rgba(0,255,247,0.3);}
     
     .add-sticker-container { text-align: center; padding: 10px; }
-    .add-sticker-desc { margin-bottom: 5px; font-weight: 600; }
-    .add-sticker-hint { font-size: 0.7rem; color: #888; margin-bottom: 15px; }
-    .add-sticker-btn {
-        background: linear-gradient(135deg, var(--primary-color), #0099ff); border: none; color: #000;
-        font-weight: 700; padding: 12px 24px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    }
-    .add-sticker-note { font-size: 0.7rem; color: var(--primary-color); margin-top: 15px; }
+    .add-sticker-desc { margin-bottom: 10px; font-weight: 700; color: #eee; font-size: 1.1rem; }
+    .add-sticker-hint { font-size: 0.8rem; color: #aaa; margin-bottom: 20px; }
     
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 10001;
-        display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
+        display: flex; justify-content: center; align-items: center;
+        opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
     }
     
     .auth-modal.show { opacity: 1; pointer-events: auto; }
@@ -432,13 +463,13 @@
     <div class="comentarios-section">
         <div class="comentarios-header">
             <i class="fas fa-comments"></i>
-            <h3>COMENTARIOS</h3>
+            <h3>ZONA DE COMENTARIOS</h3>
         </div>
 
         <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
-            <i class="fas fa-lock"></i>
-            <p>🔒 Inicia sesión para comentar y usar stickers animados</p>
-             <button class="login-link-btn" onclick="openLoginModalFromComent()">
+            <i class="fas fa-lock" style="font-size: 2rem; color: #aaa; margin-bottom: 10px;"></i>
+            <p style="font-size: 1.1rem; color: #eee;">Inicia sesión para comentar y robar stickers animados de la comunidad</p>
+            <button class="login-link-btn" onclick="openLoginModalFromComent()">
                 <i class="fas fa-sign-in-alt"></i> ✨ Iniciar sesión / Registrarse ✨
             </button>
         </div>
@@ -472,7 +503,7 @@
                     <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
                     <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
                 </div>
-            
+        
                 <div id="misStickersTab" class="sticker-tab-content active">
                     <div id="userStickersContainer" class="stickers-grid">
                         <div class="sticker-empty">Cargando...</div>
@@ -490,29 +521,23 @@
                             <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
                             
                             <div class="upload-preview" id="stickerPreview" style="display:none;">
-                                <img id="previewImage" style="display:none; max-width:100px; max-height:100px; border-radius:12px;">
-                                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:100px; max-height:100px; border-radius:12px;"></video>
+                                <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
+                                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
                             </div>
                         </div>
-                        <div class="divider">o</div>
-    
-                        <button class="add-sticker-btn" onclick="agregarStickerPorURL()">
-                            <i class="fas fa-link"></i> Agregar por URL
-                        </button>
-                        <p class="add-sticker-note">💡 Tip: Ahora puedes subir videos cortos. ¡Se reproducirán automáticamente como si fueran GIFs pero en HD!</p>
-                    </div>
+                        </div>
                 </div>
             </div>
            
             <div class="comentario-actions">
                 <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
-                    <i class="fas fa-paper-plane"></i> Enviar
+                    <i class="fas fa-paper-plane"></i> Enviar Comentario
                 </button>
             </div>
         </div>
 
         <div id="comentariosList" class="comentarios-list">
-            <div class="empty-comments"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+            <div class="empty-comments"><i class="fas fa-spinner fa-spin"></i><p>Cargando comentarios...</p></div>
         </div>
     </div>
   </div>
@@ -559,7 +584,7 @@
     // Inicializar Firebase
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage(); // <- INICIALIZANDO STORAGE
+    const storage = firebase.storage();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     
     const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
