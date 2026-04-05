@@ -47,10 +47,10 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) {
             stickerBtn.innerHTML = '🖼️';
-          
             stickerBtn.style.fontSize = '1.4rem';
         }
     }, 1000);
+    
     // Cierra todos los menús de comentarios si se hace clic fuera
     document.addEventListener('click', () => closeAllCommentMenus());
 }
@@ -136,8 +136,7 @@ function injectCommentsCSS() {
 
         /* Ajustes para sub-niveles (Nivel 2 en adelante) */
         .nested-reply .replies-thread {
-            margin-left: 15px;
-            /* Centrado con el avatar de 30px */
+            margin-left: 15px; /* Centrado con el avatar de 30px */
             padding-left: 15px;
         }
         .nested-reply .comentario-item.is-reply::before {
@@ -147,12 +146,9 @@ function injectCommentsCSS() {
 
         /* Iluminación de foco al responder */
         @keyframes replyPulse {
-            0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0);
-            }
-            50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
-            border: 1px solid var(--neon-primary) !important; }
-            100% { box-shadow: 0 0 0 rgba(0, 255, 247, 0);
-            }
+            0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); border: 1px solid var(--neon-primary) !important; }
+            100% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
         }
         .replying-active {
             animation: replyPulse 1.5s infinite;
@@ -229,28 +225,20 @@ function injectCommentsCSS() {
             transition: 0.2s;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .comment-dropdown-btn:last-child { border-bottom: none;
-        }
-        .comment-dropdown-btn:hover { background: rgba(188, 19, 254, 0.15); color: #fff; padding-left: 20px;
-        }
-        .comment-dropdown-btn i { width: 16px; text-align: center; color: var(--neon-primary);
-        }
-        .comment-dropdown-btn.report-btn i { color: var(--neon-warn);
-        }
-        .comment-dropdown-btn.report-btn:hover { background: rgba(255, 170, 0, 0.15); color: #fff;
-        }
-        .comment-dropdown-btn.edit-btn i { color: var(--neon-primary);
-        }
-        .comment-dropdown-btn.edit-btn:hover { background: rgba(0, 255, 247, 0.15); color: #fff;
-        }
+        .comment-dropdown-btn:last-child { border-bottom: none; }
+        .comment-dropdown-btn:hover { background: rgba(188, 19, 254, 0.15); color: #fff; padding-left: 20px; }
+        .comment-dropdown-btn i { width: 16px; text-align: center; color: var(--neon-primary); }
+        .comment-dropdown-btn.report-btn i { color: var(--neon-warn); }
+        .comment-dropdown-btn.report-btn:hover { background: rgba(255, 170, 0, 0.15); color: #fff; }
+        .comment-dropdown-btn.edit-btn i { color: var(--neon-primary); }
+        .comment-dropdown-btn.edit-btn:hover { background: rgba(0, 255, 247, 0.15); color: #fff; }
         
         /* Botones de Control de Hilos */
         .toggle-respuestas-btn { background: transparent;
             border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; margin-top: 4px; display: inline-flex;
             align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8;
         }
-        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1;
-        }
+        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
         
         .show-more-replies-btn { background: transparent;
             border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px;
@@ -259,49 +247,30 @@ function injectCommentsCSS() {
             border-style: solid; color: #fff; }
         
         /* Animaciones */
-        @keyframes fadeInReplyBox { from { opacity: 0;
-            transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1);
-        } }
+        @keyframes fadeInReplyBox { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
         @keyframes slideInGlow {
-            0% { opacity: 0;
-            transform: translateY(-20px) scale(0.95); box-shadow: 0 0 0 transparent; }
-            50% { box-shadow: 0 0 30px var(--neon-primary);
-            transform: translateY(0) scale(1.02); }
-            100% { opacity: 1;
-            transform: translateY(0) scale(1); box-shadow: 0 0 0 transparent; }
+            0% { opacity: 0; transform: translateY(-20px) scale(0.95); box-shadow: 0 0 0 transparent; }
+            50% { box-shadow: 0 0 30px var(--neon-primary); transform: translateY(0) scale(1.02); }
+            100% { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 0 transparent; }
         }
-        .new-comment-fx { animation: slideInGlow 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
-            z-index: 10; }
+        .new-comment-fx { animation: slideInGlow 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; z-index: 10; }
         
-        .char-counter { font-size: 0.75rem;
-            color: #888; text-align: right; margin-top: 5px; font-weight: 600; transition: color 0.3s;
-        }
-        .char-counter.limit { color: var(--neon-alert);
-        }
-        .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1);
-        }
+        .char-counter { font-size: 0.75rem; color: #888; text-align: right; margin-top: 5px; font-weight: 600; transition: color 0.3s; }
+        .char-counter.limit { color: var(--neon-alert); }
+        .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
         @media (max-width: 768px) {
-            .replies-thread { margin-left: 19px;
-            padding-left: 18px; }
-            .nested-reply .replies-thread { margin-left: 14px;
-            padding-left: 14px; }
-            .comentario-item.is-reply::before { left: -18px; width: 18px;
-            }
-            .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px;
-            }
+            .replies-thread { margin-left: 19px; padding-left: 18px; }
+            .nested-reply .replies-thread { margin-left: 14px; padding-left: 14px; }
+            .comentario-item.is-reply::before { left: -18px; width: 18px; }
+            .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
 
-            .comentario-item { padding: 12px !important; flex-direction: row !important;
-            align-items: flex-start !important; gap: 10px !important; }
-            .comentario-item.is-reply { padding: 8px 10px !important;
-            }
-            .comentario-avatar img { width: 38px !important;
-            height: 38px !important; }
-            .is-reply .comentario-avatar img { width: 28px !important;
-            height: 28px !important; }
-            .comment-options-container { right: 5px;
-            top: 5px; }
+            .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
+            .comentario-item.is-reply { padding: 8px 10px !important; }
+            .comentario-avatar img { width: 38px !important; height: 38px !important; }
+            .is-reply .comentario-avatar img { width: 28px !important; height: 28px !important; }
+            .comment-options-container { right: 5px; top: 5px; }
         }
     `;
     document.head.appendChild(style);
@@ -352,13 +321,13 @@ function setupComentariosRealtimeListener() {
         .where('episode', '==', parseInt(window.comentariosEpisode))
         .orderBy('timestamp', 'desc') 
         .limit(100);
+
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
         
         if (snapshot.empty) {
             container.innerHTML = `<div class="empty-comments" style="color: var(--neon-primary); text-shadow: 0 0 10px rgba(0, 255, 247, 0.3);"><i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i><p style="font-weight: bold; font-size: 1.1rem; color: #aaa;">Sin comentarios aún. ¡Sé el primero en romper el hielo!</p></div>`;
-       
             return;
         }
 
@@ -369,9 +338,9 @@ function setupComentariosRealtimeListener() {
         });
         const openMoreReplies = new Set();
         document.querySelectorAll('[class^="hidden-reply-"]').forEach(el => {
- 
             if (el.style.display === 'block') openMoreReplies.add(el.className.split(' ')[0]);
         });
+
         const docsReversed = [...snapshot.docs].reverse();
         const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
         
@@ -385,10 +354,10 @@ function setupComentariosRealtimeListener() {
                     commentMap.get(c.replyToId).replies.push(commentMap.get(c.id));
                 }
             } else {
-                
                 roots.push(commentMap.get(c.id));
             }
         });
+
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -400,13 +369,13 @@ function setupComentariosRealtimeListener() {
             const isNew = window.lastPostedCommentId === node.id;
             
             const hiddenStyle = isHiddenRoot ? 'display: none;' : '';
-            const hiddenClass = isHiddenRoot ?
-            `hidden-reply-${rootId}` : '';
+            const hiddenClass = isHiddenRoot ? `hidden-reply-${rootId}` : '';
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+                
                 // Botón y contenedor base de la ruta
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
@@ -414,7 +383,6 @@ function setupComentariosRealtimeListener() {
                     nodeHtml += `<div style="margin-left: 22px;">
                                     <button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
                                         <i class="fas fa-level-down-alt" id="icon-${node.id}" style="transform: rotate(-90deg);"></i> 
-            
                                         <span id="text-${node.id}">${textoBtn}</span>
                                     </button>
                                  </div>`;
@@ -457,7 +425,6 @@ function setupComentariosRealtimeListener() {
             if (el) {
                 el.style.display = 'flex';
                 const rootId = id.replace('container-', '');
-              
                 const icon = document.getElementById(`icon-${rootId}`);
                 if (icon) icon.style.transform = 'rotate(0deg)';
             }
@@ -469,7 +436,6 @@ function setupComentariosRealtimeListener() {
             });
             const rootId = className.replace('hidden-reply-', '');
             const btn = document.getElementById(`showMore-${rootId}`);
-    
             if (btn) btn.style.display = 'none';
         });
         window.lastPostedCommentId = null;
@@ -488,13 +454,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span style="font-size:0.7rem; color:#888; font-style:italic; margin-left:6px;">(Editado)</span>' : '';
 
-    // MENCIÓN ELIMINADA A PETICIÓN DEL USUARIO
-    /*
-    if (c.replyToUser) {
-        contenidoHtml = `<span style="color: #aaa; font-weight: 600; font-size: 0.85em; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 12px; margin-right: 6px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif;"><i class="fas fa-reply" style="font-size:0.75em; color: var(--neon-primary);"></i> @${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
-    }
-    */
-
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
@@ -507,27 +466,21 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     }
     
     // Ajuste dinámico de UI según el nivel en el árbol
-    const padding = level === 0 ?
-    '16px' : (level === 1 ? '10px 14px' : '8px 12px');
-    const avatarSize = level === 0 ?
-    '45px' : (level === 1 ? '30px' : '24px');
-    const titleSize = level === 0 ?
-    '1rem' : (level === 1 ? '0.9rem' : '0.85rem');
+    const padding = level === 0 ? '16px' : (level === 1 ? '10px 14px' : '8px 12px');
+    const avatarSize = level === 0 ? '45px' : (level === 1 ? '30px' : '24px');
+    const titleSize = level === 0 ? '1rem' : (level === 1 ? '0.9rem' : '0.85rem');
     
     // Calcula dónde debe caer la rama horizontal (mitad exacta del padding + radio del avatar)
-    const branchTop = level === 1 ?
-    '25px' : '20px'; 
+    const branchTop = level === 1 ? '25px' : '20px'; 
     
     const newFxClass = isNew ? 'new-comment-fx' : '';
-    const borderTopColor = level === 0 ?
-    `border-top: 2px solid ${neonColor};` : '';
+    const borderTopColor = level === 0 ? `border-top: 2px solid ${neonColor};` : '';
 
-    const replyMenuBtn = comentariosCurrentUser ?
-    `<button class="comment-dropdown-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
+    const replyMenuBtn = comentariosCurrentUser ? `<button class="comment-dropdown-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
     
-    const editMenuBtn = isOwner ?
-    `<button class="comment-dropdown-btn edit-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit"></i> Editar</button>` : '';
+    const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn edit-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn report-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag"></i> Reportar</button>`;
+    
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)">
@@ -535,12 +488,12 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </button>
             <div class="comment-dropdown" id="dropdown-${c.id}">
                 ${replyMenuBtn}
-             
                 ${reportMenuBtn}
                 ${editMenuBtn}
             </div>
         </div>
     `;
+    
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
@@ -556,14 +509,10 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             
             <div class="comentario-content" style="flex: 1; min-width: 0; padding-right: 25px;">
                 <div class="comentario-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 4px; gap: 8px;">
-                    <span class="comentario-user" style="color: #fff; text-shadow: 
-                    0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                    max-width: 80%;">${escapeHtmlComent(userName)}</span>
-                    <span class="comentario-fecha" style="color: #888;
-                    font-size: 0.75rem; font-weight: 500;">${fecha}${badgeEditado}</span>
+                    <span class="comentario-user" style="color: #fff; text-shadow: 0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #888; font-size: 0.75rem; font-weight: 500;">${fecha}${badgeEditado}</span>
                 </div>
-                <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #eee;
-                font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
+                <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #eee; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
             </div>
         </div>
     `;
@@ -577,27 +526,17 @@ window.iniciarEdicion = function(commentId) {
     if (!textContainer || textContainer.classList.contains('editing')) return;
     
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
-    
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
     
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
 
     textContainer.innerHTML = `
- 
-        <div style="display:flex; flex-direction:column; gap:8px;
-        margin-top:8px;">
-            <textarea id="edit-input-${commentId}" style="width: 100%; background: rgba(5,5,10,0.6);
-            border: 1px solid var(--neon-primary); border-radius: 8px; padding: 10px; color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 60px;
-            outline:none;" onfocus="this.style.boxShadow='0 0 10px rgba(0,255,247,0.3)'" onblur="this.style.boxShadow='none'">${escapeHtmlComent(plainText)}</textarea>
-            <div style="display:flex; gap:8px;
-            justify-content: flex-end;">
-                <button onclick="cancelarEdicion('${commentId}')" style="background: transparent;
-                border: 1px solid #888; color: #aaa; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition:0.2s;" onmouseover="this.style.color='#fff';
-                this.style.borderColor='#fff'" onmouseout="this.style.color='#aaa'; this.style.borderColor='#888'">Cancelar</button>
-                <button onclick="guardarEdicion('${commentId}')" style="background: var(--neon-primary);
-                border: none; color: black; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem;
-                transition:0.2s;" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--neon-primary)'">Guardar</button>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+            <textarea id="edit-input-${commentId}" style="width: 100%; background: rgba(5,5,10,0.6); border: 1px solid var(--neon-primary); border-radius: 8px; padding: 10px; color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 60px; outline:none;" onfocus="this.style.boxShadow='0 0 10px rgba(0,255,247,0.3)'" onblur="this.style.boxShadow='none'">${escapeHtmlComent(plainText)}</textarea>
+            <div style="display:flex; gap:8px; justify-content: flex-end;">
+                <button onclick="cancelarEdicion('${commentId}')" style="background: transparent; border: 1px solid #888; color: #aaa; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition:0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff'" onmouseout="this.style.color='#aaa'; this.style.borderColor='#888'">Cancelar</button>
+                <button onclick="guardarEdicion('${commentId}')" style="background: var(--neon-primary); border: none; color: black; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition:0.2s;" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--neon-primary)'">Guardar</button>
             </div>
         </div>
     `;
@@ -617,15 +556,13 @@ window.guardarEdicion = async function(commentId) {
 
     try {
         const docRef = comentariosDb.collection('comments').doc(commentId);
-       
         const doc = await docRef.get();
         if(doc.exists) {
             const data = doc.data();
             let textoFinal = nuevoTexto;
             
             if (data.esSticker && data.stickerUrl) {
-                textoFinal += (nuevoTexto ?
-                '\n' : '') + `[Sticker](${data.stickerUrl})`;
+                textoFinal += (nuevoTexto ? '\n' : '') + `[Sticker](${data.stickerUrl})`;
             }
             
             await docRef.update({
@@ -660,6 +597,7 @@ window.toggleRespuestas = function(rootId) {
         icon.style.transform = 'rotate(-90deg)';
     }
 };
+
 window.showMoreReplies = function(rootId) {
     const hiddenReplies = document.querySelectorAll(`.hidden-reply-${rootId}`);
     hiddenReplies.forEach(el => {
@@ -698,8 +636,7 @@ function procesarTextoComentario(texto) {
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `
         <div class="comentario-sticker-container" style="margin-top: 8px; display: block; width: fit-content;">
-            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo 
-            ? 'video' : 'img'}>
+            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
         </div>`;
     });
 
@@ -738,6 +675,7 @@ window.restaurarPanelesGlobales = function() {
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
+
 window.prepararRespuesta = function(commentId, userName, userId) {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     
@@ -776,7 +714,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
                     <span id="dynamicCharCount-${commentId}" class="char-counter">0/500</span>
-              
                     <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--neon-primary); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
                 </div>
             </div>
@@ -811,7 +748,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
             else charCount.classList.remove('limit');
             
             validarBotonPrincipal(this);
-   
         });
         
         textArea.addEventListener('keydown', function(e) {
@@ -820,15 +756,14 @@ window.prepararRespuesta = function(commentId, userName, userId) {
                 if(!btnEnviar.classList.contains('btn-disabled')) {
                     enviarRespuestaDinamica();
                 }
-     
             }
         });
     }
 };
+
 window.cancelarRespuesta = function(forzarSync = false) {
     const replyContext = window.respondiendoA;
-    let box = replyContext ?
-    document.getElementById(`dynamicReplyBox-${replyContext.id}`) : document.querySelector('[id^="dynamicReplyBox-"]');
+    let box = replyContext ? document.getElementById(`dynamicReplyBox-${replyContext.id}`) : document.querySelector('[id^="dynamicReplyBox-"]');
 
     window.respondiendoA = null;
     document.querySelectorAll('.replying-active').forEach(el => el.classList.remove('replying-active'));
@@ -846,6 +781,7 @@ window.cancelarRespuesta = function(forzarSync = false) {
         }
     }
 };
+
 window.openStickerModal = function(url) {
     let modal = document.getElementById('stickerViewModal');
     if (!modal) {
@@ -854,12 +790,10 @@ window.openStickerModal = function(url) {
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);backdrop-filter: blur(5px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;padding: 20px;';
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
-                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;"
-                onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
+                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
                 <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);">
                 <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);"></video>
                 <br>
-           
                 <button id="stickerModalStealBtn" style="margin-top:20px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:10px 25px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif;transition:all 0.2s;">
                     🖼️ Robar Sticker
                 </button>
@@ -894,6 +828,7 @@ window.openStickerModal = function(url) {
     modal.style.display = 'flex';
     setTimeout(() => modal.style.opacity = '1', 10);
 };
+
 window.closeStickerModal = function() {
     let modal = document.getElementById('stickerViewModal');
     if (modal) {
@@ -926,6 +861,7 @@ window.validarBotonPrincipal = function(textarea) {
         btn.style.cursor = 'not-allowed';
     }
 };
+
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     const textoInput = document.getElementById('comentarioTexto');
@@ -963,7 +899,6 @@ async function enviarComentarioTexto() {
             replyToUser: null,
             replyToUserId: null,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    
         });
         
         window.lastPostedCommentId = docRef.id;
@@ -1078,6 +1013,7 @@ window.seleccionarStickerParaEnviar = function(url) {
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     
@@ -1092,6 +1028,7 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
@@ -1146,8 +1083,7 @@ function showToastComent(msg) {
     if (!toast) {
         toast = document.createElement('div'); 
         toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15, 15, 20, 0.95);backdrop-filter: blur(10px);color:var(--neon-primary);padding:12px 25px;border-radius:30px;z-index:10000;font-weight:bold;border: 1px solid var(--neon-primary);box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
-        transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15, 15, 20, 0.95);backdrop-filter: blur(10px);color:var(--neon-primary);padding:12px 25px;border-radius:30px;z-index:10000;font-weight:bold;border: 1px solid var(--neon-primary);box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); transition: all 0.3s;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; 
