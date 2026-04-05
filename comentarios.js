@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE COMENTARIOS MEJORADO (NEÓN CYBERPUNK)
+// SISTEMA DE COMENTARIOS MEJORADO (NEÓN CYBERPUNK HD)
 // ============================================
 
 let comentariosDb = null;
@@ -107,28 +107,28 @@ function setupComentariosRealtimeListener() {
             
             let contenidoHtml = procesarTextoComentario(c.texto || '');
            
-            // Si el comentario contiene un sticker principal (retrocompatibilidad)
+            // Si el comentario contiene un sticker principal (retrocompatibilidad) sin ensuciar espacios
             if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
                 contenidoHtml += `
-                    <div class="comentario-sticker-container" style="margin-top: 10px;">
-                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy">
+                    <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+                        <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
                     </div>
                 `;
             }
             
-            // HTML DEL COMENTARIO (NUEVO ESTILO CYBERPUNK NEGRO/NEÓN)
+            // HTML DEL COMENTARIO (NEGRO PURO Y NEÓN MÁXIMO)
             html += `
-                <div class="comentario-item" style="background: #050505; border: 1px solid rgba(${rgbColor}, 0.4); box-shadow: 0 5px 15px rgba(0,0,0,0.8), inset 0 0 20px rgba(${rgbColor}, 0.05); animation: fadeIn 0.4s ease-in-out; border-radius: 12px; margin-bottom: 15px; padding: 15px; display: flex; gap: 15px;">
+                <div class="comentario-item" style="background: #050505; border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.8), inset 0 0 15px rgba(${rgbColor}, 0.05); animation: fadeIn 0.4s ease-in-out; border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; gap: 15px;">
                     <div class="comentario-avatar">
                         <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 12px rgba(${rgbColor}, 0.8);">
                     </div>
                     <div class="comentario-content" style="flex: 1; min-width: 0;">
-                        <div class="comentario-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; border-bottom: 1px dashed rgba(${rgbColor}, 0.3); padding-bottom: 8px;">
-                            <span class="comentario-user" style="color: ${neonColor}; text-shadow: 0 0 10px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 1rem;">${escapeHtmlComent(userName)}</span>
-                            <span class="comentario-fecha" style="color: #888; font-size: 0.75rem;">${fecha}</span>
+                        <div class="comentario-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; border-bottom: 1px dashed rgba(${rgbColor}, 0.2); padding-bottom: 6px;">
+                            <span class="comentario-user" style="color: #fff; text-shadow: 0 0 4px #fff, 0 0 10px ${neonColor}, 0 0 20px ${neonColor}, 0 0 35px ${neonColor}; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 1.05rem;">${escapeHtmlComent(userName)}</span>
+                            <span class="comentario-fecha" style="color: #666; font-size: 0.75rem;">${fecha}</span>
                             ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar" style="margin-left: auto; background: rgba(255,85,85,0.1); border: 1px solid #ff5555; color: #ff5555; border-radius: 6px; padding: 2px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 5px rgba(255,85,85,0.5);">✖</button>` : ''}
                         </div>
-                        <div class="comentario-texto" style="color: #ffffff; font-size: 0.95rem; line-height: 1.6; text-shadow: 0 1px 2px #000;">${contenidoHtml}</div>
+                        <div class="comentario-texto" style="color: #ffffff; font-size: 0.95rem; line-height: 1.5; text-shadow: 0 1px 2px #000;">${contenidoHtml}</div>
                     </div>
                 </div>
             `;
@@ -152,20 +152,22 @@ function obtenerTiempoRelativo(fecha) {
 
 function procesarTextoComentario(texto) {
     if (!texto) return '';
-    let html = escapeHtmlComent(texto);
+    // Limpiar espacios extra al principio o final para que no se vea vacío arriba
+    let html = escapeHtmlComent(texto.trim());
 
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
     for (const [code, emoji] of Object.entries(emojisMap)) {
         html = html.split(code).join(emoji);
     }
     
-    // Extraer stickers y ponerles botón de robar estilizado
+    // Evitar múltiples saltos de línea innecesarios
+    html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
+    
+    // Extraer stickers y hacer que al presionarlos se abra el modal (SIN el botón feo debajo)
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
     html = html.replace(stickerRegex, (match, url) => `
-        <div class="comentario-sticker-container" style="margin-top: 10px;">
-            <img src="${url}" class="comentario-sticker" loading="lazy" style="max-width: 130px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-            <br>
-            <button class="steal-sticker-btn" onclick="robarStickerSistema('${url.replace(/'/g, "\\'")}')" style="background: rgba(0, 255, 247, 0.1); border: 1px solid #00fff7; color: #00fff7; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; margin-top: 5px; box-shadow: 0 0 10px rgba(0, 255, 247, 0.2); transition: 0.3s; font-weight: 600;"><i class="fas fa-download"></i> Robar sticker</button>
+        <div class="comentario-sticker-container" style="margin-top: 5px; display: inline-block;">
+            <img src="${url}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
         </div>
     `);
 
@@ -181,9 +183,54 @@ function procesarTextoComentario(texto) {
             }
         }
     }
-    html = palabras.join('');
-    return html.replace(/\n/g, '<br>');
+    
+    // Unir todo y eliminar <br> iniciales si solo se envió un sticker
+    html = palabras.join('').replace(/^(<br>)+/, '').trim();
+    return html;
 }
+
+// === SISTEMA DE POP-UP (MODAL) PARA VER Y ROBAR STICKERS ===
+window.openStickerModal = function(url) {
+    let modal = document.getElementById('stickerViewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'stickerViewModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.9);backdrop-filter:blur(10px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s; padding: 20px;';
+        modal.innerHTML = `
+            <div style="position:relative; text-align:center; max-width: 90vw;">
+                <button onclick="closeStickerModal()" style="position:absolute;top:-45px;right:0;background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;text-shadow:0 0 10px #ff0055; transition: 0.2s;" onmouseover="this.style.color='#ff0055'" onmouseout="this.style.color='#fff'">&times;</button>
+                <img id="stickerModalImg" src="" style="max-width:100%;max-height:65vh;border-radius:15px;box-shadow:0 0 40px rgba(0,255,247,0.4); object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
+                <br>
+                <button id="stickerModalStealBtn" style="margin-top:25px;background:linear-gradient(135deg, rgba(0,255,247,0.1), rgba(188,19,254,0.1));border:1px solid #00fff7;color:#fff;padding:12px 30px;border-radius:30px;font-size:1.1rem;cursor:pointer;font-weight:900;font-family:'Orbitron',sans-serif;box-shadow:0 0 20px rgba(0,255,247,0.4), inset 0 0 10px rgba(0,255,247,0.2);transition:all 0.3s;letter-spacing:1px;text-transform:uppercase;">
+                    <i class="fas fa-mask" style="color: #00fff7;"></i> Robar Sticker
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    document.getElementById('stickerModalImg').src = url;
+    document.getElementById('stickerModalStealBtn').onclick = function() {
+        if(typeof window.robarStickerSistema === 'function') {
+            window.robarStickerSistema(url);
+            closeStickerModal();
+        } else {
+            alert("El sistema no ha cargado. Inicia sesión primero.");
+        }
+    };
+    
+    modal.style.display = 'flex';
+    setTimeout(() => modal.style.opacity = '1', 10);
+};
+
+window.closeStickerModal = function() {
+    let modal = document.getElementById('stickerViewModal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
+};
+// ==========================================================
 
 async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) {
@@ -206,7 +253,7 @@ async function enviarComentarioTexto() {
     
     let textoFinal = texto;
     if (stickerUrl) {
-        // Agrega el sticker al final del texto
+        // Agrega el sticker al final del texto asegurando que haya un salto si hay texto
         textoFinal += (textoFinal ? '\n' : '') + `[Sticker](${stickerUrl})`;
     }
     
