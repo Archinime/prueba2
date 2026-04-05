@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v5.0
-// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis y Stickers)
+// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis, Stickers y REACCIONES)
 // ============================================
 
 let comentariosDb = null;
@@ -30,14 +30,11 @@ function initComentariosSystem(db, auth) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault(); 
-                    
                     if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
                         enviarComentarioTexto();
                     }
                 }
             });
-            
-           
             textarea.addEventListener('input', function() {
                 autoResizeTextarea(this);
                 validarBotonPrincipal(this);
@@ -50,7 +47,6 @@ function initComentariosSystem(db, auth) {
             stickerBtn.style.fontSize = '1.4rem';
         }
     }, 1000);
-    
     // Cierra todos los menús de comentarios si se hace clic fuera
     document.addEventListener('click', () => closeAllCommentMenus());
 }
@@ -72,11 +68,9 @@ function injectCommentsCSS() {
             --neon-warn: #ffaa00;
         }
     
-        /* --- ESTILOS DE COMENTARIOS PADRES --- */
         .comentario-item { 
             position: relative;
             z-index: 1;
-            /* La animación fadeIn global fue removida para evitar el bug del parpadeo constante */
             background: rgba(10, 12, 16, 0.7) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.05);
@@ -90,23 +84,20 @@ function injectCommentsCSS() {
             box-shadow: 0 4px 20px rgba(0, 243, 255, 0.05);
         }
 
-        /* --- NUEVO SISTEMA DE HILOS VISUALES (JERARQUÍA) --- */
         .comentario-item.is-reply {
             background: rgba(5, 5, 8, 0.4) !important;
             box-shadow: none;
             border: none;
             border-radius: 8px;
-            /* La variable --branch-top se inyecta en el HTML según el nivel */
         }
         .comentario-item.is-reply:hover {
             background: rgba(15, 18, 25, 0.7) !important;
         }
 
-        /* La rama horizontal "L" que apunta a la respuesta */
         .comentario-item.is-reply::before {
             content: '';
             position: absolute;
-            left: -22px; /* Debe coincidir con el padding-left del replies-thread */
+            left: -22px; 
             top: var(--branch-top, 25px);
             width: 22px;
             height: 2px;
@@ -119,24 +110,21 @@ function injectCommentsCSS() {
             box-shadow: 0 0 8px rgba(0, 255, 247, 0.4);
         }
 
-        /* Contenedor de la línea vertical que agrupa las respuestas */
         .replies-thread {
             position: relative;
-            margin-left: 22px; /* Centrado con el avatar padre de 45px */
+            margin-left: 22px; 
             padding-left: 22px;
             border-left: 2px solid rgba(255, 255, 255, 0.08);
             margin-top: 5px;
             margin-bottom: 5px;
             transition: border-color 0.3s ease;
         }
-        /* Iluminar toda la ruta vertical al pasar el cursor por el hilo */
         .replies-thread:hover {
             border-left-color: rgba(0, 255, 247, 0.3);
         }
 
-        /* Ajustes para sub-niveles (Nivel 2 en adelante) */
         .nested-reply .replies-thread {
-            margin-left: 15px; /* Centrado con el avatar de 30px */
+            margin-left: 15px;
             padding-left: 15px;
         }
         .nested-reply .comentario-item.is-reply::before {
@@ -144,7 +132,6 @@ function injectCommentsCSS() {
             width: 15px;
         }
 
-        /* Iluminación de foco al responder */
         @keyframes replyPulse {
             0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
             50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); border: 1px solid var(--neon-primary) !important; }
@@ -156,7 +143,6 @@ function injectCommentsCSS() {
             border-radius: 12px;
         }
 
-        /* --- KEBAB MENU --- */
         .comment-options-container {
             position: absolute;
             top: 8px;
@@ -233,20 +219,12 @@ function injectCommentsCSS() {
         .comment-dropdown-btn.edit-btn i { color: var(--neon-primary); }
         .comment-dropdown-btn.edit-btn:hover { background: rgba(0, 255, 247, 0.15); color: #fff; }
         
-        /* Botones de Control de Hilos */
-        .toggle-respuestas-btn { background: transparent;
-            border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; margin-top: 4px; display: inline-flex;
-            align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8;
-        }
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; margin-top: 4px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
         .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
         
-        .show-more-replies-btn { background: transparent;
-            border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px;
-            transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
-        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.1);
-            border-style: solid; color: #fff; }
+        .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
+        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.1); border-style: solid; color: #fff; }
         
-        /* Animaciones */
         @keyframes fadeInReplyBox { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
         @keyframes slideInGlow {
@@ -265,7 +243,6 @@ function injectCommentsCSS() {
             .nested-reply .replies-thread { margin-left: 14px; padding-left: 14px; }
             .comentario-item.is-reply::before { left: -18px; width: 18px; }
             .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
-
             .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
             .comentario-item.is-reply { padding: 8px 10px !important; }
             .comentario-avatar img { width: 38px !important; height: 38px !important; }
@@ -276,7 +253,6 @@ function injectCommentsCSS() {
     document.head.appendChild(style);
 }
 
-// CONTROL GLOBAL PARA MENÚ DE 3 PUNTOS Y CORRECCIÓN DE Z-INDEX
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -331,7 +307,6 @@ function setupComentariosRealtimeListener() {
             return;
         }
 
-        // GUARDAR ESTADO DE MENÚS ABIERTOS PARA EVITAR SALTOS DE PANTALLA
         const openContainers = new Set();
         document.querySelectorAll('.replies-thread').forEach(el => {
             if (el.style.display !== 'none') openContainers.add(el.id);
@@ -373,10 +348,9 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
+
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-                
-                // Botón y contenedor base de la ruta
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
                     const textoBtn = totalCount === 1 ? 'Ver 1 respuesta' : `Ver ${totalCount} respuestas`;
@@ -397,10 +371,8 @@ function setupComentariosRealtimeListener() {
                                     Cargar ${remaining} respuestas más...
                                  </button>`;
                     }
-
                     nodeHtml += `</div>`;
                 } else {
-                    // Si ya es Nivel 1 o superior, anidamos y marcamos para CSS .nested-reply
                     nodeHtml += `<div class="replies-thread nested-reply" style="display: flex; flex-direction: column; gap: 6px;">`;
                     node.replies.forEach((reply) => {
                         nodeHtml += renderNode(reply, level + 1, false, null);
@@ -415,11 +387,11 @@ function setupComentariosRealtimeListener() {
         let html = '';
         roots.forEach(root => {
             html += renderNode(root, 0, false, null);
-            html += `<div style="height: 12px;"></div>`; // Espacio entre hilos principales
+            html += `<div style="height: 12px;"></div>`; 
         });
+
         container.innerHTML = html;
 
-        // RESTAURAR ESTADO DE MENÚS ABIERTOS (Anti-Jump)
         openContainers.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -429,6 +401,7 @@ function setupComentariosRealtimeListener() {
                 if (icon) icon.style.transform = 'rotate(0deg)';
             }
         });
+
         openMoreReplies.forEach(className => {
             document.querySelectorAll(`.${className}`).forEach(el => {
                 el.style.display = 'block';
@@ -438,6 +411,7 @@ function setupComentariosRealtimeListener() {
             const btn = document.getElementById(`showMore-${rootId}`);
             if (btn) btn.style.display = 'none';
         });
+
         window.lastPostedCommentId = null;
     }, (error) => console.error('Error en el onSnapshot de comentarios:', error));
 }
@@ -451,6 +425,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const userName = c.userName || 'Usuario';
     const neonColor = getNeonColorByString(c.userId || userName);
     const rgbColor = hexToRgbStr(neonColor);
+
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span style="font-size:0.7rem; color:#888; font-style:italic; margin-left:6px;">(Editado)</span>' : '';
 
@@ -465,19 +440,13 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         `;
     }
     
-    // Ajuste dinámico de UI según el nivel en el árbol
     const padding = level === 0 ? '16px' : (level === 1 ? '10px 14px' : '8px 12px');
     const avatarSize = level === 0 ? '45px' : (level === 1 ? '30px' : '24px');
     const titleSize = level === 0 ? '1rem' : (level === 1 ? '0.9rem' : '0.85rem');
-    
-    // Calcula dónde debe caer la rama horizontal (mitad exacta del padding + radio del avatar)
     const branchTop = level === 1 ? '25px' : '20px'; 
-    
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const borderTopColor = level === 0 ? `border-top: 2px solid ${neonColor};` : '';
 
-    const replyMenuBtn = comentariosCurrentUser ? `<button class="comment-dropdown-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
-    
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn edit-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn report-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag"></i> Reportar</button>`;
     
@@ -487,13 +456,19 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 <i class="fas fa-ellipsis-v"></i>
             </button>
             <div class="comment-dropdown" id="dropdown-${c.id}">
-                ${replyMenuBtn}
                 ${reportMenuBtn}
                 ${editMenuBtn}
             </div>
         </div>
     `;
-    
+
+    // Integración mágica del nuevo sistema de Reacciones
+    let reaccionesBar = '';
+    if (typeof procesarReaccionesHTML === 'function') {
+        reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
+    }
+    const botonResponderDirecto = comentariosCurrentUser ? `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
+
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
@@ -512,7 +487,13 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                     <span class="comentario-user" style="color: #fff; text-shadow: 0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
                     <span class="comentario-fecha" style="color: #888; font-size: 0.75rem; font-weight: 500;">${fecha}${badgeEditado}</span>
                 </div>
+                
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #eee; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
+                
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    ${reaccionesBar}
+                    ${botonResponderDirecto}
+                </div>
             </div>
         </div>
     `;
@@ -656,9 +637,6 @@ function procesarTextoComentario(texto) {
     return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
-// ============================================
-// LÓGICA PARA MOVER PANELES GLOBALES
-// ============================================
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
     const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
@@ -693,21 +671,16 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     replyBox.innerHTML = `
         <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
             <span>Respondiendo a <b style="color:var(--neon-primary)">@${escapeHtmlComent(userName)}</b></span>
-            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;"
-            onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
+            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
         </div>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
             <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border: 1px solid var(--neon-primary);">
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <textarea id="dynamicReplyText-${commentId}" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); 
-                padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;"
-                onfocus="this.style.borderBottomColor='var(--neon-primary)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
+                <textarea id="dynamicReplyText-${commentId}" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--neon-primary)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
                 
                 <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
-                    <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; transition: 0.2s;"
-                    onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">😊</button>
-                    <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; font-size: 1.1rem; transition: 0.2s;"
-                    onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">🖼️</button>
+                    <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">😊</button>
+                    <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; font-size: 1.1rem; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">🖼️</button>
                 </div>
 
                 <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 10px;"></div>
@@ -890,7 +863,6 @@ async function enviarComentarioTexto() {
             episode: parseInt(window.comentariosEpisode),
             userId: comentariosCurrentUser.uid,
             userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
-            
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif',
             texto: textoFinal,
             esSticker: !!stickerUrl,
@@ -898,6 +870,7 @@ async function enviarComentarioTexto() {
             replyToId: null,
             replyToUser: null,
             replyToUserId: null,
+            reactions: {}, // <-- AGREGADO: Campo de reacciones inicializado
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
@@ -936,10 +909,6 @@ window.enviarRespuestaDinamica = async function() {
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     quitarStickerPreview();
-
-    // SOLUCIÓN BUG EMOJIS/STICKERS:
-    // Movemos los paneles de vuelta al contenedor seguro ANTES de procesar Firebase
-    // Así evitamos que Firebase onSnapshot los elimine del DOM al re-renderizar la caja.
     restaurarPanelesGlobales();
 
     try {
@@ -950,13 +919,13 @@ window.enviarRespuestaDinamica = async function() {
             userId: comentariosCurrentUser.uid,
             userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif',
-    
             texto: textoFinal,
             esSticker: !!stickerUrl,
             stickerUrl: stickerUrl || null,
             replyToId: replyContext.id,
             replyToUser: replyContext.userName,
             replyToUserId: replyContext.userId,
+            reactions: {}, // <-- AGREGADO: Campo de reacciones inicializado
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
@@ -967,7 +936,6 @@ window.enviarRespuestaDinamica = async function() {
                 fromUserName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
                 fromUserAvatar: comentariosCurrentUser.photoURL || 'invitado.avif',
                 animeId: window.comentariosAnimeId,
-        
                 season: window.comentariosSeason,
                 episode: window.comentariosEpisode,
                 type: 'REPLY',
@@ -977,7 +945,7 @@ window.enviarRespuestaDinamica = async function() {
         }
 
         showToastComent('✅ Respuesta publicada');
-        cancelarRespuesta(true); // limpia la caja inmediatamente
+        cancelarRespuesta(true);
     } catch (error) {
         console.error('Error enviando respuesta:', error);
         alert('Error: ' + error.message);
