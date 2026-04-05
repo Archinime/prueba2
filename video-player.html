@@ -55,22 +55,25 @@
         display: flex; flex-direction: column; gap: 15px;
     }
     
-    /* ===== NAVEGACIÓN ===== */
+    /* ===== NAVEGACIÓN (MEJORADA) ===== */
     .top-nav {
         display: flex;
         justify-content: space-between; align-items: center;
         flex-wrap: wrap; gap: 10px;
-        background: rgba(20, 20, 25, 0.6);
-        padding: 10px;
-        border-radius: 0 0 15px 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        background: linear-gradient(135deg, rgba(15, 15, 20, 0.9) 0%, rgba(30, 15, 40, 0.8) 100%);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        padding: 12px 20px;
+        border-radius: 0 0 20px 20px;
+        border-bottom: 2px solid var(--primary-color);
+        box-shadow: 0 10px 30px rgba(0, 243, 255, 0.15), inset 0 -2px 15px rgba(0, 243, 255, 0.1);
     }
     
     .back-btn { 
         display: inline-flex;
         align-items: center; gap: 8px;
         color: #eee; text-decoration: none; font-weight: 600; font-size: 0.85rem;
-        background: rgba(0, 0, 0, 0.5); 
+        background: rgba(0, 0, 0, 0.6); 
         padding: 8px 18px;
         border-radius: 50px;
         border: 1px solid rgba(0, 255, 247, 0.3);
@@ -80,6 +83,7 @@
     .back-btn:hover {
         background: rgba(0, 255, 247, 0.15);
         border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.2);
     }
     
     /* ===== REPRODUCTOR ===== */
@@ -116,17 +120,20 @@
     }
     
     @keyframes neonPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color); }
-        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+        0% { opacity: 0.8;
+        text-shadow: 0 0 5px var(--primary-color); }
+        100% { opacity: 1;
+        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
     }
     
     /* ===== SERVIDORES ===== */
-    .options { display: flex; gap: 10px; justify-content: flex-end; }
+    .options { display: flex;
+    gap: 10px; justify-content: flex-end; }
     
     .opt-btn { 
         padding: 6px 14px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255,255,255,0.1); color: #ccc;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(0, 255, 247, 0.2); color: #ccc;
         cursor: pointer; border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         transition: all 0.3s;
@@ -134,11 +141,18 @@
     
     .opt-btn.active { 
         border-color: var(--primary-color);
-        background: rgba(0, 255, 247, 0.1); color: #00fff7;
+        background: rgba(0, 255, 247, 0.15); color: #00fff7;
         font-weight: 700; 
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.2);
+    }
+
+    .opt-btn:hover:not(.active) {
+        background: rgba(0, 255, 247, 0.05);
+        border-color: rgba(0, 255, 247, 0.5);
     }
     
-    h1 { text-align: center; font-size: 1.3rem; margin: 5px 0; }
+    h1 { text-align: center;
+    font-size: 1.3rem; margin: 5px 0; }
     
     /* ===== BOTONES PREMIUM CYBERPUNK (ANTERIOR, SIGUIENTE Y DESCARGAR) ===== */
     .controls { 
@@ -279,7 +293,8 @@
     }
 
     .comentario-fecha {
-        font-size: 0.75rem; color: #888;
+        font-size: 0.75rem;
+        color: #888;
         font-family: 'Orbitron', sans-serif;
         letter-spacing: 1px; background: rgba(0,0,0,0.4);
         padding: 4px 10px; border-radius: 12px;
@@ -301,10 +316,12 @@
         background: rgba(0, 255, 247, 0.1);
         border: 1px solid var(--primary-color); color: #00fff7; font-weight: 800;
         padding: 10px 24px; border-radius: 30px;
-        cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        cursor: pointer; display: inline-flex; align-items: center;
+        gap: 8px;
         margin-top: 15px; transition: 0.2s;
     }
-    .login-link-btn:hover { background: var(--primary-color); color: #000; box-shadow: 0 0 20px rgba(0,255,247,0.4); transform: translateY(-2px); }
+    .login-link-btn:hover { background: var(--primary-color); color: #000;
+        box-shadow: 0 0 20px rgba(0,255,247,0.4); transform: translateY(-2px); }
     
     /* --- CAJA DE TEXTO PARA ESCRIBIR --- */
     .comentario-form-container {
@@ -315,7 +332,8 @@
         margin-top: 20px; margin-bottom: 10px;
     }
     
-    .comentario-input-wrapper { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+    .comentario-input-wrapper { display: flex; gap: 15px; margin-bottom: 15px;
+        flex-wrap: wrap; }
     .comentario-input-wrapper textarea {
         flex: 1;
         background: rgba(0, 0, 0, 0.5);
@@ -334,7 +352,8 @@
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 14px; padding: 15px 20px; cursor: pointer; font-size: 1.5rem;
-        transition: all 0.3s; color: white; display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s;
+        color: white; display: flex; align-items: center; justify-content: center;
     }
     .emoji-btn:hover, .sticker-btn:hover { 
         background: rgba(0, 255, 247, 0.15);
@@ -351,7 +370,8 @@
         box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
     .emoji-panel.active { display: flex; }
-    .emoji-option { font-size: 1.8rem; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 10px; width: 50px; text-align: center; transition: transform 0.2s; }
+    .emoji-option { font-size: 1.8rem; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 10px; width: 50px; text-align: center;
+        transition: transform 0.2s; }
     .emoji-option:hover { transform: scale(1.4); background: rgba(255,255,255,0.1); z-index: 10; }
     
     .enviar-comentario-btn {
@@ -521,7 +541,6 @@
                                     <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
                                 </label>
                                 <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
-                                
                                 <div class="upload-preview" id="stickerPreview" style="display:none;">
                                     <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
                                     <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
