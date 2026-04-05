@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE COMENTARIOS
+// SISTEMA DE COMENTARIOS MEJORADO
 // ============================================
 
 let comentariosDb = null;
@@ -19,6 +19,19 @@ function initComentariosSystem(db, auth) {
             setupComentariosRealtimeListener();
         }
     });
+
+    // Añadir listener para enviar comentario con Enter (Shift+Enter para nueva línea)
+    setTimeout(() => {
+        const textarea = document.getElementById('comentarioTexto');
+        if (textarea) {
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Evita el salto de línea
+                    enviarComentarioTexto();
+                }
+            });
+        }
+    }, 1000);
 }
 
 function setupComentariosRealtimeListener() {
@@ -26,12 +39,14 @@ function setupComentariosRealtimeListener() {
         comentariosUnsubscribe();
     }
     
+    // MEJORA: Se agrega limit(50) para no saturar las lecturas en la base de datos
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
         .where('episode', '==', parseInt(window.comentariosEpisode))
-        .orderBy('timestamp', 'desc');
-    
+        .orderBy('timestamp', 'desc')
+        .limit(50); 
+        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         
@@ -41,11 +56,14 @@ function setupComentariosRealtimeListener() {
         }
         
         let html = '';
+      
         snapshot.forEach(doc => {
             const c = doc.data();
-            let fecha = '';
+            let fecha = 'Justo ahora';
+            
+            // MEJORA: Formato de tiempo relativo
             if (c.timestamp?.toDate) {
-                fecha = c.timestamp.toDate().toLocaleString();
+                fecha = obtenerTiempoRelativo(c.timestamp.toDate());
             }
             
             const isOwner = comentariosCurrentUser?.uid === c.userId;
@@ -65,13 +83,13 @@ function setupComentariosRealtimeListener() {
             }
             
             html += `
-                <div class="comentario-item">
+                <div class="comentario-item" style="animation: fadeIn 0.3s ease-in-out;">
                     <div class="comentario-avatar"><img src="${avatar}" onerror="this.src='invitado.avif'"></div>
-                    <div class="comentario-content">
+                    <div class="comentario-content" style="flex: 1; min-width: 0;">
                         <div class="comentario-header">
                             <span class="comentario-user">${escapeHtmlComent(userName)}</span>
                             <span class="comentario-fecha">${fecha}</span>
-                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')">✖</button>` : ''}
+                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar comentario">✖</button>` : ''}
                         </div>
                         <div class="comentario-texto">${contenidoHtml}</div>
                     </div>
@@ -85,20 +103,48 @@ function setupComentariosRealtimeListener() {
     });
 }
 
+// Función auxiliar para tiempo relativo
+function obtenerTiempoRelativo(fecha) {
+    const ahora = new Date();
+    const diffSegundos = Math.floor((ahora - fecha) / 1000);
+
+    if (diffSegundos < 60) return 'Hace unos segundos';
+    if (diffSegundos < 3600) return `Hace ${Math.floor(diffSegundos / 60)} min`;
+    if (diffSegundos < 86400) return `Hace ${Math.floor(diffSegundos / 3600)} horas`;
+    if (diffSegundos < 2592000) return `Hace ${Math.floor(diffSegundos / 86400)} días`;
+    return fecha.toLocaleDateString();
+}
+
 function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto);
-    
+
+    // Emojis básicos
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
     for (const [code, emoji] of Object.entries(emojisMap)) {
         html = html.split(code).join(emoji);
     }
     
-    const imageRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|avif))/gi;
-    html = html.replace(imageRegex, (url) => `<img src="${url}" class="comentario-imagen" loading="lazy">`);
-    
+    // Procesar Stickers en formato texto
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
     html = html.replace(stickerRegex, (match, url) => `<img src="${url}" class="comentario-sticker" loading="lazy">`);
+    
+    // MEJORA: Convertir URLs en enlaces clickeables o imágenes
+    const palabras = html.split(/(\s+)/);
+    for (let i = 0; i < palabras.length; i++) {
+        let palabra = palabras[i];
+        if (palabra.startsWith('http://') || palabra.startsWith('https://')) {
+            // Si es imagen, la renderiza
+            if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i)) {
+                palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy">`;
+            } 
+            // Si no es imagen (y no es parte del código del sticker), la hace clickeable
+            else if (!palabra.includes('class="comentario-sticker"')) {
+                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link">${palabra}</a>`;
+            }
+        }
+    }
+    html = palabras.join('');
     
     return html.replace(/\n/g, '<br>');
 }
@@ -111,12 +157,13 @@ async function enviarComentarioTexto() {
     
     const texto = document.getElementById('comentarioTexto').value.trim();
     if (!texto) {
-        alert('Escribe algo');
+        showToastComent('⚠️ No puedes enviar un comentario vacío');
         return;
     }
     
     const btn = document.getElementById('enviarComentarioBtn');
     btn.disabled = true;
+    const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     
     try {
@@ -138,7 +185,7 @@ async function enviarComentarioTexto() {
         alert('Error: ' + error.message);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+        btn.innerHTML = originalText;
     }
 }
 
@@ -175,12 +222,13 @@ window.enviarStickerAlComentario = async function(stickerUrl) {
 };
 
 async function deleteComentario(commentId) {
-    if (!confirm('¿Eliminar?')) return;
+    if (!confirm('¿Seguro que deseas eliminar este comentario?')) return;
+    
     try {
         await comentariosDb.collection('comments').doc(commentId).delete();
-        showToastComent('Comentario eliminado');
+        showToastComent('🗑️ Comentario eliminado');
     } catch (error) {
-        alert('Error: ' + error.message);
+        alert('Error al eliminar: ' + error.message);
     }
 }
 
@@ -227,7 +275,7 @@ function showToastComent(msg) {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00fff7;color:#000;padding:8px 20px;border-radius:20px;z-index:1000;font-weight:bold';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#00fff7;color:#000;padding:8px 20px;border-radius:20px;z-index:1000;font-weight:bold;box-shadow:0 4px 15px rgba(0,255,247,0.3);';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;

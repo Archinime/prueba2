@@ -11,7 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- No necesitamos Storage porque usamos Catbox -->
 
   <style>
     /* ===== ESTILOS BASE ===== */
@@ -30,12 +29,14 @@
     }
     
     #bg-video { 
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%; 
         object-fit: cover; z-index: -10; opacity: 0.5;
     }
     
     #overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
         background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
         backdrop-filter: blur(8px);
         z-index: -5;
@@ -43,22 +44,26 @@
     }
     
     .container { 
-        max-width: 1200px; margin: 0 auto; padding: 15px;
+        max-width: 1200px;
+        margin: 0 auto; padding: 15px;
         position: relative; z-index: 10;
         display: flex; flex-direction: column; gap: 15px;
     }
     
     /* ===== NAVEGACIÓN ===== */
     .top-nav {
-        display: flex; justify-content: space-between; align-items: center;
+        display: flex;
+        justify-content: space-between; align-items: center;
         flex-wrap: wrap; gap: 10px;
         background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
-        padding: 10px; border-radius: 0 0 15px 15px;
+        padding: 10px;
+        border-radius: 0 0 15px 15px;
         border-bottom: 1px solid rgba(140, 82, 255, 0.2);
     }
     
     .back-btn { 
-        display: inline-flex; align-items: center; gap: 8px;
+        display: inline-flex;
+        align-items: center; gap: 8px;
         color: #eee; text-decoration: none; font-weight: 600; font-size: 0.85rem;
         background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
         padding: 8px 18px; border-radius: 50px;
@@ -74,19 +79,22 @@
     
     /* ===== REPRODUCTOR ===== */
     .player-wrapper { 
-        position: relative; padding-bottom: 56.25%; height: 0;
+        position: relative;
+        padding-bottom: 56.25%; height: 0;
         background: #000; border-radius: 16px;
         border: 1px solid rgba(255,255,255,0.1);
         overflow: hidden;
     }
     
     .player-wrapper iframe, .player-wrapper video { 
-        position: absolute; top: 0; left: 0;
+        position: absolute;
+        top: 0; left: 0;
         width: 100%; height: 100%; border: none;
     }
     
     .logo-blocker {
-        position: absolute; top: 0; left: 0; width: 100%;
+        position: absolute;
+        top: 0; left: 0; width: 100%;
         height: 14%; min-height: 45px;
         background: linear-gradient(to bottom, rgba(5,5,5,1) 0%, rgba(5,5,5,0.85) 40%, transparent 100%);
         backdrop-filter: blur(6px); z-index: 100;
@@ -95,7 +103,8 @@
     }
     
     .blocker-text {
-        font-weight: 800; font-size: clamp(1rem, 2.5vw, 1.4rem);
+        font-weight: 800;
+        font-size: clamp(1rem, 2.5vw, 1.4rem);
         color: #fff; letter-spacing: 5px; text-transform: uppercase;
         text-shadow: 0 0 10px var(--primary-color);
         animation: neonPulse 2s infinite alternate;
@@ -110,7 +119,8 @@
     .options { display: flex; gap: 10px; justify-content: flex-end; }
     
     .opt-btn { 
-        padding: 6px 14px; background: rgba(0, 0, 0, 0.6);
+        padding: 6px 14px;
+        background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255,255,255,0.2); color: #ccc;
         cursor: pointer; border-radius: 8px;
         font-family: 'Poppins', sans-serif;
@@ -128,7 +138,8 @@
     
     /* ===== CONTROLES ===== */
     .controls { 
-        display: grid; grid-template-columns: 1fr auto 1fr;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         gap: 15px; margin-top: 10px;
     }
     
@@ -137,7 +148,8 @@
     #downloadBtn { justify-self: center; }
     
     .btn { 
-        padding: 12px 28px; background: rgba(0, 0, 0, 0.6);
+        padding: 12px 28px;
+        background: rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255,255,255,0.1); color: #fff;
         text-decoration: none; border-radius: 50px;
         display: inline-flex; align-items: center; gap: 8px;
@@ -160,7 +172,8 @@
     
     /* ===== COMENTARIOS ===== */
     .comentarios-section {
-        margin-top: 30px; padding: 20px;
+        margin-top: 30px;
+        padding: 20px;
         background: rgba(0, 0, 0, 0.4);
         border-radius: 16px;
         border-top: 1px solid rgba(0, 255, 247, 0.2);
@@ -202,6 +215,7 @@
     .comentario-user-info img {
         width: 40px; height: 40px; border-radius: 50%;
         border: 2px solid var(--primary-color);
+        object-fit: cover;
     }
     
     .comentario-input-wrapper {
@@ -210,7 +224,8 @@
     }
     
     .comentario-input-wrapper textarea {
-        flex: 1; background: rgba(0, 0, 0, 0.5);
+        flex: 1;
+        background: rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px; padding: 12px;
         color: white; font-family: 'Poppins', sans-serif;
@@ -238,8 +253,7 @@
     .emoji-option {
         font-size: 1.5rem; cursor: pointer; padding: 5px;
         background: rgba(255,255,255,0.05); border-radius: 8px;
-        width: 45px; text-align: center;
-        transition: transform 0.2s;
+        width: 45px; text-align: center; transition: transform 0.2s;
     }
     
     .emoji-option:hover { transform: scale(1.2); background: rgba(0, 255, 247, 0.2); }
@@ -251,8 +265,14 @@
         cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
     }
     
-    .comentarios-list { max-height: 500px; overflow-y: auto; }
+    .comentarios-list { max-height: 500px; overflow-y: auto; overflow-x: hidden; }
     
+    /* MEJORA: Animación de entrada para los comentarios */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .comentario-item {
         display: flex; gap: 15px; padding: 15px;
         background: rgba(255,255,255,0.03);
@@ -263,19 +283,31 @@
     .comentario-avatar img {
         width: 40px; height: 40px; border-radius: 50%;
         border: 1px solid var(--primary-color);
+        object-fit: cover;
     }
     
     .comentario-user { font-weight: 700; color: var(--primary-color); }
     .comentario-fecha { font-size: 0.7rem; color: #888; }
     
+    /* MEJORA: Estilo para links en comentarios */
+    .comentario-link {
+        color: var(--primary-color);
+        text-decoration: underline;
+        word-break: break-all;
+        transition: opacity 0.2s;
+    }
+    .comentario-link:hover { opacity: 0.8; }
+    
     .comentario-delete {
         background: none; border: none; color: #ff5555;
         cursor: pointer; margin-left: auto; padding: 4px 8px;
-        border-radius: 6px;
+        border-radius: 6px; transition: background 0.2s;
     }
+    .comentario-delete:hover { background: rgba(255, 85, 85, 0.1); }
     
-    .comentario-sticker { max-width: 120px; max-height: 120px; border-radius: 12px; }
-    .comentario-imagen { max-width: 200px; max-height: 150px; border-radius: 8px; }
+    .comentario-texto { word-break: break-word; line-height: 1.5; margin-top: 5px; }
+    .comentario-sticker { max-width: 120px; max-height: 120px; border-radius: 12px; margin-top: 5px;}
+    .comentario-imagen { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 5px;}
     
     .steal-sticker-btn {
         background: rgba(0, 255, 247, 0.2);
@@ -304,8 +336,7 @@
     
     .sticker-tab {
         flex: 1; padding: 10px; background: none; border: none;
-        color: #ccc; cursor: pointer; font-size: 0.75rem;
-        font-weight: 600;
+        color: #ccc; cursor: pointer; font-size: 0.75rem; font-weight: 600;
     }
     
     .sticker-tab.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
@@ -313,10 +344,7 @@
     .sticker-tab-content { display: none; padding: 15px; max-height: 350px; overflow-y: auto; }
     .sticker-tab-content.active { display: block; }
     
-    .stickers-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-    }
+    .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     
     .sticker-item {
         position: relative; background: rgba(255,255,255,0.05);
@@ -326,10 +354,7 @@
     
     .sticker-item:hover { background: rgba(0, 255, 247, 0.15); transform: scale(1.02); }
     
-    .sticker-img {
-        width: 100%; aspect-ratio: 1/1; object-fit: contain;
-        border-radius: 8px;
-    }
+    .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
     
     .sticker-delete-btn {
         position: absolute; top: 2px; right: 2px;
@@ -342,9 +367,7 @@
     .sticker-steal { font-size: 0.6rem; color: var(--primary-color); margin-top: 4px; }
     .sticker-empty { text-align: center; padding: 20px; color: #888; grid-column: 1/-1; }
     
-    .upload-sticker-area {
-        text-align: center; margin: 15px 0;
-    }
+    .upload-sticker-area { text-align: center; margin: 15px 0; }
     
     .upload-sticker-label {
         display: inline-flex; align-items: center; gap: 10px;
@@ -356,10 +379,7 @@
     .upload-sticker-label:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--primary-color); }
     
     .upload-preview { margin-top: 15px; text-align: center; }
-    
-    .divider {
-        text-align: center; color: #888; margin: 15px 0; font-size: 0.8rem;
-    }
+    .divider { text-align: center; color: #888; margin: 15px 0; font-size: 0.8rem; }
     
     .add-sticker-container { text-align: center; padding: 10px; }
     .add-sticker-desc { margin-bottom: 5px; font-weight: 600; }
@@ -451,7 +471,6 @@
         <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
     </div>
 
-    <!-- SECCIÓN DE COMENTARIOS -->
     <div class="comentarios-section">
         <div class="comentarios-header">
             <i class="fas fa-comments"></i>
@@ -473,7 +492,7 @@
             </div>
             
             <div class="comentario-input-wrapper">
-                <textarea id="comentarioTexto" placeholder="Escribe tu comentario... 😊" maxlength="500"></textarea>
+                <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
                 <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                 <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">🎨</button>
             </div>
@@ -486,16 +505,19 @@
                     <button class="sticker-tab" onclick="switchStickerTab('global')">🌍 ROBAR</button>
                     <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
                 </div>
+            
                 <div id="misStickersTab" class="sticker-tab-content active">
                     <div id="userStickersContainer" class="stickers-grid">
                         <div class="sticker-empty">Cargando...</div>
                     </div>
                 </div>
+          
                 <div id="globalStickersTab" class="sticker-tab-content">
                     <div id="globalStickersContainer" class="stickers-grid">
                         <div class="sticker-empty">Cargando...</div>
                     </div>
                 </div>
+         
                 <div id="subirStickerTab" class="sticker-tab-content">
                     <div class="add-sticker-container">
                         <p class="add-sticker-desc">📸 Sube una imagen desde tu computadora</p>
@@ -510,9 +532,11 @@
                             </div>
                         </div>
                         <div class="divider">o</div>
+    
                         <button class="add-sticker-btn" onclick="agregarStickerPorURL()">
                             <i class="fas fa-link"></i> Agregar por URL
                         </button>
+                     
                         <p class="add-sticker-note">💡 Tip: Puedes robar stickers de otros usuarios en la pestaña "ROBAR"</p>
                     </div>
                 </div>
@@ -531,7 +555,6 @@
     </div>
   </div>
 
-  <!-- MODAL LOGIN -->
   <div id="authModal" class="auth-modal">
     <div class="auth-card">
       <div class="auth-close" onclick="closeAuthModal()">&times;</div>
@@ -659,7 +682,6 @@
     window.comentariosEpisode = episode;
     
     if (backLink && animeId) backLink.href = `anime-detail.html?id=${animeId}`;
-    
     const epData = DB[animeId]?.[season]?.[episode];
     
     function isMobileDevice() {
@@ -732,6 +754,7 @@
       const idx = flatList.findIndex(i => String(i.s) === String(season) && String(i.e) === String(episode));
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
+      
       if (idx > 0) {
         prevBtn.classList.remove('btn-hidden');
         prevBtn.href = `?anime=${animeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`;
