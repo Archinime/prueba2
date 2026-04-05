@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK
+// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v2.0
 // ============================================
 
 const REACTIONS_MAP = {
@@ -25,7 +25,14 @@ function injectReaccionesCSS() {
             position: relative;
         }
 
-        /* Botón base (Reaccionar / Responder) */
+        /* Contenedor relativo para que el menú flote correctamente */
+        .btn-reaccionar-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Botón base (Reaccionar) */
         .btn-accion-footer {
             background: transparent;
             border: none;
@@ -38,30 +45,42 @@ function injectReaccionesCSS() {
             display: flex;
             align-items: center;
             gap: 6px;
+            padding: 4px 8px;
+            border-radius: 8px;
         }
         .btn-accion-footer:hover { 
             color: #fff; 
+            background: rgba(255,255,255,0.05);
         }
 
         /* Picker Flotante de Reacciones */
         .reactions-picker {
             position: absolute;
-            bottom: 100%;
-            left: 0;
-            margin-bottom: 8px;
-            background: rgba(15, 15, 20, 0.95);
-            backdrop-filter: blur(10px);
+            bottom: calc(100% + 5px); /* Subimos el menú un poco */
+            left: -10px;
+            background: rgba(15, 15, 20, 0.98);
+            backdrop-filter: blur(15px);
             border: 1px solid var(--neon-primary);
             border-radius: 30px;
-            padding: 6px 12px;
+            padding: 8px 15px;
             display: flex;
-            gap: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 243, 255, 0.2);
+            gap: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 243, 255, 0.3);
             opacity: 0;
             pointer-events: none;
-            transform: translateY(10px) scale(0.9);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
+            transform: translateY(15px) scale(0.9);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999; /* Z-index altísimo para que nada lo tape */
+        }
+        
+        /* EL PUENTE INVISIBLE: Evita que el menú se cierre al mover el mouse */
+        .reactions-picker::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            height: 20px;
         }
         
         /* Mostrar Picker al pasar el mouse */
@@ -74,15 +93,17 @@ function injectReaccionesCSS() {
 
         /* Iconos dentro del picker */
         .reaction-icon {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             cursor: pointer;
-            transition: transform 0.2s, filter 0.2s;
-            filter: grayscale(0.3);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
+            filter: grayscale(0.5);
             position: relative;
+            transform-origin: bottom;
         }
         .reaction-icon:hover {
-            transform: scale(1.4) translateY(-5px);
+            transform: scale(1.5) translateY(-5px);
             filter: grayscale(0);
+            z-index: 10;
         }
 
         /* Resumen de Reacciones (Ej: 👍❤️ 5) */
@@ -90,28 +111,33 @@ function injectReaccionesCSS() {
             display: flex;
             align-items: center;
             gap: 4px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 3px 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 12px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
             font-size: 0.85rem;
             color: #ccc;
-            cursor: pointer;
+            cursor: default;
             transition: 0.2s;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
         .reactions-summary:hover {
             background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
         }
         .reactions-summary span {
-            font-size: 0.95rem;
+            font-size: 1.1rem;
+            margin-right: -4px; /* Superpone un poco los emojis */
+        }
+        .reactions-summary span:last-of-type {
+            margin-right: 4px;
         }
 
         /* Estilo cuando el usuario ya reaccionó */
         .user-reacted {
             text-shadow: 0 0 10px currentColor;
             font-weight: 800;
+            background: rgba(255,255,255,0.05);
         }
     `;
     document.head.appendChild(style);
@@ -125,6 +151,10 @@ window.toggleReaccion = async function(commentId, tipoReaccion) {
         await docRef.update({
             [`reactions.${comentariosCurrentUser.uid}`]: tipoReaccion
         });
+        
+        // Efecto de sonido (opcional, usa el tuyo si existe)
+        if(typeof playUISound === 'function') playUISound('click');
+        
     } catch (e) {
         console.error("Error al reaccionar", e);
     }
@@ -160,32 +190,33 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         counts[type] = (counts[type] || 0) + 1;
     });
 
+    // Ordenar para mostrar los emojis más populares
     const sortedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
     const topIconsHTML = sortedTypes.map(type => `<span>${REACTIONS_MAP[type].emoji}</span>`).join('');
 
     const summaryHTML = total > 0 ? 
-        `<div class="reactions-summary" title="${total} reacciones">
-            ${topIconsHTML} <span style="font-weight: bold; margin-left: 4px; font-family: 'Poppins';">${total}</span>
+        `<div class="reactions-summary" title="${total} reacciones en total">
+            ${topIconsHTML} <strong style="color: #fff; font-family: 'Poppins'; margin-left: 5px;">${total}</strong>
         </div>` : '';
 
-    // Botón principal de reacción (cambia si el usuario ya reaccionó)
+    // Botón principal de reacción (Muestra el emoji que elegiste)
     let btnReaccionarHTML = '';
     if (currentUserReaction && REACTIONS_MAP[currentUserReaction]) {
         const rData = REACTIONS_MAP[currentUserReaction];
         btnReaccionarHTML = `
-            <button class="btn-accion-footer user-reacted" style="color: ${rData.color}" onclick="quitarReaccion('${commentId}')">
-                ${rData.emoji} ${rData.name}
+            <button class="btn-accion-footer user-reacted" style="color: ${rData.color}" onclick="quitarReaccion('${commentId}')" title="Clic para quitar reacción">
+                <span style="font-size: 1.1rem;">${rData.emoji}</span> ${rData.name}
             </button>
         `;
     } else {
         btnReaccionarHTML = `
-            <button class="btn-accion-footer" onclick="toggleReaccion('${commentId}', 'like')">
+            <button class="btn-accion-footer">
                 <i class="far fa-thumbs-up"></i> Reaccionar
             </button>
         `;
     }
 
-    // El popup flotante
+    // El popup flotante (Aseguramos que el onClick pase exactamente el string del tipo)
     const pickerHTML = `
         <div class="reactions-picker">
             ${Object.keys(REACTIONS_MAP).map(type => 
@@ -196,7 +227,7 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
 
     return `
         <div class="comentario-footer-actions">
-            <div class="btn-reaccionar-container" style="position: relative;">
+            <div class="btn-reaccionar-container">
                 ${btnReaccionarHTML}
                 ${pickerHTML}
             </div>
@@ -205,5 +236,5 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     `;
 };
 
-// Inyectar CSS inmediatamente
+// Inyectar CSS inmediatamente al cargar el script
 injectReaccionesCSS();

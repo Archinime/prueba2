@@ -77,6 +77,8 @@ function injectCommentsCSS() {
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             transition: all 0.3s ease;
             border-radius: 12px;
+            /* IMPORTANTE: overflow visible para que el menú de reacciones no se corte */
+            overflow: visible; 
         }
         .comentario-item:hover {
             background: rgba(15, 18, 25, 0.9) !important;
@@ -462,12 +464,14 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         </div>
     `;
 
-    // Integración mágica del nuevo sistema de Reacciones
+    // Integración del sistema de Reacciones
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') {
         reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     }
-    const botonResponderDirecto = comentariosCurrentUser ? `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
+    
+    // El botón responder con clase base para alinear
+    const botonResponderDirecto = comentariosCurrentUser ? `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" style="margin-top: 10px;"><i class="fas fa-reply"></i> Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
@@ -490,7 +494,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #eee; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
                 
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                     ${reaccionesBar}
                     ${botonResponderDirecto}
                 </div>
