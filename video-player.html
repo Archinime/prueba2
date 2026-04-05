@@ -171,10 +171,9 @@
     
     .btn-hidden { visibility: hidden; pointer-events: none; }
     
-/* ===== COMENTARIOS ===== */
+    /* ===== COMENTARIOS ===== */
     .comentarios-section {
-        margin-top: 40px;
-        padding: 25px;
+        margin-top: 40px; padding: 25px;
         background: rgba(10, 10, 15, 0.75);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
@@ -212,16 +211,12 @@
     /* --- CAJA DE TEXTO STICKY --- */
     .comentario-form-container {
         background: rgba(15, 15, 20, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         border-radius: 16px; padding: 20px;
         border: 1px solid var(--primary-color);
         box-shadow: 0 -10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,255,247,0.1);
-        position: sticky;
-        bottom: 20px; /* Hace que siga a la pantalla */
-        z-index: 900;
-        transition: all 0.3s;
-        margin-top: 20px;
+        position: sticky; bottom: 20px; z-index: 900;
+        transition: all 0.3s; margin-top: 20px;
     }
     
     .comentario-user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
@@ -272,7 +267,6 @@
     }
     .enviar-comentario-btn:hover { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); transform: translateY(-2px); }
     
-    /* Permite que la página haga el scroll natural para el sticky form */
     .comentarios-list { margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px; }
     
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -300,11 +294,9 @@
     /* ===== STICKERS MODAL ===== */
     .sticker-panel-full {
         display: none; background: rgba(15, 15, 20, 0.98); 
-        border: 1px solid var(--primary-color);
-        border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(15px);
+        border: 1px solid var(--primary-color); border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(15px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden;
     }
-    
     .sticker-panel-full.active { display: block; }
     
     .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.7); }
@@ -322,10 +314,8 @@
     
     .sticker-item {
         position: relative; background: rgba(0,0,0,0.4); border-radius: 12px;
-        padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s;
-        border: 1px solid rgba(255,255,255,0.05);
+        padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05);
     }
-    
     .sticker-item:hover { 
         background: rgba(0, 255, 247, 0.1); transform: scale(1.05); 
         border-color: rgba(0, 255, 247, 0.5); box-shadow: 0 0 15px rgba(0, 255, 247, 0.2);
@@ -363,14 +353,11 @@
         display: flex; justify-content: center; align-items: center;
         opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
     }
-    
     .auth-modal.show { opacity: 1; pointer-events: auto; }
-    
     .auth-card {
         background: #0f0f13; border: 1px solid var(--primary-color); border-radius: 20px;
         width: 100%; max-width: 400px; padding: 30px; position: relative;
     }
-    
     .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
     
     .auth-tabs { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -382,14 +369,10 @@
     .auth-form button { background: var(--primary-color); color: #000; border: none; padding: 14px; border-radius: 8px; font-weight: 800; cursor: pointer; }
     
     .auth-providers { margin-top: 20px; }
-    .provider-btn {
-        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-        padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: white;
-    }
-    
+    .provider-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: white; }
     .auth-error { color: #ff4757; font-size: 0.85rem; margin-top: 10px; text-align: center; }
     
-    /* ===== RESPONSIVE ===== */
+    /* ===== RESPONSIVE GLOBALES ===== */
     @media (max-width: 768px) {
         .container { padding: 10px; }
         .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
@@ -561,7 +544,6 @@
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     
     const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
-    
     const emojiPanel = document.getElementById('emojiPanel');
     if (emojiPanel) {
       emojiPanel.innerHTML = emojisList.map(e => `<div class="emoji-option" onclick="agregarEmojiAlTexto('${e}')">${e}</div>`).join('');
@@ -734,10 +716,15 @@
       if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
       setupNavigation();
       
-      auth.onAuthStateChanged(user => {
-        if (typeof initStickersSystem === 'function') initStickersSystem(db, auth);
-        if (typeof initComentariosSystem === 'function') initComentariosSystem(db, auth);
-      });
+      // INICIALIZACIÓN CORRECTA: Espera a que los archivos JS se carguen y llama a las funciones una sola vez
+      const checkScriptsInterval = setInterval(() => {
+        if (typeof initStickersSystem === 'function' && typeof initComentariosSystem === 'function') {
+          clearInterval(checkScriptsInterval);
+          initStickersSystem(db, auth);
+          initComentariosSystem(db, auth);
+        }
+      }, 100);
+
     } else {
       document.getElementById('epTitle').innerText = "No encontrado";
     }

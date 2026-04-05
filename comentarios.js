@@ -56,11 +56,13 @@ function hexToRgbStr(hex) {
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
+    // IMPORTANTE: Volvemos a usar 'desc' para que funcione el índice de Firebase y no marque error.
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
         .where('episode', '==', parseInt(window.comentariosEpisode))
-        .orderBy('timestamp', 'asc'); // Mostrar antiguos arriba, nuevos abajo para mejor lectura al scrollear
+        .orderBy('timestamp', 'desc') 
+        .limit(50);
         
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
@@ -72,7 +74,10 @@ function setupComentariosRealtimeListener() {
         
         let html = '';
       
-        snapshot.forEach(doc => {
+        // INVERTIMOS el array visualmente con JavaScript para que los nuevos salgan abajo sin romper Firebase
+        const docsReversed = [...snapshot.docs].reverse();
+      
+        docsReversed.forEach(doc => {
             const c = doc.data();
             let fecha = 'Justo ahora';
             if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
@@ -88,7 +93,7 @@ function setupComentariosRealtimeListener() {
             
             // Si es respuesta, añadimos mención visual
             if (c.replyToUser) {
-                contenidoHtml = `<span style="color: var(--primary-color); font-weight: 800; margin-right: 5px; text-shadow: 0 0 5px var(--primary-color);">@${escapeHtmlComent(c.replyToUser)}</span>` + contenidoHtml;
+                contenidoHtml = `<span style="color: var(--primary-color); font-weight: 800; margin-right: 5px; text-shadow: 0 0 5px var(--primary-color);">@${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
             }
 
             if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
@@ -128,7 +133,6 @@ function setupComentariosRealtimeListener() {
         
         container.innerHTML = html;
         
-        // Autoscroll hacia el final del contenedor en caso de nuevo comentario propio si se desea
     }, (error) => console.error('Error en comentarios:', error));
 }
 
