@@ -10,8 +10,8 @@ let userStickersCollection = [];
 // ⚙️ CONFIGURACIÓN DE CLOUDINARY (GRATIS Y SIN TARJETA)
 // Reemplaza 'dbcqcai1q' con tu Cloud Name de Cloudinary
 // Reemplaza 'stickers_archinime' con el nombre del preset "Unsigned" que creaste
-const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/upload';
-const CLOUDINARY_PRESET = 'TU_UPLOAD_PRESET';
+const CLOUDINARY_URL = 'dbcqcai1q';
+const CLOUDINARY_PRESET = 'stickers_archinime';
 
 // Stickers por defecto
 const DEFAULT_STICKERS = [
