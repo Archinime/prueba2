@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v2.0
-// (Incluye Z-Index Fix, Doble Clic para responder, Emojis y Stickers en Respuestas)
+// (Incluye Z-Index Fix, Doble Clic, Emojis y Stickers Dinámicos en Respuestas)
 // ============================================
 
 let comentariosDb = null;
@@ -500,6 +500,27 @@ function procesarTextoComentario(texto) {
     return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
+// ============================================
+// LÓGICA PARA MOVER PANELES GLOBALES
+// ============================================
+window.restaurarPanelesGlobales = function() {
+    const originalContainer = document.getElementById('comentarioFormContainer');
+    const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
+    
+    const previewEl = document.getElementById('comentarioStickerPreview');
+    const emojiEl = document.getElementById('emojiPanel');
+    const stickerEl = document.getElementById('stickerPanelFull');
+    
+    if (originalContainer && actionsDiv) {
+        if(previewEl) originalContainer.insertBefore(previewEl, actionsDiv);
+        if(emojiEl) originalContainer.insertBefore(emojiEl, actionsDiv);
+        if(stickerEl) originalContainer.insertBefore(stickerEl, actionsDiv);
+    }
+    
+    if(emojiEl) emojiEl.classList.remove('active');
+    if(stickerEl) stickerEl.classList.remove('active');
+};
+
 window.prepararRespuesta = function(commentId, userName, userId) {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     
@@ -531,6 +552,8 @@ window.prepararRespuesta = function(commentId, userName, userId) {
                     <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; cursor: pointer; color: white; font-size: 1.1rem; transition: 0.2s;" onmouseover="this.style.borderColor='var(--neon-primary)'; this.style.color='var(--neon-primary)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='white';">🖼️</button>
                 </div>
 
+                <div id="dynamicPanelsDest" style="width: 100%; margin-top: 10px;"></div>
+
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
                     <span id="dynamicCharCount" class="char-counter">0/500</span>
                     <button id="btnEnviarRespuesta" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--neon-primary); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
@@ -541,6 +564,23 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
 
+    // MOVE THE GLOBAL PANELS INTO THIS DYNAMIC BOX
+    const panelDest = document.getElementById('dynamicPanelsDest');
+    const previewEl = document.getElementById('comentarioStickerPreview');
+    const emojiEl = document.getElementById('emojiPanel');
+    const stickerEl = document.getElementById('stickerPanelFull');
+    
+    if (panelDest) {
+        if(previewEl) panelDest.appendChild(previewEl);
+        if(emojiEl) panelDest.appendChild(emojiEl);
+        if(stickerEl) panelDest.appendChild(stickerEl);
+    }
+    
+    // Ensure panels are closed at first
+    if(emojiEl) emojiEl.classList.remove('active');
+    if(stickerEl) stickerEl.classList.remove('active');
+
+    // SETUP LISTENERS
     const textArea = document.getElementById('dynamicReplyText');
     const btnEnviar = document.getElementById('btnEnviarRespuesta');
     const charCount = document.getElementById('dynamicCharCount');
@@ -575,12 +615,15 @@ window.cancelarRespuesta = function() {
     // Quita la iluminación del comentario que estábamos respondiendo
     document.querySelectorAll('.replying-active').forEach(el => el.classList.remove('replying-active'));
     
+    // Retornamos los paneles de emoji/stickers a la caja principal
+    restaurarPanelesGlobales();
+    quitarStickerPreview();
+    
     if (box) {
         box.style.opacity = '0';
         box.style.transform = 'translateY(-10px)';
         setTimeout(() => box.remove(), 200);
     }
-    quitarStickerPreview(); // Limpiar preview si se cancela
 };
 
 window.openStickerModal = function(url) {
