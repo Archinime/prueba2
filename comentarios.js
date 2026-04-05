@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v4.0
-// (Incluye Edición, Z-Index Fix, Emojis, Stickers Dinámicos, RESPUESTAS ANIDADAS y Anti-Saltos)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v5.0
+// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis y Stickers)
 // ============================================
 
 let comentariosDb = null;
@@ -44,7 +44,6 @@ function initComentariosSystem(db, auth) {
             });
         }
 
-        // AUTO-REEMPLAZAR EL ICONO DE STICKER EN EL HTML ORIGINAL POR 🖼️
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) {
             stickerBtn.innerHTML = '🖼️';
@@ -66,7 +65,6 @@ function injectCommentsCSS() {
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
     style.innerHTML = `
-        /* Variables globales locales para consistencia estética */
         :root {
             --neon-primary: #00fff7;
             --neon-secondary: #bc13fe;
@@ -74,51 +72,95 @@ function injectCommentsCSS() {
             --neon-warn: #ffaa00;
         }
     
-        /* --- ESTILOS PRINCIPALES DE LOS COMENTARIOS --- */
+        /* --- ESTILOS DE COMENTARIOS PADRES --- */
         .comentario-item { 
             position: relative;
-            z-index: 1; /* Base z-index */
+            z-index: 1;
             animation: fadeIn 0.4s ease-out forwards;
-            background: rgba(10, 12, 16, 0.6) !important;
+            background: rgba(10, 12, 16, 0.7) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.05);
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             transition: all 0.3s ease;
+            border-radius: 12px;
         }
         .comentario-item:hover {
-            background: rgba(15, 18, 25, 0.8) !important;
+            background: rgba(15, 18, 25, 0.9) !important;
             border-color: rgba(0, 243, 255, 0.2);
             box-shadow: 0 4px 20px rgba(0, 243, 255, 0.05);
-            transform: translateY(-2px);
         }
+
+        /* --- NUEVO SISTEMA DE HILOS VISUALES (JERARQUÍA) --- */
         .comentario-item.is-reply {
             background: rgba(5, 5, 8, 0.4) !important;
             box-shadow: none;
             border: none;
-            border-left: 2px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            /* La variable --branch-top se inyecta en el HTML según el nivel */
         }
         .comentario-item.is-reply:hover {
-            background: rgba(15, 18, 25, 0.6) !important;
-            border-left: 2px solid var(--neon-primary);
+            background: rgba(15, 18, 25, 0.7) !important;
         }
 
-        /* Iluminación especial cuando estás respondiendo a este comentario */
+        /* La rama horizontal "L" que apunta a la respuesta */
+        .comentario-item.is-reply::before {
+            content: '';
+            position: absolute;
+            left: -22px; /* Debe coincidir con el padding-left del replies-thread */
+            top: var(--branch-top, 25px); 
+            width: 22px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+            border-radius: 2px 0 0 2px;
+        }
+        .comentario-item.is-reply:hover::before {
+            background: var(--neon-primary);
+            box-shadow: 0 0 8px rgba(0, 255, 247, 0.4);
+        }
+
+        /* Contenedor de la línea vertical que agrupa las respuestas */
+        .replies-thread {
+            position: relative;
+            margin-left: 22px; /* Centrado con el avatar padre de 45px */
+            padding-left: 22px;
+            border-left: 2px solid rgba(255, 255, 255, 0.08);
+            margin-top: 5px;
+            margin-bottom: 5px;
+            transition: border-color 0.3s ease;
+        }
+        /* Iluminar toda la ruta vertical al pasar el cursor por el hilo */
+        .replies-thread:hover {
+            border-left-color: rgba(0, 255, 247, 0.3);
+        }
+
+        /* Ajustes para sub-niveles (Nivel 2 en adelante) */
+        .nested-reply .replies-thread {
+            margin-left: 15px; /* Centrado con el avatar de 30px */
+            padding-left: 15px;
+        }
+        .nested-reply .comentario-item.is-reply::before {
+            left: -15px;
+            width: 15px;
+        }
+
+        /* Iluminación de foco al responder */
         @keyframes replyPulse {
             0% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
-            50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.6); border-color: var(--neon-primary); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); border: 1px solid var(--neon-primary) !important; }
             100% { box-shadow: 0 0 0 rgba(0, 255, 247, 0); }
         }
         .replying-active {
             animation: replyPulse 1.5s infinite;
-            border-color: var(--neon-primary) !important;
             background: rgba(0, 255, 247, 0.05) !important;
+            border-radius: 12px;
         }
 
-        /* --- MENÚ DE 3 PUNTITOS (KEBAB MENU) --- */
+        /* --- KEBAB MENU --- */
         .comment-options-container {
             position: absolute;
-            top: 10px;
-            right: 15px;
+            top: 8px;
+            right: 12px;
             z-index: 10;
         }
         .kebab-btn {
@@ -191,35 +233,8 @@ function injectCommentsCSS() {
         .comment-dropdown-btn.edit-btn i { color: var(--neon-primary); }
         .comment-dropdown-btn.edit-btn:hover { background: rgba(0, 255, 247, 0.15); color: #fff; }
         
-        /* --- Árbol de respuestas (Jerárquico N-Niveles) --- */
-        .respuestas-wrapper { margin-left: 55px; margin-top: 8px; margin-bottom: 20px; position: relative; }
-        .respuestas-line { position: absolute; left: -26px; top: 0; bottom: 25px; width: 2px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; transition: 0.3s; }
-        .respuestas-wrapper:hover > .respuestas-line { background: rgba(0, 255, 247, 0.3); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
-        
-        /* CSS para subniveles (Respuestas a Respuestas) */
-        .respuestas-wrapper.nested-reply {
-            margin-left: 20px;
-            margin-top: 8px;
-            margin-bottom: 8px; /* Ajuste para espacio entre respuestas */
-            position: relative;
-        }
-        .respuestas-wrapper.nested-reply::before {
-            content: '';
-            position: absolute;
-            left: -10px;
-            top: 0;
-            bottom: 10px;
-            width: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 2px;
-            transition: 0.3s;
-        }
-        .respuestas-wrapper.nested-reply:hover::before {
-            background: rgba(0, 255, 247, 0.3);
-            box-shadow: 0 0 8px rgba(0, 255, 247, 0.2);
-        }
-
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
+        /* Botones de Control de Hilos */
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; margin-top: 4px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
         .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
         
         .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
@@ -240,10 +255,10 @@ function injectCommentsCSS() {
         .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
         @media (max-width: 768px) {
-            .respuestas-wrapper { margin-left: 48px; }
-            .respuestas-line { left: -22px; }
-            .respuestas-wrapper.nested-reply { margin-left: 12px; }
-            .respuestas-wrapper.nested-reply::before { left: -6px; }
+            .replies-thread { margin-left: 19px; padding-left: 18px; }
+            .nested-reply .replies-thread { margin-left: 14px; padding-left: 14px; }
+            .comentario-item.is-reply::before { left: -18px; width: 18px; }
+            .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
 
             .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
             .comentario-item.is-reply { padding: 8px 10px !important; }
@@ -312,7 +327,7 @@ function setupComentariosRealtimeListener() {
 
         // GUARDAR ESTADO DE MENÚS ABIERTOS PARA EVITAR SALTOS DE PANTALLA
         const openContainers = new Set();
-        document.querySelectorAll('.respuestas-container').forEach(el => {
+        document.querySelectorAll('.replies-thread').forEach(el => {
             if (el.style.display !== 'none') openContainers.add(el.id);
         });
         const openMoreReplies = new Set();
@@ -323,12 +338,10 @@ function setupComentariosRealtimeListener() {
         const docsReversed = [...snapshot.docs].reverse();
         const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // CONSTRUCCIÓN DEL ÁRBOL INFINITO
         const commentMap = new Map();
         allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
       
         const roots = [];
-     
         allComments.forEach(c => {
             if (c.replyToId) {
                 if (commentMap.has(c.replyToId)) {
@@ -339,14 +352,12 @@ function setupComentariosRealtimeListener() {
             }
         });
 
-        // Función auxiliar para contar todas las respuestas profundas
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
             return count;
         }
 
-        // Función recursiva para renderizar las cajas
         function renderNode(node, level = 0, isHiddenRoot = false, rootId = null) {
             let nodeHtml = '';
             const isNew = window.lastPostedCommentId === node.id;
@@ -360,19 +371,19 @@ function setupComentariosRealtimeListener() {
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 
-                // Si es el primer nivel de respuestas, creamos el botón "Ver Respuestas"
+                // Botón y contenedor base de la ruta
                 if (level === 0) {
-                    nodeHtml += `<div class="respuestas-wrapper" id="respuestas-${node.id}">`;
-                    nodeHtml += `<div class="respuestas-line"></div>`; 
-                    
                     const totalCount = countAllReplies(node);
                     const textoBtn = totalCount === 1 ? 'Ver 1 respuesta' : `Ver ${totalCount} respuestas`;
                     
-                    nodeHtml += `<button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
-                                <i class="fas fa-level-down-alt" id="icon-${node.id}" style="transform: rotate(-90deg);"></i> 
-                                <span id="text-${node.id}">${textoBtn}</span>
-                             </button>`;
-                    nodeHtml += `<div class="respuestas-container" id="container-${node.id}" style="display: none; flex-direction: column; gap: 8px;">`;
+                    nodeHtml += `<div style="margin-left: 22px;">
+                                    <button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
+                                        <i class="fas fa-level-down-alt" id="icon-${node.id}" style="transform: rotate(-90deg);"></i> 
+                                        <span id="text-${node.id}">${textoBtn}</span>
+                                    </button>
+                                 </div>`;
+                    
+                    nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none; flex-direction: column; gap: 6px;">`;
                     
                     node.replies.forEach((reply, index) => {
                         const isHidden = index >= 5;
@@ -382,21 +393,20 @@ function setupComentariosRealtimeListener() {
                     if (node.replies.length > 5) {
                         const remaining = node.replies.length - 5;
                         nodeHtml += `<button id="showMore-${node.id}" class="show-more-replies-btn" onclick="showMoreReplies('${node.id}')">
-                                    Cargar ${remaining} respuestas más (Nivel Principal)...
+                                    Cargar ${remaining} respuestas más...
                                  </button>`;
                     }
 
-                    nodeHtml += `</div></div>`;
+                    nodeHtml += `</div>`;
                 } else {
-                    // Si ya es Nivel 1 o superior, indentamos la caja recursivamente sin botón
-                    nodeHtml += `<div class="respuestas-wrapper nested-reply">`;
+                    // Si ya es Nivel 1 o superior, anidamos y marcamos para CSS .nested-reply
+                    nodeHtml += `<div class="replies-thread nested-reply" style="display: flex; flex-direction: column; gap: 6px;">`;
                     node.replies.forEach((reply) => {
                         nodeHtml += renderNode(reply, level + 1, false, null);
                     });
                     nodeHtml += `</div>`;
                 }
             }
-            
             nodeHtml += `</div>`;
             return nodeHtml;
         }
@@ -404,11 +414,12 @@ function setupComentariosRealtimeListener() {
         let html = '';
         roots.forEach(root => {
             html += renderNode(root, 0, false, null);
+            html += `<div style="height: 12px;"></div>`; // Espacio entre hilos principales
         });
         
         container.innerHTML = html;
 
-        // RESTAURAR ESTADO DE MENÚS ABIERTOS
+        // RESTAURAR ESTADO DE MENÚS ABIERTOS (Anti-Jump)
         openContainers.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -421,7 +432,7 @@ function setupComentariosRealtimeListener() {
         openMoreReplies.forEach(className => {
             document.querySelectorAll(`.${className}`).forEach(el => {
                 el.style.display = 'block';
-                el.style.animation = 'none'; // Evita que se re-animen
+                el.style.animation = 'none'; 
             });
             const rootId = className.replace('hidden-reply-', '');
             const btn = document.getElementById(`showMore-${rootId}`);
@@ -452,7 +463,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
-        // AQUI ESTÁ LA SOLUCIÓN DEL ALINEAMIENTO DEL STICKER
         contenidoHtml += `
             <div class="comentario-sticker-container" style="margin-top: 12px; display: block; width: fit-content;">
                 <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.2); transition: transform 0.2s;"
@@ -461,20 +471,20 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         `;
     }
     
-    // Ajuste dinámico de UI según la profundidad de la caja para que no se vea mal en móviles
-    const padding = level === 0 ? '16px' : (level === 1 ? '10px 14px' : '8px 10px');
+    // Ajuste dinámico de UI según el nivel en el árbol
+    const padding = level === 0 ? '16px' : (level === 1 ? '10px 14px' : '8px 12px');
     const avatarSize = level === 0 ? '45px' : (level === 1 ? '30px' : '24px');
     const titleSize = level === 0 ? '1rem' : (level === 1 ? '0.9rem' : '0.85rem');
+    
+    // Calcula dónde debe caer la rama horizontal (mitad exacta del padding + radio del avatar)
+    const branchTop = level === 1 ? '25px' : '20px'; 
+    
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const borderTopColor = level === 0 ? `border-top: 2px solid ${neonColor};` : '';
-    // Corregimos el espaciado para que las respuestas no se vean tan juntas
-    const marginBottom = isReply ? '8px' : '12px';
 
-    // --- MENÚ DE 3 PUNTITOS ---
     const replyMenuBtn = comentariosCurrentUser ?
         `<button class="comment-dropdown-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
     
-    // REEMPLAZO: En lugar del botón "Eliminar", ahora mostramos "Editar" si es el dueño
     const editMenuBtn = isOwner ?
         `<button class="comment-dropdown-btn edit-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit"></i> Editar</button>` : '';
         
@@ -497,7 +507,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             title="Doble clic para responder"
-            style="position: relative; border-radius: 12px; padding: ${padding}; margin-bottom: ${marginBottom}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
+            style="--branch-top: ${branchTop}; border-radius: 12px; padding: ${padding}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
             
             ${optionsMenu}
 
@@ -525,11 +535,9 @@ window.iniciarEdicion = function(commentId) {
     
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     
-    // Guarda el HTML original por si cancelan
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
     
-    // Limpiamos los [Sticker](...) visualmente para no enredar al usuario al editar
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
 
     textContainer.innerHTML = `
@@ -562,7 +570,6 @@ window.guardarEdicion = async function(commentId) {
             const data = doc.data();
             let textoFinal = nuevoTexto;
             
-            // Si el comentario original tenía un sticker, lo preservamos
             if (data.esSticker && data.stickerUrl) {
                 textoFinal += (nuevoTexto ? '\n' : '') + `[Sticker](${data.stickerUrl})`;
             }
@@ -572,7 +579,6 @@ window.guardarEdicion = async function(commentId) {
                 editado: true
             });
             showToastComent('✏️ Comentario actualizado');
-            // Nota: Firebase en tiempo real recargará la vista sin que tengamos que hacer nada más
         }
     } catch (error) {
         console.error(error);
@@ -639,7 +645,6 @@ function procesarTextoComentario(texto) {
     html = html.replace(stickerRegex, (match, url) => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
-        // AQUI TAMBIÉN APLICAMOS LA CORRECCIÓN DE ESPACIADO
         return `
         <div class="comentario-sticker-container" style="margin-top: 8px; display: block; width: fit-content;">
             <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0, 255, 247, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Ver/Robar Sticker"></${isVideo ? 'video' : 'img'}>
@@ -687,20 +692,16 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     
     cancelarRespuesta(true);
-    // Forzamos remoción síncrona de la anterior para evitar IDs fantasma
-
     window.respondiendoA = { id: commentId, userName, userId };
     
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (!commentEl) return;
     
-    // Iluminar el comentario al que estamos respondiendo
     commentEl.classList.add('replying-active');
     
     const replyBox = document.createElement('div');
-    // Generamos un ID único atado al comentario para que jamás haya colisión
     replyBox.id = `dynamicReplyBox-${commentId}`;
-    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 55px; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);";
+    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 20px; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);";
     
     replyBox.innerHTML = `
         <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
@@ -726,11 +727,9 @@ window.prepararRespuesta = function(commentId, userName, userId) {
             </div>
         </div>
     `;
-    // Al insertarlo exactamente después del comentario (nextSibling),
-    // queda perfectamente alineado encima de sus respuestas (si ya tiene)
+    
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
     
-    // Mover los paneles globales a esta caja única
     const panelDest = document.getElementById(`dynamicPanelsDest-${commentId}`);
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
@@ -745,7 +744,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
     
-    // SETUP LISTENERS
     const textArea = document.getElementById(`dynamicReplyText-${commentId}`);
     const btnEnviar = document.getElementById(`btnEnviarRespuesta-${commentId}`);
     const charCount = document.getElementById(`dynamicCharCount-${commentId}`);
@@ -776,7 +774,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
 
 window.cancelarRespuesta = function(forzarSync = false) {
     const replyContext = window.respondiendoA;
-    // Buscamos la caja, si existe
     let box = replyContext ? document.getElementById(`dynamicReplyBox-${replyContext.id}`) : document.querySelector('[id^="dynamicReplyBox-"]');
 
     window.respondiendoA = null;
@@ -789,7 +786,6 @@ window.cancelarRespuesta = function(forzarSync = false) {
         if (forzarSync) {
             box.remove();
         } else {
-            // Renombramos el ID para que la animación no interfiera si el usuario abre otra respuesta rápido
             box.id = 'removing-' + Date.now();
             box.style.opacity = '0';
             box.style.transform = 'translateY(-10px)';
@@ -972,7 +968,7 @@ window.enviarRespuestaDinamica = async function() {
             texto: textoFinal,
             esSticker: !!stickerUrl,
             stickerUrl: stickerUrl || null,
-            replyToId: replyContext.id, /* ¡Aquí guardamos el ID del padre exacto para armar el árbol! */
+            replyToId: replyContext.id,
             replyToUser: replyContext.userName,
             replyToUserId: replyContext.userId,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -1030,7 +1026,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
     
-    // Validar el botón correcto con el ID dinámico
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
@@ -1047,7 +1042,6 @@ window.quitarStickerPreview = function() {
     if(previewImg) previewImg.src = '';
     if(previewVid) previewVid.src = '';
     
-    // Validar el botón correcto con el ID dinámico
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
@@ -1093,7 +1087,6 @@ function toggleStickerPanelSistema() {
 }
 
 function agregarEmojiAlTexto(emoji) {
-    // Detecta automáticamente el ID dinámico
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const textarea = document.getElementById(targetTextareaId);
     
