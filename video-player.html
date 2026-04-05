@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <style>
     /* ===== ESTILOS BASE ===== */
@@ -111,15 +112,12 @@
     }
     
     @keyframes neonPulse {
-        0% { opacity: 0.8;
-        text-shadow: 0 0 5px var(--primary-color); }
-        100% { opacity: 1;
-        text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+        0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color); }
+        100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
     }
     
     /* ===== SERVIDORES ===== */
-    .options { display: flex;
-        gap: 10px; justify-content: flex-end; }
+    .options { display: flex; gap: 10px; justify-content: flex-end; }
     
     .opt-btn { 
         padding: 6px 14px;
@@ -137,8 +135,7 @@
     }
     
     /* ===== TÍTULO ===== */
-    h1 { text-align: center;
-        font-size: 1.3rem; margin: 5px 0; }
+    h1 { text-align: center; font-size: 1.3rem; margin: 5px 0; }
     
     /* ===== CONTROLES ===== */
     .controls { 
@@ -177,16 +174,13 @@
     
     /* ===== COMENTARIOS ===== */
     .comentarios-section {
-        margin-top: 30px;
-        padding: 20px;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 16px;
+        margin-top: 30px; padding: 20px;
+        background: rgba(0, 0, 0, 0.4); border-radius: 16px;
         border-top: 1px solid rgba(0, 255, 247, 0.2);
     }
     
     .comentarios-header {
-        display: flex;
-        align-items: center; gap: 12px;
+        display: flex; align-items: center; gap: 12px;
         margin-bottom: 20px; padding-bottom: 12px;
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
@@ -195,8 +189,7 @@
     .comentarios-header h3 { font-size: 1.2rem; font-weight: 700; }
     
     .comentario-login-message {
-        background: rgba(0, 255, 247, 0.1);
-        border: 1px solid rgba(0, 255, 247, 0.3);
+        background: rgba(0, 255, 247, 0.1); border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px; padding: 20px; text-align: center;
     }
     
@@ -208,62 +201,45 @@
     }
     
     .comentario-form-container {
-        background: rgba(20, 20, 30, 0.6);
-        border-radius: 16px; padding: 15px;
+        background: rgba(20, 20, 30, 0.6); border-radius: 16px; padding: 15px;
         border: 1px solid rgba(255,255,255,0.05);
     }
     
     .comentario-user-info {
-        display: flex;
-        align-items: center; gap: 12px;
-        margin-bottom: 12px;
+        display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
     }
     
     .comentario-user-info img {
-        width: 40px;
-        height: 40px; border-radius: 50%;
-        border: 2px solid var(--primary-color);
-        object-fit: cover;
+        width: 40px; height: 40px; border-radius: 50%;
+        border: 2px solid var(--primary-color); object-fit: cover;
     }
     
     .comentario-input-wrapper {
-        display: flex;
-        gap: 10px; margin-bottom: 12px;
-        flex-wrap: wrap;
+        display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
     }
     
     .comentario-input-wrapper textarea {
-        flex: 1;
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(0, 255, 247, 0.3);
-        border-radius: 12px; padding: 12px;
-        color: white;
-        font-family: 'Poppins', sans-serif;
-        resize: vertical; min-height: 80px;
+        flex: 1; background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(0, 255, 247, 0.3); border-radius: 12px; padding: 12px;
+        color: white; font-family: 'Poppins', sans-serif; resize: vertical; min-height: 80px;
     }
     
     .emoji-btn, .sticker-btn {
-        background: rgba(0, 255, 247, 0.1);
-        border: 1px solid rgba(0, 255, 247, 0.3);
-        border-radius: 12px; padding: 12px;
-        cursor: pointer; font-size: 1.2rem;
+        background: rgba(0, 255, 247, 0.1); border: 1px solid rgba(0, 255, 247, 0.3);
+        border-radius: 12px; padding: 12px; cursor: pointer; font-size: 1.2rem;
         transition: all 0.2s; color: white;
     }
     
     .emoji-panel {
-        display: none;
-        background: rgba(20, 20, 30, 0.95);
-        border: 1px solid var(--primary-color);
-        border-radius: 12px; padding: 10px;
-        margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+        display: none; background: rgba(20, 20, 30, 0.95); border: 1px solid var(--primary-color);
+        border-radius: 12px; padding: 10px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
         max-height: 200px; overflow-y: auto;
     }
     
     .emoji-panel.active { display: flex; }
     
     .emoji-option {
-        font-size: 1.5rem;
-        cursor: pointer; padding: 5px;
+        font-size: 1.5rem; cursor: pointer; padding: 5px;
         background: rgba(255,255,255,0.05); border-radius: 8px;
         width: 45px; text-align: center; transition: transform 0.2s;
     }
@@ -272,28 +248,20 @@
     
     /* ===== PREVIEW DE STICKER ===== */
     .comentario-sticker-preview {
-        margin-bottom: 12px;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 12px;
-        border: 1px dashed rgba(0, 255, 247, 0.3);
-        display: inline-block;
+        margin-bottom: 12px; padding: 10px; background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px; border: 1px dashed rgba(0, 255, 247, 0.3); display: inline-block;
     }
     .preview-sticker-wrapper { position: relative; display: inline-block; }
     
     .remove-sticker-btn {
-        position: absolute; top: -8px;
-        right: -8px;
-        background: #ff5555; color: white; border: none;
-        border-radius: 50%; width: 22px; height: 22px;
-        font-size: 12px; cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        position: absolute; top: -8px; right: -8px;
+        background: #ff5555; color: white; border: none; border-radius: 50%;
+        width: 22px; height: 22px; font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
 
     .enviar-comentario-btn {
         background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none; color: #000; font-weight: 700;
-        padding: 10px 24px; border-radius: 30px;
+        border: none; color: #000; font-weight: 700; padding: 10px 24px; border-radius: 30px;
         cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
     }
     
@@ -305,32 +273,23 @@
     }
 
     .comentario-item {
-        display: flex;
-        gap: 15px; padding: 15px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 12px; margin-bottom: 12px;
-        border: 1px solid rgba(255,255,255,0.03);
+        display: flex; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03);
+        border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03);
     }
     
     .comentario-avatar img {
-        width: 40px;
-        height: 40px; border-radius: 50%;
+        width: 40px; height: 40px; border-radius: 50%;
         border: 1px solid var(--primary-color); object-fit: cover;
     }
     
     .comentario-user { font-weight: 700; color: var(--primary-color); }
     .comentario-fecha { font-size: 0.7rem; color: #888; }
     
-    .comentario-link {
-        color: var(--primary-color);
-        text-decoration: underline;
-        word-break: break-all; transition: opacity 0.2s;
-    }
+    .comentario-link { color: var(--primary-color); text-decoration: underline; word-break: break-all; transition: opacity 0.2s; }
     .comentario-link:hover { opacity: 0.8; }
     
     .comentario-delete {
-        background: none;
-        border: none; color: #ff5555;
+        background: none; border: none; color: #ff5555;
         cursor: pointer; margin-left: auto; padding: 4px 8px;
         border-radius: 6px; transition: background 0.2s;
     }
@@ -340,38 +299,18 @@
     .comentario-sticker { max-width: 120px; max-height: 120px; border-radius: 12px; margin-top: 5px;}
     .comentario-imagen { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 5px;}
     
-    .steal-sticker-btn {
-        background: rgba(0, 255, 247, 0.2);
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        padding: 4px 8px; border-radius: 20px;
-        font-size: 0.7rem; cursor: pointer; margin-top: 5px;
-    }
-    
     .empty-comments { text-align: center; padding: 40px; color: #888; }
     
     /* ===== STICKERS ===== */
     .sticker-panel-full {
-        display: none;
-        background: rgba(20, 20, 30, 0.98);
-        border: 1px solid var(--primary-color);
+        display: none; background: rgba(20, 20, 30, 0.98); border: 1px solid var(--primary-color);
         border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(10px);
     }
     
     .sticker-panel-full.active { display: block; }
     
-    .sticker-tabs {
-        display: flex;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        background: rgba(0,0,0,0.5);
-    }
-    
-    .sticker-tab {
-        flex: 1;
-        padding: 10px; background: none; border: none;
-        color: #ccc; cursor: pointer; font-size: 0.75rem; font-weight: 600;
-    }
-    
+    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); }
+    .sticker-tab { flex: 1; padding: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
     .sticker-tab.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
     
     .sticker-tab-content { display: none; padding: 15px; max-height: 350px; overflow-y: auto; }
@@ -380,37 +319,26 @@
     .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     
     .sticker-item {
-        position: relative;
-        background: rgba(255,255,255,0.05);
-        border-radius: 12px; padding: 8px; cursor: pointer;
-        text-align: center; transition: all 0.2s;
+        position: relative; background: rgba(255,255,255,0.05); border-radius: 12px;
+        padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s;
     }
     
     .sticker-item:hover { background: rgba(0, 255, 247, 0.15); transform: scale(1.02); }
-    
     .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
     
     .sticker-delete-btn {
-        position: absolute;
-        top: 2px; right: 2px;
-        background: rgba(255, 0, 85, 0.8); border: none;
-        color: white; border-radius: 50%; width: 20px; height: 20px;
-        font-size: 10px; cursor: pointer;
+        position: absolute; top: 2px; right: 2px; background: rgba(255, 0, 85, 0.8); border: none;
+        color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer;
     }
     
     .sticker-empty { text-align: center; padding: 20px; color: #888; grid-column: 1/-1; }
     
     .upload-sticker-area { text-align: center; margin: 15px 0; }
-    
     .upload-sticker-label {
-        display: inline-flex;
-        align-items: center; gap: 10px;
-        background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        color: #000; padding: 12px 24px; border-radius: 30px;
-        cursor: pointer; font-weight: 700;
-        transition: all 0.3s;
+        display: inline-flex; align-items: center; gap: 10px;
+        background: linear-gradient(135deg, var(--primary-color), #0099ff); color: #000;
+        padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 700; transition: all 0.3s;
     }
-    
     .upload-sticker-label:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--primary-color); }
     
     .upload-preview { margin-top: 15px; text-align: center; }
@@ -420,29 +348,23 @@
     .add-sticker-desc { margin-bottom: 5px; font-weight: 600; }
     .add-sticker-hint { font-size: 0.7rem; color: #888; margin-bottom: 15px; }
     .add-sticker-btn {
-        background: linear-gradient(135deg, var(--primary-color), #0099ff);
-        border: none; color: #000; font-weight: 700;
-        padding: 12px 24px; border-radius: 30px; cursor: pointer;
-        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, var(--primary-color), #0099ff); border: none; color: #000;
+        font-weight: 700; padding: 12px 24px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
     }
     .add-sticker-note { font-size: 0.7rem; color: var(--primary-color); margin-top: 15px; }
     
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
-        z-index: 10001; display: flex; justify-content: center; align-items: center;
-        opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 10001;
+        display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
     }
     
     .auth-modal.show { opacity: 1; pointer-events: auto; }
     
     .auth-card {
-        background: #0f0f13;
-        border: 1px solid var(--primary-color);
-        border-radius: 20px; width: 100%; max-width: 400px;
-        padding: 30px; position: relative;
+        background: #0f0f13; border: 1px solid var(--primary-color); border-radius: 20px;
+        width: 100%; max-width: 400px; padding: 30px; position: relative;
     }
     
     .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
@@ -458,8 +380,7 @@
     .auth-providers { margin-top: 20px; }
     .provider-btn {
         background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-        padding: 12px; border-radius: 8px; display: flex; align-items: center;
-        justify-content: center; gap: 10px; cursor: pointer; color: white;
+        padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: white;
     }
     
     .auth-error { color: #ff4757; font-size: 0.85rem; margin-top: 10px; text-align: center; }
@@ -634,8 +555,11 @@
     };
     firebase.initializeApp(firebaseConfig);
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    
+    // Inicializar Firebase
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage(); // <- INICIALIZANDO STORAGE
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     
     const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];

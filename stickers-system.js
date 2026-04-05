@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS (IMGBB + CATBOX PARA VIDEOS)
+// SISTEMA DE STICKERS (IMGBB + FIREBASE STORAGE)
 // ============================================
 
 let stickersDb = null;
@@ -57,7 +57,6 @@ function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
     
-    // Limpieza agresiva de nulos, vacíos y corruptos
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     
     if (validStickers.length === 0) {
@@ -111,7 +110,6 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// LOGICA ACTUALIZADA: Videos a Catbox.moe, Fotos a ImgBB
 async function subirStickerDesdePC(input) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
@@ -151,21 +149,18 @@ async function subirStickerDesdePC(input) {
         let finalUrl = "";
         
         if (isVideoFile) {
-            // USAMOS CATBOX PARA ALOJAR VIDEOS DIRECTOS
-            const formData = new FormData();
-            formData.append('reqtype', 'fileupload');
-            formData.append('fileToUpload', file);
+            // USAMOS FIREBASE STORAGE PARA LOS VIDEOS (EVITA ERRORES DE CORS)
+            const storageRef = firebase.storage().ref();
+            // Limpiamos el nombre para que no haya conflictos
+            const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const fileName = `stickers_videos/${stickersCurrentUser.uid}_${Date.now()}_${cleanFileName}`;
+            const videoRef = storageRef.child(fileName);
             
-            const response = await fetch('https://catbox.moe/user/api.php', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error("Fallo en el servidor Catbox");
-            finalUrl = await response.text();
+            const snapshot = await videoRef.put(file);
+            finalUrl = await snapshot.ref.getDownloadURL();
             
         } else {
-            // USAMOS IMGBB PARA IMAGENES (Mismo de siempre)
+            // IMÁGENES CONTINUAN USANDO IMGBB PARA NO OCUPAR ESPACIO
             const formData = new FormData();
             formData.append('image', file);
             const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
@@ -237,7 +232,6 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
-// CORRECCIÓN TOTAL: Sistema robusto, con lectura estricta desde Firebase
 window.robarStickerSistema = async function(url) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
@@ -247,7 +241,6 @@ window.robarStickerSistema = async function(url) {
     const cleanUrl = url.trim();
     
     try {
-        // 1. Siempre bajamos la colección actual directo del servidor para evitar desincronizaciones
         const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
         const doc = await userRef.get();
         
@@ -258,20 +251,16 @@ window.robarStickerSistema = async function(url) {
             dbStickers = [...DEFAULT_STICKERS];
         }
 
-        // 2. Comprobamos si el usuario ya lo tiene
         if (dbStickers.includes(cleanUrl)) {
             showToastSticker('⚠️ Ya tienes este sticker en tu colección');
             return;
         }
 
-        // 3. Añadimos y aseguramos que no haya nulos o duplicados
         dbStickers.push(cleanUrl);
         const safeStickers = [...new Set(dbStickers)].filter(s => typeof s === 'string' && s.trim() !== '');
         
-        // 4. Guardamos agresivamente en Firebase
         await userRef.set({ stickers: safeStickers }, { merge: true });
         
-        // 5. Solo si funcionó, actualizamos la vista
         userStickersCollection = safeStickers;
         renderUserStickers();
         showToastSticker('✅ ¡Sticker robado y guardado!');
