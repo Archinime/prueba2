@@ -41,13 +41,15 @@ async function loadUserStickers() {
     if (!stickersCurrentUser) return;
 
     try {
-        const doc = await stickersDb.collection('users').doc(stickersCurrentUser.uid).get();
+        // LEEMOS DE LA COLECCIÓN CORRECTA (userStickers)
+        const doc = await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).get();
 
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers;
         } else {
             userStickersCollection = [...DEFAULT_STICKERS];
-            await stickersDb.collection('users').doc(stickersCurrentUser.uid).set({
+            // GUARDAMOS EN LA COLECCIÓN CORRECTA
+            await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
                 stickers: userStickersCollection
             }, { merge: true });
         }
@@ -105,9 +107,9 @@ async function eliminarSticker(urlSticker, event) {
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
     
     try {
-        const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
+        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         
-        // Forma infalible de remover del array en Firebase
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
@@ -161,7 +163,6 @@ async function subirStickerDesdePC(input) {
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        // USAMOS CLOUDINARY PARA TODO (Imágenes y Videos)
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
@@ -204,9 +205,9 @@ async function guardarStickerEnColeccion(url) {
     }
 
     try {
-        const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
+        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         
-        // Forma infalible de agregar al array sin que se borre jamás
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
@@ -220,7 +221,6 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
-// CORRECCIÓN TOTAL DEL ROBO DE STICKERS: Guarda de manera definitiva usando arrayUnion
 window.robarStickerSistema = async function(url) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
@@ -230,10 +230,9 @@ window.robarStickerSistema = async function(url) {
     const cleanUrl = url.trim();
 
     try {
-        const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
+        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
 
-        // 1. Inyectamos directamente el link al Array de Firebase de forma segura.
-        // Esto evita que si hay un array desactualizado localmente, borre los datos de Firebase.
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });

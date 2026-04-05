@@ -99,14 +99,14 @@ function setupComentariosRealtimeListener() {
                 const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
                 if (isVideo) {
                      contenidoHtml += `
-                        <div class="comentario-sticker-container" style="margin-top: 10px; display: inline-block;">
-                            <video src="${c.stickerUrl}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 200px; max-height: 200px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 10px 25px ${neonColor}80';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.6)';" title="Clic para ver y robar"></video>
+                        <div class="comentario-sticker-container" style="margin-top: 15px; display: inline-block;">
+                            <video src="${c.stickerUrl}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 30px ${neonColor}80';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.6)';" title="Clic para ver y robar"></video>
                         </div>
                     `;
                 } else {
                      contenidoHtml += `
-                        <div class="comentario-sticker-container" style="margin-top: 10px; display: inline-block;">
-                            <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 200px; max-height: 200px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 10px 25px ${neonColor}80';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.6)';" title="Clic para ver y robar">
+                        <div class="comentario-sticker-container" style="margin-top: 15px; display: inline-block;">
+                            <img src="${c.stickerUrl}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 30px ${neonColor}80';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.6)';" title="Clic para ver y robar">
                         </div>
                     `;
                 }
@@ -114,19 +114,19 @@ function setupComentariosRealtimeListener() {
             
             // REDISEÑO VIP A LOS ITEMS DE LOS COMENTARIOS
             html += `
-                <div class="comentario-item" style="background: linear-gradient(145deg, rgba(15,15,20,0.95), rgba(5,5,10,0.95)); border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(${rgbColor}, 0.08); animation: fadeIn 0.4s ease-out forwards; border-radius: 16px; margin-bottom: 15px; padding: 16px 20px; display: flex; gap: 15px; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 25px rgba(0,0,0,0.8), inset 0 0 20px rgba(${rgbColor}, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(${rgbColor}, 0.08)';">
-            
-                    <div class="comentario-avatar">
-                        <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 15px rgba(${rgbColor}, 0.5);">
+                <div class="comentario-item" style="position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(15,15,20,0.95) 0%, rgba(5,5,10,0.95) 100%); border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.8), inset 0 0 15px rgba(${rgbColor}, 0.1); animation: fadeIn 0.5s ease-out forwards; border-radius: 16px; margin-bottom: 20px; padding: 20px; display: flex; gap: 18px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 15px 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(${rgbColor}, 0.2)'; this.style.borderColor='rgba(${rgbColor}, 0.8)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.8), inset 0 0 15px rgba(${rgbColor}, 0.1)'; this.style.borderColor='rgba(${rgbColor}, 0.3)';">
+                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: ${neonColor}; box-shadow: 0 0 15px ${neonColor};"></div>
+                    <div class="comentario-avatar" style="z-index: 2;">
+                        <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid ${neonColor}; box-shadow: 0 0 15px rgba(${rgbColor}, 0.6);">
                     </div>
-                   <div class="comentario-content" style="flex: 1; min-width: 0;">
+                   <div class="comentario-content" style="flex: 1; min-width: 0; z-index: 2;">
    
                         <div class="comentario-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; border-bottom: 1px dashed rgba(${rgbColor}, 0.3); padding-bottom: 8px;">
-                            <span class="comentario-user" style="color: #fff; text-shadow: 0 0 5px ${neonColor}, 0 0 15px ${neonColor}; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 1.1rem;">${escapeHtmlComent(userName)}</span>
-                            <span class="comentario-fecha" style="color: #888; font-size: 0.8rem; font-weight: 600;">${fecha}</span>
-                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar" style="margin-left: auto; background: rgba(255,85,85,0.15); border: 1px solid #ff5555; color: #ff5555; border-radius: 8px; padding: 4px 10px; cursor: pointer; transition: 0.2s; font-weight: bold; box-shadow: 0 0 8px rgba(255,85,85,0.4);" onmouseover="this.style.background='#ff5555'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,85,85,0.15)'; this.style.color='#ff5555';">✖</button>` : ''}
+                            <span class="comentario-user" style="color: #fff; text-shadow: 0 0 5px ${neonColor}, 0 0 15px ${neonColor}; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 1.15rem;">${escapeHtmlComent(userName)}</span>
+                            <span class="comentario-fecha" style="color: #888; font-size: 0.85rem; font-weight: 600;">${fecha}</span>
+                            ${isOwner ? `<button class="comentario-delete" onclick="deleteComentario('${doc.id}')" title="Eliminar" style="margin-left: auto; background: rgba(255,85,85,0.15); border: 1px solid #ff5555; color: #ff5555; border-radius: 8px; padding: 5px 12px; cursor: pointer; transition: 0.2s; font-weight: bold; box-shadow: 0 0 8px rgba(255,85,85,0.4);" onmouseover="this.style.background='#ff5555'; this.style.color='#fff'; this.style.boxShadow='0 0 15px #ff5555';" onmouseout="this.style.background='rgba(255,85,85,0.15)'; this.style.color='#ff5555'; this.style.boxShadow='0 0 8px rgba(255,85,85,0.4)';">✖ Eliminar</button>` : ''}
                         </div>
-                        <div class="comentario-texto" style="color: #eee; font-size: 1rem; line-height: 1.6; text-shadow: 0 1px 3px #000; letter-spacing: 0.3px;">${contenidoHtml}</div>
+                        <div class="comentario-texto" style="color: #eee; font-size: 1.05rem; line-height: 1.6; text-shadow: 0 1px 3px #000; letter-spacing: 0.3px;">${contenidoHtml}</div>
                     </div>
                 </div>
             `;
@@ -164,14 +164,14 @@ function procesarTextoComentario(texto) {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         if (isVideo) {
             return `
-            <div class="comentario-sticker-container" style="margin-top: 10px; display: inline-block;">
-                <video src="${url}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 200px; max-height: 200px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s; border: 1px solid rgba(0, 255, 247, 0.2);" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></video>
+            <div class="comentario-sticker-container" style="margin-top: 15px; display: inline-block;">
+                <video src="${url}" autoplay loop muted playsinline class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s; border: 1px solid rgba(0, 255, 247, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></video>
             </div>
             `;
         } else {
              return `
-            <div class="comentario-sticker-container" style="margin-top: 10px; display: inline-block;">
-                <img src="${url}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 200px; max-height: 200px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s; border: 1px solid rgba(0, 255, 247, 0.2);" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
+            <div class="comentario-sticker-container" style="margin-top: 15px; display: inline-block;">
+                <img src="${url}" class="comentario-sticker" loading="lazy" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 220px; max-height: 220px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s; border: 1px solid rgba(0, 255, 247, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar">
             </div>
             `;
         }
@@ -182,9 +182,9 @@ function procesarTextoComentario(texto) {
         let palabra = palabras[i];
         if (palabra.startsWith('http://') || palabra.startsWith('https://')) {
              if (palabra.match(/\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.3); margin-top: 10px;">`;
+                palabras[i] = `<img src="${palabra}" class="comentario-imagen" loading="lazy" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.3); margin-top: 15px;">`;
             } else if (palabra.match(/\.(mp4|webm)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.3); margin-top: 10px;"></video>`;
+                palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(0, 255, 247, 0.3); margin-top: 15px;"></video>`;
             }
             else if (!palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: #00fff7; text-shadow: 0 0 5px rgba(0,255,247,0.5);">${palabra}</a>`;
@@ -252,7 +252,7 @@ window.closeStickerModal = function() {
         modal.style.opacity = '0';
         setTimeout(() => {
             modal.style.display = 'none';
-            document.getElementById('stickerModalVid').src = ''; // Cortar video al cerrar
+            document.getElementById('stickerModalVid').src = ''; 
         }, 300);
     }
 };
