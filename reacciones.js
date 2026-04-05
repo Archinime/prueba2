@@ -48,7 +48,7 @@ function injectReaccionesCSS() {
             border-radius: 20px;
         }
         .btn-accion-footer:hover { 
-            color: #fff; 
+            color: #fff;
             background: rgba(0, 243, 255, 0.1);
             border-color: rgba(0, 243, 255, 0.4);
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
@@ -132,9 +132,7 @@ function injectReaccionesCSS() {
         }
         .reactions-summary span:nth-child(2) { z-index: 2; }
         .reactions-summary span:nth-child(3) { z-index: 3; }
-        .reactions-summary span:last-of-type {
-            margin-right: 6px;
-        }
+        .reactions-summary span:last-of-type { margin-right: 6px; }
 
         .user-reacted {
             font-weight: 800;
@@ -145,19 +143,39 @@ function injectReaccionesCSS() {
         .user-reacted:hover {
             box-shadow: 0 0 20px currentColor, inset 0 0 15px currentColor;
         }
+
+        /* --- ADAPTACIÓN EXTREMA PARA MÓVILES (Evita que el menú se desborde) --- */
+        @media (max-width: 768px) {
+            .reactions-picker {
+                left: -5px; /* Ajustado para que no se salga a la izquierda */
+                padding: 8px 12px;
+                gap: 8px; /* Menos espacio entre emojis */
+                border-radius: 25px;
+            }
+            .reaction-icon {
+                font-size: 1.4rem; /* Emojis más compactos */
+            }
+            .reaction-icon:hover {
+                transform: scale(1.4) translateY(-5px);
+            }
+            .btn-accion-footer {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+        }
     `;
     document.head.appendChild(style);
 }
 
 window.toggleReaccion = async function(commentId, tipoReaccion) {
-    if (!comentariosCurrentUser) return typeof openLoginModalFromComent === 'function' ? openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
+    if (!comentariosCurrentUser) return typeof openLoginModalFromComent === 'function' ?
+        openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
         await docRef.update({
             [`reactions.${comentariosCurrentUser.uid}`]: tipoReaccion
         });
-        
         if(typeof playUISound === 'function') playUISound('click');
         
     } catch (e) {
