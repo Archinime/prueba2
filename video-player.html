@@ -39,7 +39,6 @@
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
-        backdrop-filter: blur(8px);
         z-index: -5;
         pointer-events: none;
     }
@@ -66,7 +65,7 @@
         display: inline-flex;
         align-items: center; gap: 8px;
         color: #eee; text-decoration: none; font-weight: 600; font-size: 0.85rem;
-        background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.5); 
         padding: 8px 18px; border-radius: 50px;
         border: 1px solid rgba(0, 255, 247, 0.3);
         transition: all 0.3s;
@@ -98,7 +97,7 @@
         top: 0; left: 0; width: 100%;
         height: 14%; min-height: 45px;
         background: linear-gradient(to bottom, rgba(5,5,5,1) 0%, rgba(5,5,5,0.85) 40%, transparent 100%);
-        backdrop-filter: blur(6px); z-index: 100;
+        z-index: 100;
         display: flex; justify-content: center; align-items: flex-start;
         padding-top: 1.5%; border-radius: 16px 16px 0 0;
     }
@@ -176,8 +175,6 @@
         margin-top: 40px;
         padding: 25px;
         background: rgba(10, 10, 15, 0.75);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
         border-radius: 20px;
         border: 1px solid rgba(0, 255, 247, 0.2);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 255, 247, 0.05);
@@ -185,7 +182,8 @@
     }
     
     .comentarios-header {
-        display: flex; align-items: center; gap: 12px;
+        display: flex;
+        align-items: center; gap: 12px;
         margin-bottom: 25px; padding-bottom: 15px;
         border-bottom: 1px dashed rgba(255,255,255,0.15);
     }
@@ -198,7 +196,7 @@
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 16px; padding: 30px; text-align: center;
         box-shadow: inset 0 0 20px rgba(0, 255, 247, 0.05);
-        margin-bottom: 40px; /* <--- ESPACIO AÑADIDO PARA SEPARAR DE LOS COMENTARIOS */
+        margin-bottom: 40px;
     }
     
     .login-link-btn {
@@ -214,7 +212,6 @@
     /* --- CAJA DE TEXTO ESTÁTICA --- */
     .comentario-form-container {
         background: rgba(15, 15, 20, 0.95);
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         border-radius: 16px; padding: 20px;
         border: 1px solid var(--primary-color);
         box-shadow: 0 -10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,255,247,0.1);
@@ -223,14 +220,13 @@
         margin-bottom: 40px;
     }
     
-    /* <--- FORZAMOS A QUE NOMBRE Y AVATAR ESTÉN EN LA MISMA LÍNEA ---> */
     .comentario-user-info { 
-        display: flex; 
+        display: flex;
         flex-direction: row !important; 
         align-items: center; 
         gap: 12px; 
         margin-bottom: 15px; 
-        flex-wrap: nowrap !important; 
+        flex-wrap: nowrap !important;
     }
     .comentario-user-info img {
         width: 45px; height: 45px; border-radius: 50%;
@@ -312,7 +308,7 @@
     .sticker-panel-full {
         display: none;
         background: rgba(15, 15, 20, 0.98); 
-        border: 1px solid var(--primary-color); border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(15px);
+        border: 1px solid var(--primary-color); border-radius: 16px; margin-bottom: 15px; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         overflow: hidden;
     }
@@ -333,17 +329,20 @@
     .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     
     .sticker-item {
-        position: relative; background: rgba(0,0,0,0.4); border-radius: 12px;
+        position: relative;
+        background: rgba(0,0,0,0.4); border-radius: 12px;
         padding: 8px; cursor: pointer; text-align: center; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05);
     }
     .sticker-item:hover { 
-        background: rgba(0, 255, 247, 0.1); transform: scale(1.05); 
+        background: rgba(0, 255, 247, 0.1);
+        transform: scale(1.05); 
         border-color: rgba(0, 255, 247, 0.5); box-shadow: 0 0 15px rgba(0, 255, 247, 0.2);
     }
     .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px; }
     
     .sticker-delete-btn {
-        position: absolute; top: -5px; right: -5px; background: rgba(255, 0, 85, 0.9); border: none;
+        position: absolute;
+        top: -5px; right: -5px; background: rgba(255, 0, 85, 0.9); border: none;
         color: white; border-radius: 50%; width: 22px; height: 22px;
         font-size: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(255,0,85,0.5); transition: 0.2s;
     }
@@ -368,14 +367,16 @@
     
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 10001;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 10001;
         display: flex; justify-content: center; align-items: center;
         opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
     }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
     .auth-card {
-        background: #0f0f13; border: 1px solid var(--primary-color); border-radius: 20px;
+        background: #0f0f13; border: 1px solid var(--primary-color);
+        border-radius: 20px;
         width: 100%; max-width: 400px; padding: 30px; position: relative;
     }
     .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
@@ -458,7 +459,7 @@
                 </div>
                 
                 <div class="comentario-input-wrapper">
-                    <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
+                    <textarea id="comentarioTexto" placeholder="Escribe un nuevo comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
                     <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                     <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
                         <i class="fas fa-sticky-note"></i>
@@ -727,6 +728,42 @@
       }
     }
     
+    // --- LÓGICA DE AUTO-MARCADO DEL HISTORIAL ---
+    const autoMarkEpisodeWatched = () => {
+        const aId = params.get('anime');
+        const sNum = parseInt(params.get('s'));
+        const eNum = parseInt(params.get('e'));
+
+        if (!aId || isNaN(sNum) || isNaN(eNum)) return;
+
+        // Se ejecuta una vez que el estado de autenticación de Firebase esté listo
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const docRef = db.collection('watchHistory').doc(user.uid);
+                    const doc = await docRef.get();
+                    let data = doc.exists ? doc.data() : {};
+                    let animeData = data[aId] || {};
+                    let seasonData = animeData[sNum] || [];
+
+                    if (!seasonData.includes(eNum)) {
+                        seasonData.push(eNum);
+                        animeData[sNum] = seasonData;
+                        data[aId] = animeData;
+                        await docRef.set(data, { merge: true });
+                        console.log("Episodio auto-marcado como visto en Firestore");
+                    }
+                } catch (e) {
+                    console.error("Error al auto-marcar episodio en Firestore:", e);
+                }
+            } else {
+                // Si el usuario no está logueado, lo guarda en el localStorage para invitados
+                localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
+                console.log("Episodio auto-marcado como visto en modo Local");
+            }
+        });
+    };
+
     if (epData) {
       document.title = `Ver ${epData.title} - Archinime`;
       document.getElementById('epTitle').innerText = epData.title;
@@ -738,6 +775,9 @@
       if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
       setupNavigation();
       
+      // Llamar al auto-marcado de episodios
+      autoMarkEpisodeWatched();
+
       const checkScriptsInterval = setInterval(() => {
         if (typeof initStickersSystem === 'function' && typeof initComentariosSystem === 'function') {
           clearInterval(checkScriptsInterval);
@@ -745,7 +785,6 @@
           initComentariosSystem(db, auth);
         }
       }, 100);
-
     } else {
       document.getElementById('epTitle').innerText = "No encontrado";
     }
