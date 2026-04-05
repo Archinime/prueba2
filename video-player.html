@@ -198,6 +198,7 @@
         border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 16px; padding: 30px; text-align: center;
         box-shadow: inset 0 0 20px rgba(0, 255, 247, 0.05);
+        margin-bottom: 40px; /* <--- ESPACIO AÑADIDO PARA SEPARAR DE LOS COMENTARIOS */
     }
     
     .login-link-btn {
@@ -210,7 +211,7 @@
     }
     .login-link-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 255, 247, 0.6); }
     
-    /* --- CAJA DE TEXTO AHORA ESTÁTICA Y SEPARADA --- */
+    /* --- CAJA DE TEXTO ESTÁTICA --- */
     .comentario-form-container {
         background: rgba(15, 15, 20, 0.95);
         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -219,10 +220,18 @@
         box-shadow: 0 -10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,255,247,0.1);
         transition: all 0.3s;
         margin-top: 20px;
-        margin-bottom: 40px; /* Margen inferior para separarlo de los comentarios */
+        margin-bottom: 40px;
     }
     
-    .comentario-user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+    /* <--- FORZAMOS A QUE NOMBRE Y AVATAR ESTÉN EN LA MISMA LÍNEA ---> */
+    .comentario-user-info { 
+        display: flex; 
+        flex-direction: row !important; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: 15px; 
+        flex-wrap: nowrap !important; 
+    }
     .comentario-user-info img {
         width: 45px; height: 45px; border-radius: 50%;
         border: 2px solid var(--primary-color); object-fit: cover;
