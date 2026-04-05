@@ -173,7 +173,8 @@
     
     /* ===== COMENTARIOS ===== */
     .comentarios-section {
-        margin-top: 40px; padding: 25px;
+        margin-top: 40px;
+        padding: 25px;
         background: rgba(10, 10, 15, 0.75);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
@@ -193,7 +194,8 @@
     .comentarios-header h3 { font-size: 1.4rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;}
     
     .comentario-login-message {
-        background: rgba(0, 255, 247, 0.05); border: 1px solid rgba(0, 255, 247, 0.3);
+        background: rgba(0, 255, 247, 0.05);
+        border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 16px; padding: 30px; text-align: center;
         box-shadow: inset 0 0 20px rgba(0, 255, 247, 0.05);
     }
@@ -208,15 +210,16 @@
     }
     .login-link-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 255, 247, 0.6); }
     
-    /* --- CAJA DE TEXTO STICKY --- */
+    /* --- CAJA DE TEXTO AHORA ESTÁTICA Y SEPARADA --- */
     .comentario-form-container {
         background: rgba(15, 15, 20, 0.95);
         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         border-radius: 16px; padding: 20px;
         border: 1px solid var(--primary-color);
         box-shadow: 0 -10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,255,247,0.1);
-        position: sticky; bottom: 20px; z-index: 900;
-        transition: all 0.3s; margin-top: 20px;
+        transition: all 0.3s;
+        margin-top: 20px;
+        margin-bottom: 40px; /* Margen inferior para separarlo de los comentarios */
     }
     
     .comentario-user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
@@ -229,7 +232,8 @@
     
     .comentario-input-wrapper { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .comentario-input-wrapper textarea {
-        flex: 1; background: rgba(5, 5, 10, 0.6);
+        flex: 1;
+        background: rgba(5, 5, 10, 0.6);
         border: 1px solid rgba(0, 255, 247, 0.4); 
         border-radius: 12px; padding: 15px; color: white;
         font-family: 'Poppins', sans-serif; 
@@ -240,14 +244,17 @@
     .comentario-input-wrapper textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 255, 247, 0.3), inset 0 0 10px rgba(0,0,0,0.5); }
     
     .emoji-btn, .sticker-btn {
-        background: rgba(0, 255, 247, 0.05); border: 1px solid rgba(0, 255, 247, 0.3);
+        background: rgba(0, 255, 247, 0.05);
+        border: 1px solid rgba(0, 255, 247, 0.3);
         border-radius: 12px; padding: 12px 18px; cursor: pointer; font-size: 1.4rem;
-        transition: all 0.3s; color: white; display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s;
+        color: white; display: flex; align-items: center; justify-content: center;
     }
     .emoji-btn:hover, .sticker-btn:hover { background: rgba(0, 255, 247, 0.2); box-shadow: 0 0 15px rgba(0, 255, 247, 0.3); transform: translateY(-2px); }
     
     .emoji-panel {
-        display: none; background: rgba(20, 20, 30, 0.95); border: 1px solid var(--primary-color);
+        display: none;
+        background: rgba(20, 20, 30, 0.95); border: 1px solid var(--primary-color);
         border-radius: 12px; padding: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;
         max-height: 200px; overflow-y: auto; box-shadow: 0 5px 20px rgba(0,0,0,0.8);
     }
@@ -261,7 +268,8 @@
     .remove-sticker-btn:hover { transform: scale(1.1); }
 
     .enviar-comentario-btn {
-        background: linear-gradient(135deg, var(--primary-color), #0099ff); border: none;
+        background: linear-gradient(135deg, var(--primary-color), #0099ff);
+        border: none;
         color: #000; font-weight: 800; padding: 12px 30px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
         transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; width: 100%; justify-content: center;
     }
@@ -293,15 +301,18 @@
     
     /* ===== STICKERS MODAL ===== */
     .sticker-panel-full {
-        display: none; background: rgba(15, 15, 20, 0.98); 
+        display: none;
+        background: rgba(15, 15, 20, 0.98); 
         border: 1px solid var(--primary-color); border-radius: 16px; margin-bottom: 15px; backdrop-filter: blur(15px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        overflow: hidden;
     }
     .sticker-panel-full.active { display: block; }
     
     .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.7); }
     .sticker-tab { 
-        flex: 1; padding: 15px 10px; background: none; border: none; color: #888; 
+        flex: 1; padding: 15px 10px;
+        background: none; border: none; color: #888; 
         cursor: pointer; font-size: 0.8rem; font-weight: 800; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; transition: 0.3s;
     }
     .sticker-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
@@ -430,65 +441,67 @@
             </button>
         </div>
 
-        <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
-            <div class="comentario-user-info">
-                <img id="comentarioUserAvatar" src="invitado.avif">
-                <span id="comentarioUserName">Usuario</span>
-            </div>
-            
-            <div class="comentario-input-wrapper">
-                <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
-                <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
-                <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
-                    <i class="fas fa-sticky-note"></i>
-                </button>
-            </div>
-            
-            <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
-                <div class="preview-sticker-wrapper">
-                    <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;">
-                    <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;"></video>
-                    <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
+        <div id="comentarioFormOriginalLocation">
+            <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
+                <div class="comentario-user-info">
+                    <img id="comentarioUserAvatar" src="invitado.avif">
+                    <span id="comentarioUserName">Usuario</span>
                 </div>
-            </div>
-            
-            <div id="emojiPanel" class="emoji-panel"></div>
-            
-            <div id="stickerPanelFull" class="sticker-panel-full">
-                <div class="sticker-tabs">
-                    <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
-                    <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
+                
+                <div class="comentario-input-wrapper">
+                    <textarea id="comentarioTexto" placeholder="Escribe tu comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
+                    <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
+                    <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
+                        <i class="fas fa-sticky-note"></i>
+                    </button>
                 </div>
-        
-                <div id="misStickersTab" class="sticker-tab-content active">
-                    <div id="userStickersContainer" class="stickers-grid">
-                        <div class="sticker-empty">Cargando...</div>
+                
+                <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
+                    <div class="preview-sticker-wrapper">
+                        <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;">
+                        <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;"></video>
+                        <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
                     </div>
                 </div>
-         
-                <div id="subirStickersTab" class="sticker-tab-content">
-                    <div class="add-sticker-container">
-                        <p class="add-sticker-desc">📸 Sube imágenes o videos desde tu computadora</p>
-                        <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 50MB)</p>
-                        <div class="upload-sticker-area">
-                            <label for="stickerFileInput" class="upload-sticker-label">
-                                <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
-                            </label>
-                            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
-                            
-                            <div class="upload-preview" id="stickerPreview" style="display:none;">
-                                <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
-                                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
+                
+                <div id="emojiPanel" class="emoji-panel"></div>
+                
+                <div id="stickerPanelFull" class="sticker-panel-full">
+                    <div class="sticker-tabs">
+                        <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
+                        <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
+                    </div>
+            
+                    <div id="misStickersTab" class="sticker-tab-content active">
+                        <div id="userStickersContainer" class="stickers-grid">
+                            <div class="sticker-empty">Cargando...</div>
+                        </div>
+                    </div>
+            
+                    <div id="subirStickersTab" class="sticker-tab-content">
+                        <div class="add-sticker-container">
+                            <p class="add-sticker-desc">📸 Sube imágenes o videos desde tu computadora</p>
+                            <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 50MB)</p>
+                            <div class="upload-sticker-area">
+                                <label for="stickerFileInput" class="upload-sticker-label">
+                                    <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
+                                </label>
+                                <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
+                                
+                                <div class="upload-preview" id="stickerPreview" style="display:none;">
+                                    <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
+                                    <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-           
-            <div class="comentario-actions">
-                <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
-                    <i class="fas fa-paper-plane"></i> Enviar Comentario
-                </button>
+            
+                <div class="comentario-actions">
+                    <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
+                        <i class="fas fa-paper-plane"></i> Enviar Comentario
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -716,7 +729,6 @@
       if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
       setupNavigation();
       
-      // INICIALIZACIÓN CORRECTA: Espera a que los archivos JS se carguen y llama a las funciones una sola vez
       const checkScriptsInterval = setInterval(() => {
         if (typeof initStickersSystem === 'function' && typeof initComentariosSystem === 'function') {
           clearInterval(checkScriptsInterval);

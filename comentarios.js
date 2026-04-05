@@ -13,7 +13,7 @@ window.respondiendoA = null;
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
-    
+
     // Inyectar CSS Mejorado y Responsivo automáticamente
     injectCommentsCSS();
 
@@ -44,33 +44,62 @@ function injectCommentsCSS() {
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
     style.innerHTML = `
-        .action-btn { background: none; border: none; font-size: 0.85rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .action-btn.reply-btn { color: var(--primary-color, #00fff7); background: rgba(0, 255, 247, 0.05); border: 1px solid rgba(0, 255, 247, 0.2); }
-        .action-btn.reply-btn:hover { background: rgba(0, 255, 247, 0.2); box-shadow: 0 0 15px rgba(0, 255, 247, 0.4); transform: translateY(-2px); color: #fff; }
-        .action-btn.delete-btn { color: #ff5555; background: rgba(255, 85, 85, 0.05); border: 1px solid rgba(255, 85, 85, 0.2); }
-        .action-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.2); box-shadow: 0 0 15px rgba(255, 85, 85, 0.4); transform: translateY(-2px); color: #fff; }
+        .action-btn { background: none; border: none; font-size: 0.85rem;
+        font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .action-btn.reply-btn { color: var(--primary-color, #00fff7);
+        background: rgba(0, 255, 247, 0.05); border: 1px solid rgba(0, 255, 247, 0.2);
+        }
+        .action-btn.reply-btn:hover { background: rgba(0, 255, 247, 0.2);
+        box-shadow: 0 0 15px rgba(0, 255, 247, 0.4); transform: translateY(-2px); color: #fff;
+        }
+        .action-btn.delete-btn { color: #ff5555; background: rgba(255, 85, 85, 0.05);
+        border: 1px solid rgba(255, 85, 85, 0.2); }
+        .action-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.2);
+        box-shadow: 0 0 15px rgba(255, 85, 85, 0.4); transform: translateY(-2px); color: #fff;
+        }
         
-        .respuestas-wrapper { margin-left: 65px; margin-top: -5px; margin-bottom: 25px; position: relative; }
-        .respuestas-line { position: absolute; left: -32px; top: 0; bottom: 20px; width: 2px; background: rgba(0, 255, 247, 0.15); border-radius: 2px; transition: 0.3s; }
-        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.5); box-shadow: 0 0 10px rgba(0, 255, 247, 0.6); }
+        .respuestas-wrapper { margin-left: 65px;
+        margin-top: -5px; margin-bottom: 25px; position: relative; }
+        .respuestas-line { position: absolute; left: -32px;
+        top: 0; bottom: 20px; width: 2px; background: rgba(0, 255, 247, 0.15); border-radius: 2px; transition: 0.3s;
+        }
+        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.5);
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.6); }
         
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--primary-color, #00fff7); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; transition: 0.3s; padding: 5px 15px; border-radius: 20px; }
-        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); text-shadow: 0 0 8px rgba(0, 255, 247, 0.8); }
+        .toggle-respuestas-btn { background: transparent;
+        border: none; color: var(--primary-color, #00fff7); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center;
+        gap: 8px; transition: 0.3s; padding: 5px 15px; border-radius: 20px; }
+        .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1);
+        text-shadow: 0 0 8px rgba(0, 255, 247, 0.8); }
         
-        .show-more-replies-btn { background: rgba(188, 19, 254, 0.1); border: 1px dashed rgba(188, 19, 254, 0.5); color: #bc13fe; border-radius: 12px; padding: 10px; cursor: pointer; font-weight: bold; margin-top: 5px; transition: 0.3s; width: 100%; text-align: center; }
-        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.2); box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); color: #fff; transform: translateY(-2px); }
+        .show-more-replies-btn { background: rgba(188, 19, 254, 0.1);
+        border: 1px dashed rgba(188, 19, 254, 0.5); color: #bc13fe; border-radius: 12px; padding: 10px; cursor: pointer; font-weight: bold; margin-top: 5px;
+        transition: 0.3s; width: 100%; text-align: center; }
+        .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.2);
+        box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); color: #fff; transform: translateY(-2px);
+        }
 
-        .comentario-item { animation: fadeIn 0.5s ease-out forwards; }
+        .comentario-item { animation: fadeIn 0.5s ease-out forwards;
+        }
         
         @media (max-width: 768px) {
-            .respuestas-wrapper { margin-left: 20px; }
-            .respuestas-line { left: -10px; width: 2px; }
-            .comentario-item { padding: 15px !important; flex-direction: column; gap: 12px !important; }
-            .comentario-item.is-reply { padding: 12px !important; }
-            .comentario-avatar img { width: 45px !important; height: 45px !important; }
-            .is-reply .comentario-avatar img { width: 35px !important; height: 35px !important; }
-            .action-btn { padding: 5px 12px; font-size: 0.8rem; }
-            .comentario-header { flex-direction: column; align-items: flex-start !important; }
+            .respuestas-wrapper { margin-left: 20px;
+            }
+            .respuestas-line { left: -10px; width: 2px;
+            }
+            .comentario-item { padding: 15px !important; flex-direction: column;
+            gap: 12px !important; }
+            .comentario-item.is-reply { padding: 12px !important;
+            }
+            .comentario-avatar img { width: 45px !important;
+            height: 45px !important; }
+            .is-reply .comentario-avatar img { width: 35px !important;
+            height: 35px !important; }
+            .action-btn { padding: 5px 12px;
+            font-size: 0.8rem; }
+            .comentario-header { flex-direction: column;
+            align-items: flex-start !important; }
         }
     `;
     document.head.appendChild(style);
@@ -96,7 +125,6 @@ function hexToRgbStr(hex) {
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
-    // Aumentamos el límite para asegurar que traemos tanto raíces como respuestas
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
@@ -111,69 +139,54 @@ function setupComentariosRealtimeListener() {
             container.innerHTML = `<div class="empty-comments" style="color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color);"><i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block; opacity: 0.5;"></i><p style="font-weight: bold; font-size: 1.1rem;">Sin comentarios aún. ¡Sé el primero en iniciar la conversación!</p></div>`;
             return;
         }
-      
-        // INVERTIMOS el array visualmente
+  
         const docsReversed = [...snapshot.docs].reverse();
         const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // --- CONSTRUCCIÓN DEL ÁRBOL DE COMENTARIOS ---
         const commentMap = new Map();
         allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
-        
+      
         const roots = [];
-
         allComments.forEach(c => {
             if (c.replyToId && commentMap.has(c.replyToId)) {
-                // Es una respuesta. Buscamos al padre principal para agruparlo estilo YouTube (1 solo nivel de indentación)
                 let rootId = c.replyToId;
                 while (commentMap.has(rootId) && commentMap.get(rootId).replyToId) {
-                    rootId = commentMap.get(rootId).replyToId;
+                  rootId = commentMap.get(rootId).replyToId;
                 }
                 if (commentMap.has(rootId)) {
                     commentMap.get(rootId).replies.push(c);
                 } else {
-                    roots.push(commentMap.get(c.id)); // Fallback por si acaso
+                    roots.push(commentMap.get(c.id)); 
                 }
             } else {
-                // Es un comentario principal (raíz)
                 roots.push(commentMap.get(c.id));
             }
         });
 
-        // --- RENDERIZADO HTML ---
         let html = '';
-        
         roots.forEach(root => {
-            // Renderizamos el comentario principal
             html += generarHtmlComentario(root, false);
 
-            // Renderizamos las respuestas (si tiene)
             if (root.replies && root.replies.length > 0) {
-                // Ordenar respuestas por fecha (las más antiguas arriba)
                 root.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
 
                 html += `<div class="respuestas-wrapper" id="respuestas-${root.id}">`;
-                html += `<div class="respuestas-line"></div>`; // Línea conectora
+                html += `<div class="respuestas-line"></div>`; 
                 
-                // Botón para desplegar
                 const textoBtn = root.replies.length === 1 ? 'Ver 1 respuesta' : `Ver ${root.replies.length} respuestas`;
                 html += `<button class="toggle-respuestas-btn" onclick="toggleRespuestas('${root.id}')">
                             <i class="fas fa-chevron-down" id="icon-${root.id}"></i> 
                             <span id="text-${root.id}">${textoBtn}</span>
                          </button>`;
 
-                // Contenedor de respuestas (Oculto por defecto)
                 html += `<div class="respuestas-container" id="container-${root.id}" style="display: none; flex-direction: column; gap: 12px;">`;
-
                 root.replies.forEach((reply, index) => {
-                    // Si hay más de 5, ocultamos el resto
                     const isHidden = index >= 5 ? 'display: none;' : '';
                     const hiddenClass = index >= 5 ? `hidden-reply-${root.id}` : '';
                     
                     html += `<div class="${hiddenClass}" style="${isHidden}">` + generarHtmlComentario(reply, true, root.id) + `</div>`;
                 });
 
-                // Botón "Mostrar más" si hay más de 5 respuestas
                 if (root.replies.length > 5) {
                     const remaining = root.replies.length - 5;
                     html += `<button id="showMore-${root.id}" class="show-more-replies-btn" onclick="showMoreReplies('${root.id}')">
@@ -181,16 +194,14 @@ function setupComentariosRealtimeListener() {
                              </button>`;
                 }
 
-                html += `</div></div>`; // Cierre container y wrapper
+                html += `</div></div>`;
             }
         });
-        
         container.innerHTML = html;
         
     }, (error) => console.error('Error en comentarios:', error));
 }
 
-// Generador unificado de HTML para Comentarios y Respuestas
 function generarHtmlComentario(c, isReply) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
@@ -200,10 +211,8 @@ function generarHtmlComentario(c, isReply) {
     const userName = c.userName || 'Usuario';
     const neonColor = getNeonColorByString(c.userId || userName);
     const rgbColor = hexToRgbStr(neonColor);
-    
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     
-    // Etiqueta de mención
     if (c.replyToUser) {
         contenidoHtml = `<span style="color: ${neonColor}; font-weight: 800; margin-right: 5px; background: rgba(${rgbColor}, 0.15); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(${rgbColor}, 0.3);">@${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
     }
@@ -219,16 +228,15 @@ function generarHtmlComentario(c, isReply) {
         `;
     }
     
-    // Estilos dinámicos dependiendo si es raíz o respuesta
     const padding = isReply ? '18px' : '22px';
     const avatarSize = isReply ? '45px' : '55px';
     const titleSize = isReply ? '1.05rem' : '1.15rem';
     const bgStyle = isReply ? `background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(5px);` : `background: linear-gradient(135deg, rgba(15,15,20,0.95) 0%, rgba(5,5,10,0.95) 100%);`;
-
-    // AHORA CUALQUIERA PUEDE RESPONDER (incluso a sí mismo, quitado !isOwner)
-    const replyBtn = comentariosCurrentUser ? `<button class="action-btn reply-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}')"><i class="fas fa-reply"></i> Responder</button>` : '';
+    const replyBtn = comentariosCurrentUser ?
+    `<button class="action-btn reply-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}')"><i class="fas fa-reply"></i> Responder</button>` : '';
     
-    const deleteBtn = isOwner ? `<button class="action-btn delete-btn" onclick="deleteComentario('${c.id}')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : '';
+    const deleteBtn = isOwner ?
+    `<button class="action-btn delete-btn" onclick="deleteComentario('${c.id}')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''}" id="comment-${c.id}" style="position: relative; overflow: hidden; ${bgStyle} border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.6), inset 0 0 10px rgba(${rgbColor}, 0.05); border-radius: 16px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '15px'}; display: flex; gap: 18px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);"
@@ -255,7 +263,6 @@ function generarHtmlComentario(c, isReply) {
     `;
 }
 
-// Funciones para el Acordeón y "Mostrar Más" de Respuestas
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const icon = document.getElementById(`icon-${rootId}`);
@@ -281,8 +288,6 @@ window.showMoreReplies = function(rootId) {
     if(btn) btn.style.display = 'none';
 };
 
-// ... RESTO DEL CÓDIGO INTACTO ...
-
 function obtenerTiempoRelativo(fecha) {
     const ahora = new Date();
     const diffSegundos = Math.floor((ahora - fecha) / 1000);
@@ -305,7 +310,8 @@ function procesarTextoComentario(texto) {
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `
         <div class="comentario-sticker-container" style="margin-top: 15px; display: inline-block;">
-            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 180px; max-height: 180px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s; border: 1px solid rgba(0, 255, 247, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></${isVideo ? 'video' : 'img'}>
+            <${tag} src="${url}" class="comentario-sticker" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="max-width: 180px; max-height: 180px; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.3s; border: 1px solid rgba(0, 255, 247, 0.3);" onmouseover="this.style.transform='scale(1.05)'" 
+            onmouseout="this.style.transform='scale(1)'" title="Clic para ver y robar"></${isVideo ? 'video' : 'img'}>
         </div>`;
     });
     const palabras = html.split(/(\s+)/);
@@ -331,14 +337,24 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         banner = document.createElement('div');
         banner.id = 'replyInfoBanner';
         banner.style.cssText = "margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,255,247,0.1); padding: 10px 20px; border-radius: 12px; border-left: 4px solid var(--primary-color); backdrop-filter: blur(5px); animation: fadeIn 0.3s ease-out;";
-        const formContainer = document.querySelector('.comentario-input-wrapper');
-        formContainer.parentNode.insertBefore(banner, formContainer);
+        const formWrapper = document.querySelector('.comentario-input-wrapper');
+        formWrapper.parentNode.insertBefore(banner, formWrapper);
     }
     
     banner.innerHTML = `<span style="color:var(--primary-color); font-size:0.95rem; font-weight: bold;"><i class="fas fa-reply"></i> Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span> 
-    <button onclick="cancelarRespuesta()" style="background:rgba(255,85,85,0.2); border:1px solid #ff5555; color:#ff5555; border-radius: 50%; width: 28px; height: 28px; cursor:pointer; font-size: 0.9rem; transition: 0.3s;" onmouseover="this.style.background='#ff5555'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,85,85,0.2)'; this.style.color='#ff5555';" title="Cancelar respuesta"><i class="fas fa-times"></i></button>`;
+    <button onclick="cancelarRespuesta()" style="background:rgba(255,85,85,0.2); border:1px solid #ff5555; color:#ff5555; border-radius: 50%; width: 28px; height: 28px; cursor:pointer; font-size: 0.9rem; transition: 0.3s;"
+    onmouseover="this.style.background='#ff5555'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,85,85,0.2)'; this.style.color='#ff5555';" title="Cancelar respuesta"><i class="fas fa-times"></i></button>`;
     banner.style.display = 'flex';
     
+    // MOVER EL FORMULARIO DEBAJO DEL COMENTARIO ESPECÍFICO
+    const formContainer = document.getElementById('comentarioFormContainer');
+    const commentEl = document.getElementById(`comment-${commentId}`);
+    if (formContainer && commentEl) {
+        commentEl.parentNode.insertBefore(formContainer, commentEl.nextSibling);
+        formContainer.style.marginTop = "10px";
+        formContainer.style.marginBottom = "20px";
+    }
+
     document.getElementById('comentarioTexto').focus();
 };
 
@@ -346,6 +362,15 @@ window.cancelarRespuesta = function() {
     window.respondiendoA = null;
     const banner = document.getElementById('replyInfoBanner');
     if (banner) banner.style.display = 'none';
+
+    // DEVOLVER EL FORMULARIO A SU LUGAR ORIGINAL
+    const formContainer = document.getElementById('comentarioFormContainer');
+    const originalLocation = document.getElementById('comentarioFormOriginalLocation');
+    if (formContainer && originalLocation) {
+        originalLocation.appendChild(formContainer);
+        formContainer.style.marginTop = "20px";
+        formContainer.style.marginBottom = "40px";
+    }
 };
 
 window.openStickerModal = function(url) {
@@ -356,7 +381,8 @@ window.openStickerModal = function(url) {
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);backdrop-filter:blur(15px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s; padding: 20px;';
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
-                <button onclick="closeStickerModal()" style="position:absolute;top:-50px;right:-10px;background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;text-shadow:0 0 15px #ff0055; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.2)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
+                <button onclick="closeStickerModal()" style="position:absolute;top:-50px;right:-10px;background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;text-shadow:0 0 15px #ff0055; transition: 0.2s;"
+                onmouseover="this.style.color='#ff0055'; transform='scale(1.2)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
                 <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:20px;box-shadow:0 0 50px rgba(0,255,247,0.5); object-fit:contain; border: 2px solid rgba(0,255,247,0.4);">
                 <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:20px;box-shadow:0 0 50px rgba(0,255,247,0.5); object-fit:contain; border: 2px solid rgba(0,255,247,0.4);"></video>
                 <br>
@@ -410,9 +436,7 @@ async function enviarComentarioTexto() {
     btn.disabled = true;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-    
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-    
     try {
         await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
@@ -430,7 +454,6 @@ async function enviarComentarioTexto() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // NOTIFICACIÓN AL USUARIO (Solo si no te estás respondiendo a ti mismo)
         if (window.respondiendoA && window.respondiendoA.userId !== comentariosCurrentUser.uid) {
             await comentariosDb.collection('user_notifications').add({
                 targetUserId: window.respondiendoA.userId,
@@ -546,4 +569,5 @@ function showToastComent(msg) {
 }
 
 function openLoginModalFromComent() { const modal = document.getElementById('authModal'); if (modal) modal.classList.add('show'); }
-function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text;
+return div.innerHTML; }
