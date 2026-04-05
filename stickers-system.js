@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS (IMGBB + FIREBASE STORAGE)
+// SISTEMA DE STICKERS (CLOUDINARY PARA VIDEOS E IMÁGENES)
 // ============================================
 
 let stickersDb = null;
@@ -7,8 +7,11 @@ let stickersAuth = null;
 let stickersCurrentUser = null;
 let userStickersCollection = [];
 
-// 🔑 TU API KEY DE IMGBB (SOLO IMÁGENES)
-const IMGBB_API_KEY = 'c4c143b7bacc58fc3cc5ce5c66282d4e';
+// ⚙️ CONFIGURACIÓN DE CLOUDINARY (GRATIS Y SIN TARJETA)
+// Reemplaza 'dbcqcai1q' con tu Cloud Name de Cloudinary
+// Reemplaza 'stickers_archinime' con el nombre del preset "Unsigned" que creaste
+const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/upload';
+const CLOUDINARY_PRESET = 'TU_UPLOAD_PRESET';
 
 // Stickers por defecto
 const DEFAULT_STICKERS = [
@@ -57,6 +60,7 @@ function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
     
+    // Limpieza agresiva de nulos, vacíos y corruptos
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     
     if (validStickers.length === 0) {
@@ -146,45 +150,33 @@ async function subirStickerDesdePC(input) {
     btnSubir.style.pointerEvents = 'none';
     
     try {
-        let finalUrl = "";
+        // USAMOS CLOUDINARY PARA TODO (Imágenes y Videos)
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
         
-        if (isVideoFile) {
-            // USAMOS FIREBASE STORAGE PARA LOS VIDEOS (EVITA ERRORES DE CORS)
-            const storageRef = firebase.storage().ref();
-            // Limpiamos el nombre para que no haya conflictos
-            const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-            const fileName = `stickers_videos/${stickersCurrentUser.uid}_${Date.now()}_${cleanFileName}`;
-            const videoRef = storageRef.child(fileName);
+        // Cloudinary detecta automáticamente si es imagen o video
+        const response = await fetch(CLOUDINARY_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.secure_url) {
+            await guardarStickerEnColeccion(data.secure_url);
             
-            const snapshot = await videoRef.put(file);
-            finalUrl = await snapshot.ref.getDownloadURL();
-            
+            previewContainer.style.display = 'none';
+            input.value = '';
+            showToastSticker('✅ Archivo subido y guardado exitosamente');
+            switchStickerTab('mis');
         } else {
-            // IMÁGENES CONTINUAN USANDO IMGBB PARA NO OCUPAR ESPACIO
-            const formData = new FormData();
-            formData.append('image', file);
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-            if (data.success) {
-                finalUrl = data.data.url;
-            } else {
-                throw new Error(data.error.message || 'Error en ImgBB');
-            }
+            throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
         }
-
-        await guardarStickerEnColeccion(finalUrl);
-        
-        previewContainer.style.display = 'none';
-        input.value = '';
-        showToastSticker('✅ Archivo subido y guardado exitosamente');
-        switchStickerTab('mis');
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir el archivo: " + error.message);
+        alert("Error al subir el archivo: Revisa que hayas configurado el Cloud Name y el Preset correctamente.");
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
@@ -232,6 +224,7 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
+// CORRECCIÓN TOTAL DEL ROBO DE STICKERS: Lectura estricta desde Firebase
 window.robarStickerSistema = async function(url) {
     if (!stickersCurrentUser) {
         openLoginModalFromStickers();
@@ -241,6 +234,7 @@ window.robarStickerSistema = async function(url) {
     const cleanUrl = url.trim();
     
     try {
+        // 1. Siempre bajamos la colección actual directo del servidor para evitar desincronizaciones
         const userRef = stickersDb.collection('users').doc(stickersCurrentUser.uid);
         const doc = await userRef.get();
         
@@ -251,16 +245,20 @@ window.robarStickerSistema = async function(url) {
             dbStickers = [...DEFAULT_STICKERS];
         }
 
+        // 2. Comprobamos si el usuario ya lo tiene
         if (dbStickers.includes(cleanUrl)) {
             showToastSticker('⚠️ Ya tienes este sticker en tu colección');
             return;
         }
 
+        // 3. Añadimos y aseguramos que no haya nulos o duplicados
         dbStickers.push(cleanUrl);
         const safeStickers = [...new Set(dbStickers)].filter(s => typeof s === 'string' && s.trim() !== '');
         
+        // 4. Guardamos agresivamente en Firebase
         await userRef.set({ stickers: safeStickers }, { merge: true });
         
+        // 5. Solo si funcionó, actualizamos la vista
         userStickersCollection = safeStickers;
         renderUserStickers();
         showToastSticker('✅ ¡Sticker robado y guardado!');
