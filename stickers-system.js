@@ -7,17 +7,17 @@ let stickersAuth = null;
 let stickersCurrentUser = null;
 let userStickersCollection = [];
 
-// ⚙️ CONFIGURACIÓN DE CLOUDINARY (GRATIS Y SIN TARJETA)
+// ⚙️ CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
 
-// Stickers por defecto (Vaciado para que las cuentas nuevas empiecen con 0)
+// Stickers por defecto (Cuenta en 0)
 const DEFAULT_STICKERS = [];
 
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
-
+    
     auth.onAuthStateChanged(user => {
         stickersCurrentUser = user;
         updateStickersUI();
@@ -32,17 +32,20 @@ function initStickersSystem(db, auth) {
 
 async function loadUserStickers() {
     if (!stickersCurrentUser) return;
-
     try {
-        // LEEMOS DE LA COLECCIÓN CORRECTA (userStickers)
         const doc = await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).get();
-        
         if (doc.exists && doc.data().stickers) {
-            userStickersCollection = doc.data().stickers;
+            // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
+            userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
+            
+            // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
+            if(userStickersCollection.length !== doc.data().stickers.length) {
+                await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
+                    stickers: userStickersCollection
+                }, { merge: true });
+            }
         } else {
             userStickersCollection = [...DEFAULT_STICKERS];
-            
-            // GUARDAMOS EN LA COLECCIÓN CORRECTA
             await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
                 stickers: userStickersCollection
             }, { merge: true });
@@ -56,10 +59,9 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
-
-    // Limpieza agresiva de nulos, vacíos y corruptos
+    
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-
+    
     if (validStickers.length === 0) {
         container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
@@ -79,6 +81,7 @@ function renderUserStickers() {
             </div>
         `;
     });
+    
     container.innerHTML = html;
 }
 
@@ -98,13 +101,11 @@ async function eliminarSticker(urlSticker, event) {
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
     
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
-
-        // Actualizar visualmente
+        
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
@@ -123,7 +124,6 @@ async function subirStickerDesdePC(input) {
     
     const file = input.files[0];
     if (!file) return;
-
     if (file.size > 50 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 50MB.');
         return;
@@ -150,17 +150,16 @@ async function subirStickerDesdePC(input) {
     const oldText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
     btnSubir.style.pointerEvents = 'none';
-
+    
     try {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
-
+        
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
         });
-
         const data = await response.json();
         
         if (data.secure_url) {
@@ -184,23 +183,19 @@ async function subirStickerDesdePC(input) {
 
 async function guardarStickerEnColeccion(url) {
     if (!stickersCurrentUser) return;
-
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
 
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
-
-        // Actualizamos localmente para no tener que recargar
+        
         userStickersCollection.push(url);
         renderUserStickers();
-
     } catch (e) {
         console.error("Error guardando URL en Firebase:", e);
     }
@@ -213,28 +208,23 @@ window.robarStickerSistema = async function(url) {
     }
     
     const cleanUrl = url.trim();
-
-    // Verificación rápida antes de ir a la base de datos
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
     
     try {
-        // ACTUALIZAMOS LA COLECCIÓN CORRECTA (userStickers)
         const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
-
-        // Solo si funcionó, lo añadimos a nuestra vista local
+        
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
         }
 
         showToastSticker('✅ ¡Sticker robado y guardado permanentemente!');
-
     } catch (e) {
         console.error("Error crítico al robar sticker:", e);
         alert("Error al guardar en la base de datos. Detalle técnico: " + e.message);

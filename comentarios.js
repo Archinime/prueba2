@@ -1,6 +1,5 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CON RESPUESTAS Y NOTIFICACIONES
-// Archivo: comentarios.js
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK (3 PUNTOS + ESTÉTICA MEJORADA)
 // ============================================
 
 let comentariosDb = null;
@@ -10,11 +9,8 @@ let comentariosUnsubscribe = null;
 
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
-window.lastPostedCommentId = null; // Rastreador para la animación de nuevo comentario
+window.lastPostedCommentId = null;
 
-/**
- * Inicializa el sistema de comentarios.
- */
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
@@ -29,11 +25,9 @@ function initComentariosSystem(db, auth) {
         }
     });
 
-    // Configuración "Premium" para la caja principal (Auto-resize y atajos)
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
-            // Atajo de Enter
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault(); 
@@ -42,65 +36,174 @@ function initComentariosSystem(db, auth) {
                     }
                 }
             });
-            // Auto-expandir y habilitar botón
             textarea.addEventListener('input', function() {
                 autoResizeTextarea(this);
                 validarBotonPrincipal(this);
             });
         }
     }, 1000);
+    
+    // Cierra todos los menús de comentarios si se hace clic fuera
+    document.addEventListener('click', () => closeAllCommentMenus());
 }
 
-/**
- * Utilidad para hacer que los textareas crezcan según el contenido
- */
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
 }
 
-/**
- * Inyecta los estilos CSS optimizados
- */
 function injectCommentsCSS() {
     if (document.getElementById('archinime-comments-css')) return;
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
     style.innerHTML = `
-        /* Botones de acción Premium */
-        .action-btn { background: transparent; border: none; font-size: 0.85rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; color: #888; }
-        .action-btn.reply-btn:hover { color: var(--primary-color, #00fff7); background: rgba(0, 255, 247, 0.1); transform: translateY(-1px); }
-        .action-btn.delete-btn:hover { color: #ff5555; background: rgba(255, 85, 85, 0.1); transform: translateY(-1px); }
+        /* Variables globales locales para consistencia estética */
+        :root {
+            --neon-primary: #00fff7;
+            --neon-secondary: #bc13fe;
+            --neon-alert: #ff0055;
+            --neon-warn: #ffaa00;
+        }
+    
+        /* --- ESTILOS PRINCIPALES DE LOS COMENTARIOS --- */
+        .comentario-item { 
+            animation: fadeIn 0.4s ease-out forwards;
+            background: rgba(10, 12, 16, 0.6) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .comentario-item:hover {
+            background: rgba(15, 18, 25, 0.8) !important;
+            border-color: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.05);
+            transform: translateY(-2px);
+        }
+        .comentario-item.is-reply {
+            background: rgba(5, 5, 8, 0.4) !important;
+            box-shadow: none;
+            border: none;
+            border-left: 2px solid rgba(255,255,255,0.05);
+        }
+        .comentario-item.is-reply:hover {
+            background: rgba(15, 18, 25, 0.6) !important;
+            border-left: 2px solid var(--neon-primary);
+        }
+
+        /* --- MENÚ DE 3 PUNTITOS (KEBAB MENU) --- */
+        .comment-options-container {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            z-index: 10;
+        }
+        .kebab-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .kebab-btn:hover {
+            color: var(--neon-primary);
+            background: rgba(0, 255, 247, 0.1);
+            transform: scale(1.1);
+        }
         
-        /* Árbol de respuestas elegante */
+        .comment-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: rgba(15, 15, 20, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--neon-secondary);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 15px rgba(188, 19, 254, 0.2);
+            min-width: 150px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            z-index: 100;
+        }
+        .comment-dropdown.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        
+        .comment-dropdown-btn {
+            background: transparent;
+            border: none;
+            color: #ddd;
+            padding: 12px 15px;
+            text-align: left;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .comment-dropdown-btn:last-child {
+            border-bottom: none;
+        }
+        .comment-dropdown-btn:hover {
+            background: rgba(188, 19, 254, 0.15);
+            color: #fff;
+            padding-left: 20px;
+        }
+        .comment-dropdown-btn i {
+            width: 16px;
+            text-align: center;
+            color: var(--neon-primary);
+        }
+        .comment-dropdown-btn.report-btn i { color: var(--neon-warn); }
+        .comment-dropdown-btn.report-btn:hover { background: rgba(255, 170, 0, 0.15); color: #fff; }
+        
+        .comment-dropdown-btn.delete-btn i { color: var(--neon-alert); }
+        .comment-dropdown-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.15); color: #fff; }
+        
+        /* --- Árbol de respuestas --- */
         .respuestas-wrapper { margin-left: 55px; margin-top: 8px; margin-bottom: 20px; position: relative; }
-        .respuestas-line { position: absolute; left: -26px; top: 0; bottom: 25px; width: 2px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; transition: 0.3s; }
-        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.4); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
+        .respuestas-line { position: absolute; left: -26px; top: 0; bottom: 25px; width: 2px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; transition: 0.3s; }
+        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.3); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
         
-        /* Botones de ver respuestas */
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--primary-color, #00fff7); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
         .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
-        .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: #bc13fe; border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
+        
+        .show-more-replies-btn { background: transparent; border: 1px dashed rgba(188, 19, 254, 0.4); color: var(--neon-secondary); border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; transition: 0.2s; width: 100%; text-align: center; font-size: 0.85rem; }
         .show-more-replies-btn:hover { background: rgba(188, 19, 254, 0.1); border-style: solid; color: #fff; }
         
-        /* Animaciones base y de Publicación */
-        .comentario-item { animation: fadeIn 0.4s ease-out forwards; }
-        
+        /* Animaciones */
         @keyframes fadeInReplyBox { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
         @keyframes slideInGlow {
             0% { opacity: 0; transform: translateY(-20px) scale(0.95); box-shadow: 0 0 0 transparent; }
-            50% { box-shadow: 0 0 30px var(--primary-color); transform: translateY(0) scale(1.02); }
+            50% { box-shadow: 0 0 30px var(--neon-primary); transform: translateY(0) scale(1.02); }
             100% { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 0 transparent; }
         }
         .new-comment-fx { animation: slideInGlow 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; z-index: 10; }
         
-        /* Utilidades de texto */
         .char-counter { font-size: 0.75rem; color: #888; text-align: right; margin-top: 5px; font-weight: 600; transition: color 0.3s; }
-        .char-counter.limit { color: #ff5555; }
+        .char-counter.limit { color: var(--neon-alert); }
         .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
-        /* Responsivo - ALINEACIÓN MÓVIL CORREGIDA */
         @media (max-width: 768px) {
             .respuestas-wrapper { margin-left: 48px; }
             .respuestas-line { left: -22px; }
@@ -108,11 +211,28 @@ function injectCommentsCSS() {
             .comentario-item.is-reply { padding: 10px !important; }
             .comentario-avatar img { width: 38px !important; height: 38px !important; }
             .is-reply .comentario-avatar img { width: 30px !important; height: 30px !important; }
-            .action-btn { padding: 6px 10px; font-size: 0.8rem; }
+            .comment-options-container { right: 5px; top: 5px; }
         }
     `;
     document.head.appendChild(style);
 }
+
+// Control global para el menú de 3 puntos
+window.toggleCommentMenu = function(id, event) {
+    event.stopPropagation();
+    const currentMenu = document.getElementById(`dropdown-${id}`);
+    const isShowing = currentMenu.classList.contains('show');
+    
+    closeAllCommentMenus(); 
+    
+    if (!isShowing) {
+        currentMenu.classList.add('show');
+    }
+};
+
+window.closeAllCommentMenus = function() {
+    document.querySelectorAll('.comment-dropdown').forEach(m => m.classList.remove('show'));
+};
 
 function getNeonColorByString(str) {
     const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
@@ -131,9 +251,6 @@ function hexToRgbStr(hex) {
     return `${r}, ${g}, ${b}`;
 }
 
-/**
- * Configura el listener en tiempo real de Firebase para los comentarios.
- */
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
@@ -206,7 +323,7 @@ function setupComentariosRealtimeListener() {
                     const remaining = root.replies.length - 5;
                     html += `<button id="showMore-${root.id}" class="show-more-replies-btn" onclick="showMoreReplies('${root.id}')">
                                 Cargar ${remaining} respuestas más...
-                             </button>`;
+                            </button>`;
                 }
 
                 html += `</div></div>`;
@@ -214,7 +331,7 @@ function setupComentariosRealtimeListener() {
         });
         
         container.innerHTML = html;
-        window.lastPostedCommentId = null; // Reiniciar tras animar
+        window.lastPostedCommentId = null;
     }, (error) => console.error('Error en el onSnapshot de comentarios:', error));
 }
 
@@ -229,9 +346,8 @@ function generarHtmlComentario(c, isReply, isNew = false) {
     const rgbColor = hexToRgbStr(neonColor);
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     
-    // Etiqueta de "@usuario" sutil y elegante
     if (c.replyToUser) {
-        contenidoHtml = `<span style="color: #aaa; font-weight: 600; font-size: 0.85em; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 12px; margin-right: 6px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif;"><i class="fas fa-reply" style="font-size:0.75em; color: var(--primary-color);"></i> @${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
+        contenidoHtml = `<span style="color: #aaa; font-weight: 600; font-size: 0.85em; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 12px; margin-right: 6px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif;"><i class="fas fa-reply" style="font-size:0.75em; color: var(--neon-primary);"></i> @${escapeHtmlComent(c.replyToUser)}</span> ` + contenidoHtml;
     }
 
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
@@ -249,38 +365,58 @@ function generarHtmlComentario(c, isReply, isNew = false) {
     const avatarSize = isReply ? '30px' : '45px';
     const titleSize = isReply ? '0.9rem' : '1rem';
     const newFxClass = isNew ? 'new-comment-fx' : '';
+    const borderTopColor = !isReply ? `border-top: 2px solid ${neonColor};` : '';
+
+    // --- MENÚ DE 3 PUNTITOS ---
+    const replyMenuBtn = comentariosCurrentUser ? 
+        `<button class="comment-dropdown-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
     
-    const bgStyle = isReply ? `background: transparent;` : `background: rgba(20, 20, 25, 0.4);`;
-    const borderStyle = isReply ? `border: none;` : `border: 1px solid rgba(255,255,255,0.03); border-left: 3px solid ${neonColor};`;
+    const deleteMenuBtn = isOwner ? 
+        `<button class="comment-dropdown-btn delete-btn" onclick="deleteComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash-alt"></i> Eliminar</button>` : '';
     
-    const replyBtn = comentariosCurrentUser ?
-        `<button class="action-btn reply-btn" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}')"><i class="fas fa-reply"></i> Responder</button>` : '';
-    const deleteBtn = isOwner ?
-        `<button class="action-btn delete-btn" onclick="deleteComentario('${c.id}')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : '';
-    
-    return `
-        <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" style="position: relative; overflow: visible; ${bgStyle} ${borderStyle} border-radius: 12px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; flex-direction: row; gap: 12px; transition: background 0.3s;"
-        onmouseover="if(!${isReply}) this.style.background='rgba(30, 30, 35, 0.6)';" onmouseout="if(!${isReply}) this.style.background='rgba(20, 20, 25, 0.4)';">
-            
-            <div class="comentario-avatar" style="flex-shrink: 0; padding-top: 2px;">
-                <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid rgba(${rgbColor}, 0.5);">
-            </div>
-            
-            <div class="comentario-content" style="flex: 1; min-width: 0;">
-                <div class="comentario-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 4px; gap: 8px;">
-                    <span class="comentario-user" style="color: #fff; text-shadow: 0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${escapeHtmlComent(userName)}</span>
-                    <span class="comentario-fecha" style="color: #666; font-size: 0.75rem; font-weight: 500;">${fecha}</span>
-                </div>
-                
-                <div class="comentario-texto" style="color: #ccc; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
-                
-                <div style="display: flex; gap: 5px; margin-top: 8px;">
-                    ${replyBtn}
-                    ${deleteBtn}
-                </div>
+    const reportMenuBtn = `<button class="comment-dropdown-btn report-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag"></i> Reportar</button>`;
+
+    // Container de opciones
+    const optionsMenu = `
+        <div class="comment-options-container">
+            <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="comment-dropdown" id="dropdown-${c.id}">
+                ${replyMenuBtn}
+                ${reportMenuBtn}
+                ${deleteMenuBtn}
             </div>
         </div>
     `;
+
+    return `
+        <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" style="position: relative; border-radius: 12px; padding: ${padding}; margin-bottom: ${isReply ? '0' : '12px'}; display: flex; flex-direction: row; gap: 12px; ${borderTopColor}">
+            
+            ${optionsMenu}
+
+            <div class="comentario-avatar" style="flex-shrink: 0; padding-top: 2px;">
+                <img src="${avatar}" onerror="this.src='invitado.avif'" style="width: ${avatarSize}; height: ${avatarSize}; border-radius: 50%; object-fit: cover; border: 2px solid rgba(${rgbColor}, 0.5); box-shadow: 0 0 10px rgba(${rgbColor}, 0.2);">
+            </div>
+            
+            <div class="comentario-content" style="flex: 1; min-width: 0; padding-right: 25px;">
+                <div class="comentario-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 4px; gap: 8px;">
+                    <span class="comentario-user" style="color: #fff; text-shadow: 0 0 8px ${neonColor}; font-weight: 800; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #888; font-size: 0.75rem; font-weight: 500;">${fecha}</span>
+                </div>
+                <div class="comentario-texto" style="color: #eee; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;">${contenidoHtml}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Función simulada de reporte
+window.reportarComentario = function(id) {
+    if(!comentariosCurrentUser) {
+        openLoginModalFromComent();
+        return;
+    }
+    showToastComent('🚩 Comentario reportado. Un moderador lo revisará.');
 }
 
 window.toggleRespuestas = function(rootId) {
@@ -346,16 +482,13 @@ function procesarTextoComentario(texto) {
             } else if (palabra.match(/\.(mp4|webm)(\?.*)?$/i) && !palabra.includes('class="comentario-sticker"')) {
                 palabras[i] = `<video src="${palabra}" autoplay loop muted playsinline class="comentario-imagen" style="max-width: 200px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 8px;"></video>`;
             } else if (!palabra.includes('class="comentario-sticker"')) {
-                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--primary-color); text-decoration: none; transition: opacity 0.2s;">${palabra}</a>`;
+                palabras[i] = `<a href="${palabra}" target="_blank" rel="noopener noreferrer" class="comentario-link" style="color: var(--neon-primary); text-decoration: none; transition: opacity 0.2s;">${palabra}</a>`;
             }
         }
     }
     return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
-/**
- * SISTEMA PREMIUM PARA RESPONDER (YouTube Style Mejorado)
- */
 window.prepararRespuesta = function(commentId, userName, userId) {
     cancelarRespuesta();
     window.respondiendoA = { id: commentId, userName, userId };
@@ -365,20 +498,21 @@ window.prepararRespuesta = function(commentId, userName, userId) {
 
     const replyBox = document.createElement('div');
     replyBox.id = 'dynamicReplyBox';
-    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.8); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 55px; border: 1px solid rgba(0, 255, 247, 0.2);";
-    
+    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 55px; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);";
     replyBox.innerHTML = `
         <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-            <span>Respondiendo a <b style="color:var(--primary-color)">@${escapeHtmlComent(userName)}</b></span>
-            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;" onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
+            <span>Respondiendo a <b style="color:var(--neon-primary)">@${escapeHtmlComent(userName)}</b></span>
+            <button onclick="cancelarRespuesta()" style="background:none; border:none; color:#666; cursor:pointer; font-size: 1rem; transition: 0.2s;"
+onmouseover="this.style.color='#ff5555'" onmouseout="this.style.color='#666'" title="Cancelar"><i class="fas fa-times"></i></button>
         </div>
         <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+            <img src="${comentariosCurrentUser?.photoURL || 'invitado.avif'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border: 1px solid var(--neon-primary);">
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <textarea id="dynamicReplyText" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--primary-color)';" onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
+                <textarea id="dynamicReplyText" placeholder="Añade una respuesta pública..." maxlength="500" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; color: white; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; min-height: 25px; outline: none; transition: border-color 0.3s; overflow:hidden;" onfocus="this.style.borderBottomColor='var(--neon-primary)';"
+onblur="this.style.borderBottomColor='rgba(255,255,255,0.1)';"></textarea>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
                     <span id="dynamicCharCount" class="char-counter">0/500</span>
-                    <button id="btnEnviarRespuesta" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--primary-color); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s;"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
+                    <button id="btnEnviarRespuesta" onclick="enviarRespuestaDinamica()" class="btn-disabled" style="background: var(--neon-primary); border: none; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);"><i class="fas fa-paper-plane" style="margin-right: 4px;"></i> Responder</button>
                 </div>
             </div>
         </div>
@@ -388,7 +522,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const textArea = document.getElementById('dynamicReplyText');
     const btnEnviar = document.getElementById('btnEnviarRespuesta');
     const charCount = document.getElementById('dynamicCharCount');
-
     if(textArea) {
         textArea.focus();
         textArea.addEventListener('input', function() {
@@ -430,12 +563,13 @@ window.openStickerModal = function(url) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'stickerViewModal';
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s; padding: 20px;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,5,0.95);backdrop-filter: blur(5px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;padding: 20px;';
         modal.innerHTML = `
             <div style="position:relative; text-align:center; max-width: 90vw;">
-                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
-                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3);">
-                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3);"></video>
+                <button onclick="closeStickerModal()" style="position:absolute;top:-40px;right:-10px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer; transition: 0.2s;"
+onmouseover="this.style.color='#ff0055'; transform='scale(1.1)';" onmouseout="this.style.color='#fff'; transform='scale(1)';">&times;</button>
+                <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);">
+                <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:65vh;border-radius:12px; object-fit:contain; border: 1px solid rgba(0,255,247,0.3); box-shadow: 0 0 30px rgba(0, 255, 247, 0.2);"></video>
                 <br>
                 <button id="stickerModalStealBtn" style="margin-top:20px;background:rgba(0, 255, 247, 0.1);border:1px solid #00fff7;color:#fff;padding:10px 25px;border-radius:30px;font-size:1rem;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif;transition:all 0.2s;">
                     <i class="fas fa-mask" style="color: #00fff7; margin-right:5px;"></i> Robar Sticker
@@ -511,7 +645,6 @@ async function enviarComentarioTexto() {
     
     const btn = document.getElementById('enviarComentarioBtn');
     if (btn && btn.classList.contains('btn-disabled')) return;
-
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
@@ -541,9 +674,7 @@ async function enviarComentarioTexto() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        // Guardar el ID del nuevo comentario para animarlo
         window.lastPostedCommentId = docRef.id;
-
         showToastComent('✅ Comentario publicado');
     } catch (error) {
         console.error('Error enviando comentario:', error);
@@ -591,9 +722,7 @@ window.enviarRespuestaDinamica = async function() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        // Guardar el ID para animar
         window.lastPostedCommentId = docRef.id;
-        
         if (replyContext.userId !== comentariosCurrentUser.uid) {
             await comentariosDb.collection('user_notifications').add({
                 targetUserId: replyContext.userId,
@@ -719,12 +848,12 @@ function showToastComent(msg) {
     if (!toast) {
         toast = document.createElement('div'); 
         toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1000;font-weight:bold; border: 1px solid #00fff7; transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15, 15, 20, 0.95);backdrop-filter: blur(10px);color:var(--neon-primary);padding:12px 25px;border-radius:30px;z-index:10000;font-weight:bold;border: 1px solid var(--neon-primary);box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); transition: all 0.3s;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; 
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2500);
+    setTimeout(() => toast.style.display = 'none', 3000);
 }
 
 function openLoginModalFromComent() { 
