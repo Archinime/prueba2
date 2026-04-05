@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v2.0
-// (Incluye Z-Index Fix, Doble Clic, Emojis, Stickers Dinámicos y Menciones estilo WhatsApp)
+// (Incluye Z-Index Fix, Emojis, Stickers Dinámicos, Árbol de Respuestas Anidadas y Menciones estilo WhatsApp)
 // ============================================
 
 let comentariosDb = null;
@@ -190,9 +190,9 @@ function injectCommentsCSS() {
         .comment-dropdown-btn.delete-btn:hover { background: rgba(255, 85, 85, 0.15); color: #fff; }
         
         /* --- Árbol de respuestas --- */
-        .respuestas-wrapper { margin-left: 55px; margin-top: 8px; margin-bottom: 20px; position: relative; }
+        .respuestas-wrapper { position: relative; margin-top: 8px; margin-bottom: 20px; transition: margin 0.3s ease; }
         .respuestas-line { position: absolute; left: -26px; top: 0; bottom: 25px; width: 2px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; transition: 0.3s; }
-        .respuestas-wrapper:hover .respuestas-line { background: rgba(0, 255, 247, 0.3); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
+        .respuestas-wrapper:hover > .respuestas-line { background: rgba(0, 255, 247, 0.3); box-shadow: 0 0 8px rgba(0, 255, 247, 0.2); }
         
         .toggle-respuestas-btn { background: transparent; border: none; color: var(--neon-primary); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; padding: 4px 10px; border-radius: 20px; opacity: 0.8; }
         .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.1); opacity: 1; }
@@ -215,8 +215,9 @@ function injectCommentsCSS() {
         .btn-disabled { opacity: 0.5; cursor: not-allowed !important; filter: grayscale(1); }
         
         @media (max-width: 768px) {
-            .respuestas-wrapper { margin-left: 48px; }
-            .respuestas-line { left: -22px; }
+            /* IMPORTANTE: Comprime la anidación en móviles para que no se salga de la pantalla */
+            .respuestas-wrapper { margin-left: 25px !important; }
+            .respuestas-line { left: -14px !important; }
             .comentario-item { padding: 12px !important; flex-direction: row !important; align-items: flex-start !important; gap: 10px !important; }
             .comentario-item.is-reply { padding: 10px !important; }
             .comentario-avatar img { width: 38px !important; height: 38px !important; }
@@ -263,6 +264,63 @@ function hexToRgbStr(hex) {
     return `${r}, ${g}, ${b}`;
 }
 
+// ============================================
+// LÓGICA DE ÁRBOL RECURSIVO (NUEVO)
+// ============================================
+function renderCommentTree(comment, depth = 0) {
+    let html = '';
+    const isNew = window.lastPostedCommentId === comment.id;
+    const isReply = depth > 0;
+    
+    html += generarHtmlComentario(comment, isReply, isNew);
+    
+    if (comment.replies && comment.replies.length > 0) {
+        // Ordenar respuestas de más antiguas a más nuevas
+        comment.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+
+        // Control dinámico de márgenes: 55px para el primer nivel, 20px para anidaciones profundas
+        const wrapperMargin = depth === 0 ? 'margin-left: 55px;' : 'margin-left: 20px;';
+        
+        html += `<div class="respuestas-wrapper" id="respuestas-${comment.id}" style="${wrapperMargin}">`;
+        html += `<div class="respuestas-line"></div>`; 
+        
+        // El botón de contraer solo aparece en el primer nivel para no recargar visualmente
+        if (depth === 0) {
+            const textoBtn = comment.replies.length === 1 ? 'Ver 1 respuesta' : `Ver ${comment.replies.length} respuestas`;
+            html += `<button class="toggle-respuestas-btn" onclick="toggleRespuestas('${comment.id}')">
+                        <i class="fas fa-level-down-alt" id="icon-${comment.id}" style="transform: rotate(-90deg);"></i> 
+                        <span id="text-${comment.id}">${textoBtn}</span>
+                     </button>`;
+            html += `<div class="respuestas-container" id="container-${comment.id}" style="display: none; flex-direction: column; gap: 8px;">`;
+        } else {
+            // Niveles profundos se muestran automáticamente expandidos
+            html += `<div class="respuestas-container" id="container-${comment.id}" style="display: flex; flex-direction: column; gap: 8px;">`;
+        }
+
+        comment.replies.forEach((reply, index) => {
+            if (depth === 0) {
+                // En el nivel principal ocultamos después de 5 respuestas
+                const isHidden = index >= 5 ? 'display: none;' : '';
+                const hiddenClass = index >= 5 ? `hidden-reply-${comment.id}` : '';
+                html += `<div class="${hiddenClass}" style="${isHidden}; position: relative;">` + renderCommentTree(reply, depth + 1) + `</div>`;
+            } else {
+                // En niveles profundos mostramos todas las respuestas de una vez para no perder contexto
+                html += `<div style="position: relative;">` + renderCommentTree(reply, depth + 1) + `</div>`;
+            }
+        });
+
+        if (depth === 0 && comment.replies.length > 5) {
+            const remaining = comment.replies.length - 5;
+            html += `<button id="showMore-${comment.id}" class="show-more-replies-btn" onclick="showMoreReplies('${comment.id}')">
+                        Cargar ${remaining} respuestas más...
+                    </button>`;
+        }
+
+        html += `</div></div>`;
+    }
+    return html;
+}
+
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
@@ -290,56 +348,20 @@ function setupComentariosRealtimeListener() {
       
         const roots = [];
      
+        // NUEVA LÓGICA: Construcción de árbol real para anidación profunda
         allComments.forEach(c => {
             if (c.replyToId && commentMap.has(c.replyToId)) {
-                let rootId = c.replyToId;
-                while (commentMap.has(rootId) && commentMap.get(rootId).replyToId) {
-                  rootId = commentMap.get(rootId).replyToId;
-                }
-                if (commentMap.has(rootId)) {
-                    commentMap.get(rootId).replies.push(c);
-                } else {
-                    roots.push(commentMap.get(c.id));
-                }
+                // Lo metemos como hijo directo del comentario al que responde
+                commentMap.get(c.replyToId).replies.push(commentMap.get(c.id));
             } else {
+                // Si no tiene padre o el padre fue eliminado, es un comentario raíz
                 roots.push(commentMap.get(c.id));
             }
         });
 
         let html = '';
         roots.forEach(root => {
-            const isNewRoot = window.lastPostedCommentId === root.id;
-            html += generarHtmlComentario(root, false, isNewRoot);
-
-            if (root.replies && root.replies.length > 0) {
-                root.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-
-                html += `<div class="respuestas-wrapper" id="respuestas-${root.id}">`;
-                html += `<div class="respuestas-line"></div>`; 
-                
-                const textoBtn = root.replies.length === 1 ? 'Ver 1 respuesta' : `Ver ${root.replies.length} respuestas`;
-                html += `<button class="toggle-respuestas-btn" onclick="toggleRespuestas('${root.id}')">
-                            <i class="fas fa-level-down-alt" id="icon-${root.id}" style="transform: rotate(-90deg);"></i> 
-                            <span id="text-${root.id}">${textoBtn}</span>
-                         </button>`;
-
-                html += `<div class="respuestas-container" id="container-${root.id}" style="display: none; flex-direction: column; gap: 8px;">`;
-                root.replies.forEach((reply, index) => {
-                    const isHidden = index >= 5 ? 'display: none;' : '';
-                    const hiddenClass = index >= 5 ? `hidden-reply-${root.id}` : '';
-                    const isNewReply = window.lastPostedCommentId === reply.id;
-                    html += `<div class="${hiddenClass}" style="${isHidden}">` + generarHtmlComentario(reply, true, isNewReply) + `</div>`;
-                });
-                
-                if (root.replies.length > 5) {
-                    const remaining = root.replies.length - 5;
-                    html += `<button id="showMore-${root.id}" class="show-more-replies-btn" onclick="showMoreReplies('${root.id}')">
-                                Cargar ${remaining} respuestas más...
-                            </button>`;
-                }
-
-                html += `</div></div>`;
-            }
+            html += renderCommentTree(root, 0);
         });
         
         container.innerHTML = html;
@@ -357,12 +379,12 @@ function generarHtmlComentario(c, isReply, isNew = false) {
     const rgbColor = hexToRgbStr(neonColor);
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     
-    // ESTILO WHATSAPP PARA LA MENCIÓN
+    // MENCIÓN ESTILO WHATSAPP: Bloque limpio con borde lateral del color del usuario citado
     if (c.replyToUser) {
         const repliedNeon = getNeonColorByString(c.replyToUserId || c.replyToUser);
         contenidoHtml = `
-        <div style="background: rgba(0,0,0,0.3); border-left: 4px solid ${repliedNeon}; padding: 8px 12px; border-radius: 4px 8px 8px 4px; margin-bottom: 10px; display: block;">
-            <div style="color: ${repliedNeon}; font-weight: 800; font-size: 0.8rem; margin-bottom: 2px;"><i class="fas fa-reply" style="font-size: 0.9em; margin-right: 4px;"></i>${escapeHtmlComent(c.replyToUser)}</div>
+        <div style="background: rgba(0,0,0,0.3); border-left: 4px solid ${repliedNeon}; padding: 8px 12px; border-radius: 4px 8px 8px 4px; margin-bottom: 10px; display: block; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+            <div style="color: ${repliedNeon}; font-weight: 800; font-size: 0.8rem; margin-bottom: 2px; text-shadow: 0 0 5px rgba(${hexToRgbStr(repliedNeon)}, 0.4);"><i class="fas fa-reply" style="font-size: 0.9em; margin-right: 4px;"></i>${escapeHtmlComent(c.replyToUser)}</div>
         </div>` + contenidoHtml;
     }
 
@@ -529,7 +551,7 @@ window.restaurarPanelesGlobales = function() {
 window.prepararRespuesta = function(commentId, userName, userId) {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     
-    cancelarRespuesta(); // Limpia y destruye cualquier caja de respuesta anterior
+    cancelarRespuesta(); // Limpia y destruye DE INMEDIATO cualquier caja anterior
     window.respondiendoA = { id: commentId, userName, userId };
 
     const commentEl = document.getElementById(`comment-${commentId}`);
@@ -538,9 +560,13 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     // Iluminar el comentario al que estamos respondiendo
     commentEl.classList.add('replying-active');
 
+    const isReply = commentEl.classList.contains('is-reply');
+    // Para que parezca una caja de respuesta, si es un comentario principal se mete 55px, si es ya una respuesta se mete 20px extra.
+    const marginLeft = isReply ? '20px' : '55px';
+
     const replyBox = document.createElement('div');
     replyBox.id = 'dynamicReplyBox';
-    replyBox.style.cssText = "margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: 55px; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);";
+    replyBox.style.cssText = `margin-top: 8px; margin-bottom: 20px; padding: 12px; background: rgba(20, 20, 25, 0.9); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; animation: fadeInReplyBox 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-left: ${marginLeft}; border: 1px solid var(--neon-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);`;
     
     replyBox.innerHTML = `
         <div style="color:#888; font-size:0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
@@ -567,6 +593,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         </div>
     `;
     
+    // Insertamos la caja como "hermano" inferior del comentario
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
 
     // MUEVE LOS PANELES GLOBALES ADENTRO DE ESTA CAJA DINÁMICA
@@ -625,7 +652,8 @@ window.cancelarRespuesta = function() {
     quitarStickerPreview();
     
     if (box) {
-        box.remove(); // Bórralo INMEDIATAMENTE para que no haya conflictos de ID
+        // Borrado INMEDIATO para evitar fantasmas en el DOM (resuelve el bug que mencionaste)
+        box.remove(); 
     }
 };
 
