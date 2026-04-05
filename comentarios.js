@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v6.0
-// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis, Stickers, REACCIONES, Nombres Dinámicos y UX Mejorado)
+// (Incluye Hilos Visuales, Edición, Anti-Saltos, Emojis, Stickers, REACCIONES y Nombres Dinámicos)
 // ============================================
 
 let comentariosDb = null;
@@ -48,7 +48,7 @@ function initComentariosSystem(db, auth) {
             stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
         }
     }, 1000);
-
+    
     // Cierra todos los menús de comentarios si se hace clic fuera
     document.addEventListener('click', () => closeAllCommentMenus());
 }
@@ -245,13 +245,13 @@ function injectCommentsCSS() {
             font-weight: 600; 
             font-size: 0.8rem; 
             margin-bottom: 8px; 
-            margin-top: 4px;
+            margin-top: 4px; 
             display: inline-flex;
             align-items: center; 
             gap: 8px; 
             transition: 0.2s; 
             padding: 6px 14px; 
-            border-radius: 20px;
+            border-radius: 20px; 
         }
         .toggle-respuestas-btn:hover { background: rgba(0, 255, 247, 0.15); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
         
@@ -296,9 +296,9 @@ function injectCommentsCSS() {
         /* ADAPTACIÓN MÓVIL EXTREMA */
         @media (max-width: 768px) {
             .comentario-item { 
-                padding: 15px !important;
+                padding: 15px !important; 
                 flex-direction: column !important; /* Apila avatar y contenido */
-                align-items: flex-start !important;
+                align-items: flex-start !important; 
                 gap: 10px !important; 
                 border-radius: 12px;
             }
@@ -372,13 +372,14 @@ function hexToRgbStr(hex) {
 // ============================================
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
+    
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
         .where('episode', '==', parseInt(window.comentariosEpisode))
         .orderBy('timestamp', 'desc') 
         .limit(100);
-
+        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
@@ -413,7 +414,7 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-
+        
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -429,28 +430,23 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
-
+            
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-                
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
                     const textoBtn = totalCount === 1 ? 'Ver 1 respuesta' : `Ver ${totalCount} respuestas`;
-                    
-                    // Se agregó el atributo data-total para recuperar el número al ocultar/mostrar
                     nodeHtml += `<div style="margin-left: 22px;">
                                     <button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
                                         <i class="fas fa-level-down-alt" id="icon-${node.id}" style="transform: rotate(-90deg);"></i> 
-                                        <span id="text-${node.id}" data-total="${totalCount}">${textoBtn}</span>
+                                        <span id="text-${node.id}">${textoBtn}</span>
                                     </button>
                                  </div>`;
-
                     nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none; flex-direction: column; gap: 6px;">`;
                     node.replies.forEach((reply, index) => {
                         const isHidden = index >= 5;
                         nodeHtml += renderNode(reply, level + 1, isHidden, node.id);
                     });
-
                     if (node.replies.length > 5) {
                         const remaining = node.replies.length - 5;
                         nodeHtml += `<button id="showMore-${node.id}" class="show-more-replies-btn" onclick="showMoreReplies('${node.id}')">
@@ -482,12 +478,9 @@ function setupComentariosRealtimeListener() {
                 el.style.display = 'flex';
                 const rootId = id.replace('container-', '');
                 const icon = document.getElementById(`icon-${rootId}`);
-                const textSpan = document.getElementById(`text-${rootId}`);
                 if (icon) icon.style.transform = 'rotate(0deg)';
-                if (textSpan) textSpan.innerText = 'Ocultar respuestas';
             }
         });
-
         openMoreReplies.forEach(className => {
             document.querySelectorAll(`.${className}`).forEach(el => {
                 el.style.display = 'block';
@@ -497,7 +490,6 @@ function setupComentariosRealtimeListener() {
             const btn = document.getElementById(`showMore-${rootId}`);
             if (btn) btn.style.display = 'none';
         });
-
         window.lastPostedCommentId = null;
     }, (error) => console.error('Error en el onSnapshot de comentarios:', error));
 }
@@ -525,7 +517,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
             <div class="comentario-sticker-container" style="margin-top: 12px; display: block; width: fit-content;">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 4px 15px rgba(${rgbColor}, 0.15); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="Clic para ver/robar"></${isVideo ? 'video' : 'img'}>
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-sticker" onclick="openStickerModal('${c.stickerUrl.replace(/'/g, "\\'")}')" style="max-width: 140px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(${rgbColor}, 0.3); box-shadow: 0 4px 15px rgba(${rgbColor}, 0.15); transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="Clic para ver/robar"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
@@ -557,7 +550,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     }
     
     const botonResponderDirecto = comentariosCurrentUser ?
-        `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"><i class="fas fa-reply"></i> Responder</button>` : '';
+        `<button class="btn-accion-footer" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" style="margin-top: 10px;"><i class="fas fa-reply"></i> Responder</button>` : '';
 
     // ESTRUCTURA PRINCIPAL HTML
     // Observa cómo pasamos el color a --user-color para que el CSS lo use en los bordes
@@ -576,20 +569,21 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 
                 <div class="comentario-header mobile-only-header" style="display: none; align-items: baseline; gap: 8px;">
                     <span class="comentario-user" style="color: ${neonColor}; text-shadow: 0 0 10px rgba(${rgbColor}, 0.6), 0 0 20px rgba(${rgbColor}, 0.3); font-weight: 900; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #888; font-size: 0.7rem; font-weight: 500;">${fecha}${badgeEditado}</span>
                 </div>
             </div>
             
             <div class="comentario-content" style="flex: 1; min-width: 0; padding-right: 25px;">
                 <div class="comentario-header desktop-only-header" style="display: flex; align-items: baseline; justify-content: flex-start; margin-bottom: 6px; gap: 10px;">
                     <span class="comentario-user" style="color: ${neonColor}; text-shadow: 0 0 10px rgba(${rgbColor}, 0.6), 0 0 20px rgba(${rgbColor}, 0.3); font-weight: 900; font-family: 'Orbitron', sans-serif; font-size: ${titleSize}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-fecha" style="color: #888; font-size: 0.75rem; font-weight: 500;">${fecha}${badgeEditado}</span>
                 </div>
                 
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}" style="color: #e0e0e0; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;">${contenidoHtml}</div>
                 
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
-                    <span class="comentario-fecha" style="color: #aaa; font-size: 0.75rem; font-weight: 600;">${fecha}${badgeEditado}</span>
-                    ${botonResponderDirecto}
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                     ${reaccionesBar}
+                    ${botonResponderDirecto}
                 </div>
             </div>
         </div>
@@ -666,24 +660,15 @@ window.reportarComentario = function(id) {
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const icon = document.getElementById(`icon-${rootId}`);
-    const textSpan = document.getElementById(`text-${rootId}`);
-    
     if(!container || !icon) return;
-    
     if (container.style.display === 'none') {
         container.style.display = 'flex';
         icon.style.transform = 'rotate(0deg)';
-        if (textSpan) textSpan.innerText = 'Ocultar respuestas';
     } else {
         container.style.display = 'none';
         icon.style.transform = 'rotate(-90deg)';
-        if (textSpan) {
-            const count = textSpan.getAttribute('data-total');
-            textSpan.innerText = count == 1 ? 'Ver 1 respuesta' : `Ver ${count} respuestas`;
-        }
     }
 };
-
 window.showMoreReplies = function(rootId) {
     const hiddenReplies = document.querySelectorAll(`.hidden-reply-${rootId}`);
     hiddenReplies.forEach(el => {
@@ -748,7 +733,6 @@ window.restaurarPanelesGlobales = function() {
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
-
     if (originalContainer && actionsDiv) {
         if(previewEl) originalContainer.insertBefore(previewEl, actionsDiv);
         if(emojiEl) originalContainer.insertBefore(emojiEl, actionsDiv);
@@ -804,7 +788,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
-
     if (panelDest) {
         if(previewEl) panelDest.appendChild(previewEl);
         if(emojiEl) panelDest.appendChild(emojiEl);
@@ -850,7 +833,7 @@ window.cancelarRespuesta = function(forzarSync = false) {
 
     restaurarPanelesGlobales();
     quitarStickerPreview();
-
+    
     if (box) {
         if (forzarSync) {
             box.remove();
@@ -865,7 +848,6 @@ window.cancelarRespuesta = function(forzarSync = false) {
 
 window.openStickerModal = function(url) {
     let modal = document.getElementById('stickerViewModal');
-
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'stickerViewModal';
@@ -931,10 +913,8 @@ window.validarBotonPrincipal = function(textarea) {
     const btn = document.getElementById(btnId);
     
     if(!btn) return;
-
     const tieneTexto = textarea.value.trim().length > 0;
     const tieneSticker = window.stickerSeleccionadoParaEnviar != null;
-
     if(tieneTexto || tieneSticker) {
         btn.classList.remove('btn-disabled');
         btn.style.opacity = '1';
@@ -950,13 +930,11 @@ async function enviarComentarioTexto() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
-
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     
     const btn = document.getElementById('enviarComentarioBtn');
     if (btn && btn.classList.contains('btn-disabled')) return;
-
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
@@ -964,7 +942,6 @@ async function enviarComentarioTexto() {
     }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-
     textoInput.value = '';
     textoInput.style.height = 'auto';
     quitarStickerPreview();
@@ -987,7 +964,6 @@ async function enviarComentarioTexto() {
             reactions: {},
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-
         window.lastPostedCommentId = docRef.id;
         showToastComent('✅ Comentario publicado con éxito');
     } catch (error) {
@@ -1009,14 +985,12 @@ window.enviarRespuestaDinamica = async function() {
 
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
-
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
 
     if (!texto && !stickerUrl) return;
 
     const btn = document.getElementById(`btnEnviarRespuesta-${replyContext.id}`);
-
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -1024,7 +998,6 @@ window.enviarRespuestaDinamica = async function() {
     textoInput.disabled = true;
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-
     quitarStickerPreview();
     restaurarPanelesGlobales();
 
@@ -1046,7 +1019,7 @@ window.enviarRespuestaDinamica = async function() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
-
+        
         if (replyContext.userId !== comentariosCurrentUser.uid) {
             await comentariosDb.collection('user_notifications').add({
                 targetUserId: replyContext.userId,
@@ -1063,7 +1036,6 @@ window.enviarRespuestaDinamica = async function() {
 
         showToastComent('✅ Respuesta enviada');
         cancelarRespuesta(true);
-
     } catch (error) {
         console.error('Error enviando respuesta:', error);
         alert('Error: ' + error.message);
@@ -1082,7 +1054,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     const previewVid = document.getElementById('previewStickerVidObj');
     
     if (!previewContainer || !previewImg || !previewVid) return;
-
     if (url.match(/\.(mp4|webm)$/i)) {
         previewImg.style.display = 'none'; 
         previewVid.src = url;
@@ -1096,7 +1067,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     previewContainer.style.display = 'block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
-
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
@@ -1112,7 +1082,6 @@ window.quitarStickerPreview = function() {
     if(previewContainer) previewContainer.style.display = 'none';
     if(previewImg) previewImg.src = '';
     if(previewVid) previewVid.src = '';
-
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const targetTextarea = document.getElementById(targetTextareaId);
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
@@ -1121,14 +1090,12 @@ window.quitarStickerPreview = function() {
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
-
     if (!comentariosCurrentUser) {
         if (loginMsg) loginMsg.style.display = 'block';
         if (formContainer) formContainer.style.display = 'none';
     } else {
         if (loginMsg) loginMsg.style.display = 'none';
         if (formContainer) formContainer.style.display = 'block';
-
         const avatar = document.getElementById('comentarioUserAvatar');
         if (avatar) avatar.src = comentariosCurrentUser.photoURL || 'invitado.avif';
         
@@ -1160,7 +1127,6 @@ function toggleStickerPanelSistema() {
 function agregarEmojiAlTexto(emoji) {
     const targetTextareaId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
     const textarea = document.getElementById(targetTextareaId);
-
     if (textarea) {
         const start = textarea.selectionStart;
         const text = textarea.value;
