@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS CON RESPUESTAS (ESTILO YOUTUBE) Y NOTIFICACIONES
-// VERSIÓN CORREGIDA - FORMULARIO SIEMPRE VISIBLE Y REUTILIZABLE
+// VERSIÓN CORREGIDA - FORMULARIO SIEMPRE VISIBLE
 // ============================================
 
 let comentariosDb = null;
@@ -340,21 +340,19 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         banner = document.createElement('div');
         banner.id = 'replyInfoBanner';
         banner.style.cssText = "margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,255,247,0.1); padding: 10px 20px; border-radius: 12px; border-left: 4px solid var(--primary-color); backdrop-filter: blur(5px); animation: fadeIn 0.3s ease-out;";
-        const formWrapper = document.querySelector('.comentario-input-wrapper');
-        if (formWrapper && formWrapper.parentNode) {
-            formWrapper.parentNode.insertBefore(banner, formWrapper);
-        } else {
-            const formContainer = document.getElementById('comentarioFormContainer');
-            if (formContainer) formContainer.insertBefore(banner, formContainer.firstChild);
+        const formContainer = document.getElementById('comentarioFormContainer');
+        if (formContainer) {
+            formContainer.insertBefore(banner, formContainer.firstChild);
         }
+    } else {
+        banner.style.display = 'flex';
     }
     
     banner.innerHTML = `<span style="color:var(--primary-color); font-size:0.95rem; font-weight: bold;"><i class="fas fa-reply"></i> Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span> 
     <button onclick="cancelarRespuesta()" style="background:rgba(255,85,85,0.2); border:1px solid #ff5555; color:#ff5555; border-radius: 50%; width: 28px; height: 28px; cursor:pointer; font-size: 0.9rem; transition: 0.3s;"
     onmouseover="this.style.background='#ff5555'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,85,85,0.2)'; this.style.color='#ff5555';" title="Cancelar respuesta"><i class="fas fa-times"></i></button>`;
-    banner.style.display = 'flex';
     
-    // MOVER EL FORMULARIO DEBAJO DEL COMENTARIO ESPECÍFICO
+    // Mover el formulario justo debajo del comentario al que se responde
     const formContainer = document.getElementById('comentarioFormContainer');
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (formContainer && commentEl) {
@@ -372,7 +370,7 @@ window.cancelarRespuesta = function() {
     const banner = document.getElementById('replyInfoBanner');
     if (banner) banner.style.display = 'none';
 
-    // DEVOLVER EL FORMULARIO A SU LUGAR ORIGINAL
+    // Devolver el formulario a su lugar original permanente
     const formContainer = document.getElementById('comentarioFormContainer');
     const originalLocation = document.getElementById('comentarioFormOriginalLocation');
     if (formContainer && originalLocation) {
@@ -462,9 +460,7 @@ async function enviarComentarioTexto() {
     if (!texto && !stickerUrl) return showToastComent('⚠️ No puedes enviar un comentario vacío');
     
     const btn = document.getElementById('enviarComentarioBtn');
-    let originalText = '';
     if (btn) {
-        originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     }
@@ -501,23 +497,32 @@ async function enviarComentarioTexto() {
             });
         }
 
-        // Limpiar el textarea después de enviar
-        const textareaAfter = document.getElementById('comentarioTexto');
-        if (textareaAfter) textareaAfter.value = '';
+        // Limpiar el textarea y el sticker seleccionado
+        if (textarea) textarea.value = '';
         quitarStickerPreview();
         
-        // IMPORTANTE: Cancelar respuesta para devolver el formulario a su lugar original
-        cancelarRespuesta();
+        // Cancelar respuesta si estaba activa (esto también devuelve el formulario a su lugar)
+        if (window.respondiendoA) {
+            cancelarRespuesta();
+        } else {
+            // Si no es respuesta, asegurar que el formulario esté en su lugar original
+            const formContainer = document.getElementById('comentarioFormContainer');
+            const originalLocation = document.getElementById('comentarioFormOriginalLocation');
+            if (formContainer && originalLocation && formContainer.parentNode !== originalLocation) {
+                originalLocation.appendChild(formContainer);
+                formContainer.style.marginTop = "20px";
+                formContainer.style.marginBottom = "40px";
+            }
+        }
         
         showToastComent('✅ Comentario publicado');
     } catch (error) {
-        console.error("Error al enviar comentario:", error);
+        console.error(error);
         alert('Error: ' + error.message);
     } finally {
-        const btnAfter = document.getElementById('enviarComentarioBtn');
-        if (btnAfter) {
-            btnAfter.disabled = false;
-            btnAfter.innerHTML = originalText || '<i class="fas fa-paper-plane"></i> Enviar Comentario';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Comentario';
         }
     }
 }
