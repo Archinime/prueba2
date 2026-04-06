@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotificationList();
     updateBellBadge();
 
-    // === NUEVO: Conectar con Firebase para escuchar respuestas ===
+    // Conectar con Firebase para escuchar respuestas
     if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Función maestra que vigila Firestore en tiempo real
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
-
+    
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -84,7 +84,7 @@ function listenForReplies(uid) {
                     }
                 }
             });
-
+            
             if (hasNew) {
                 // Limitar historial a 50
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
@@ -93,9 +93,7 @@ function listenForReplies(uid) {
                 if (!isMenuOpen) updateBellBadge();
                 
                 // Disparar popup si el usuario está activo
-                if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
-                    showNextPopup();
-                }
+                showNextPopup();
             }
         }, error => {
             console.error("Error al escuchar respuestas en Firebase:", error);
@@ -108,8 +106,11 @@ function listenForReplies(uid) {
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored);
-        } catch(e) { notificationsHistory = []; }
+        try { 
+            notificationsHistory = JSON.parse(stored);
+        } catch(e) { 
+            notificationsHistory = []; 
+        }
     }
 }
 
@@ -151,8 +152,8 @@ function checkForNewUpdates() {
     
     if (newItemsFound.length > 0) {
         saveHistoryToStorage();
-        // Solo metemos a la cola de popups los animes
-        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+        // Agregamos a la cola de forma segura (push) para no romper referencias
+        newItemsFound.slice(0, 5).forEach(item => notificationQueue.push(item));
     }
 }
 
@@ -162,19 +163,23 @@ window.startNotificationSequence = function() {
 
 function showNextPopup() {
     if (notificationQueue.length === 0) return;
+    
+    // CORRECCIÓN CRÍTICA: Si ya hay un modal visible, no lo destruimos. 
+    // Dejamos que el usuario lo cierre para mostrar el siguiente.
+    if (document.getElementById('eventModal')) return; 
+
     const notif = notificationQueue[0];
     createPopupHTML(notif);
 }
 
 function createPopupHTML(notif) {
-    const existing = document.getElementById('eventModal');
-    if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     
-    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
-    let infoString = "";
+    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios."
+    : "¡Ya disponible en la plataforma! Disfruta del estreno.";
     
+    let infoString = "";
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
     }
@@ -185,10 +190,11 @@ function createPopupHTML(notif) {
         infoString = "Nuevo Contenido";
     }
 
+    // Protegemos el .includes con un if (notif.type) para evitar crashes con caché antigua
     let badgeClass = "badge-default";
-    if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
-    else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno"; // Reutilizamos este estilo
+    if (notif.type && notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
+    else if (notif.type && notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
+    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno"; 
 
     let finalImgHTML = '';
     if (notif.isFinal) {
@@ -202,11 +208,13 @@ function createPopupHTML(notif) {
             </button>
             <div class="event-visuals">
                 <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+        
                 <div class="covers-container">
                     <img src="${notif.img}" class="cover-back" alt="Poster">
                     <img src="${notif.seasonCover}" class="cover-front" alt="Season">
                 </div>
-                <div class="event-type-badge ${badgeClass}">${notif.type}</div>
+                <div class="event-type-badge ${badgeClass}">${notif.type || 'Novedad'}</div>
+           
                 ${finalImgHTML}
             </div>
             <div class="event-info">
@@ -231,14 +239,14 @@ function closePopup() {
             modal.remove();
             const processed = notificationQueue.shift();
             if (processed) markAsRead(processed.notifId);
-            showNextPopup();
+            showNextPopup(); // Muestra el siguiente en la cola si lo hay
         }, 300);
     }
 }
 
 function goToAnimeFromPopup(animeId, notifId, customUrl) {
     markAsRead(notifId);
-    notificationQueue = [];
+    notificationQueue = []; // Limpiamos la cola porque el usuario va a salir de la página
     if (customUrl && customUrl !== '') {
         window.location.href = customUrl;
     } else {
@@ -249,6 +257,7 @@ function goToAnimeFromPopup(animeId, notifId, customUrl) {
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
+    
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
@@ -284,6 +293,7 @@ function renderNotificationList() {
         const div = document.createElement('div');
         div.className = 'notif-item';
         let infoString = "";
+        
         if (item.blockName && item.blockName !== "Novedad") {
             infoString += `<span class="n-block">${item.blockName}</span>`;
         }
@@ -295,9 +305,10 @@ function renderNotificationList() {
         }
         
         let typeColor = "var(--neon-purple)";
-        if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
-        else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
-        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)"; // Neon cyan para respuestas
+        // Protección en caso de que item.type sea undefined por caché antigua
+        if (item.type && item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
+        else if (item.type && item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
       
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
         div.innerHTML = `
@@ -308,13 +319,12 @@ function renderNotificationList() {
                 <div class="notif-header-line">
                      <span class="n-title">${item.title}</span>
                 </div>
-                <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
+                <div class="n-type" style="color:${typeColor}">${item.type || 'Novedad'} ${finalLabel}</div>
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
         
         div.addEventListener('click', () => {
-            // Si es respuesta lo redirige al video-player, sino al anime-detail
             if (item.url) {
                 window.location.href = item.url;
             } else {
@@ -328,6 +338,7 @@ function renderNotificationList() {
 function updateBellBadge() {
     const unread = notificationsHistory.filter(n => !n.seen).length;
     const badge = document.getElementById('notifBadge');
+    
     if (badge) {
         if (unread > 0) {
             badge.style.display = 'block';
