@@ -413,18 +413,511 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
+  <!-- INCLUIMOS LOS DATOS DE ANIMES DIRECTAMENTE PARA EVITAR DEPENDENCIAS EXTERNAS -->
   <script>
-    const version = Date.now();
-    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-    document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+    // ===================== DATOS DE ANIMES (index-data.js embebido) =====================
+    const animes = [
+        { "id": 1, "title": "DAN DA DAN", "img": "dan.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Comedia","Comedia oscura","Romance","Sobrenatural","Shōnen"], "lastUpdate": 1768745863080, "updateType": "Ninguna", "latestSeasonCover": "dan2.jpg", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 12", "isFinal": false },
+        { "id": 2, "title": "Jujutsu Kaisen", "img": "Jujutsu.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Fantasía oscura","Nekketsu","Sobrenatural","Shōnen"], "lastUpdate": 1775158616756, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 10", "isFinal": false },
+        { "id": 3, "title": "KonoSuba!", "img": "konosubaportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Aventura","Comedia","Ecchi","Fantasía","Isekai","Sobrenatural","Shōnen"], "lastUpdate": 1774222579317, "updateType": "Ninguna", "latestSeasonCover": "kono3.png", "latestBlockName": "Ova 3", "latestEpTitle": "Capítulo 2", "isFinal": false, "aliases": ["Kono subarashii sekai ni shukufuku o!"] },
+        { "id": 4, "title": "Re:Zero − Empezar vida en otro mundo", "img": "rezero.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Acción","Aventura","Drama","Fantasía oscura","Romance","Thriller psicológico","Terror psicológico","Isekai","Shōnen"] },
+        { "id": 5, "title": "Mushoku Tensei", "img": "mushoku.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Drama","Ecchi","Fantasía","Harem","Isekai","Romance","Seinen"], "lastUpdate": 1768680725366, "updateType": "Ninguna", "latestSeasonCover": "mushoku22.jpg", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 24", "isFinal": false },
+        { "id": 6, "title": "Tensei Shitara Slime Datta Ken", "img": "slime.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Comedia","Fantasía","Isekai","Slice of Life","Shōnen"], "lastUpdate": 1769090734634, "updateType": "Ninguna", "latestSeasonCover": "tensura3.jpg", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 24", "isFinal": false, "aliases": ["That Time I Got Reincarnated as a Slime"] },
+        { "id": 7, "title": "Saga of Tanya the Evil", "aliases": ["Yōjo Senki"], "img": "tanya1.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Acción","Aventura","Fantasía","Militar","Drama","Ciencia ficción","Seinen"] },
+        { "id": 8, "title": "Akame Ga Kill", "aliases": ["Akame ga Kiru"], "img": "Akame1.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "genres": ["Acción","Aventura","Drama","Fantasía oscura","Romance","Tragedia","Shōnen"] },
+        { "id": 9, "title": "To Be Hero X", "img": "hero11.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Acción","Comedia","Animación","Fantasía","Superhéroes","Seinen"] },
+        { "id": 10, "title": "Demon Slayer", "img": "demon.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Drama","Fantasía oscura","Sobrenatural","Shōnen"], "aliases": ["Kimetsu no Yaiba"] },
+        { "id": 11, "title": "Maou 2099", "img": "maou2099portada.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Ciencia ficción","Isekai Inverso","Acción","Fantasía","Cyberpunk","Shōnen"] },
+        { "id": 12, "title": "Wistoria: Wand and Sword", "img": "wistoria.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Aventura","Shōnen"] },
+        { "id": 13, "title": "Izure Saikyou no Renkinjutsushi", "aliases": ["Possibly the Greatest Alchemist of All Time"], "img": "Izure.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "genres": ["Aventura","Comedia","Fantasía","Isekai","Shōnen"] },
+        { "id": 14, "title": "Alya Sometimes Hides Her Feelings in Russian", "aliases": ["Tokidoki Bosotto Russia-go de Dereru Tonari no Alya-san"], "img": "alia.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Romance","Escolar","Josei"] },
+        { "id": 15, "title": "Reborn as a Vending Machine, I Now Wander the Dungeon", "aliases": ["Jidōhanbaiki ni Umarekawatta Ore wa Meikyū ni Samayō"], "img": "jidou.avif", "rating": 4.1, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Isekai","Shōnen"] },
+        { "id": 16, "title": "kimi to boku no saigo no senjou", "aliases": ["Our Last Crusade or the Rise of a New World"], "img": "kimi22222.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "genres": ["Acción","Fantasía","Romance","Militar","Seinen"] },
+        { "id": 17, "title": "The Gorilla God's Go- To Girl", "aliases": ["Gorilla no Kami Kara Kago Sareta Reijō wa Ōritsu Kishidan de Kawaiigareru"], "img": "gorila11.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Comedia","Escolar","Romance","Shōjo"] },
+        { "id": 18, "title": "Chainsaw Man", "img": "chaiportada.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Fantasía oscura","Acción","Comedia oscura","Shōnen"] },
+        { "id": 19, "title": "The Rising of the Shield Hero", "aliases": ["Tate no Yuusha no Nariagari","El Héroe del Escudo"], "img": "heroedelescudoportada.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Aventura","Drama","Fantasía","Acción","Romance","Isekai","Seinen"] },
+        { "id": 20, "title": "Overflow", "img": "overflow.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "genres": ["Hentai","Escolar","Romance","Harem","Incesto","Seijin"] },
+        { "id": 21, "title": "Shiunji-ke no Kodomotachi", "img": "Shiux.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Romance","Drama","Harem","Slice of Life","Seinen"] },
+        { "id": 22, "title": "Goblin Slayer", "img": "goblinslayerportada.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Fantasía oscura","Horror","Aventura","Fantasía","Seinen"] },
+        { "id": 23, "title": "Kanchigai no Atelier Meister", "img": "atelier1.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "genres": ["Aventura","Comedia","Fantasía","Acción","Shōnen"] },
+        { "id": 24, "title": "Definitivamente. ¡No me gusta mi hermano para nada!", "img": "Oni.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Ecchi","Harem","Romance","Slice of Life","Seinen"], "lastUpdate": 1768622729150, "updateType": "ACTUALIZACIÓN 🛠️", "latestSeasonCover": "https://www.dropbox.com/scl/fi/1ds4mocfv035zgs7brobv/Definitivamente1.jpg?rlkey=xurw5jdgzeeww66ly0vmhiy6k&st=o8jyfz4c&raw=1", "latestBlockName": "Ova 1", "latestEpTitle": "Capítulo 1" },
+        { "id": 25, "title": "Kaiju No. 8", "img": "kaijuportada.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Sobrenatural","Fantasía oscura","Acción","Ciencia ficción","Aventura","Comedia","Kaiju","Shōnen"] },
+        { "id": 26, "title": "Zootopia", "img": "zootopiaportada.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Animación","Aventura","Comedia","Familiar","Infantil","Misterio","Policial","Kodomo"], "lastUpdate": 1774310037586, "updateType": "Ninguna", "latestSeasonCover": "https://www.dropbox.com/scl/fi/8jsapi6ovjb24j9hwydhq/zootopia2.jpeg?rlkey=dee636x8blmjjuh6xltn7x2i5&st=x9bcl3m3&raw=1", "latestBlockName": "Zootopia 2", "latestEpTitle": "Capítulo 1", "isFinal": false },
+        { "id": 27, "title": "Clevatess -Majuu no Ou to Akago", "img": "Clevatessportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Acción","Fantasía","Drama","Seinen"] },
+        { "id": 28, "title": "Dr. Stone", "img": "Dr._Stoneportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Aventura","Ciencia ficción","Comedia","Divulgación Científica","Post-apocalíptico","Shōnen"], "lastUpdate": 1775146571127, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stone4.avif", "latestBlockName": "Temporada 4 Parte III - FInal", "latestEpTitle": "Capítulo 1", "isFinal": false },
+        { "id": 29, "title": "One Piece (Live Action)", "img": "onepieceportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Comedia","Drama","Fantasía","Shōnen"], "lastUpdate": 1773258729289, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/8ia1wi18lkdtsxev6vzrq/onepiece22.jpg?rlkey=a1nlcclu7625tqoiy4w3rgi8i&st=xnadjkcg&raw=1", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 8", "isFinal": true },
+        { "id": 30, "title": "Shoujo Ramune", "img": "shoujoramuneportada.avif", "rating": 4.3, "uploader": "archinime12@gmail.com", "genres": ["Hentai","Harem","Incesto","Seijin"] },
+        { "id": 31, "title": "To Your Eternity", "img": "fumetsuportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Aventura","Drama","Fantasía","Sobrenatural","Shōnen"], "lastUpdate": 1774761458922, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 22", "isFinal": true, "aliases": ["Fumetsu no Anata e"] },
+        { "id": 32, "title": "Tsugunai Subbed", "img": "TsugunaiSubbed.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Hentai","Harem","Escolar","Seijin"] },
+        { "id": 33, "title": "Blue Lock", "aliases": ["Yoichi Isagi"], "img": "Bluelockportada.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Thriller","Psicológico","Deportivo","Survival Game","Shōnen"] },
+        { "id": 34, "title": "Magic Maker: Isekai Mahou no Tsukurikata", "aliases": ["Magic Maker: How to Make Magic in Another World"], "img": "magic maker.avif", "rating": 4.4, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Isekai","Aventura","Slice of Life","Shōnen"] },
+        { "id": 35, "title": "Tsuyokute New Saga", "aliases": ["New Saga"], "img": "New Saga.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Isekai","Aventura","Comedia","Acción","Drama","Slice of Life","Shōnen"] },
+        { "id": 36, "title": "Gachiakuta", "img": "Gachiakuta.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Fantasía","Fantasía oscura","Shōnen"], "lastUpdate": 1768672095349, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/xlkbrayxyel3kiyepr1r2/Gachiakuta1.jpg?rlkey=q5g6jlo0cv4e5z7znj70vtyor&st=uh2bwp30&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 24" },
+        { "id": 37, "title": "Shinsei Kourin Dacryon Luna", "img": "Shinsei Kourin Dacryon Luna portada.avif", "rating": 4, "uploader": "archinime12@gmail.com", "genres": ["Tentáculos","Hentai","Fantasía","Fantasía oscura","Seijin"] },
+        { "id": 38, "title": "Kami-tachi ni Hirowareta Otoko", "aliases": ["By the Grace of the Gods"], "img": "Kamitachi.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Aventura","Slice of Life","Isekai","Shōnen"] },
+        { "id": 39, "title": "Ore dake Haireru Kakushi Dungeon", "aliases": ["The Hidden Dungeon Only I Can Enter"], "img": "oredake.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Comedia","Harem","Ecchi","Acción","Romance","Shōnen"] },
+        { "id": 40, "title": "One Punch-Man", "img": "onepunch.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ciencia ficción","Comedia","Fantasía","Superhéroes","Seinen"], "lastUpdate": 1771450440133, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/1r0djgkxmptdfe2ltkbk1/onepunch3.jpg?rlkey=4e2i0r1cvl5ufsh5f41fa2sqm&st=woghk9gy&raw=1", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["One-Punch Man"] },
+        { "id": 41, "title": "Mashle", "aliases": ["Mash Burnedead"], "img": "mashle1.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Acción","Fantasía","Aventura","Shōnen"] },
+        { "id": 42, "title": "Los Diarios de la Boticaria", "aliases": ["Kusuriya no Hitorigoto","The Apothecary Diaries"], "img": "maomaot1.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Drama","Misterio","Romance","Shōjo"] },
+        { "id": 43, "title": "Maplestar", "img": "pm.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Animación","Hentai","Seijin"], "lastUpdate": 1775233012988, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/reze.avif", "latestBlockName": "Clases Con Reze", "latestEpTitle": "Capítulo 2", "isFinal": false },
+        { "id": 44, "title": "Uzumaki", "img": "uzumakii.avif", "rating": 4.2, "uploader": "archinime12@gmail.com", "genres": ["Horror","Seinen"] },
+        { "id": 45, "title": "Tondemo Skill de Isekai Hourou Meshi", "aliases": ["Campfire Cooking in Another World with My Absurd Skills"], "img": "todemo.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Fantasía","Slice of Life","Cocina","Aventura","Shōnen","Isekai"] },
+        { "id": 46, "title": "My Dress-Up Darling", "aliases": ["Sono Bisque Doll wa Koi wo Suru"], "img": "muneca.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Romance","Slice of Life","Escolar","Cosplay","Seinen"] },
+        { "id": 47, "title": "Hazbin Hotel", "img": "hhzz.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Animación","Comedia","Drama","Musical","Policial","Seijin"], "lastUpdate": 1769033282341, "updateType": "Ninguna", "latestSeasonCover": "https://www.dropbox.com/scl/fi/iz2jt0avm2d625tjb8trq/Airbrush-Image-Enhancer-1761697102126.jpg?rlkey=isj2usvel3oh22io1o620lfoi&st=8laf3wdv&raw=1", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 8", "isFinal": false, "aliases": ["Hotel Hazbin"] },
+        { "id": 48, "title": "The Eminence in Shadow", "aliases": ["Kage no Jitsuryokusha ni Naritakute!"], "img": "shadow.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Acción","Fantasía","Isekai","Harem","Steampunk","Shōnen"] },
+        { "id": 49, "title": "Spy × Family", "img": "spy.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Drama","Fantasía","Shōnen"], "lastUpdate": 1769402924356, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/mtki74k5zzzywfdegb4ir/dfffffg.jpg?rlkey=g563wasphqjhhyep83qnq548r&st=9uw7j6kq&raw=1", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 13", "isFinal": true },
+        { "id": 50, "title": "Black Clover", "img": "portbla.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Comedia","Acción","Fantasía","Aventura","Shōnen"] },
+        { "id": 51, "title": "My Hero Academia", "img": "sgsgsdseg.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Comedia","Drama","Escolar","Fantasía","Superhéroes","Shōnen"], "lastUpdate": 1768755604711, "updateType": "Ninguna", "latestSeasonCover": "https://www.dropbox.com/scl/fi/1udlgl7s87fdvmwi7mp2l/Airbrush-IMAGE-ENHANCER-1762698551862-1762698551862.jpg?rlkey=e8rdhex2nwtlhyl6nume5oq9t&st=ojvzr0lg&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 11", "isFinal": true, "aliases": ["Boku no Hero"] },
+        { "id": 52, "title": "Kakkou no Linazuke", "aliases": ["A Couple of Cuckoos"], "img": "pordf.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "genres": ["Romance","Comedia","Escolar","Harem","Shōnen"] },
+        { "id": 53, "title": "Futari Solo Camp", "img": "futaripor.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Romance","Slice of Life","Seinen"], "lastUpdate": 1768678787339, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/tmonp4atoj90k87ojxtdf/Airbrush-IMAGE-ENHANCER-1763472470283-1763472470284.jpg?rlkey=ctc7gslr2ttsotj67parqf8ai&st=n96z3g28&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 24", "isFinal": false, "aliases": ["Solo Camping for Two"] },
+        { "id": 54, "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai", "img": "tojima1.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Comedia","Tokusatsu","Seinen"], "lastUpdate": 1775337397037, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 23", "isFinal": false, "aliases": ["Tojima Wants to Be a Kamen Rider"] },
+        { "id": 55, "title": "Alma-chan wa Kazoku ni Naritai", "img": "almachan.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Ciencia ficción","Comedia","Romance","Seinen"], "lastUpdate": 1768672215669, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/en905hoqulm0ih9epmjcf/almachan1.jpg?rlkey=dm7s8l0lhplo8eshfsgj7fdyk&st=ji8mmsmi&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 11", "aliases": ["Alma-chan Wants to Be a Family!"] },
+        { "id": 56, "title": "Spice and Wolf", "aliases": ["Okami to Kōshinryō"], "img": "drgfedfgdf.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Acción","Romance","Ciencia ficción","Aventura","Fantasía","Drama","Seinen"] },
+        { "id": 57, "title": "Oyasumi Sex", "img": "oyasumi.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Hentai","Romance","Slice of Life","Seijin"], "lastUpdate": 1774467255694, "updateType": "Ninguna", "latestSeasonCover": "oyasumi1.jpg", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 4", "isFinal": false },
+        { "id": 58, "title": "Rick and Morty", "aliases": ["Rick y Morty"], "img": "rymp.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Animación","Acción","Ciencia ficción","Aventura","Comedia","Comedia oscura","Gag","Seijin"] },
+        { "id": 59, "title": "Akujiki Reijou to Kyouketsu Koushaku", "img": "akujiki.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Cocina","Comedia","Fantasía","Romance","Shōjo"], "lastUpdate": 1768678905514, "updateType": "NUEVO 🔥", "latestSeasonCover": "akujiki1.jpg", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Pass the Monster Meat, Milady!"] },
+        { "id": 60, "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka", "aliases": ["May I Ask for One Final Thing?"], "img": "saigo ni hitotsu.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Acción","Fantasía","Comedia","Drama","Romance","Shōjo"] },
+        { "id": 61, "title": "Ataque a los titanes", "img": "synt.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Drama","Fantasía oscura","Misterio","Shōnen"], "aliases": ["Attack on Titan","Shingeki no Kyojin"] },
+        { "id": 62, "title": "Record of Ragnarok", "aliases": ["Shūmatsu no Valkyrie"], "img": "recordpor.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Acción","Fantasía","Sobrenatural","Drama","Mitología","Survival","Seinen"] },
+        { "id": 63, "title": "Genshin Impact Hentai", "aliases": ["Hentai"], "img": "gih.avif", "rating": 5, "uploader": "archinime12@gmail.com", "genres": ["Hentai","Fantasía","Tentáculos","Seijin"] },
+        { "id": 64, "title": "Gnosia", "img": "gnosiap.avif", "rating": 4.4, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Ciencia ficción","Deducción Social","Drama","Misterio","Seinen"], "lastUpdate": 1775325492328, "updateType": "NUEVO 🔥", "latestSeasonCover": "gnosia1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 21", "isFinal": true },
+        { "id": 65, "title": "Classroom of the Elite", "aliases": ["Yōkoso Jitsuryoku Shijō Shugi no Kyōshitsu e"], "img": "classroomelite.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "genres": ["Drama","Slice of Life","Survival Game","Thriller","Thriller psicológico","Escolar","Seinen"] },
+        { "id": 66, "title": "Frieren: Más allá del final del viaje", "img": "ff.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Aventura","Drama","Fantasía","Shōnen"], "lastUpdate": 1775238529950, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 8", "isFinal": false, "aliases": ["Sōsō no Frieren"] },
+        { "id": 67, "title": "Solo leveling", "aliases": ["Ore dake Level Up na Ken"], "img": "sololeveling.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Fantasía","Aventura","Acción","RPG","Superhéroes","Isekai","Nekketsu","Shōnen"] },
+        { "id": 68, "title": "It - Bienvenidos a Derry", "aliases": ["It - Welcome to Derry"], "img": "it.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "genres": ["Terror","Sobrenatural","Suspenso","Drama","Thriller","Seijin"] },
+        { "id": 69, "title": "Cars", "aliases": ["Rayo McQueen"], "img": "cars.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "genres": ["Infantil","Familiar","Aventura","Animación","Comedia","Acción","Road Movie","Deportivo","Kodomo"] },
+        { "id": 70, "title": "Kimi to Koete Koi ni Naru", "img": "kimitokoete.avif", "rating": 4.3, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Drama","Escolar","Fantasía","Romance","Slice of Life","Shōjo"], "lastUpdate": 1770243238332, "updateType": "NUEVO 🔥", "latestSeasonCover": "kimitokoete1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["With You, Our Love Will Make It Through"] },
+        { "id": 71, "title": "Overlord", "img": "overlord.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Comedia","Comedia oscura","Fantasía oscura","Isekai","Sobrenatural","Shōnen"] },
+        { "id": 72, "title": "Seihantai na Kimi to Boku", "img": "https://www.dropbox.com/scl/fi/tj525d996dhx67ybfo85f/ImageToStl.com_MV5BNGI4NzhiZmMtNWY2Mi00MTFhLTgyOTktZTk1YjRlZmU5NzkxXkEyXkFqcGc._V1_FMjpg_UX1000.avif?rlkey=3so7gb70li05txtrk86ppisen&st=thjnvset&raw=1", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Escolar","Romance","Slice of Life","Shōnen"], "lastUpdate": 1775402286707, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 10", "isFinal": false, "aliases": ["You And I Are Polar Opposites"] },
+        { "id": 73, "title": "Sentenced to Be a Hero", "img": "https://www.dropbox.com/scl/fi/xfnznn3sp5r6ffzkbfadj/ImageToStl.com_fgdfgfdg.avif?rlkey=89wcv2sq8ro8lwpxmd1umh3ce&st=7acedkk4&raw=1", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Drama","Fantasía oscura","Seinen"], "lastUpdate": 1774824570775, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/g6gmcpr341z0eav70s8xa/C2P4K6XQ5BBNBAKHMAM5XBFAKE.avif?rlkey=8q1u5gev6iq55ndsts7m6s5ij&st=x46rl6r1&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 11", "isFinal": false, "aliases": ["Yuusha-kei ni Shosu"] },
+        { "id": 74, "title": "SHIBOYUGI: Me gano el pan participando de juegos mortales", "img": "https://www.dropbox.com/scl/fi/fx5zw1358e8zykeh8qku1/ImageToStl.com_MV5BMzVmOTUyMTktZjg1ZC00ZjljLWE3MjEtNTRjMDc2Yjg1NzZiXkEyXkFqcGc._V1_-1.avif?rlkey=ejl6szzppyol14lq9nvcjgw4m&st=ipj0pclp&raw=1", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Drama","Misterio","Psicológico","Survival","Thriller","Seinen"], "lastUpdate": 1773968239416, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 11", "isFinal": true, "aliases": ["Shibou Yuugi de Meshi wo Kuu"] },
+        { "id": 75, "title": "Date a Live", "img": "https://www.dropbox.com/scl/fi/0p0mfy5af83b1u0au9ebb/datealive-1.jpg?rlkey=6cft8w0ibv4j60iqcz4bdip00&st=4i66ch8r&raw=1", "rating": 4.6, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ciencia ficción","Comedia","Drama","Fantasía","Harem","Romance","Shōnen"], "lastUpdate": 1768713497317, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/twsfyhd59flqcld6hx8kf/datealive5.avif?rlkey=szzmialnfoz4pvtbb0ee84bvg&st=uptlajf8&raw=1", "latestBlockName": "Temporada 5", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 76, "title": "Let's Play", "img": "https://www.dropbox.com/scl/fi/p8ym5q7jf3n25bh2x2aok/letsplay.avif?rlkey=byvltt6ghhpit0mutgbogn9qi&st=j3sx3sfp&raw=1", "rating": 4.2, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Drama","Romance","Slice of Life","Shōnen"], "lastUpdate": 1768753115346, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/hy1r4mrzb32etx0b34i65/letsplay1.avif?rlkey=ium82ha2azfcozjljkipa7iwi&st=0tdmrzz8&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 77, "title": "Fire Force", "img": "https://www.dropbox.com/scl/fi/yb4ceq87w77dc9tfv6hck/fireforce.avif?rlkey=vqtcwroglk2w1xksclu3fzy6k&st=x4wng0o2&raw=1", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ciencia ficción","Comedia","Drama","Fantasía","Misterio","Sobrenatural","Shōnen"], "lastUpdate": 1775243266221, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 25", "isFinal": true },
+        { "id": 78, "title": "Hana-Kimi", "img": "https://www.dropbox.com/scl/fi/pjimk877gp2f1gq1fur0f/ImageToStl.com_Hana-Kimi-1.avif?rlkey=e0wi3l2w6v5vjy753cyag3sup&st=89tv9fxr&raw=1", "rating": 4.6, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Drama","Escolar","Romance","Slice of Life","Shōjo"], "lastUpdate": 1773619004385, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/e5dwv24trzd8zpcexo20i/asfafsaf.avif?rlkey=3jjrm0xy6q0xui8e6cwrgqs0e&st=xhbepgng&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Hanazakari no kimitachi e"] },
+        { "id": 79, "title": "Dark Moon: The Blood Altar", "img": "https://www.dropbox.com/scl/fi/ypv720n8l5jvhd47c77ei/68HcRvCpiajsPhKn1MnV4hqeCAN.avif?rlkey=yulou1xyoa1ocvhu9nd0pfjxk&st=cswxzs4u&raw=1", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Escolar","Fantasía oscura","Misterio","Reverse Harem","Romance","Sobrenatural","Shōjo"], "lastUpdate": 1774643494613, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 80, "title": "Hell's Paradise", "img": "https://www.dropbox.com/scl/fi/vpt0m3tswyu0uzjsu7f1w/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769090129026-1769090129026-1.avif?rlkey=4s8i5bmu32nk7mbghl593q6h0&st=1349sffw&raw=1", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Fantasía oscura","Histórico","Sobrenatural","Suspenso","Terror","Thriller","Shōnen"], "lastUpdate": 1775413769761, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZz2Pl5ZtIRJpcwNxr5Alrpg7RDymX4RfcJV&size=2000x3000", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 10", "isFinal": false, "aliases": ["Jigokuraku."] },
+        { "id": 81, "title": "NieR: Automata Ver1.1a", "img": "https://www.dropbox.com/scl/fi/54c7obrwsgh12oojlpvkx/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769098432658-1769098432658-1.avif?rlkey=md3jxz8n24z6i6ube8locfa9o&st=1kc4iygy&raw=1", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ciencia ficción","Drama","Post-apocalíptico","Psicológico","Seinen"], "lastUpdate": 1769105148079, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/8r1nblzvbi56izp0v7kog/ImageToStl.com_sadfsf.avif?rlkey=dqr0neuyaiwp4tnhc9t8e2jcf&st=2ij9738d&raw=1", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Automata"] },
+        { "id": 82, "title": "TSUKIMICHI -Moonlit Fantasy-", "img": "https://www.dropbox.com/scl/fi/e56h2qp9qlauoosf1h7hk/ImageToStl.com_1726486-1.avif?rlkey=ib1bvbj4pprxe9kvqcado5n9e&st=y5m4yxqn&raw=1", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Comedia","Fantasía","Harem","Isekai","Shōnen"], "lastUpdate": 1769140612459, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://www.dropbox.com/scl/fi/v8bqukkk1hnrttxesdelv/aSdasd.avif?rlkey=6mvurri42mf2tl9vzjq7akzj9&st=3pyfls2p&raw=1", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 25", "isFinal": true, "aliases": ["Tsuki ga Michibiku Isekai Dōchū"] },
+        { "id": 83, "title": "Mairimashita! Iruma-kun", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Escolar","Fantasía","Isekai","Sobrenatural","Shōnen"], "lastUpdate": 1775318690574, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma4.avif", "latestBlockName": "Temporada 4", "latestEpTitle": "Capítulo 1", "isFinal": false, "aliases": ["Welcome to Demon School! Iruma-kun"] },
+        { "id": 84, "title": "Kobayashi-san Chi no Maid Dragon", "img": "https://api.pcloud.com/getpubthumb?code=XZ4jhK5ZV96vwk3dhrfuqylIjMK0SkhV0pyV&size=2000x3000", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Fantasía","Isekai Inverso","Romance","Slice of Life","Yuri","Seinen"], "lastUpdate": 1769785876713, "updateType": "Ninguna", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZjojK5Z0gt6QP9JFsB8waiQNJy5hFX2fF77&size=2000x3000", "latestBlockName": "Película 1", "latestEpTitle": "A Lonely Dragon Wants to Be Loved", "isFinal": true, "aliases": ["Miss Kobayashi’s Dragon Maid"] },
+        { "id": 85, "title": "Sword Art Online", "img": "https://api.pcloud.com/getpubthumb?code=XZexDK5ZF3sDn1qITuYL1VScYcuknLSBUcDy&size=2000x3000", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Fantasía","Isekai","Romance","Thriller","VRMMO","Shōnen"], "lastUpdate": 1769805090130, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZr1TK5ZWqGs6z8IT6JzKyMNjMbUSH5P9wOk&size=2000x3000", "latestBlockName": "Alternative: Gun Gale Online II", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 86, "title": "Baki", "img": "https://api.pcloud.com/getpubthumb?code=XZ0p9K5Zz7CYJaaP8E4a4o9sBzCkrSwHI6k0&size=2000x3000", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Artes Marciales","Deportivo","Shōnen"], "lastUpdate": 1769789195067, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZ6rMK5ZTji8HdOSHVXg8AlDp46GWV3zzusy&size=2000x3000", "latestBlockName": "Película 1", "latestEpTitle": "Baki Hanma vs. Kengan Ashura", "isFinal": false },
+        { "id": 87, "title": "Death Note", "img": "https://api.pcloud.com/getpubthumb?code=XZC3PK5ZI5e4GKRCk8Xvz6QX7v678Q275LUy&size=2000x3000", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Drama","Misterio","Sobrenatural","Suspenso","Thriller psicológico","Shōnen"], "lastUpdate": 1769889152335, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZd3PK5ZpT0OB7y4ALjU5DNn1jo74HFpQ6FV&size=2000x3000", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 37", "isFinal": true },
+        { "id": 88, "title": "Leviathan", "img": "https://api.pcloud.com/getpubthumb?code=XZtUxK5ZfdVT4R2RN44PbPKssJv7pzlVjzTk&size=2000x3000", "rating": 4.6, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Fantasía","Militar","Steampunk","Shōnen"], "lastUpdate": 1769958574912, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZUUxK5ZvX1LOxy7ATS77OpaO3KgbbREKVQV&size=2000x3000", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 89, "title": "Bocchi the Rock!", "img": "https://api.pcloud.com/getpubthumb?code=XZ4dxK5ZKlNdhaL1aIHMTyPcgPwmj0xf5tck&size=2000x3000", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Musical","Slice of Life","Seinen"], "lastUpdate": 1769957459671, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZ2dxK5ZgSR67lxGIR7csx2hXKyFnYeBg4M7&size=2000x3000", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 90, "title": "Shangri-La Frontier", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/shangiran.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Fantasía","VRMMO","Shōnen"], "lastUpdate": 1773758461313, "updateType": "Ninguna", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZBEwK5ZjV7AT4DkE4YjShvLSJIRlLcMFJHV&size=2000x3000", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 25", "isFinal": true },
+        { "id": 91, "title": "Trigun Stampede", "img": "https://api.pcloud.com/getpubthumb?code=XZswdK5ZPrDr8metTShLGWYpHJjgnJ3OvO3k&size=2000x3000", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Drama","Seinen"], "lastUpdate": 1775325685242, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/trigun-stargaze-character-visuals-v0-no7rngaincuf1.jpg", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 10", "isFinal": false },
+        { "id": 92, "title": "Roll Over and Die", "img": "https://api.pcloud.com/getpubthumb?code=XZppEK5ZRLLOpgFR0DXqgYFQHwIxaYtakxkk&size=2000x3000", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Fantasía oscura","Romance","Survival","Yuri","Shōnen"], "lastUpdate": 1775158584383, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZHpEK5ZDYj1Ggi9U8bycVPaNOxCkQolhpak&size=2000x3000", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 10", "isFinal": false, "aliases": ["Omae Gotoki ga Maō ni Kateru to Omou na"] },
+        { "id": 93, "title": "Tower of God", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/tower.avif", "rating": 4.6, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Drama","Fantasía oscura","Misterio","Shōnen"], "lastUpdate": 1773758499527, "updateType": "Ninguna", "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZR6EK5ZMbtpcgy8H3Ld11AsXGK1V5mXHjRk&size=2000x3000", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 26", "isFinal": true, "aliases": ["Torre de Dios"] },
+        { "id": 94, "title": "Oshi no Ko", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Drama","Misterio","Slice of Life","Sobrenatural","Thriller psicológico","Seinen"], "lastUpdate": 1774380465794, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt3.avif", "latestBlockName": "Temporada 3", "latestEpTitle": "Capítulo 6", "isFinal": false },
+        { "id": 95, "title": "Rooster Fighter", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Comedia","Parodia","Post-apocalíptico","Sobrenatural","Seinen"], "lastUpdate": 1775402502141, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 4", "isFinal": false, "aliases": ["Niwatori Fighter"] },
+        { "id": 96, "title": "Mato Seihei no Slave", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ecchi","Fantasía oscura","Harem","Shōnen"], "lastUpdate": 1774367250048, "updateType": "Ninguna", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Chained Soldier"] },
+        { "id": 97, "title": "Wind Breaker", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winder.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Drama","Escolar","Yankī","Shōnen"], "lastUpdate": 1774214367932, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winderbt2.avif", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 12", "isFinal": true },
+        { "id": 98, "title": "Sonic", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Animación","Aventura","Ciencia ficción","Comedia","Fantasía","Familiar","Infantil","Policial","Kodomo"], "lastUpdate": 1775144553017, "updateType": "Ninguna", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic4.avif", "latestBlockName": "Película 4", "latestEpTitle": "Trailer", "isFinal": false },
+        { "id": 99, "title": "Super Mario Bros", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mariop.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Animación","Aventura","Ciencia ficción","Comedia","Drama","Fantasía","Familiar","Infantil","Romance","Kodomo"], "lastUpdate": 1775141427915, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario2.avif", "latestBlockName": "Película 2", "latestEpTitle": "Película 2 Subtítulos en línea", "isFinal": false },
+        { "id": 100, "title": "Komi-san wa, Komyushō desu.", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Coming-of-age","Escolar","Romance","Slice of Life","Shōnen"], "lastUpdate": 1774461121349, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan2.avif", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Komi-san no puede comunicarse"] },
+        { "id": 101, "title": "Boku no Kokoro no Yabai Yatsu", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Coming-of-age","Escolar","Romance","Slice of Life","Shōnen"], "lastUpdate": 1774639816966, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro2.avif", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 13", "isFinal": false, "aliases": ["The Dangers in my Heart"] },
+        { "id": 102, "title": "El incidente de Darwin", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin.avif", "rating": 4.3, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Ciencia ficción","Deducción Social","Drama","Suspenso","Thriller","Seinen"], "lastUpdate": 1775054393842, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 13", "isFinal": false, "aliases": ["Darwin Jihen","The Darwin Incident"] },
+        { "id": 103, "title": "Horimiya", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya.avif", "rating": 4.8, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Escolar","Romance","Slice of Life","Shōnen"], "lastUpdate": 1775058361747, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya2.avif", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 12", "isFinal": true, "aliases": ["Hori-san to Miyamura-kun"] },
+        { "id": 104, "title": "Dorohedoro", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Ciencia ficción","Fantasía oscura","Horror","Seinen"], "lastUpdate": 1775094692304, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro2.avif", "latestBlockName": "Temporada 2", "latestEpTitle": "Capítulo 3", "isFinal": false },
+        { "id": 105, "title": "Ganbare! Nakamura-kun!!", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/gambarepor.avif", "rating": 4.2, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Escolar","Romance","Slice of Life","Yaoi","Shōjo"], "lastUpdate": 1775160587272, "updateType": "NUEVO 🔥", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ganbare1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 2", "isFinal": false, "aliases": ["Go For It, Nakamura-kun!!"] },
+        { "id": 106, "title": "Rompiendo el hielo", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Coming-of-age","Drama","Escolar","Romance","Slice of Life","Shōjo"], "lastUpdate": 1775161408341, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 1", "isFinal": false, "aliases": ["Koori no Jouheki","The Ramparts of Ice"] },
+        { "id": 107, "title": "Snowball Earth", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball.avif", "rating": 4.5, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Ciencia ficción","Kaiju","Mecha","Post-apocalíptico","Survival","Seinen"], "lastUpdate": 1775238844907, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 1", "isFinal": false },
+        { "id": 108, "title": "Rilakkuma", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma.avif", "rating": 3.3, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Comedia","Drama","Familiar","Slice of Life","Josei"], "lastUpdate": 1775317964546, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 1", "isFinal": false },
+        { "id": 109, "title": "Daemons of the Shadow Realm", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons.avif", "rating": 4.9, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Aventura","Fantasía oscura","Sobrenatural","Shōnen"], "lastUpdate": 1775325938735, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 1", "isFinal": false, "aliases": ["Yomi no Tsugai"] },
+        { "id": 110, "title": "Nippon Sangoku: Las tres naciones del sol carmesí", "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon.avif", "rating": 4.7, "uploader": "archinime12@gmail.com", "uploaderImg": "Logo_Archinime.avif", "genres": ["Acción","Drama","Militar","Post-apocalíptico","Seinen"], "lastUpdate": 1775402835231, "updateType": "ESTRENO 🚨", "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon1.avif", "latestBlockName": "Temporada 1", "latestEpTitle": "Capítulo 1", "isFinal": false }
+    ];
   </script>
-  
-  <script>
-    let currentUser = null;
 
+  <!-- SISTEMA DE NOTIFICACIONES (MEJORADO) -->
+  <script>
+    // ===================== SISTEMA DE NOTIFICACIONES CON POPUPS ASEGURADOS =====================
+    let notificationQueue = [];
+    let notificationsHistory = [];
+    let isMenuOpen = false;
+    let repliesUnsubscribe = null;
+
+    function loadHistoryFromStorage() {
+      const stored = localStorage.getItem('archinime_notif_history');
+      if (stored) {
+        try { notificationsHistory = JSON.parse(stored); } catch(e) { notificationsHistory = []; }
+      }
+    }
+
+    function saveHistoryToStorage() {
+      localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
+      updateBellBadge();
+    }
+
+    // Función mejorada para detectar novedades y forzar popups
+    function checkForNewUpdates() {
+      if (typeof animes === 'undefined') {
+        console.warn('Notificaciones: animes no definido aún');
+        return;
+      }
+      let updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== 'Ninguna');
+      updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
+      const latestFive = updatedAnimes.slice(0, 5);
+      
+      let newItemsFound = [];
+      latestFive.forEach(anime => {
+        const notifId = `${anime.id}_${anime.lastUpdate}`;
+        const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
+        
+        if (!alreadyExists) {
+          const newNotif = {
+            notifId: notifId,
+            animeId: anime.id,
+            title: anime.title,
+            img: anime.img,
+            seasonCover: anime.latestSeasonCover || anime.img,
+            blockName: anime.latestBlockName || "",
+            epTitle: anime.latestEpTitle || "Nuevo Contenido",
+            type: anime.updateType,
+            date: anime.lastUpdate,
+            seen: false,
+            isFinal: anime.isFinal || false
+          };
+          notificationsHistory.unshift(newNotif);
+          newItemsFound.push(newNotif);
+        }
+      });
+
+      if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+      
+      if (newItemsFound.length > 0) {
+        saveHistoryToStorage();
+        // Agregar a la cola de popups (solo los nuevos)
+        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+        console.log(`📢 Nuevas notificaciones detectadas: ${newItemsFound.length}`, newItemsFound);
+      } else {
+        console.log('No hay novedades nuevas que mostrar');
+      }
+    }
+
+    function startNotificationSequence() {
+      if (notificationQueue.length === 0) {
+        // Si la cola está vacía, forzar una verificación adicional
+        console.log('Cola vacía, reintentando detección...');
+        checkForNewUpdates();
+        if (notificationQueue.length === 0) return;
+      }
+      showNextPopup();
+    }
+
+    function showNextPopup() {
+      if (notificationQueue.length === 0) return;
+      const notif = notificationQueue[0];
+      createPopupHTML(notif);
+    }
+
+    function createPopupHTML(notif) {
+      const existing = document.getElementById('eventModal');
+      if (existing) existing.remove();
+      const modal = document.createElement('div');
+      modal.id = 'eventModal';
+      
+      const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
+      let infoString = "";
+      
+      if (notif.blockName && notif.blockName !== "Novedad") {
+        infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+      }
+      if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") {
+        if (infoString !== "") infoString += " • ";
+        infoString += `<span style="color:#fff">${notif.epTitle}</span>`;
+      } else if (infoString === "") {
+        infoString = "Nuevo Contenido";
+      }
+
+      let badgeClass = "badge-default";
+      if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
+      else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
+      else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno";
+
+      let finalImgHTML = '';
+      if (notif.isFinal) {
+        finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
+      }
+
+      modal.innerHTML = `
+        <div class="event-card">
+          <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="event-visuals">
+            <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+            <div class="covers-container">
+              <img src="${notif.img}" class="cover-back" alt="Poster">
+              <img src="${notif.seasonCover}" class="cover-front" alt="Season">
+            </div>
+            <div class="event-type-badge ${badgeClass}">${notif.type}</div>
+            ${finalImgHTML}
+          </div>
+          <div class="event-info">
+            <h2 class="event-title">${notif.title}</h2>
+            <div class="event-meta">${infoString}</div>
+            <p class="event-desc">${indieMessage}</p>
+            <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}', '${notif.url || ''}')">
+              <i class="fas fa-play"></i> VER AHORA
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      setTimeout(() => modal.classList.add('show'), 50);
+    }
+
+    function closePopup() {
+      const modal = document.getElementById('eventModal');
+      if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+          modal.remove();
+          const processed = notificationQueue.shift();
+          if (processed) markAsRead(processed.notifId);
+          showNextPopup();
+        }, 300);
+      }
+    }
+
+    function goToAnimeFromPopup(animeId, notifId, customUrl) {
+      markAsRead(notifId);
+      notificationQueue = [];
+      if (customUrl && customUrl !== '') {
+        window.location.href = customUrl;
+      } else {
+        window.location.href = `anime-detail.html?id=${animeId}`;
+      }
+    }
+
+    function toggleNotifMenu() {
+      const menu = document.getElementById('notifMenu');
+      isMenuOpen = !isMenuOpen;
+      if (isMenuOpen) {
+        menu.classList.add('active');
+        renderNotificationList();
+        notificationsHistory.forEach(n => n.seen = true);
+        saveHistoryToStorage();
+      } else {
+        menu.classList.remove('active');
+      }
+    }
+
+    function renderNotificationList() {
+      const listContainer = document.getElementById('notifList');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+      
+      if (notificationsHistory.length === 0) {
+        listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
+        return;
+      }
+      
+      const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
+      
+      sortedHistory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'notif-item';
+        let infoString = "";
+        if (item.blockName && item.blockName !== "Novedad") {
+          infoString += `<span class="n-block">${item.blockName}</span>`;
+        }
+        if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
+          if (infoString !== "") infoString += " ";
+          infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
+        } else if (infoString === "") {
+          infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+        }
+        
+        let typeColor = "var(--neon-purple)";
+        if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
+        else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
+      
+        let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
+        div.innerHTML = `
+          <div class="notif-img-box">
+            <img src="${item.seasonCover}" alt="cover">
+          </div>
+          <div class="notif-content">
+            <div class="notif-header-line">
+               <span class="n-title">${item.title}</span>
+            </div>
+            <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
+            <div class="n-meta">${infoString}</div>
+          </div>
+        `;
+        
+        div.addEventListener('click', () => {
+          if (item.url) window.location.href = item.url;
+          else window.location.href = `anime-detail.html?id=${item.animeId}`;
+        });
+        listContainer.appendChild(div);
+      });
+    }
+
+    function updateBellBadge() {
+      const unread = notificationsHistory.filter(n => !n.seen).length;
+      const badge = document.getElementById('notifBadge');
+      if (badge) {
+        if (unread > 0) {
+          badge.style.display = 'block';
+          badge.textContent = unread > 9 ? '+9' : unread;
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    function markAsRead(notifId) {
+      const target = notificationsHistory.find(n => n.notifId === notifId);
+      if (target) {
+        target.seen = true;
+        saveHistoryToStorage();
+      }
+    }
+
+    // Inicializar notificaciones al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistoryFromStorage();
+      if (typeof animes !== 'undefined') {
+        checkForNewUpdates();
+      } else {
+        console.warn('Sistema de Notificaciones: animes no cargado aún, reintentando...');
+        setTimeout(() => {
+          if (typeof animes !== 'undefined') checkForNewUpdates();
+        }, 500);
+      }
+      renderNotificationList();
+      updateBellBadge();
+    });
+
+    // Exponer funciones globales
+    window.toggleNotifMenu = toggleNotifMenu;
+    window.closePopup = closePopup;
+    window.goToAnimeFromPopup = goToAnimeFromPopup;
+    window.startNotificationSequence = startNotificationSequence;
+  </script>
+
+  <!-- SCRIPTS ADICIONALES (animaciones, música, etc.) -->
+  <script>
+    // ===================== SCRIPT-INDEX (Filtros y renderizado) =====================
+    function render(list) {
+      const grid = document.getElementById('grid');
+      if (!list || list.length === 0) {
+        grid.innerHTML = `<div class="no-results" role="status" aria-live="polite">
+          <div class="title shimmer">¡Ups! No se encontraron resultados que coincidan con la búsqueda.</div>
+          <div class="subtitle">¿No lo encuentras? Puede que lo hayas escrito con un error o que todavía no lo haya subido.</div>
+          <div class="sparkles"><button class="btn-reset" id="btn-reset">Entiendo</button></div>
+        </div>`;
+        const btn = document.getElementById('btn-reset');
+        if (btn) btn.addEventListener('click', () => {
+          document.getElementById('search').value = '';
+          document.getElementById('genre-select').value = '';
+          document.getElementById('demographic-select') && (document.getElementById('demographic-select').value = '');
+          document.getElementById('rating-select').value = '';
+          filtro();
+          document.getElementById('search').focus();
+        });
+        return;
+      }
+      grid.innerHTML = list.map(a => `
+        <div class="card" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0">
+          <img src="${a.img}" alt="${a.title}">
+          <div class="info"><strong>${a.title}</strong><span>⭐ ${a.rating ? (a.rating.toFixed ? a.rating.toFixed(1) : a.rating) : '—'}</span></div>
+        </div>
+      `).join('');
+    }
+
+    function updateResultsCount(count) { const el = document.getElementById('results-count'); if (el) el.textContent = count; }
+
+    function debounce(fn, wait) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), wait); }; }
+
+    const debouncedFiltro = debounce(filtro, 200);
+    function normalizeText(s) {
+      try { return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''); } catch(e) { return (s || '').toLowerCase().replace(/[\u0300-\u036f]/g, ''); }
+    }
+
+    function getBestTitleForSort(a) {
+      const titles = [a.title].concat(a.aliases || []);
+      const norm = titles.map(t => normalizeText(t));
+      norm.sort();
+      return norm[0];
+    }
+
+    function filtro() {
+      const qRaw = document.getElementById('search').value || '';
+      const q = qRaw.trim(); const qn = normalizeText(q);
+      const g = document.getElementById('genre-select').value;
+      const d = document.getElementById('demographic-select') ? document.getElementById('demographic-select').value : '';
+      const cat = document.getElementById('rating-select').value;
+
+      const filtrados = animes.filter(a => {
+        const titles = [a.title].concat(a.aliases || []);
+        const matchesText = !qn || titles.some(t => normalizeText(t).startsWith(qn));
+        const byGenre = !g || (a.genres && a.genres.includes(g));
+        const byDemo  = !d || (a.genres && a.genres.includes(d));
+        let byRating = true;
+        if (cat === 'excellent') byRating = a.rating >= 4.8;
+        else if (cat === 'good') byRating = a.rating >= 4.6 && a.rating < 4.8;
+        else if (cat === 'regular') byRating = a.rating < 4.6;
+        return matchesText && byGenre && byDemo && byRating;
+      });
+
+      let resultList = filtrados.slice();
+      if (qn) {
+        resultList.sort((A, B) => {
+          const titlesA = [A.title].concat(A.aliases || []).map(t => normalizeText(t));
+          const titlesB = [B.title].concat(B.aliases || []).map(t => normalizeText(t));
+          const aStarts = titlesA.some(t => t.startsWith(qn));
+          const bStarts = titlesB.some(t => t.startsWith(qn));
+          if (aStarts !== bStarts) return aStarts ? -1 : 1;
+          const na = getBestTitleForSort(A); const nb = getBestTitleForSort(B);
+          return na < nb ? -1 : na > nb ? 1 : 0;
+        });
+      } else {
+        resultList.sort((A, B) => normalizeText(A.title) < normalizeText(B.title) ? -1 : normalizeText(A.title) > normalizeText(B.title) ? 1 : 0);
+      }
+      render(resultList);
+      updateResultsCount(resultList.length);
+    }
+
+    function shuffleArray(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    if (typeof animes !== 'undefined') {
+      render(shuffleArray(animes));
+      updateResultsCount(animes.length);
+    } else {
+      console.error("Error: No se encontró la lista 'animes'.");
+    }
+
+    document.getElementById('search').addEventListener('input', debouncedFiltro);
+    document.getElementById('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); filtro(); } });
+    ['genre-select', 'rating-select', 'demographic-select'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', filtro); });
+
+    // ===================== LÓGICA DE MÚSICA SIMPLIFICADA =====================
+    window.addEventListener('DOMContentLoaded', () => {
+      const audio = document.getElementById('bg-music');
+      if (audio) {
+        audio.volume = 0.5;
+        // Intento de reproducción automática (puede ser bloqueado por el navegador)
+        audio.play().catch(() => {
+          document.addEventListener('click', () => audio.play().catch(()=>{}), { once: true });
+        });
+      }
+    });
+
+    // ===================== FUNCIONES DE USUARIO Y AUTENTICACIÓN =====================
+    let currentUser = null;
     function goToProfile() {
       if (!currentUser) {
         showAuthModal();
@@ -433,14 +926,8 @@
       }
       location.href = 'opciones.html';
     }
-
-    function showAuthModal() {
-      document.getElementById('authModal').classList.add('show');
-    }
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.remove('show');
-      document.getElementById('authError').innerText = '';
-    }
+    function showAuthModal() { document.getElementById('authModal').classList.add('show'); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
 
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -465,53 +952,26 @@
         await auth.signInWithEmailAndPassword(email, pass);
         closeAuthModal();
         updateUserUI(auth.currentUser);
-      } catch (err) {
-        document.getElementById('authError').innerText = err.message;
-      }
+      } catch (err) { document.getElementById('authError').innerText = err.message; }
     }
-
     async function registerWithEmail() {
       const email = document.getElementById('registerEmail').value;
       const pass = document.getElementById('registerPassword').value;
       const confirm = document.getElementById('registerConfirm').value;
-      if (pass !== confirm) {
-        document.getElementById('authError').innerText = 'Las contraseñas no coinciden';
-        return;
-      }
+      if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; }
       try {
         await auth.createUserWithEmailAndPassword(email, pass);
         closeAuthModal();
         updateUserUI(auth.currentUser);
-      } catch (err) {
-        document.getElementById('authError').innerText = err.message;
-      }
+      } catch (err) { document.getElementById('authError').innerText = err.message; }
     }
-
     async function loginWithGoogle() {
-      try {
-        await auth.signInWithPopup(providerGoogle);
-        closeAuthModal();
-        updateUserUI(auth.currentUser);
-      } catch (err) {
-        document.getElementById('authError').innerText = err.message;
-      }
+      try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; }
     }
-
     async function loginWithGitHub() {
-      try {
-        await auth.signInWithPopup(providerGitHub);
-        closeAuthModal();
-        updateUserUI(auth.currentUser);
-      } catch (err) {
-        document.getElementById('authError').innerText = err.message;
-      }
+      try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; }
     }
-
-    function logoutUser() {
-      auth.signOut().then(() => {
-        location.reload(); 
-      });
-    }
+    function logoutUser() { auth.signOut().then(() => location.reload()); }
 
     function getNeonColorFallback(str) {
       const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
@@ -526,7 +986,6 @@
       const dropdownAvatar = document.getElementById('dropdownAvatar');
       const dropdownName = document.getElementById('dropdownName');
       const loginItem = document.getElementById('loginBtnItem');
-
       if (user) {
         const photoURL = user.photoURL || 'invitado.avif';
         avatarBtn.src = photoURL;
@@ -534,44 +993,28 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
-
-        if (user.email === 'archinime12@gmail.com') {
-          document.getElementById('adminBtn').style.display = 'flex';
-        } else {
-          document.getElementById('adminBtn').style.display = 'none';
-        }
-
+        if (user.email === 'archinime12@gmail.com') document.getElementById('adminBtn').style.display = 'flex';
+        else document.getElementById('adminBtn').style.display = 'none';
         db.collection('users').doc(user.uid).get().then(doc => {
-            let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
-            
-            avatarBtn.style.borderColor = color;
-            avatarBtn.style.boxShadow = `0 0 15px ${color}`;
-            
-            dropdownAvatar.style.borderColor = color;
-            dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
-            
-            // Corrección: Aquí aplicamos el color al nombre de usuario
-            dropdownName.style.color = color;
-            dropdownName.style.textShadow = `0 0 10px ${color}`;
-            
+          let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
+          avatarBtn.style.borderColor = color;
+          avatarBtn.style.boxShadow = `0 0 15px ${color}`;
+          dropdownAvatar.style.borderColor = color;
+          dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
+          dropdownName.style.color = color;
+          dropdownName.style.textShadow = `0 0 10px ${color}`;
         }).catch(e => console.log(e));
-
       } else {
         avatarBtn.src = 'invitado.avif';
         dropdownAvatar.src = 'invitado.avif';
         dropdownName.innerText = 'Invitado';
-        
         loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
         loginItem.onclick = () => showAuthModal();
         document.getElementById('adminBtn').style.display = 'none';
-        
         avatarBtn.style.borderColor = 'var(--neon-cyan)';
         avatarBtn.style.boxShadow = 'none';
-        
         dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
         dropdownAvatar.style.boxShadow = 'none';
-        
-        // Reset del color del nombre para el invitado
         dropdownName.style.color = 'var(--neon-cyan)';
         dropdownName.style.textShadow = 'none';
       }
@@ -579,33 +1022,12 @@
 
     const userAvatarBtn = document.getElementById('userAvatarBtn');
     const userDropdown = document.getElementById('userDropdown');
-    userAvatarBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      userDropdown.classList.toggle('active');
-    });
+    userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
+    document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    auth.onAuthStateChanged(user => updateUserUI(user));
+    document.getElementById('adminBtn').addEventListener('click', () => window.open('Archinime%20CMS%20-%20Creador.html', '_blank'));
 
-    document.addEventListener('click', (e) => {
-      if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-        userDropdown.classList.remove('active');
-      }
-    });
-
-    auth.onAuthStateChanged(user => {
-      updateUserUI(user);
-    });
-
-    document.getElementById('adminBtn').addEventListener('click', () => {
-      window.open('Archinime%20CMS%20-%20Creador.html', '_blank');
-    });
-
-    window.toggleNotifMenu = function() {
-      const menu = document.getElementById('notifMenu');
-      menu.classList.toggle('active');
-      if (menu.classList.contains('active')) {
-        document.getElementById('notifBadge').style.display = 'none';
-      }
-    };
-
+    // ===================== LOADER Y VIDEO DE FONDO =====================
     window.addEventListener('load', () => {
       const loader = document.getElementById('page-loader');
       const bgVideo = document.getElementById('bg-video');
@@ -623,11 +1045,17 @@
         setTimeout(() => {
           loader.style.visibility = 'hidden';
           sessionStorage.setItem('archinime_loaded', 'true');
-          if (window.startNotificationSequence) window.startNotificationSequence();
+          // INICIAR NOTIFICACIONES DESPUÉS DE CARGAR
+          if (typeof window.startNotificationSequence === 'function') {
+            setTimeout(() => window.startNotificationSequence(), 500);
+          } else {
+            console.warn('startNotificationSequence no está definida');
+          }
         }, 400);
       }, delay);
     });
 
+    // Efecto tilt en tarjetas
     const gridObserver = new MutationObserver(() => {
       document.querySelectorAll('.card').forEach(card => {
         if (card.dataset.tiltInit) return;
@@ -640,12 +1068,9 @@
           const rotateY = ((x - rect.width/2) / rect.width/2) * 8;
           card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
         });
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = '';
-        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
       });
     });
-
     const gridEl = document.getElementById('grid');
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
