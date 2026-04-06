@@ -1,6 +1,7 @@
 // notification-system.js
 /* Sistema de notificaciones combinado: actualizaciones de animes (localStorage) + respuestas en tiempo real (Firestore) */
 /* Las respuestas NO generan popup, solo aparecen en el menú y mantienen el badge hasta que se lean */
+/* Al hacer clic en una respuesta, redirige al comentario específico dentro del reproductor (con parámetro replyTo) */
 
 let notificationQueue = [];      // Solo para animes (popups)
 let notificationsHistory = [];   // Todas las notificaciones (animes + respuestas)
@@ -82,7 +83,7 @@ function listenForReplies(uid) {
                             date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
                             seen: false,
                             isFinal: false,
-                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}`
+                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&replyTo=${docId}`
                         };
                         
                         notificationsHistory.unshift(newNotif);
@@ -322,7 +323,7 @@ function renderNotificationList() {
                 const indicator = div.querySelector('div[style*="position:absolute"]');
                 if (indicator) indicator.remove();
             }
-            // Redirigir
+            // Redirigir (la URL ya incluye el parámetro replyTo si es respuesta)
             if (item.url) {
                 window.location.href = item.url;
             } else {
