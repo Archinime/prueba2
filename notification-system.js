@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotificationList();
     updateBellBadge();
 
-    // === NUEVO: Conectar con Firebase para escuchar respuestas ===
+    // Conectar con Firebase para escuchar respuestas
     if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Función maestra que vigila Firestore en tiempo real
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
-
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -84,7 +83,7 @@ function listenForReplies(uid) {
                     }
                 }
             });
-
+            
             if (hasNew) {
                 // Limitar historial a 50
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
@@ -108,8 +107,7 @@ function listenForReplies(uid) {
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored);
-        } catch(e) { notificationsHistory = []; }
+        try { notificationsHistory = JSON.parse(stored); } catch(e) { notificationsHistory = []; }
     }
 }
 
@@ -124,6 +122,8 @@ function checkForNewUpdates() {
     const latestFive = updatedAnimes.slice(0, 5);
     
     let newItemsFound = [];
+    
+    // 1. LÓGICA DEL HISTORIAL Y MENÚ (CAMPANITA)
     latestFive.forEach(anime => {
         const notifId = `${anime.id}_${anime.lastUpdate}`;
         const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
@@ -148,11 +148,32 @@ function checkForNewUpdates() {
     });
 
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    
     if (newItemsFound.length > 0) {
         saveHistoryToStorage();
-        // Solo metemos a la cola de popups los animes
-        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+    }
+
+    // 2. LÓGICA CORREGIDA PARA LAS VENTANAS EMERGENTES (POPUPS)
+    // Se mostrarán los 5 animes más recientes independientemente de si están en el historial de la campanita,
+    // pero limitamos a 1 vez por sesión (para que salgan al entrar, pero no estorben al pulsar F5 repetidas veces).
+    const popupsShownThisSession = sessionStorage.getItem('archinime_popups_shown');
+    
+    if (!popupsShownThisSession && latestFive.length > 0) {
+        const popupsToQueue = latestFive.map(anime => ({
+            notifId: `popup_${anime.id}_${anime.lastUpdate}`, // Prefix para distinguirlo al marcar como leído
+            animeId: anime.id,
+            title: anime.title,
+            img: anime.img,
+            seasonCover: anime.latestSeasonCover || anime.img,
+            blockName: anime.latestBlockName || "",
+            epTitle: anime.latestEpTitle || "Nuevo Contenido",
+            type: anime.updateType,
+            date: anime.lastUpdate,
+            seen: true, // Irrelevante para popups, pero se declara para estructura
+            isFinal: anime.isFinal || false
+        }));
+
+        notificationQueue = notificationQueue.concat(popupsToQueue);
+        sessionStorage.setItem('archinime_popups_shown', 'true');
     }
 }
 
@@ -169,12 +190,12 @@ function showNextPopup() {
 function createPopupHTML(notif) {
     const existing = document.getElementById('eventModal');
     if (existing) existing.remove();
+    
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     
     const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
     let infoString = "";
-    
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
     }
@@ -188,7 +209,7 @@ function createPopupHTML(notif) {
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno"; // Reutilizamos este estilo
+    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno";
 
     let finalImgHTML = '';
     if (notif.isFinal) {
@@ -230,14 +251,19 @@ function closePopup() {
         setTimeout(() => {
             modal.remove();
             const processed = notificationQueue.shift();
-            if (processed) markAsRead(processed.notifId);
+            // Solo marcar como leido si no es un popup simulado de inicio
+            if (processed && !processed.notifId.startsWith('popup_')) {
+                markAsRead(processed.notifId);
+            }
             showNextPopup();
         }, 300);
     }
 }
 
 function goToAnimeFromPopup(animeId, notifId, customUrl) {
-    markAsRead(notifId);
+    if (!notifId.startsWith('popup_')) {
+        markAsRead(notifId);
+    }
     notificationQueue = [];
     if (customUrl && customUrl !== '') {
         window.location.href = customUrl;
@@ -279,7 +305,6 @@ function renderNotificationList() {
     }
     
     const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
-    
     sortedHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
@@ -312,9 +337,7 @@ function renderNotificationList() {
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
-        
         div.addEventListener('click', () => {
-            // Si es respuesta lo redirige al video-player, sino al anime-detail
             if (item.url) {
                 window.location.href = item.url;
             } else {
