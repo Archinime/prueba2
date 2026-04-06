@@ -1,7 +1,7 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v9.0
-// (Soporte Custom Colors & Admin Global)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
+// (Soporte Custom Colors, Admin Global & User Handles)
 // ============================================
 
 let comentariosDb = null;
@@ -9,6 +9,7 @@ let comentariosAuth = null;
 let comentariosCurrentUser = null;
 let comentariosUnsubscribe = null;
 window.comentariosCurrentUserColor = null;
+window.comentariosCurrentUserHandle = null;
 
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
@@ -24,12 +25,14 @@ function initComentariosSystem(db, auth) {
         if (user) {
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists && userDoc.data().customColor) {
-                  window.comentariosCurrentUserColor = userDoc.data().customColor;
+                if (userDoc.exists) {
+                  if (userDoc.data().customColor) window.comentariosCurrentUserColor = userDoc.data().customColor;
+                  if (userDoc.data().handle) window.comentariosCurrentUserHandle = userDoc.data().handle;
                 }
             } catch(e) {}
         } else {
             window.comentariosCurrentUserColor = null;
+            window.comentariosCurrentUserHandle = null;
         }
 
         updateComentariosUI();
@@ -104,8 +107,11 @@ function injectCommentsCSS() {
         .is-reply .comentario-avatar img { width: 35px; height: 35px; }
 
         .comentario-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .comentario-header { display: flex; align-items: center; margin-bottom: 4px; }
-        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .comentario-header { display: flex; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: flex; align-items: baseline; }
+        
+        .comentario-handle { font-family: 'Poppins', sans-serif; font-size: 0.75rem; color: var(--cm-text-muted); font-weight: 500; margin-left: 6px; letter-spacing: 0.5px; opacity: 0.8; text-shadow: none; }
+
         .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
 
         .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
@@ -158,7 +164,6 @@ function injectCommentsCSS() {
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
-        /* NUEVO EFECTO: Animación de target de notificación */
         @keyframes targetHighlight {
             0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
             50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
@@ -324,22 +329,16 @@ function setupComentariosRealtimeListener() {
         });
         window.lastPostedCommentId = null;
 
-        // ==========================================
-        // NUEVA LÓGICA: SCROLL AL COMENTARIO NOTIFICADO
-        // ==========================================
         const urlParams = new URLSearchParams(window.location.search);
         const targetCommentId = urlParams.get('targetComment');
 
         if (targetCommentId && !window.hasScrolledToTarget) {
-            // Le damos un pequeño delay para que el render aplique estilos
             setTimeout(() => {
                 const targetEl = document.getElementById(`comment-${targetCommentId}`);
                 if (targetEl) {
                     
-                    // 1. Desplegar todos los contenedores padres ocultos
                     let parent = targetEl.parentElement;
                     while (parent && parent.id !== 'comentariosList') {
-                        // Si está dentro de un hilo oculto de respuestas generales
                         if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
                             parent.style.display = 'flex';
                             const rootId = parent.id.replace('container-', '');
@@ -347,7 +346,6 @@ function setupComentariosRealtimeListener() {
                             if (textSpan) textSpan.innerText = 'Ocultar respuestas';
                         }
                         
-                        // Si está oculto dentro de los de "Cargar respuestas más..."
                         if (parent.className.includes('hidden-reply-')) {
                             parent.style.display = 'block';
                             const match = parent.className.match(/hidden-reply-([^ ]+)/);
@@ -360,16 +358,10 @@ function setupComentariosRealtimeListener() {
                         parent = parent.parentElement;
                     }
 
-                    // 2. Hacer scroll directo al comentario
                     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // 3. Aplicar clase de animación cyberpunk de notificacion
                     targetEl.classList.add('comment-targeted');
-                    
-                    // 4. Bloquear para que no vuelva a scrollear cada vez que alguien comente
                     window.hasScrolledToTarget = true;
                     
-                    // 5. Limpiar la URL para evitar molestias si el usuario recarga
                     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
                     window.history.replaceState({path:newUrl}, '', newUrl);
                 }
@@ -406,6 +398,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const isOwner = comentariosCurrentUser?.uid === c.userId;
     const avatar = c.userAvatar || 'invitado.avif';
     const userName = c.userName || 'Usuario';
+    const userHandle = c.userHandle ? `@${c.userHandle}` : '';
     const neonColor = c.customColor || getNeonColorByString(c.userId || userName);
     const neonGlow = hexToRgbA(neonColor, 0.4);
 
@@ -424,6 +417,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         `;
     }
     
+    const handleHtml = userHandle ? `<span class="comentario-handle">${escapeHtmlComent(userHandle)}</span>` : '';
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
@@ -458,7 +452,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             
             <div class="comentario-content">
                 <div class="comentario-header">
-                    <span class="comentario-user">${escapeHtmlComent(userName)}</span>
+                    <span class="comentario-user">${escapeHtmlComent(userName)}${handleHtml}</span>
                 </div>
                 
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}">${contenidoHtml}</div>
@@ -750,6 +744,7 @@ async function enviarComentarioTexto() {
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
             customColor: window.comentariosCurrentUserColor || null, 
+            userHandle: window.comentariosCurrentUserHandle || null, // Guardamos el Handle actual
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -786,6 +781,7 @@ window.enviarRespuestaDinamica = async function() {
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
             customColor: window.comentariosCurrentUserColor || null,
+            userHandle: window.comentariosCurrentUserHandle || null, // Guardamos el Handle actual
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
