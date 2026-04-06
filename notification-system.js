@@ -5,7 +5,8 @@ let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
-let isFirstTimeSetup = false; // Nueva bandera
+let isFirstTimeSetup = false;
+// Nueva bandera
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
@@ -48,7 +49,6 @@ function saveHistoryToStorage() {
     
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
-    
     if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
         db.collection('users').doc(auth.currentUser.uid).set({
             notifHistory: notificationsHistory,
@@ -81,7 +81,6 @@ async function syncNotificationsWithCloud(uid) {
                     }
                 });
                 notificationQueue = newQueue;
-
                 let merged = [...notificationsHistory, ...cloudHistory];
                 let uniqueMap = new Map();
                 merged.forEach(n => {
@@ -152,17 +151,15 @@ function listenForReplies(uid) {
         });
 }
 
-// --- Detección de nuevos animes / actualizaciones (MODIFICADO para usuarios nuevos) ---
+// --- Detección de nuevos animes / actualizaciones ---
 function checkForNewUpdates() {
     const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
 
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     let hasChanges = false;
-    
     // Detectar si es la primera vez (sin historial y sin IDs vistos)
     const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
-    
     // Para primera visita: solo mostraremos los últimos 5 como popups, todo lo demás se marca como visto
     if (isFirstVisit) {
         console.log("Primera visita del usuario: marcando notificaciones antiguas como leídas");
@@ -197,7 +194,6 @@ function checkForNewUpdates() {
                 popupsToQueue.push(newNotif);
             }
         });
-        
         // Procesar el resto (más antiguos) -> solo se agregan al historial como vistos
         rest.forEach(anime => {
             const notifId = `${anime.id}_${anime.lastUpdate}`;
@@ -221,7 +217,6 @@ function checkForNewUpdates() {
                 newNotifsToAdd.push(newNotif);
             }
         });
-        
         if (newNotifsToAdd.length > 0) {
             notificationsHistory = [...newNotifsToAdd, ...notificationsHistory];
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
@@ -260,7 +255,6 @@ function checkForNewUpdates() {
                 }
             }
         });
-        
         if (hasChanges) {
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
             saveHistoryToStorage();
@@ -278,7 +272,6 @@ function checkForNewUpdates() {
 window.startNotificationSequence = function() {
     showNextPopup();
 };
-
 function showNextPopup() {
     if (notificationQueue.length === 0) return;
     const notif = notificationQueue[0];
@@ -306,7 +299,6 @@ function createPopupHTML(notif) {
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    
     let finalImgHTML = '';
     if (notif.isFinal) {
         finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
@@ -424,8 +416,9 @@ function renderNotificationList() {
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
         
-        // NUEVO: punto rojo dentro del contenedor de la imagen, esquina superior izquierda
-        const unreadDot = !item.seen ? '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: var(--neon-pink); border-radius: 50%; box-shadow: 0 0 4px var(--neon-pink); z-index: 5; border: 1px solid rgba(0,0,0,0.3);"></div>' : '';
+        // NUEVO: punto rojo dentro del contenedor de la imagen, esquina superior izquierda (top: 4px; left: 4px;)
+        const unreadDot = !item.seen ?
+        '<div class="unread-dot" style="position: absolute; top: 4px; left: 4px; width: 10px; height: 10px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 6px #ff0000; z-index: 10; border: 1px solid rgba(255,255,255,0.8);"></div>' : '';
         
         div.innerHTML = `
             <div class="${imgBoxClass}" style="position: relative;">
@@ -434,13 +427,12 @@ function renderNotificationList() {
             </div>
             <div class="notif-content">
                 <div class="notif-header-line">
-                    <span class="n-title">${item.title}</span>
+                     <span class="n-title">${item.title}</span>
                 </div>
                 <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
-        
         div.addEventListener('click', () => {
             if (!item.seen) {
                 markAsRead(item.notifId);
@@ -482,6 +474,7 @@ function markAsRead(notifId) {
         target.seen = true;
         saveHistoryToStorage();
         updateBellBadge();
-        renderNotificationList(); // para refrescar la lista y eliminar el punto visual
+        renderNotificationList();
+        // para refrescar la lista y eliminar el punto visual
     }
 }
