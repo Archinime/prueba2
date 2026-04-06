@@ -1,10 +1,13 @@
 // notification-system.js
-/* Sistema de notificaciones avanzado: Solo muestra lo nuevo. Lo visto se oculta automáticamente. Sincronización Local + Firebase */
+/* Sistema de notificaciones combinado: actualizaciones de animes (localStorage + Firestore Sync) + respuestas en tiempo real */
 
-let notificationQueue = []; // Cola de popups pendientes
-let notificationsHistory = []; // Historial global
+let notificationQueue = [];
+// Solo para animes (popups) pendientes de mostrar
+let notificationsHistory = [];
+// Todas las notificaciones (animes + respuestas)
 let isMenuOpen = false;
-let repliesUnsubscribe = null; // Listener de respuestas
+let repliesUnsubscribe = null;
+// Listener de respuestas en Firestore
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
@@ -22,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
-                // Sincroniza historial con la nube
+                // Sincroniza las notificaciones cruzadas con la cuenta (NUEVO)
                 syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
             } else {
@@ -46,53 +49,64 @@ function loadHistoryFromStorage() {
 
 function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
+    
+    // NUEVO: Guardamos también el registro de IDs vistos
+    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+    
     updateBellBadge();
-
-    // Sincronizar con la cuenta si el usuario inició sesión
+    // Guardar en la nube si hay cuenta activa (Sincronización cross-device)
     if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
         db.collection('users').doc(auth.currentUser.uid).set({
-            notifHistory: notificationsHistory
-        }, { merge: true }).catch(e => console.error("Error guardando notificaciones en la nube", e));
+            notifHistory: notificationsHistory,
+            seenNotifIds: seenNotifIds // Sincronizamos los IDs vistos en la nube
+        }, { merge: true }).catch(e => console.error("Error guardando notifs en la nube", e));
     }
 }
 
-// --- Sincronización con la Nube ---
+// --- NUEVO: Sincronización con la Nube para evitar popups repetidos ---
 async function syncNotificationsWithCloud(uid) {
     try {
         const docRef = db.collection('users').doc(uid);
         const doc = await docRef.get();
-        if (doc.exists && doc.data().notifHistory) {
-            const cloudHistory = doc.data().notifHistory || [];
+        if (doc.exists) {
+            const data = doc.data();
             
-            // Fusionar local y nube (Priorizamos si ya fue visto o mostrado en cualquier dispositivo)
-            let merged = [...notificationsHistory, ...cloudHistory];
-            let uniqueMap = new Map();
-            
-            merged.forEach(n => {
-                if (uniqueMap.has(n.notifId)) {
-                    const existing = uniqueMap.get(n.notifId);
-                    if (n.seen) existing.seen = true;
-                    if (n.popupShown) existing.popupShown = true;
-                    uniqueMap.set(n.notifId, existing);
-                } else {
-                    uniqueMap.set(n.notifId, n);
-                }
-            });
-            
-            notificationsHistory = Array.from(uniqueMap.values()).sort((a,b) => b.date - a.date).slice(0, 50);
+            // Sincronizar IDs vistos en la nube
+            if (data.seenNotifIds) {
+                let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+                let mergedSeen = Array.from(new Set([...localSeen, ...data.seenNotifIds]));
+                if (mergedSeen.length > 1000) mergedSeen = mergedSeen.slice(-1000);
+                localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(mergedSeen));
+            }
 
-            // Filtrar la cola de popups para quitar los que ya vimos en otro dispositivo
-            let newQueue = [];
-            notificationQueue.forEach(q => {
-                const inHistory = notificationsHistory.find(n => n.notifId === q.notifId);
-                // Si ya fue visto o su popup ya se mostró, lo sacamos de la cola
-                if (inHistory && (inHistory.seen || inHistory.popupShown)) {
-                    // Omitir, ya no se mostrará
-                } else {
-                    newQueue.push(q);
-                }
-            });
-            notificationQueue = newQueue;
+            if (data.notifHistory) {
+                const cloudHistory = data.notifHistory || [];
+                
+                // 1. Filtrar la cola de popups (si la nube dice que ya se vio/guardó, lo sacamos de la cola)
+                let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+                let newQueue = [];
+                notificationQueue.forEach(q => {
+                    const inCloud = cloudHistory.find(c => c.notifId === q.notifId);
+                    // Dejamos en cola solo si no está en la nube Y no está en los IDs ya vistos localmente
+                    if (!inCloud && !localSeen.includes(q.notifId)) {
+                        newQueue.push(q);
+                    }
+                });
+                notificationQueue = newQueue;
+
+                // 2. Fusionar historiales (Priorizando el estado 'seen')
+                let merged = [...notificationsHistory, ...cloudHistory];
+                let uniqueMap = new Map();
+                merged.forEach(n => {
+                    if (uniqueMap.has(n.notifId)) {
+                        // Si ya existe, guardamos el que tenga true en 'seen'
+                        if (n.seen) uniqueMap.set(n.notifId, n);
+                    } else {
+                        uniqueMap.set(n.notifId, n);
+                    }
+                });
+                notificationsHistory = Array.from(uniqueMap.values()).sort((a,b) => b.date - a.date).slice(0, 50);
+            }
         }
         
         saveHistoryToStorage();
@@ -103,20 +117,20 @@ async function syncNotificationsWithCloud(uid) {
     }
 }
 
-// --- Escuchar respuestas a comentarios ---
+// --- Escucha en tiempo real de respuestas a comentarios (Firestore) ---
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
-        .limit(10)
+        .limit(20)
         .onSnapshot(snapshot => {
             let hasNew = false;
             
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const data = change.doc.data();
-                    if (data.userId === uid) return; 
+                    if (data.userId === uid) return; // No notificarse a sí mismo
 
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
@@ -125,6 +139,7 @@ function listenForReplies(uid) {
 
                     if (!alreadyExists) {
                         let rawText = data.texto || "";
+                      
                         let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                         if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
                         
@@ -139,7 +154,6 @@ function listenForReplies(uid) {
                             epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
                             date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
                             seen: false,
-                            popupShown: true, // Las respuestas no usan popup
                             isFinal: false,
                             url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
                         };
@@ -148,7 +162,6 @@ function listenForReplies(uid) {
                     }
                 }
             });
-            
             if (hasNew) {
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
                 saveHistoryToStorage();
@@ -156,66 +169,78 @@ function listenForReplies(uid) {
                 if (!isMenuOpen) updateBellBadge();
             }
         }, error => {
-            console.error("Error escuchando respuestas:", error);
+            console.error("Error al escuchar respuestas:", error);
+            if (error.message.includes('index')) {
+                console.warn("⚠️ Se requiere un índice compuesto en Firestore para esta consulta.");
+            }
         });
 }
 
-// --- Detectar nuevos Animes / Actualizaciones ---
+// --- Detección de nuevos animes / actualizaciones ---
 function checkForNewUpdates() {
-    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== "Ninguna" && !a.updateType.includes("ACTUALIZACIÓN"));
+    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
 
+    // NUEVO: Array separado para llevar el control de los IDs que ya procesamos alguna vez.
+    // Esto evita el bug donde los animes antiguos salían del límite de 50 de la campana
+    // y volvían a aparecer como ventanas emergentes cada vez que entrabas.
+    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     let newItemsFound = [];
-    let historyModified = false;
+    let hasChanges = false;
 
     updatedAnimes.forEach(anime => {
+        if (anime.updateType.includes("ACTUALIZACIÓN")) return;
+        if (anime.updateType === "Ninguna") return;
+
         const notifId = `${anime.id}_${anime.lastUpdate}`;
-        const exists = notificationsHistory.find(n => n.notifId === notifId);
         
-        if (!exists) {
-            const newNotif = {
-                notifId: notifId,
-                animeId: anime.id,
-                title: anime.title,
-                img: anime.img,
-                seasonCover: anime.latestSeasonCover || anime.img,
-                blockName: anime.latestBlockName || "",
-                epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                type: anime.updateType,
-                date: anime.lastUpdate,
-                seen: false,
-                popupShown: false // Aún no mostramos el popup
-            };
-            notificationsHistory.unshift(newNotif);
-            newItemsFound.push(newNotif);
-            historyModified = true;
-        } else if (!exists.popupShown && !exists.seen) {
-            // Si ya estaba en el historial pero falló al mostrarse la ventana antes
-            newItemsFound.push(exists);
+        // Comprobamos si NUNCA hemos visto esta actualización
+        if (!seenNotifIds.includes(notifId)) {
+            seenNotifIds.push(notifId);
+            hasChanges = true;
+
+            const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
+            
+            // Si no está en el historial de la campana, lo agregamos y lo ponemos en cola de popups
+            if (!existsInHistory) {
+                const newNotif = {
+                    notifId: notifId,
+                    animeId: anime.id,
+                    title: anime.title,
+                    img: anime.img,
+                    seasonCover: anime.latestSeasonCover || anime.img,
+                    blockName: anime.latestBlockName || "",
+                    epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                    type: anime.updateType,
+                    date: anime.lastUpdate,
+                    seen: false,
+                    isFinal: anime.isFinal || false,
+                    popupShown: true // Marcamos que ya se puso en cola para mostrar popup
+                };
+             
+                notificationsHistory.unshift(newNotif);
+                newItemsFound.push(newNotif);
+            }
         }
     });
-
-    if (newItemsFound.length > 0) {
-        // Limitar a máximo 3 popups recientes para no abrumar la pantalla
-        const newPopups = newItemsFound.slice(0, 3);
-        
-        // Marcamos INMEDIATAMENTE que ya se mostraron, así si recarga la página ya no salen
-        newPopups.forEach(p => {
-            const target = notificationsHistory.find(n => n.notifId === p.notifId);
-            if (target) target.popupShown = true;
-        });
-
-        notificationQueue = notificationQueue.concat(newPopups);
-        historyModified = true;
+    
+    // Guardamos el registro absoluto de los que ya hemos procesado
+    if (hasChanges) {
+        // Limitamos a 1000 para que el localStorage no colapse con el tiempo
+        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
     }
-
-    if (historyModified) {
+    
+    if (newItemsFound.length > 0) {
         if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
+        // Solo añadimos a la cola de popups un máximo de 5 animes nuevos
+        const newPopups = newItemsFound.slice(0, 5);
+        notificationQueue = notificationQueue.concat(newPopups);
     }
 }
 
-// --- Iniciar secuencia de Ventanas Emergentes (Popups) ---
+// --- Iniciar secuencia de popups ---
 window.startNotificationSequence = function() {
     showNextPopup();
 };
@@ -233,7 +258,6 @@ function createPopupHTML(notif) {
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
-    
     let infoString = "";
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
@@ -261,11 +285,13 @@ function createPopupHTML(notif) {
             </button>
             <div class="event-visuals">
                 <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+        
                 <div class="covers-container">
                     <img src="${notif.img}" class="cover-back" alt="Poster">
                     <img src="${notif.seasonCover}" class="cover-front" alt="Season">
                 </div>
                 <div class="event-type-badge ${badgeClass}">${notif.type}</div>
+           
                 ${finalImgHTML}
             </div>
             <div class="event-info">
@@ -289,8 +315,7 @@ function closePopup() {
         setTimeout(() => {
             modal.remove();
             const processed = notificationQueue.shift();
-            // Si el usuario cierra el popup, lo marcamos como visto para que desaparezca de la campana también
-            if (processed) markAsRead(processed.notifId); 
+            if (processed) markAsRead(processed.notifId);
             showNextPopup();
         }, 300);
     }
@@ -302,7 +327,7 @@ function goToAnimeFromPopup(animeId, notifId) {
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
-// --- Menú de Campana de Notificaciones ---
+// --- Menú de notificaciones (campana) ---
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
@@ -328,29 +353,21 @@ function renderNotificationList() {
     if (!listContainer) return;
     
     listContainer.innerHTML = '';
-    
-    // FILTRO ESTRICTO: Solo mostramos las notificaciones que NO han sido vistas
-    const unreadNotifications = notificationsHistory.filter(n => !n.seen);
-    
-    if (unreadNotifications.length === 0) {
-        listContainer.innerHTML = `
-            <div class="empty-notif" style="padding: 30px; text-align: center; color: #aaa;">
-                <i class="fas fa-check-circle" style="font-size: 2.5rem; color: var(--neon-cyan); margin-bottom: 15px; display: block;"></i>
-                ¡Todo al día!<br>No tienes notificaciones pendientes.
-            </div>`;
+    if (notificationsHistory.length === 0) {
+        listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
         return;
     }
 
-    const sortedHistory = [...unreadNotifications].sort((a, b) => b.date - a.date);
-    
-    // Limitamos a las 10 más nuevas
-    sortedHistory.slice(0, 10).forEach(item => {
+    const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
+    sortedHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
-        div.style.transition = 'all 0.3s ease'; // Añadimos transición para el efecto de borrado
         
+        // Determinar clase para la imagen
         let imgBoxClass = 'notif-img-box';
-        if (item.type === 'RESPUESTA') imgBoxClass += ' rounded-avatar';
+        if (item.type === 'RESPUESTA') {
+            imgBoxClass += ' rounded-avatar';
+        }
   
         let infoString = "";
         if (item.blockName && item.blockName !== "Novedad") {
@@ -369,7 +386,7 @@ function renderNotificationList() {
         else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
-        let unreadIndicator = '<div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--neon-pink); border-radius:50%;"></div>';
+        let unreadIndicator = !item.seen ? '<div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--neon-pink); border-radius:50%;"></div>' : '';
         
         div.innerHTML = `
             ${unreadIndicator}
@@ -386,27 +403,24 @@ function renderNotificationList() {
         `;
         
         div.addEventListener('click', () => {
-            markAsRead(item.notifId);
-            
-            // Animación para desaparecer al hacer clic
-            div.style.opacity = '0';
-            div.style.transform = 'translateX(20px)';
-            
-            setTimeout(() => {
-                if (item.url) {
-                    window.location.href = item.url;
-                } else {
-                    window.location.href = `anime-detail.html?id=${item.animeId}`;
-                }
-            }, 250);
+            if (!item.seen) {
+                markAsRead(item.notifId);
+                item.seen = true;
+                updateBellBadge();
+                const indicator = div.querySelector('div[style*="position:absolute"]');
+                if (indicator) indicator.remove();
+            }
+            if (item.url) {
+                window.location.href = item.url;
+            } else {
+                window.location.href = `anime-detail.html?id=${item.animeId}`;
+            }
         });
-        
         listContainer.appendChild(div);
     });
 }
 
 function updateBellBadge() {
-    // El contador se basa solo en lo que no has visto
     const unread = notificationsHistory.filter(n => !n.seen).length;
     const badge = document.getElementById('notifBadge');
     if (badge) {
@@ -424,6 +438,5 @@ function markAsRead(notifId) {
     if (target && !target.seen) {
         target.seen = true;
         saveHistoryToStorage();
-        updateBellBadge();
     }
 }
