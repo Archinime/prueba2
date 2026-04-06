@@ -1,12 +1,13 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v8.0
-// (Diseño Ultra Limpio, Glassmorphism, UI Optimizado, TikTok-style footer)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v9.0
+// (Soporte Custom Colors & Admin Global)
 // ============================================
 
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosCurrentUser = null;
 let comentariosUnsubscribe = null;
+window.comentariosCurrentUserColor = null;
 
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
@@ -16,9 +17,20 @@ function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
-    
     auth.onAuthStateChanged(async (user) => {
         comentariosCurrentUser = user;
+        if (user) {
+            // Obtener el color personalizado del usuario para crear nuevos comentarios
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().customColor) {
+                    window.comentariosCurrentUserColor = userDoc.data().customColor;
+                }
+            } catch(e) {}
+        } else {
+            window.comentariosCurrentUserColor = null;
+        }
+
         updateComentariosUI();
         
         if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
@@ -45,7 +57,6 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
-
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
@@ -70,126 +81,59 @@ function injectCommentsCSS() {
             --cm-text-muted: #94a3b8;
         }
         
-        /* ================= CAJA DE ESCRITURA PRINCIPAL ================= */
         .comentario-user-info { display: flex !important; align-items: center !important; gap: 12px !important; margin-bottom: 15px !important; }
         #comentarioUserAvatar { width: 42px !important; height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary) !important; box-shadow: 0 0 12px rgba(0,255,247,0.3); }
         #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; color: #fff !important; letter-spacing: 0.5px; }
 
-        /* ================= TARJETA DE COMENTARIO ================= */
         .comentario-item { 
-            position: relative;
-            background: var(--cm-bg-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--cm-border);
-            border-left: 3px solid var(--user-color, var(--cm-neon-primary));
-            border-radius: 12px 12px 12px 12px;
-            margin-bottom: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: row;
-            gap: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative; background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--cm-border); border-left: 3px solid var(--user-color, var(--cm-neon-primary));
+            border-radius: 12px; margin-bottom: 12px; padding: 16px; display: flex; flex-direction: row; gap: 15px;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
 
-        /* Comentarios Anidados (Respuestas) */
-        .comentario-item.is-reply {
-            background: rgba(10, 12, 16, 0.4);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-        }
+        .comentario-item.is-reply { background: rgba(10, 12, 16, 0.4); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
 
-        /* Avatar */
         .comentario-avatar { flex-shrink: 0; }
-        .comentario-avatar img {
-            width: 45px; height: 45px;
-            border-radius: 50%; object-fit: cover;
-            border: 2px solid var(--user-color);
-            box-shadow: 0 0 10px var(--user-color-glow);
-        }
+        .comentario-avatar img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--user-color); box-shadow: 0 0 10px var(--user-color-glow); }
         .is-reply .comentario-avatar img { width: 35px; height: 35px; }
 
-        /* Contenido Central */
         .comentario-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        
         .comentario-header { display: flex; align-items: center; margin-bottom: 4px; }
-        .comentario-user {
-            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem;
-            color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%;
-        }
-
+        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
         .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
 
-        /* ================= FOOTER TIPO TIKTOK ================= */
-        .comentario-footer {
-            display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px;
-        }
+        .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
         .comentario-fecha { color: var(--cm-text-muted); font-size: 0.8rem; font-weight: 600; }
         .comentario-badge-edit { font-size: 0.7rem; font-style: italic; opacity: 0.7; margin-left: 5px; }
         
-        .btn-responder-ghost {
-            background: transparent; border: none; color: var(--cm-text-muted);
-            font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700;
-            cursor: pointer; padding: 0; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
-        }
+        .btn-responder-ghost { background: transparent; border: none; color: var(--cm-text-muted); font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
         .btn-responder-ghost:hover { color: var(--cm-neon-primary); text-shadow: 0 0 8px rgba(0,255,247,0.5); }
 
-        /* ================= HILOS VISUALES (ÁRBOL) ================= */
-        .comentario-item.is-reply::before {
-            content: ''; position: absolute; left: -22px; top: 25px; width: 22px; height: 2px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 2px 0 0 2px;
-        }
-        .replies-thread {
-            margin-left: 24px; padding-left: 20px;
-            border-left: 2px solid rgba(255, 255, 255, 0.08);
-            margin-top: 5px; margin-bottom: 5px; display: flex; flex-direction: column;
-        }
+        .comentario-item.is-reply::before { content: ''; position: absolute; left: -22px; top: 25px; width: 22px; height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px 0 0 2px; }
+        .replies-thread { margin-left: 24px; padding-left: 20px; border-left: 2px solid rgba(255, 255, 255, 0.08); margin-top: 5px; margin-bottom: 5px; display: flex; flex-direction: column; }
         .nested-reply .replies-thread { margin-left: 16px; padding-left: 14px; }
         .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
 
-        /* ================= MENÚ OPCIONES (KEBAB) ================= */
         .comment-options-container { position: absolute; top: 12px; right: 12px; z-index: 10; }
         .kebab-btn { background: transparent; border: none; color: #666; font-size: 1.1rem; cursor: pointer; padding: 5px; transition: 0.2s; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
         .kebab-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
         
-        .comment-dropdown {
-            position: absolute; top: 100%; right: 0;
-            background: rgba(15, 15, 20, 0.98); border: 1px solid var(--cm-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border-radius: 12px; padding: 8px 0; min-width: 140px;
-            opacity: 0; pointer-events: none; transform: translateY(-10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;
-        }
+        .comment-dropdown { position: absolute; top: 100%; right: 0; background: rgba(15, 15, 20, 0.98); border: 1px solid var(--cm-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 12px; padding: 8px 0; min-width: 140px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; }
         .comment-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .comment-dropdown-btn {
-            background: transparent; border: none; color: #ccc; padding: 10px 18px; width: 100%; text-align: left;
-            font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px;
-        }
+        .comment-dropdown-btn { background: transparent; border: none; color: #ccc; padding: 10px 18px; width: 100%; text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
         .comment-dropdown-btn:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 22px; }
 
-        /* ================= BOTONES MOSTRAR/OCULTAR ================= */
-        .toggle-respuestas-btn { 
-            background: transparent; border: none; color: var(--cm-text-muted); cursor: pointer; 
-            font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.8rem; 
-            margin: 4px 0 12px 0; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; 
-        }
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--cm-text-muted); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.8rem; margin: 4px 0 12px 0; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
         .toggle-respuestas-btn:hover { color: var(--cm-neon-primary); }
         .toggle-respuestas-btn::before { content: ''; width: 25px; height: 2px; background: rgba(255,255,255,0.1); display: inline-block; border-radius: 2px; transition: 0.2s; }
         .toggle-respuestas-btn:hover::before { background: var(--cm-neon-primary); box-shadow: 0 0 8px var(--cm-neon-primary); }
 
-        .btn-more-replies {
-            background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--cm-text-muted);
-            width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 5px;
-        }
+        .btn-more-replies { background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--cm-text-muted); width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 5px; }
         .btn-more-replies:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.4); }
 
-        /* ================= CAJAS DE RESPUESTA Y EDICIÓN DENTRO DEL COMENTARIO ================= */
-        .reply-box-container {
-            margin: 10px 0; padding: 16px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);
-            display:flex; flex-direction:column; gap:12px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .reply-box-container { margin: 10px 0; padding: 16px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:12px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .reply-box-header { display: flex; justify-content: space-between; align-items: center; color: var(--cm-text-muted); font-size: 0.8rem; }
         .reply-box-header b { color: var(--cm-neon-primary); font-weight: 800; }
         .reply-box-close { background: rgba(255,255,255,0.05); border: none; color: #aaa; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -204,15 +148,12 @@ function injectCommentsCSS() {
         .reply-box-submit { background: var(--cm-neon-primary); border: none; color: #000; font-weight: 800; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.3); }
         .reply-box-submit:hover:not(.btn-disabled) { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-2px); }
 
-        /* Media Tags dentro del comentario */
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        /* Animación */
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
-        /* ================= ADAPTACIÓN MÓVIL ================= */
         @media (max-width: 768px) {
             .comentario-item { padding: 12px !important; gap: 10px !important; border-radius: 10px !important; }
             .comentario-avatar img { width: 38px !important; height: 38px !important; }
@@ -260,7 +201,6 @@ function setupComentariosRealtimeListener() {
         .where('episode', '==', parseInt(window.comentariosEpisode))
         .orderBy('timestamp', 'desc') 
         .limit(100);
-
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
@@ -306,23 +246,19 @@ function setupComentariosRealtimeListener() {
 
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-                
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
                     const textoBtn = totalCount === 1 ? 'Ver 1 respuesta' : `Ver ${totalCount} respuestas`;
-                    
                     nodeHtml += `<div>
                                     <button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
                                         <span id="text-${node.id}" data-total="${totalCount}">${textoBtn}</span>
                                     </button>
                                  </div>`;
-
                     nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none;">`;
                     node.replies.forEach((reply, index) => {
                         const isHidden = index >= 5;
                         nodeHtml += renderNode(reply, level + 1, isHidden, node.id);
                     });
-
                     if (node.replies.length > 5) {
                         const remaining = node.replies.length - 5;
                         nodeHtml += `<button id="showMore-${node.id}" onclick="showMoreReplies('${node.id}')" class="btn-more-replies">Cargar ${remaining} respuestas más...</button>`;
@@ -351,44 +287,73 @@ function setupComentariosRealtimeListener() {
                 if (textSpan) textSpan.innerText = 'Ocultar respuestas';
             }
         });
-
         window.lastPostedCommentId = null;
     }, (error) => console.error('Error en comentarios:', error));
 }
+
+// LOGICA GLOBAL DE ELIMINAR (ADMIN & USER)
+window.eliminarComentarioSistema = async function(id) {
+    if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
+    try {
+        // Función recursiva para aniquilar el árbol de comentarios hacia abajo
+        async function borrarHilo(commentId) {
+            const replies = await comentariosDb.collection('comments').where('replyToId', '==', commentId).get();
+            for (const doc of replies.docs) {
+                await borrarHilo(doc.id);
+                await doc.ref.delete();
+            }
+        }
+        await borrarHilo(id);
+        await comentariosDb.collection('comments').doc(id).delete();
+        showToastComent('🗑️ Datos eliminados.');
+    } catch(e) {
+        alert("Error de permisos / Sistema: " + e.message);
+    }
+};
 
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
     
+    // Verificaciones de permisos (El Admin supremo puede borrar todo)
+    const isAdmin = comentariosCurrentUser?.email === 'archinime12@gmail.com';
     const isOwner = comentariosCurrentUser?.uid === c.userId;
+
     const avatar = c.userAvatar || 'invitado.avif';
     const userName = c.userName || 'Usuario';
-    const neonColor = getNeonColorByString(c.userId || userName);
+    // Se usa el color persistente de DB o se autogenera uno basado en la ID
+    const neonColor = c.customColor || getNeonColorByString(c.userId || userName);
     const neonGlow = hexToRgbA(neonColor, 0.4);
-    
+
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span class="comentario-badge-edit">(Editado)</span>' : '';
-    
+
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
-            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;" onclick="openStickerModal('${c.stickerUrl}')">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
+            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;"
+            onclick="openStickerModal('${c.stickerUrl}')">
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;"
+            onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
     
     const newFxClass = isNew ? 'new-comment-fx' : '';
-
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
+    
+    // BOTÓN ELIMINAR PODEROSO (Solo Dueño o ADMIN)
+    const deleteMenuBtn = (isOwner || isAdmin) ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
+
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
             <div class="comment-dropdown" id="dropdown-${c.id}">
                 ${reportMenuBtn}
                 ${editMenuBtn}
+                ${deleteMenuBtn}
             </div>
         </div>
     `;
@@ -396,7 +361,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     
-    const botonResponder = comentariosCurrentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    const botonResponder = comentariosCurrentUser ?
+        `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
@@ -415,7 +381,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 </div>
                 
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}">${contenidoHtml}</div>
-                
+               
                 <div class="comentario-footer">
                     <span class="comentario-fecha">${fecha}${badgeEditado}</span>
                     ${botonResponder}
@@ -429,13 +395,11 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
 window.iniciarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer || textContainer.classList.contains('editing')) return;
-    
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
     
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
-
     textContainer.innerHTML = `
         <div class="reply-box-container" style="animation: none; margin: 10px 0 0 0; background: rgba(0,0,0,0.2);">
             <textarea id="edit-input-${commentId}" class="reply-box-textarea">${escapeHtmlComent(plainText)}</textarea>
@@ -458,7 +422,6 @@ window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
     const nuevoTexto = input.value.trim();
-
     try {
         const docRef = comentariosDb.collection('comments').doc(commentId);
         const doc = await docRef.get();
@@ -483,7 +446,6 @@ window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
     if(!container) return;
-    
     if (container.style.display === 'none') {
         container.style.display = 'flex';
         if (textSpan) textSpan.innerText = 'Ocultar respuestas';
@@ -669,9 +631,11 @@ window.validarBotonPrincipal = function(textarea) {
     if(!btn) return;
 
     if(textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
-        btn.classList.remove('btn-disabled'); btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+        btn.classList.remove('btn-disabled');
+        btn.style.opacity = '1'; btn.style.cursor = 'pointer';
     } else {
-        btn.classList.add('btn-disabled'); btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+        btn.classList.add('btn-disabled'); btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
     }
 };
 
@@ -696,6 +660,7 @@ async function enviarComentarioTexto() {
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
+            customColor: window.comentariosCurrentUserColor || null, // Se inyecta el color de opciones
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -721,13 +686,15 @@ window.enviarRespuestaDinamica = async function() {
     textoInput.disabled = true;
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-    quitarStickerPreview(); restaurarPanelesGlobales();
+    quitarStickerPreview();
+    restaurarPanelesGlobales();
 
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
+            customColor: window.comentariosCurrentUserColor || null, // Se inyecta el color de opciones
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -750,7 +717,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     previewContainer.style.display = 'block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
-
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
@@ -805,7 +771,8 @@ function showToastComent(msg) {
         toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:10000;font-weight:bold; border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);';
         document.body.appendChild(toast);
     }
-    toast.innerHTML = msg; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', 3000);
+    toast.innerHTML = msg; toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
 }
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
