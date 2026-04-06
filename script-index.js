@@ -83,8 +83,8 @@ function render(list) {
         grid.innerHTML = `
         <div class="cyber-no-results">
             <i class="fas fa-satellite-dish"></i>
-            <h2>Señal Perdida</h2>
-            <p>Prueba buscar por un alias.<br>Si no aparece, puedes solicitar que se suba a la base de datos.</p>
+            <h2>¡Ups! Sin Resultados</h2>
+            <p>Verifica el nombre o prueba buscar por un alias.<br>Si no aparece, puedes solicitar que se suba a la base de datos.</p>
             <button class="btn-cyber-reset" id="btn-reset">
                 RESTAURAR RADARES
             </button>
