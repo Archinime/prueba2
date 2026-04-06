@@ -2,7 +2,8 @@
 /* Sistema de notificaciones combinado: actualizaciones de animes (localStorage) + respuestas en tiempo real (Firestore) */
 /* Las respuestas NO generan popup, solo aparecen en el menú y mantienen el badge hasta que se lean */
 
-let notificationQueue = [];      // Solo para animes (popups)
+let notificationQueue = [];
+// Solo para animes (popups)
 let notificationsHistory = [];   // Todas las notificaciones (animes + respuestas)
 let isMenuOpen = false;
 let repliesUnsubscribe = null;   // Listener de respuestas en Firestore
@@ -35,8 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored); }
-        catch(e) { notificationsHistory = []; }
+        try { notificationsHistory = JSON.parse(stored);
+        }
+        catch(e) { notificationsHistory = [];
+        }
     }
 }
 
@@ -48,7 +51,6 @@ function saveHistoryToStorage() {
 // --- Escucha en tiempo real de respuestas a comentarios (Firestore) ---
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
-
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -63,10 +65,12 @@ function listenForReplies(uid) {
 
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
+ 
                     const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
 
                     if (!alreadyExists) {
                         let rawText = data.texto || "";
+                       
                         let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                         if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
                         
@@ -82,7 +86,8 @@ function listenForReplies(uid) {
                             date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
                             seen: false,
                             isFinal: false,
-                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}`
+                            // NUEVO: Agregamos targetComment a la URL para poder buscarlo luego
+                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
                         };
                         
                         notificationsHistory.unshift(newNotif);
@@ -91,7 +96,7 @@ function listenForReplies(uid) {
                     }
                 }
             });
-
+            
             if (hasNew) {
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
                 saveHistoryToStorage();
@@ -134,11 +139,12 @@ function checkForNewUpdates() {
                 seen: false,
                 isFinal: anime.isFinal || false
             };
+         
             notificationsHistory.unshift(newNotif);
             newItemsFound.push(newNotif);
         }
     });
-
+    
     if (newItemsFound.length > 0) {
         if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
@@ -165,10 +171,8 @@ function createPopupHTML(notif) {
 
     const modal = document.createElement('div');
     modal.id = 'eventModal';
-    
     const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
     let infoString = "";
-    
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
     }
@@ -182,7 +186,7 @@ function createPopupHTML(notif) {
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-
+    
     let finalImgHTML = '';
     if (notif.isFinal) {
         finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
@@ -195,11 +199,13 @@ function createPopupHTML(notif) {
             </button>
             <div class="event-visuals">
                 <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+        
                 <div class="covers-container">
                     <img src="${notif.img}" class="cover-back" alt="Poster">
                     <img src="${notif.seasonCover}" class="cover-front" alt="Season">
                 </div>
                 <div class="event-type-badge ${badgeClass}">${notif.type}</div>
+           
                 ${finalImgHTML}
             </div>
             <div class="event-info">
@@ -239,7 +245,6 @@ function goToAnimeFromPopup(animeId, notifId) {
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
-    
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
@@ -278,7 +283,7 @@ function renderNotificationList() {
         if (item.type === 'RESPUESTA') {
             imgBoxClass += ' rounded-avatar';
         }
-        
+  
         let infoString = "";
         if (item.blockName && item.blockName !== "Novedad") {
             infoString += `<span class="n-block">${item.blockName}</span>`;
@@ -298,7 +303,7 @@ function renderNotificationList() {
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
         // Indicador visual de no leído
         let unreadIndicator = !item.seen ? '<div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--neon-pink); border-radius:50%;"></div>' : '';
-
+        
         div.innerHTML = `
             ${unreadIndicator}
             <div class="${imgBoxClass}">
@@ -312,6 +317,7 @@ function renderNotificationList() {
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
+        
         div.addEventListener('click', () => {
             // Marcar como leída al hacer clic
             if (!item.seen) {
@@ -329,6 +335,7 @@ function renderNotificationList() {
                 window.location.href = `anime-detail.html?id=${item.animeId}`;
             }
         });
+        
         listContainer.appendChild(div);
     });
 }

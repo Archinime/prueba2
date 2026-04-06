@@ -1,3 +1,4 @@
+// comentarios.js
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v9.0
 // (Soporte Custom Colors & Admin Global)
@@ -17,6 +18,7 @@ function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
+    
     auth.onAuthStateChanged(async (user) => {
         comentariosCurrentUser = user;
         if (user) {
@@ -36,13 +38,13 @@ function initComentariosSystem(db, auth) {
             setupComentariosRealtimeListener();
         }
     });
+    
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault(); 
-                    
                     if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
                         enviarComentarioTexto();
                     }
@@ -56,6 +58,7 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
+    
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
@@ -155,6 +158,17 @@ function injectCommentsCSS() {
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
+        /* NUEVO EFECTO: Animación de target de notificación */
+        @keyframes targetHighlight {
+            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
+            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
+            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
+        }
+        .comment-targeted {
+            animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            border-color: var(--cm-neon-primary) !important;
+        }
+
         @media (max-width: 768px) {
             .comentario-item { padding: 12px !important; gap: 10px !important; border-radius: 10px !important; }
             .comentario-avatar img { width: 38px !important; height: 38px !important; }
@@ -178,7 +192,7 @@ window.toggleCommentMenu = function(id, event) {
     if (!isShowing) {
         currentMenu.classList.add('show');
         const commentBox = document.getElementById(`comment-${id}`);
-        if(commentBox) commentBox.style.zIndex = '9999'; // Mantener delante
+        if(commentBox) commentBox.style.zIndex = '9999';
     }
 };
 
@@ -201,6 +215,7 @@ function hexToRgbA(hex, alpha) {
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
+    
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
@@ -259,7 +274,7 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
-            
+
             if (node.replies && node.replies.length > 0) {
                 // Las respuestas sí mantienen el orden cronológico antiguo primero
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
@@ -272,11 +287,13 @@ function setupComentariosRealtimeListener() {
                                         <span id="text-${node.id}" data-total="${totalCount}">${textoBtn}</span>
                                     </button>
                                  </div>`;
+                    
                     nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none;">`;
                     node.replies.forEach((reply, index) => {
                         const isHidden = index >= 5;
                         nodeHtml += renderNode(reply, level + 1, isHidden, node.id);
                     });
+                    
                     if (node.replies.length > 5) {
                         const remaining = node.replies.length - 5;
                         nodeHtml += `<button id="showMore-${node.id}" onclick="showMoreReplies('${node.id}')" class="btn-more-replies">Cargar ${remaining} respuestas más...</button>`;
@@ -306,6 +323,59 @@ function setupComentariosRealtimeListener() {
             }
         });
         window.lastPostedCommentId = null;
+
+        // ==========================================
+        // NUEVA LÓGICA: SCROLL AL COMENTARIO NOTIFICADO
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetCommentId = urlParams.get('targetComment');
+
+        if (targetCommentId && !window.hasScrolledToTarget) {
+            // Le damos un pequeño delay para que el render aplique estilos
+            setTimeout(() => {
+                const targetEl = document.getElementById(`comment-${targetCommentId}`);
+                if (targetEl) {
+                    
+                    // 1. Desplegar todos los contenedores padres ocultos
+                    let parent = targetEl.parentElement;
+                    while (parent && parent.id !== 'comentariosList') {
+                        // Si está dentro de un hilo oculto de respuestas generales
+                        if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
+                            parent.style.display = 'flex';
+                            const rootId = parent.id.replace('container-', '');
+                            const textSpan = document.getElementById(`text-${rootId}`);
+                            if (textSpan) textSpan.innerText = 'Ocultar respuestas';
+                        }
+                        
+                        // Si está oculto dentro de los de "Cargar respuestas más..."
+                        if (parent.className.includes('hidden-reply-')) {
+                            parent.style.display = 'block';
+                            const match = parent.className.match(/hidden-reply-([^ ]+)/);
+                            if (match && match[1]) {
+                                const btn = document.getElementById(`showMore-${match[1]}`);
+                                if (btn) btn.style.display = 'none';
+                                document.querySelectorAll(`.hidden-reply-${match[1]}`).forEach(el => el.style.display = 'block');
+                            }
+                        }
+                        parent = parent.parentElement;
+                    }
+
+                    // 2. Hacer scroll directo al comentario
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 3. Aplicar clase de animación cyberpunk de notificacion
+                    targetEl.classList.add('comment-targeted');
+                    
+                    // 4. Bloquear para que no vuelva a scrollear cada vez que alguien comente
+                    window.hasScrolledToTarget = true;
+                    
+                    // 5. Limpiar la URL para evitar molestias si el usuario recarga
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
+                    window.history.replaceState({path:newUrl}, '', newUrl);
+                }
+            }, 400); 
+        }
+
     }, (error) => console.error('Error en comentarios:', error));
 }
 
@@ -346,8 +416,10 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
-            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;" onclick="openStickerModal('${c.stickerUrl}')">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
+            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;"
+                onclick="openStickerModal('${c.stickerUrl}')">
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;"
+                onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
@@ -436,6 +508,7 @@ window.guardarEdicion = async function(commentId) {
     try {
         const docRef = comentariosDb.collection('comments').doc(commentId);
         const doc = await docRef.get();
+        
         if(doc.exists) {
             const data = doc.data();
             let textoFinal = nuevoTexto;
@@ -518,6 +591,7 @@ function procesarTextoComentario(texto) {
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
     const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
+    
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
@@ -662,9 +736,11 @@ async function enviarComentarioTexto() {
     const btn = document.getElementById('enviarComentarioBtn');
     
     if (btn && btn.classList.contains('btn-disabled')) return;
+    
     if (btn) { btn.disabled = true; btn.dataset.original = btn.innerHTML; btn.innerHTML = 'Enviando...'; }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
+    
     textoInput.value = ''; textoInput.style.height = 'auto';
     quitarStickerPreview(); validarBotonPrincipal(textoInput);
 
@@ -677,6 +753,7 @@ async function enviarComentarioTexto() {
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
         window.lastPostedCommentId = docRef.id;
         showToastComent('✅ Enviado');
     } catch (error) { alert('Error: ' + error.message); if (textoInput) textoInput.value = texto; }
@@ -686,6 +763,7 @@ async function enviarComentarioTexto() {
 window.enviarRespuestaDinamica = async function() {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     if (!window.respondiendoA) return;
+    
     const replyContext = { ...window.respondiendoA };
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
@@ -712,6 +790,7 @@ window.enviarRespuestaDinamica = async function() {
             replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
         window.lastPostedCommentId = docRef.id;
         cancelarRespuesta(true);
     } catch (error) { alert('Error: ' + error.message); }
@@ -730,6 +809,7 @@ window.seleccionarStickerParaEnviar = function(url) {
     previewContainer.style.display = 'block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
+    
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
@@ -738,6 +818,7 @@ window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
     if(previewContainer) previewContainer.style.display = 'none';
+    
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
@@ -765,7 +846,6 @@ function updateComentariosUI() {
         const name = document.getElementById('comentarioUserName');
         if (name) {
             name.innerText = comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0];
-            // Aquí corregimos el color del input form (Ahora usa el color personalizado y la sombra cyberpunk)
             name.style.color = color;
             name.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
         }
@@ -795,7 +875,7 @@ function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
     if (!toast) {
         toast = document.createElement('div'); toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:10000;font-weight:bold; border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:10000;font-weight:bold;border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; toast.style.display = 'block';
