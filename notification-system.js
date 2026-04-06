@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
-                // Sincroniza las notificaciones cruzadas con la cuenta (NUEVO)
+                // Sincroniza las notificaciones cruzadas con la cuenta
                 syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
             } else {
@@ -50,20 +50,19 @@ function loadHistoryFromStorage() {
 function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
     
-    // NUEVO: Guardamos también el registro de IDs vistos
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     
     updateBellBadge();
-    // Guardar en la nube si hay cuenta activa (Sincronización cross-device)
+    // Guardar en la nube si hay cuenta activa
     if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
         db.collection('users').doc(auth.currentUser.uid).set({
             notifHistory: notificationsHistory,
-            seenNotifIds: seenNotifIds // Sincronizamos los IDs vistos en la nube
+            seenNotifIds: seenNotifIds
         }, { merge: true }).catch(e => console.error("Error guardando notifs en la nube", e));
     }
 }
 
-// --- NUEVO: Sincronización con la Nube para evitar popups repetidos ---
+// --- Sincronización con la Nube ---
 async function syncNotificationsWithCloud(uid) {
     try {
         const docRef = db.collection('users').doc(uid);
@@ -71,7 +70,6 @@ async function syncNotificationsWithCloud(uid) {
         if (doc.exists) {
             const data = doc.data();
             
-            // Sincronizar IDs vistos en la nube
             if (data.seenNotifIds) {
                 let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                 let mergedSeen = Array.from(new Set([...localSeen, ...data.seenNotifIds]));
@@ -82,24 +80,20 @@ async function syncNotificationsWithCloud(uid) {
             if (data.notifHistory) {
                 const cloudHistory = data.notifHistory || [];
                 
-                // 1. Filtrar la cola de popups (si la nube dice que ya se vio/guardó, lo sacamos de la cola)
                 let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                 let newQueue = [];
                 notificationQueue.forEach(q => {
                     const inCloud = cloudHistory.find(c => c.notifId === q.notifId);
-                    // Dejamos en cola solo si no está en la nube Y no está en los IDs ya vistos localmente
                     if (!inCloud && !localSeen.includes(q.notifId)) {
                         newQueue.push(q);
                     }
                 });
                 notificationQueue = newQueue;
 
-                // 2. Fusionar historiales (Priorizando el estado 'seen')
                 let merged = [...notificationsHistory, ...cloudHistory];
                 let uniqueMap = new Map();
                 merged.forEach(n => {
                     if (uniqueMap.has(n.notifId)) {
-                        // Si ya existe, guardamos el que tenga true en 'seen'
                         if (n.seen) uniqueMap.set(n.notifId, n);
                     } else {
                         uniqueMap.set(n.notifId, n);
@@ -117,7 +111,7 @@ async function syncNotificationsWithCloud(uid) {
     }
 }
 
-// --- Escucha en tiempo real de respuestas a comentarios (Firestore) ---
+// --- Escucha de respuestas (Firestore) ---
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
     repliesUnsubscribe = db.collection('comments')
@@ -130,7 +124,7 @@ function listenForReplies(uid) {
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const data = change.doc.data();
-                    if (data.userId === uid) return; // No notificarse a sí mismo
+                    if (data.userId === uid) return;
 
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
@@ -139,7 +133,6 @@ function listenForReplies(uid) {
 
                     if (!alreadyExists) {
                         let rawText = data.texto || "";
-                      
                         let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                         if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
                         
@@ -170,39 +163,37 @@ function listenForReplies(uid) {
             }
         }, error => {
             console.error("Error al escuchar respuestas:", error);
-            if (error.message.includes('index')) {
-                console.warn("⚠️ Se requiere un índice compuesto en Firestore para esta consulta.");
-            }
         });
 }
 
-// --- Detección de nuevos animes / actualizaciones ---
+// --- Detección de nuevos animes ---
 function checkForNewUpdates() {
     const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
 
-    // NUEVO: Array separado para llevar el control de los IDs que ya procesamos alguna vez.
-    // Esto evita el bug donde los animes antiguos salían del límite de 50 de la campana
-    // y volvían a aparecer como ventanas emergentes cada vez que entrabas.
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     let newItemsFound = [];
     let hasChanges = false;
+    
+    // MAGIA: Si el array está vacío, significa que es un usuario nuevo.
+    const isFirstVisit = seenNotifIds.length === 0;
 
-    updatedAnimes.forEach(anime => {
+    updatedAnimes.forEach((anime, index) => {
         if (anime.updateType.includes("ACTUALIZACIÓN")) return;
         if (anime.updateType === "Ninguna") return;
 
         const notifId = `${anime.id}_${anime.lastUpdate}`;
         
-        // Comprobamos si NUNCA hemos visto esta actualización
         if (!seenNotifIds.includes(notifId)) {
             seenNotifIds.push(notifId);
             hasChanges = true;
 
             const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
             
-            // Si no está en el historial de la campana, lo agregamos y lo ponemos en cola de popups
             if (!existsInHistory) {
+                // Si es un usuario nuevo y el anime no está en el top 5, lo marcamos como "leído" para no inflar la campanita
+                const treatAsOld = isFirstVisit && index >= 5;
+
                 const newNotif = {
                     notifId: notifId,
                     animeId: anime.id,
@@ -213,28 +204,32 @@ function checkForNewUpdates() {
                     epTitle: anime.latestEpTitle || "Nuevo Contenido",
                     type: anime.updateType,
                     date: anime.lastUpdate,
-                    seen: false,
+                    seen: treatAsOld, // Si es viejo para el nuevo usuario, se marca como leído (true)
                     isFinal: anime.isFinal || false,
-                    popupShown: true // Marcamos que ya se puso en cola para mostrar popup
+                    popupShown: true 
                 };
              
-                notificationsHistory.unshift(newNotif);
-                newItemsFound.push(newNotif);
+                notificationsHistory.push(newNotif);
+                
+                // Solo guardamos en cola de popups los que NO han sido marcados como leídos por defecto
+                if (!treatAsOld) {
+                    newItemsFound.push(newNotif);
+                }
             }
         }
     });
     
-    // Guardamos el registro absoluto de los que ya hemos procesado
     if (hasChanges) {
-        // Limitamos a 1000 para que el localStorage no colapse con el tiempo
         if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
         localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+        
+        // Ordenamos las notificaciones del más reciente al más antiguo
+        notificationsHistory.sort((a, b) => b.date - a.date);
+        if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+        saveHistoryToStorage();
     }
     
     if (newItemsFound.length > 0) {
-        if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        saveHistoryToStorage();
-        // Solo añadimos a la cola de popups un máximo de 5 animes nuevos
         const newPopups = newItemsFound.slice(0, 5);
         notificationQueue = notificationQueue.concat(newPopups);
     }
@@ -362,8 +357,9 @@ function renderNotificationList() {
     sortedHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
+        // Aseguramos que la posición sea relativa para colocar el punto rojo en la esquina
+        div.style.position = 'relative'; 
         
-        // Determinar clase para la imagen
         let imgBoxClass = 'notif-img-box';
         if (item.type === 'RESPUESTA') {
             imgBoxClass += ' rounded-avatar';
@@ -386,7 +382,8 @@ function renderNotificationList() {
         else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
-        let unreadIndicator = !item.seen ? '<div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--neon-pink); border-radius:50%;"></div>' : '';
+        // EL PUNTO ROJO: Ahora en la esquina superior izquierda
+        let unreadIndicator = !item.seen ? '<div style="position:absolute; left:10px; top:12px; width:10px; height:10px; background:var(--neon-pink); border-radius:50%; box-shadow: 0 0 8px var(--neon-pink); z-index: 10;"></div>' : '';
         
         div.innerHTML = `
             ${unreadIndicator}
