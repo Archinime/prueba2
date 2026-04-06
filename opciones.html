@@ -67,10 +67,12 @@
     .form-group input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
     
     .avatar-preview {
-      display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 15px; margin-bottom: 20px;
     }
     .avatar-preview img {
-      width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+      width: 100px;
+      height: 100px; border-radius: 50%; object-fit: cover;
       border: 2px solid var(--primary-color); box-shadow: 0 0 15px rgba(0,255,247,0.3);
     }
     .upload-btn {
@@ -81,14 +83,16 @@
     
     .color-picker-wrapper { display: flex; align-items: center; gap: 15px; }
     .color-picker {
-      -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+      -webkit-appearance: none; border: none; width: 40px; height: 40px;
+      border-radius: 50%; cursor: pointer;
       background: none; padding: 0;
     }
     .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
     .color-picker::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; }
 
     .save-btn {
-      width: 100%; background: var(--primary-color); color: #000; border: none; padding: 16px; border-radius: 10px;
+      width: 100%; background: var(--primary-color); color: #000; border: none;
+      padding: 16px; border-radius: 10px;
       font-weight: 900; font-family: 'Orbitron'; letter-spacing: 1px; cursor: pointer; transition: 0.3s; margin-top: 10px;
     }
     .save-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,243,255,0.5); transform: translateY(-2px); }
@@ -109,6 +113,15 @@
         <i class="fas fa-upload"></i> Subir nuevo avatar
       </label>
       <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+    </div>
+
+    <div class="form-group">
+      <label>ID Único de Cuenta</label>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="userUid" readonly style="color: #aaa; background: rgba(0,0,0,0.6); cursor: not-allowed; border-color: rgba(255,255,255,0.1);">
+        <button class="upload-btn" onclick="copiarUID()" style="margin: 0; padding: 0 15px; font-size: 1rem; border-radius: 10px;" title="Copiar ID"><i class="fas fa-copy"></i></button>
+      </div>
+      <span style="font-size: 0.8rem; color: #888; margin-top: 5px; display: inline-block;">Este ID es único y no puede cambiarse.</span>
     </div>
 
     <div class="form-group">
@@ -143,12 +156,10 @@
 
     const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
     const CLOUDINARY_PRESET = 'stickers_archinime';
-
     let currentUser = null;
     let newAvatarUrl = null;
-    let lastProfileUpdate = 0; // Guardará en milisegundos cuándo fue el último cambio
+    let lastProfileUpdate = 0;
 
-    // Función para obtener el color dinámico si el usuario no tiene uno seteado
     function getNeonColorByString(str) {
         const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
         let hash = 0;
@@ -159,6 +170,7 @@
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
+        document.getElementById('userUid').value = user.uid; // Asigna el UID
         document.getElementById('displayName').value = user.displayName || user.email.split('@')[0];
         document.getElementById('avatarImg').src = user.photoURL || 'invitado.avif';
         newAvatarUrl = user.photoURL;
@@ -171,7 +183,7 @@
               } else {
                   document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
               }
-              // Obtener la fecha de la última actualización
+            
               if (doc.data().lastProfileUpdate) {
                   lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
               }
@@ -180,9 +192,21 @@
           }
         } catch(e) { console.error("Error obteniendo datos: ", e); }
       } else {
-        window.location.href = 'index.html'; 
+        window.location.href = 'index.html';
       }
     });
+
+    // NUEVO: Función para copiar ID
+    function copiarUID() {
+      const uidInput = document.getElementById('userUid');
+      if (uidInput.value) {
+        navigator.clipboard.writeText(uidInput.value);
+        const statusMsg = document.getElementById('statusMsg');
+        statusMsg.style.color = '#00fff7';
+        statusMsg.innerText = '¡ID copiado al portapapeles!';
+        setTimeout(() => { if(statusMsg.innerText.includes('copiado')) statusMsg.innerText = ''; }, 3000);
+      }
+    }
 
     document.getElementById('avatarInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
@@ -222,18 +246,15 @@
       const statusMsg = document.getElementById('statusMsg');
       const newName = document.getElementById('displayName').value.trim();
       const newColor = document.getElementById('nameColor').value;
-
       if (!newName) {
         statusMsg.style.color = '#ff0055';
         statusMsg.innerText = 'El nombre no puede estar vacío.';
         return;
       }
 
-      // === VALIDACIÓN DE 5 DÍAS ANTI-SPAM ===
       const isAdmin = currentUser.email === 'archinime12@gmail.com';
       const now = Date.now();
       const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
-      
       if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
           const msLeft = fiveDaysMs - (now - lastProfileUpdate);
           const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
@@ -245,24 +266,20 @@
       saveBtn.disabled = true;
       saveBtn.innerText = 'GUARDANDO...';
       statusMsg.innerText = '';
-
       try {
         await currentUser.updateProfile({
           displayName: newName,
           photoURL: newAvatarUrl
         });
-
         await db.collection('users').doc(currentUser.uid).set({
           customColor: newColor,
-          lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() // Guarda el timestamp del cambio
+          lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() 
         }, { merge: true });
-
         statusMsg.style.color = '#fff';
         statusMsg.innerText = 'Actualizando comentarios históricos...';
         
         const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
         const snapshot = await commentsRef.get();
-
         const batch = db.batch();
         let ops = 0;
         
@@ -274,14 +291,11 @@
           });
           ops++;
         });
-
         if (ops > 0) {
           await batch.commit();
         }
 
-        // Actualizamos la variable local para que no siga intentando al momento
         lastProfileUpdate = Date.now();
-
         statusMsg.style.color = '#00fff7';
         statusMsg.innerText = '¡Cambios guardados exitosamente!';
       } catch (err) {
