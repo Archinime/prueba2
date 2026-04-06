@@ -6,7 +6,6 @@ let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let isFirstTimeSetup = false;
-// Nueva bandera
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
@@ -162,7 +161,6 @@ function checkForNewUpdates() {
     const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
     // Para primera visita: solo mostraremos los últimos 5 como popups, todo lo demás se marca como visto
     if (isFirstVisit) {
-        console.log("Primera visita del usuario: marcando notificaciones antiguas como leídas");
         const newNotifsToAdd = [];
         const popupsToQueue = [];
         
@@ -377,7 +375,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// --- Renderizado de la lista de notificaciones con el punto en la esquina de la imagen ---
+// --- Renderizado de la lista de notificaciones ---
 function renderNotificationList() {
     const listContainer = document.getElementById('notifList');
     if (!listContainer) return;
@@ -416,14 +414,17 @@ function renderNotificationList() {
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
         
-        // NUEVO: punto rojo dentro del contenedor de la imagen, esquina superior izquierda (top: 4px; left: 4px;)
+        // SOLUCIÓN AL PUNTO ROJO: Ahora está envuelto en un contenedor relativo externo a la imagen.
+        // Se ubica exactamente en la esquina superior izquierda superior de cualquier forma (avatar o anime).
         const unreadDot = !item.seen ?
-        '<div class="unread-dot" style="position: absolute; top: 4px; left: 4px; width: 10px; height: 10px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 6px #ff0000; z-index: 10; border: 1px solid rgba(255,255,255,0.8);"></div>' : '';
+        '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
         
         div.innerHTML = `
-            <div class="${imgBoxClass}" style="position: relative;">
+            <div style="position: relative; display: inline-block;">
                 ${unreadDot}
-                <img src="${item.seasonCover}" alt="cover">
+                <div class="${imgBoxClass}">
+                    <img src="${item.seasonCover}" alt="cover">
+                </div>
             </div>
             <div class="notif-content">
                 <div class="notif-header-line">
@@ -433,17 +434,14 @@ function renderNotificationList() {
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
+        
         div.addEventListener('click', () => {
             if (!item.seen) {
                 markAsRead(item.notifId);
                 item.seen = true;
                 updateBellBadge();
-                // Refrescar visualmente el punto
-                const imgBox = div.querySelector('.notif-img-box');
-                if (imgBox) {
-                    const dot = imgBox.querySelector('.unread-dot');
-                    if (dot) dot.remove();
-                }
+                const dot = div.querySelector('.unread-dot');
+                if (dot) dot.remove();
             }
             if (item.url) {
                 window.location.href = item.url;
@@ -475,6 +473,5 @@ function markAsRead(notifId) {
         saveHistoryToStorage();
         updateBellBadge();
         renderNotificationList();
-        // para refrescar la lista y eliminar el punto visual
     }
 }
