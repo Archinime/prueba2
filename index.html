@@ -102,7 +102,8 @@
   ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
   #page-loader {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 99999;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #050505; z-index: 99999;
     display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.4s ease-out, visibility 0.4s;
   }
   .loader-glitch-wrapper { position: relative; display: inline-block; }
@@ -131,13 +132,11 @@
   .search-input:focus { background: rgba(0, 0, 0, 0.6); border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.15), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: scale(1.02); }
   .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); transition: 0.3s; font-size: 0.9rem; }
   .search-input:focus + .search-icon { color: var(--neon-cyan); }
-  
   .nav-actions { display: flex; align-items: center; gap: 12px; }
   .cyber-btn-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; position: relative; font-size: 1.1rem; overflow: visible; }
   .cyber-btn-icon::before { content: ''; position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: var(--neon-purple); z-index: -1; transition: 0.3s; opacity: 0.2; border-radius: 8px; overflow: hidden; }
   .cyber-btn-icon:hover { color: white; border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); transform: translateY(-2px); }
   .cyber-btn-icon:hover::before { width: 100%; }
-  
   #installBtn { display: none; }
   .install-pulse { animation: pulseBorder 2s infinite; color: var(--neon-cyan); border-color: rgba(0, 243, 255, 0.3); }
 
@@ -265,7 +264,6 @@
   <audio id="bg-music"></audio> 
 
   <nav class="cyber-nav">
-   
     <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
@@ -409,13 +407,11 @@
     };
     firebase.initializeApp(firebaseConfig);
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    
-    window.auth = firebase.auth();
-    window.db = firebase.firestore();
-    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     const providerGitHub = new firebase.auth.GithubAuthProvider();
-</script>
+  </script>
 
   <script>
     const version = Date.now();
@@ -424,10 +420,11 @@
     document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
     document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
     document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
-</script>
+  </script>
   
   <script>
     let currentUser = null;
+
     function goToProfile() {
       if (!currentUser) {
         showAuthModal();
@@ -465,9 +462,9 @@
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPassword').value;
       try {
-        await window.auth.signInWithEmailAndPassword(email, pass);
+        await auth.signInWithEmailAndPassword(email, pass);
         closeAuthModal();
-        updateUserUI(window.auth.currentUser);
+        updateUserUI(auth.currentUser);
       } catch (err) {
         document.getElementById('authError').innerText = err.message;
       }
@@ -482,9 +479,9 @@
         return;
       }
       try {
-        await window.auth.createUserWithEmailAndPassword(email, pass);
+        await auth.createUserWithEmailAndPassword(email, pass);
         closeAuthModal();
-        updateUserUI(window.auth.currentUser);
+        updateUserUI(auth.currentUser);
       } catch (err) {
         document.getElementById('authError').innerText = err.message;
       }
@@ -492,9 +489,9 @@
 
     async function loginWithGoogle() {
       try {
-        await window.auth.signInWithPopup(providerGoogle);
+        await auth.signInWithPopup(providerGoogle);
         closeAuthModal();
-        updateUserUI(window.auth.currentUser);
+        updateUserUI(auth.currentUser);
       } catch (err) {
         document.getElementById('authError').innerText = err.message;
       }
@@ -502,16 +499,16 @@
 
     async function loginWithGitHub() {
       try {
-        await window.auth.signInWithPopup(providerGitHub);
+        await auth.signInWithPopup(providerGitHub);
         closeAuthModal();
-        updateUserUI(window.auth.currentUser);
+        updateUserUI(auth.currentUser);
       } catch (err) {
         document.getElementById('authError').innerText = err.message;
       }
     }
 
     function logoutUser() {
-      window.auth.signOut().then(() => {
+      auth.signOut().then(() => {
         location.reload(); 
       });
     }
@@ -529,7 +526,7 @@
       const dropdownAvatar = document.getElementById('dropdownAvatar');
       const dropdownName = document.getElementById('dropdownName');
       const loginItem = document.getElementById('loginBtnItem');
-      
+
       if (user) {
         const photoURL = user.photoURL || 'invitado.avif';
         avatarBtn.src = photoURL;
@@ -537,14 +534,14 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
-        
+
         if (user.email === 'archinime12@gmail.com') {
           document.getElementById('adminBtn').style.display = 'flex';
         } else {
           document.getElementById('adminBtn').style.display = 'none';
         }
 
-        window.db.collection('users').doc(user.uid).get().then(doc => {
+        db.collection('users').doc(user.uid).get().then(doc => {
             let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
             
             avatarBtn.style.borderColor = color;
@@ -553,10 +550,11 @@
             dropdownAvatar.style.borderColor = color;
             dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
             
+            // Corrección: Aquí aplicamos el color al nombre de usuario
             dropdownName.style.color = color;
             dropdownName.style.textShadow = `0 0 10px ${color}`;
             
-         }).catch(e => console.log(e));
+        }).catch(e => console.log(e));
 
       } else {
         avatarBtn.src = 'invitado.avif';
@@ -572,6 +570,8 @@
         
         dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
         dropdownAvatar.style.boxShadow = 'none';
+        
+        // Reset del color del nombre para el invitado
         dropdownName.style.color = 'var(--neon-cyan)';
         dropdownName.style.textShadow = 'none';
       }
@@ -583,21 +583,29 @@
       e.stopPropagation();
       userDropdown.classList.toggle('active');
     });
-    
+
     document.addEventListener('click', (e) => {
       if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
         userDropdown.classList.remove('active');
       }
     });
-    
-    window.auth.onAuthStateChanged(user => {
+
+    auth.onAuthStateChanged(user => {
       updateUserUI(user);
     });
-    
+
     document.getElementById('adminBtn').addEventListener('click', () => {
       window.open('Archinime%20CMS%20-%20Creador.html', '_blank');
     });
-    
+
+    window.toggleNotifMenu = function() {
+      const menu = document.getElementById('notifMenu');
+      menu.classList.toggle('active');
+      if (menu.classList.contains('active')) {
+        document.getElementById('notifBadge').style.display = 'none';
+      }
+    };
+
     window.addEventListener('load', () => {
       const loader = document.getElementById('page-loader');
       const bgVideo = document.getElementById('bg-video');
@@ -619,7 +627,7 @@
         }, 400);
       }, delay);
     });
-    
+
     const gridObserver = new MutationObserver(() => {
       document.querySelectorAll('.card').forEach(card => {
         if (card.dataset.tiltInit) return;
@@ -637,7 +645,7 @@
         });
       });
     });
-    
+
     const gridEl = document.getElementById('grid');
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>

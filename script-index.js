@@ -17,7 +17,7 @@ function render(list) {
         if (btn) btn.addEventListener('click', () => {
             document.getElementById('search').value = '';
             document.getElementById('genre-select').value = '';
-            if(document.getElementById('demographic-select')) document.getElementById('demographic-select').value = '';
+            document.getElementById('demographic-select') && (document.getElementById('demographic-select').value = '');
             document.getElementById('rating-select').value = '';
             filtro();
             document.getElementById('search').focus();
@@ -38,7 +38,6 @@ function updateResultsCount(count){ const el = document.getElementById('results-
 function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
 
 const debouncedFiltro = debounce(filtro, 200);
-
 function normalizeText(s){
     try {
         return (s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
@@ -51,18 +50,16 @@ function getBestTitleForSort(a){
     const titles = [a.title].concat(a.aliases || []);
     const norm = titles.map(t=>normalizeText(t)); 
     norm.sort(); 
-    return norm[0];
+    return norm[0]; 
 }
 
 function filtro(){
-    const searchInput = document.getElementById('search');
-    if (!searchInput) return;
-    const qRaw = searchInput.value || '';
+    const qRaw = document.getElementById('search').value || '';
     const q = qRaw.trim(); const qn = normalizeText(q);
-    const g = document.getElementById('genre-select') ? document.getElementById('genre-select').value : '';
+    const g = document.getElementById('genre-select').value;
     const d = document.getElementById('demographic-select') ? document.getElementById('demographic-select').value : '';
-    const cat = document.getElementById('rating-select') ? document.getElementById('rating-select').value : '';
-    
+    const cat = document.getElementById('rating-select').value;
+
     const filtrados = animes.filter(a=>{
         const titles = [a.title].concat(a.aliases || []);
         const matchesText = !qn || titles.some(t => normalizeText(t).startsWith(qn));
@@ -102,7 +99,7 @@ function shuffleArray(arr){
         const j=Math.floor(Math.random()*(i+1)); 
         [a[i],a[j]]=[a[j],a[i]]; 
     } 
-    return a;
+    return a; 
 }
 
 if (typeof animes !== 'undefined') {
@@ -112,11 +109,8 @@ if (typeof animes !== 'undefined') {
     console.error("Error: No se encontró la lista 'animes'. Revisa que index-data.js esté bien vinculado.");
 }
 
-const searchEl = document.getElementById('search');
-if (searchEl) {
-    searchEl.addEventListener('input', debouncedFiltro);
-    searchEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filtro(); } });
-}
+document.getElementById('search').addEventListener('input', debouncedFiltro);
+document.getElementById('search').addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filtro(); } });
 ['genre-select','rating-select','demographic-select'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('change', filtro); });
 
 /* ----------------------------
@@ -140,20 +134,18 @@ window.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('overlay');
     const hints = getPerformanceHints();
 
-    if (video && overlay) {
-        if (hints.processingScale < 0.55 || hints.prefersReducedMotion) {
-            try { video.pause(); video.style.display = 'none'; overlay.style.opacity = '1'; } catch(e){}
-        } else {
-            try { video.preload = video.getAttribute('preload') || 'metadata'; } catch(e){ console.warn(e); }
-            video.muted = true; video.playsInline = true;
-            const revealVideo = () => { video.style.opacity = '1'; overlay.style.opacity = '0'; };
-            overlay.addEventListener('transitionend', (ev) => { 
-                if (ev.propertyName === 'opacity' && getComputedStyle(overlay).opacity === '0') overlay.style.display = 'none'; 
-            });
-            video.addEventListener('playing', () => { revealVideo(); }, { once: true });
-            video.addEventListener('canplaythrough', () => { video.play().catch(()=>{}); }, { once: true });
-            video.addEventListener('loadeddata', () => { video.play().catch(()=>{}); }, { once: true });
-        }
+    if (hints.processingScale < 0.55 || hints.prefersReducedMotion) {
+        try { video.pause(); video.style.display = 'none'; overlay.style.opacity = '1'; } catch(e){}
+    } else {
+        try { video.preload = video.getAttribute('preload') || 'metadata'; } catch(e){ console.warn(e); }
+        video.muted = true; video.playsInline = true;
+        const revealVideo = () => { video.style.opacity = '1'; overlay.style.opacity = '0'; };
+        overlay.addEventListener('transitionend', (ev) => { 
+            if (ev.propertyName === 'opacity' && getComputedStyle(overlay).opacity === '0') overlay.style.display = 'none'; 
+        });
+        video.addEventListener('playing', () => { revealVideo(); }, { once: true });
+        video.addEventListener('canplaythrough', () => { video.play().catch(()=>{}); }, { once: true });
+        video.addEventListener('loadeddata', () => { video.play().catch(()=>{}); }, { once: true });
     }
 });
 
@@ -162,7 +154,6 @@ window.addEventListener('DOMContentLoaded', () => {
 ---------------------------- */
 window.addEventListener('DOMContentLoaded', () => {
     const audio = document.getElementById('bg-music');
-    if (!audio) return;
     const hints = getPerformanceHints();
     
     if (typeof musicList === 'undefined' || musicList.length === 0) return;
@@ -192,14 +183,14 @@ window.addEventListener('DOMContentLoaded', () => {
 function openInNewTab(url){ try{ const w = window.open(url, '_blank'); if (w) w.focus(); }catch(e){} }
 
 /* ----------------------------
-    Chroma + FG logic (Protegido contra nulos)
+    Chroma + FG logic
 ---------------------------- */
 const fgContainer = document.getElementById('fgContainer');
 const fgCanvas = document.getElementById('fgCanvas');
 const fgVideo = document.getElementById('fgVideo');
 const bgVideo = document.getElementById('bg-video');
 const bgMusic = document.getElementById('bg-music');
-const ctx = (fgCanvas && fgCanvas.getContext) ? fgCanvas.getContext('2d', { alpha: true }) : null;
+const ctx = fgCanvas.getContext ? fgCanvas.getContext('2d', { alpha: true }) : null;
 
 let off = document.createElement('canvas');
 let offCtx = off.getContext ? off.getContext('2d') : null;
@@ -221,7 +212,6 @@ function pickRandomVideo(excludeId){
 }
 
 function placeRandomSide(infoObj){
-    if (!fgContainer) return;
     const side = Math.random() < 0.5 ? 'left' : 'right';
     const margin = window.matchMedia('(max-width:767px)').matches ? '12px' : '20px';
     if (side === 'left') { fgContainer.style.left = margin; fgContainer.style.right = ''; }
@@ -245,12 +235,12 @@ function drawProcessedToScreen(){
 }
 
 function adjustContainerToVideo(video, infoObj){
-    if (!fgContainer || !fgCanvas) return;
     const vw = video.videoWidth || 16;
     const vh = video.videoHeight || 9;
     const hints = getPerformanceHints();
     let maxW = Math.min(window.innerWidth * 0.32, 360);
     let maxH = Math.min(window.innerHeight * 0.4, 640);
+    
     if (window.matchMedia('(max-width:767px)').matches) {
         if (infoObj && infoObj.id === 'rem') {
             maxW = Math.min(window.innerWidth * 0.30, 180);
@@ -278,6 +268,7 @@ function adjustContainerToVideo(video, infoObj){
     fgCanvas.height = Math.round(displayH * dpr);
     fgCanvas.style.width = displayW + 'px';
     fgCanvas.style.height = displayH + 'px';
+    
     if (ctx && typeof ctx.setTransform === 'function') {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
@@ -308,10 +299,12 @@ function applyChromaKey(imageData, settings, keyColor = 'green'){
     const len = data.length;
     const thresh = settings.threshold ?? 0.4; const minDiff = settings.diff ?? 30;
     const soften = settings.soft ?? 30;
+    
     for (let i = 0; i < len; i += 4) {
         const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
         if (a === 0) continue;
         const sum = r + g + b + 1;
+        
         if (keyColor === 'blue') {
             const maxrg = Math.max(r, g);
             const blueScore = (b - maxrg) / sum;
@@ -342,18 +335,16 @@ function applyChromaKey(imageData, settings, keyColor = 'green'){
 }
 
 function processFrame(video, infoObj){
-    if (!usingChroma || visibilityPaused || !fgCanvas || !fgVideo) return;
+    if (!usingChroma || visibilityPaused) return;
     if (video.paused || video.ended) return;
     if (!offCtx) return;
+    
     try { 
         offCtx.drawImage(video, 0, 0, off.width, off.height);
     } catch (err) {
         usingChroma = false; fgCanvas.style.display = 'none';
         fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ 
-            const po = document.getElementById('playOverlay');
-            if (po) po.style.display = 'flex'; 
-        });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
         return;
     }
     
@@ -362,10 +353,7 @@ function processFrame(video, infoObj){
         frame = offCtx.getImageData(0,0,off.width,off.height);
     } catch (err) {
         usingChroma = false; fgCanvas.style.display = 'none'; fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ 
-            const po = document.getElementById('playOverlay');
-            if (po) po.style.display = 'flex'; 
-        });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
         return;
     }
     
@@ -380,7 +368,7 @@ function startChromaIntervalIfNeeded(infoObj){
     const hints = getPerformanceHints();
     chromaFps = hints.processingScale >= 0.85 ? 30 : hints.processingScale >= 0.6 ? 20 : 12;
     stopChromaInterval();
-    if (!usingChroma || visibilityPaused || !fgVideo) return;
+    if (!usingChroma || visibilityPaused) return;
     chromaIntervalId = setInterval(()=>{ processFrame(fgVideo, infoObj); }, Math.round(1000 / chromaFps));
 }
 
@@ -388,12 +376,8 @@ function stopChromaInterval(){
     if (chromaIntervalId) { clearInterval(chromaIntervalId); chromaIntervalId = null; }
 }
 
-function showContainer(){ 
-    if(fgContainer) { fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter'); }
-}
-function hideContainerInstantlyForTransition(){ 
-    if(fgContainer) { fgContainer.classList.remove('enter'); fgContainer.classList.add('exit'); }
-}
+function showContainer(){ fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter'); }
+function hideContainerInstantlyForTransition(){ fgContainer.classList.remove('enter'); fgContainer.classList.add('exit'); }
 
 function scheduleNextVideo(afterSeconds = 3, excludeId = null){
     if (scheduledTimer){ clearTimeout(scheduledTimer); scheduledTimer = null; }
@@ -413,13 +397,15 @@ fireCanvas.style.width = '100%';
 fireCanvas.style.height = '100%';
 fireCanvas.style.zIndex = '9999';
 fireCanvas.style.pointerEvents = 'none';
+
 if (fgContainer) {
     fgContainer.appendChild(fireCanvas);
+} else {
+    console.warn('fgContainer no existe al crear fireCanvas — creando canvas sin appendChild.');
 }
 const fctx = fireCanvas.getContext ? fireCanvas.getContext('2d') : null;
 
 function resizeFireCanvas(){
-    if (!fgContainer) return;
     const rect = fgContainer.getBoundingClientRect();
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const w = Math.max(1, Math.floor(rect.width * dpr));
@@ -437,7 +423,6 @@ window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
 
 function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
-    if (!fgContainer) return Promise.resolve();
     const hints = getPerformanceHints();
     const rect = fgContainer.getBoundingClientRect();
     const areaFactor = Math.min(2.2, Math.max(0.45, (rect.width * rect.height) / (360 * 640)));
@@ -447,6 +432,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
     else if (hints.processingScale < 0.6) effectiveCount = Math.max(18, Math.round(effectiveCount * 0.45));
     else if (hints.processingScale < 0.85) effectiveCount = Math.max(28, Math.round(effectiveCount * 0.7));
     effectiveCount = Math.min(220, effectiveCount);
+    
     const targetFps = hints.processingScale >= 0.85 ? 50 : hints.processingScale >= 0.6 ? 36 : 24;
     const frameInterval = 1000 / targetFps;
 
@@ -469,6 +455,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 
     const safeTimeoutMs = Math.round(duration + 400);
     const start = performance.now();
+    
     return new Promise(resolve => {
         let lastFrameTime = 0;
         let finished = false;
@@ -501,6 +488,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
                     p.x += p.vx * (dt/16.67);
                     p.y += p.vy * (dt/16.67);
                     p.vy += 0.16 * (dt/16.67);
+
                     const alpha = Math.max(0, Math.min(1, lifeRatio));
                     fctx.globalAlpha = alpha;
                     fctx.beginPath();
@@ -540,11 +528,11 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 }
 
 async function doFireworkThenHide(){
-    if (isAnimatingExplosion || !fgContainer) return;
+    if (isAnimatingExplosion) return;
     isAnimatingExplosion = true;
     try {
         await new Promise(r => setTimeout(r, 8));
-        try { if(fgVideo) fgVideo.pause(); } catch(e){}
+        try { fgVideo.pause(); } catch(e){}
         const rect = fgContainer.getBoundingClientRect();
         const cx = rect.width / 2;
         const cy = rect.height / 2;
@@ -570,25 +558,24 @@ async function doFireworkThenHide(){
 }
 
 async function playVideoClip(infoObj){
-    if (!infoObj || !fgVideo) return;
+    if (!infoObj) return;
     currentVideoObj = infoObj;
     usingChroma = true;
     if (lastObjectUrl) { try { URL.revokeObjectURL(lastObjectUrl); } catch(e){}; lastObjectUrl = null; }
 
     fgVideo.src = infoObj.src;
     fgVideo.load();
+    
     const onMeta = () => {
         fgVideo.removeEventListener('loadedmetadata', onMeta);
-        if (fgContainer) {
-            if (infoObj.id === 'hola') { fgContainer.style.bottom = '0px'; }
-            else { fgContainer.style.bottom = '20px'; }
-        }
+        if (infoObj.id === 'hola') { fgContainer.style.bottom = '0px'; }
+        else { fgContainer.style.bottom = '20px'; }
         placeRandomSide(infoObj);
         adjustContainerToVideo(fgVideo, infoObj);
-        if(fgCanvas) fgCanvas.style.display = 'block';
+        fgCanvas.style.display = 'block';
         fgVideo.style.display = 'none';
         fgVideo.play().catch(()=>{});
-        if(bgVideo) bgVideo.play().catch(()=>{});
+        bgVideo.play().catch(()=>{});
         startChromaIntervalIfNeeded(infoObj);
         showContainer();
     };
@@ -596,53 +583,44 @@ async function playVideoClip(infoObj){
     fgVideo.addEventListener('loadedmetadata', onMeta);
     fgVideo.onerror = (e) => {
         usingChroma = false;
-        if(fgCanvas) fgCanvas.style.display = 'none';
+        fgCanvas.style.display = 'none';
         fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ 
-            const po = document.getElementById('playOverlay');
-            if(po) po.style.display = 'flex'; 
-        });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
     };
+
     fgVideo.onended = () => {
         scheduleNextVideo(3, infoObj.id);
     };
 }
 
-if (fgContainer) {
-    fgContainer.addEventListener('click', async (ev) => {
-        if (isAnimatingExplosion) return;
-        if (scheduledTimer) { clearTimeout(scheduledTimer); scheduledTimer = null; }
-        usingChroma = false;
-        stopChromaInterval();
-        try {
-            await doFireworkThenHide();
-        } catch (err) {
-            console.warn('Error during fireworks click flow:', err);
-        }
-        const currentId = currentVideoObj ? currentVideoObj.id : null;
-        const next = pickRandomVideo(currentId);
-        setTimeout(() => { playVideoClip(next); }, 420);
-    });
-}
+fgContainer.addEventListener('click', async (ev) => {
+    if (isAnimatingExplosion) return;
+    if (scheduledTimer) { clearTimeout(scheduledTimer); scheduledTimer = null; }
+    usingChroma = false;
+    stopChromaInterval();
+    try {
+        await doFireworkThenHide();
+    } catch (err) {
+        console.warn('Error during fireworks click flow:', err);
+    }
+    const currentId = currentVideoObj ? currentVideoObj.id : null;
+    const next = pickRandomVideo(currentId);
+    setTimeout(() => { playVideoClip(next); }, 420);
+});
 
-const playBtn = document.getElementById('playBtn');
-if (playBtn) {
-    playBtn.addEventListener('click', ()=>{
-        const overlay = document.getElementById('playOverlay');
-        if (overlay) overlay.style.display = 'none';
-        if (bgVideo) bgVideo.play().catch(()=>{}); 
-        if (fgVideo) fgVideo.play().catch(()=>{});
-        try { if (bgMusic) bgMusic.play().catch(()=>{}); } catch(e){}
-        if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
-    });
-}
+document.getElementById('playBtn').addEventListener('click', ()=>{
+    document.getElementById('playOverlay').style.display = 'none';
+    bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
+    try { bgMusic.play().catch(()=>{}); } catch(e){}
+    if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
+});
 
 let resizeRaf = null;
 window.addEventListener('resize', ()=> {
     if (resizeRaf) return;
     resizeRaf = requestAnimationFrame(()=> {
         resizeFireCanvas();
-        if (currentVideoObj && fgVideo && fgVideo.videoWidth && fgVideo.videoHeight) {
+        if (currentVideoObj && fgVideo.videoWidth && fgVideo.videoHeight) {
             adjustContainerToVideo(fgVideo, currentVideoObj);
         }
         resizeRaf = null;
@@ -662,7 +640,7 @@ document.addEventListener('visibilitychange', ()=> {
 }, {passive:true});
 
 /* ----------------------------
-    POPUP MÓVIL
+    POPUP MÓVIL (FIX: Estilos aplicados en CSS)
 ---------------------------- */
 (function mobileSelectPopups() {
     const mobileQ = () => window.matchMedia('(max-width:780px)').matches;
@@ -699,7 +677,7 @@ document.addEventListener('visibilitychange', ()=> {
                  openPopupFor(selectEl);
             }, 10);
         }, {passive:false});
-
+        
         selectEl.addEventListener('keydown', (e) => {
             if (!mobileQ()) return;
             if (e.key === 'Enter' || e.key === ' ') {
@@ -726,6 +704,7 @@ document.addEventListener('visibilitychange', ()=> {
         popup.style.maxHeight = maxHeight + 'px';
         const width = Math.min(rect.width, Math.max(120, winW - 24));
         popup.style.minWidth = Math.max(150, width) + 'px';
+        
         let top = rect.bottom + 6;
         const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 40 : maxHeight));
         if (top + estimatedHeight + pad > winH) {
@@ -793,6 +772,7 @@ document.addEventListener('visibilitychange', ()=> {
         document.addEventListener('pointerdown', outsideListener, true);
         resizeListener = () => closePopup();
         window.addEventListener('resize', resizeListener);
+        
         scrollListener = function scrollHandler(ev) {
             if (!activePopup) return;
             if (activePopup.contains(ev.target) || ev.target === selectEl) return;
@@ -815,15 +795,15 @@ document.addEventListener('visibilitychange', ()=> {
     window.addEventListener('resize', function(){
         if (!mobileQ()) closePopup();
     }, { passive:true });
+    
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window._closeMobileSelectPopup = closePopup;
 })();
 
 function init(){
-    if(fgContainer) fgContainer.style.display = 'none';
-    if(fgCanvas) fgCanvas.style.display = 'none'; 
-    if(fgVideo) fgVideo.style.display = 'none';
+    fgContainer.style.display = 'none';
+    fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
     const first = pickRandomVideo(null);
     if (!first) return;
     playVideoClip(first);
