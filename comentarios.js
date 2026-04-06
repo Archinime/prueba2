@@ -58,7 +58,7 @@ function initComentariosSystem(db, auth) {
     }, 1000);
     document.addEventListener('click', () => closeAllCommentMenus());
     
-    // === NUEVO: Manejar redirección desde notificación de respuesta ===
+    // === Manejar redirección desde notificación de respuesta ===
     handleReplyToComment();
 }
 
@@ -806,60 +806,71 @@ function openLoginModalFromComent() { document.getElementById('authModal')?.clas
 function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
 // ============================================
-// NUEVA FUNCIÓN: Manejar redirección desde notificación de respuesta
+// FUNCIÓN CORREGIDA: Manejar redirección desde notificación de respuesta
 // ============================================
 function handleReplyToComment() {
     const urlParams = new URLSearchParams(window.location.search);
     const replyToId = urlParams.get('replyTo');
     if (!replyToId) return;
 
-    // Esperar a que el DOM tenga el comentario (usamos MutationObserver)
-    const observer = new MutationObserver((mutations, obs) => {
-        const targetComment = document.getElementById(`comment-${replyToId}`);
-        if (targetComment) {
-            obs.disconnect();
-            
-            // Expandir contenedores de respuestas si están colapsados
-            let parent = targetComment.parentElement;
-            while (parent) {
-                if (parent.classList && parent.classList.contains('replies-thread')) {
-                    if (parent.style.display === 'none') {
-                        parent.style.display = 'flex';
-                        // Buscar el botón de toggle correspondiente y actualizar texto
-                        const containerId = parent.id;
-                        if (containerId && containerId.startsWith('container-')) {
-                            const rootId = containerId.replace('container-', '');
-                            const toggleBtn = document.querySelector(`button[onclick*="toggleRespuestas('${rootId}')"]`);
-                            if (toggleBtn) {
-                                const textSpan = toggleBtn.querySelector('span');
-                                if (textSpan && textSpan.innerText.includes('Ver')) {
-                                    toggleBtn.click(); // Simular clic para expandir
-                                }
+    console.log(`[ReplyTo] Buscando comentario con ID: ${replyToId}`);
+
+    // Función para expandir todos los contenedores padres
+    function expandParentThreads(commentElement) {
+        let parent = commentElement.parentElement;
+        while (parent) {
+            if (parent.classList && parent.classList.contains('replies-thread')) {
+                if (parent.style.display === 'none') {
+                    parent.style.display = 'flex';
+                    // Buscar el botón de toggle correspondiente y actualizar texto
+                    const containerId = parent.id;
+                    if (containerId && containerId.startsWith('container-')) {
+                        const rootId = containerId.replace('container-', '');
+                        const toggleBtn = document.querySelector(`button[onclick*="toggleRespuestas('${rootId}')"]`);
+                        if (toggleBtn) {
+                            const textSpan = toggleBtn.querySelector('span');
+                            if (textSpan && textSpan.innerText.includes('Ver')) {
+                                toggleBtn.click(); // Simular clic para expandir
+                            } else if (textSpan && textSpan.innerText === 'Ocultar respuestas') {
+                                // Ya está expandido, no hacer nada
                             }
                         }
                     }
                 }
-                parent = parent.parentElement;
             }
-            
-            // Desplazar suavemente al comentario
-            targetComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Resaltar temporalmente
-            targetComment.style.transition = 'background 0.3s, box-shadow 0.3s';
-            targetComment.style.backgroundColor = 'rgba(0, 255, 247, 0.3)';
-            targetComment.style.boxShadow = '0 0 0 2px var(--neon-cyan)';
-            setTimeout(() => {
-                targetComment.style.backgroundColor = '';
-                targetComment.style.boxShadow = '';
-            }, 4000);
+            parent = parent.parentElement;
         }
-    });
+    }
 
-    // Observar el contenedor de comentarios (si existe) o el body
-    const commentsContainer = document.getElementById('comentariosList');
-    observer.observe(commentsContainer || document.body, { childList: true, subtree: true });
-    
-    // Timeout de seguridad para no mantener el observer indefinidamente
-    setTimeout(() => observer.disconnect(), 15000);
+    // Intentar cada 500 ms hasta encontrar el comentario (máx 15 segundos)
+    let attempts = 0;
+    const maxAttempts = 30; // 15 segundos
+    const interval = setInterval(() => {
+        attempts++;
+        const targetComment = document.getElementById(`comment-${replyToId}`);
+        if (targetComment) {
+            clearInterval(interval);
+            console.log(`[ReplyTo] Comentario encontrado: ${replyToId}`);
+            
+            // Expandir hilos de respuestas
+            expandParentThreads(targetComment);
+            
+            // Pequeño retraso para asegurar que la expansión se complete
+            setTimeout(() => {
+                targetComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Resaltar temporalmente
+                targetComment.style.transition = 'background 0.3s, box-shadow 0.3s';
+                targetComment.style.backgroundColor = 'rgba(0, 255, 247, 0.3)';
+                targetComment.style.boxShadow = '0 0 0 2px var(--neon-cyan)';
+                setTimeout(() => {
+                    targetComment.style.backgroundColor = '';
+                    targetComment.style.boxShadow = '';
+                }, 4000);
+            }, 200);
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn(`[ReplyTo] No se encontró el comentario con ID: ${replyToId} después de 15 segundos`);
+        }
+    }, 500);
 }
