@@ -811,39 +811,3 @@ function init(){
 
 init();
 window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){}; });
-
-// Añadir al final del archivo script-index.js existente
-
-// --- Función para recargar animes (ya declarada en el HTML, pero la dejamos aquí por si acaso) ---
-if (typeof reloadAnimes !== 'function') {
-  window.reloadAnimes = async function() {
-    const timestamp = Date.now();
-    const url = `index-data.js?t=${timestamp}`;
-    try {
-      const response = await fetch(url);
-      const text = await response.text();
-      const newAnimes = eval(text.replace('const animes =', '').replace(/;$/, ''));
-      if (Array.isArray(newAnimes)) {
-        window.animes = newAnimes;
-        filtro();
-        showToast('Catálogo actualizado', false);
-      } else {
-        throw new Error('Datos inválidos');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Error al actualizar catálogo', true);
-    }
-  };
-}
-
-// --- Asegurar que showToast exista (por si no está definida) ---
-if (typeof showToast !== 'function') {
-  window.showToast = function(msg, isError) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 3000);
-  };
-}
