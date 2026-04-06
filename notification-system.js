@@ -1,115 +1,26 @@
-/* notification-system.js - Notificaciones de animes y respuestas a comentarios (Firestore) */
+/* GUARDAR COMO: notification-system.js */
 
-let notificationQueue = [];
-let notificationsHistory = [];
+let notificationQueue = []; 
+let notificationsHistory = []; 
 let isMenuOpen = false;
-let repliesUnsubscribe = null; // Guardará la conexión a Firebase
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadHistoryFromStorage();
-    
-    if (typeof animes !== 'undefined') {
-        checkForNewUpdates();
-    } else {
+    // Verificar si existe la base de datos
+    if (typeof animes === 'undefined') {
         console.warn('Sistema de Notificaciones: index-data.js no cargado.');
+        return;
     }
-    
+    loadHistoryFromStorage();
+    checkForNewUpdates();
     renderNotificationList();
     updateBellBadge();
-
-    // === NUEVO: Conectar con Firebase para escuchar respuestas ===
-    if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // Si el usuario está logueado, escuchar respuestas a sus comentarios
-                listenForReplies(user.uid);
-            } else {
-                // Si cierra sesión, desconectar el listener
-                if (repliesUnsubscribe) repliesUnsubscribe();
-            }
-        });
-    }
 });
-
-// Función maestra que vigila Firestore en tiempo real
-function listenForReplies(uid) {
-    if (repliesUnsubscribe) repliesUnsubscribe();
-
-    repliesUnsubscribe = db.collection('comments')
-        .where('replyToUserId', '==', uid)
-        .orderBy('timestamp', 'desc')
-        .limit(10) // Solo traer las últimas 10 para no saturar
-        .onSnapshot(snapshot => {
-            let hasNew = false;
-            
-            snapshot.docChanges().forEach(change => {
-                if (change.type === 'added') {
-                    const data = change.doc.data();
-                    
-                    // Evitar notificarte si te respondes a ti mismo por accidente
-                    if (data.userId === uid) return;
-
-                    const docId = change.doc.id;
-                    const notifId = `reply_${docId}`;
-                    const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
-
-                    if (!alreadyExists) {
-                        // Limpiar el texto si contiene un sticker para que se vea bien en la notificación
-                        let rawText = data.texto || "";
-                        let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
-                        if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
-                        
-                        const newNotif = {
-                            notifId: notifId,
-                            type: 'RESPUESTA',
-                            animeId: data.animeId,
-                            title: `¡${data.userName} te respondió!`,
-                            img: data.userAvatar || 'invitado.avif',
-                            seasonCover: data.userAvatar || 'invitado.avif',
-                            blockName: 'Foro',
-                            epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
-                            date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
-                            seen: false,
-                            isFinal: false,
-                            // Redirigir directo al reproductor donde le respondieron
-                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}`
-                        };
-                        
-                        // Añadir al inicio del historial
-                        notificationsHistory.unshift(newNotif);
-                        hasNew = true;
-                        
-                        // Agregar a la cola para que salte el popup en vivo mientras navega
-                        notificationQueue.push(newNotif);
-                    }
-                }
-            });
-
-            if (hasNew) {
-                // Limitar historial a 50
-                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-                saveHistoryToStorage();
-                renderNotificationList();
-                if (!isMenuOpen) updateBellBadge();
-                
-                // Disparar popup si el usuario está activo
-                if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
-                    showNextPopup();
-                }
-            }
-        }, error => {
-            console.error("Error al escuchar respuestas en Firebase:", error);
-            if (error.message.includes('index')) {
-                console.warn("⚠️ ¡ATENCIÓN ADMIN! Firestore requiere que crees un Índice Compuesto para esta consulta. Haz clic en el enlace rojo que aparece arriba en la consola para crearlo automáticamente.");
-            }
-        });
-}
 
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
         try { notificationsHistory = JSON.parse(stored);
-        } catch(e) { notificationsHistory = []; }
+        } catch (e) { notificationsHistory = []; }
     }
 }
 
@@ -119,47 +30,59 @@ function saveHistoryToStorage() {
 }
 
 function checkForNewUpdates() {
-    let updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== 'Ninguna');
+    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
+    // Ordenar animes por fecha (más reciente primero)
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-    const latestFive = updatedAnimes.slice(0, 5);
-    
+
     let newItemsFound = [];
-    latestFive.forEach(anime => {
+    updatedAnimes.forEach(anime => {
+        if (anime.updateType.includes("ACTUALIZACIÓN")) return; // Ignorar actualizaciones menores si deseas
+        if (anime.updateType === "Ninguna") return; 
+
         const notifId = `${anime.id}_${anime.lastUpdate}`;
-        const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
+        const exists = notificationsHistory.find(n => n.notifId === notifId);
         
-        if (!alreadyExists) {
+        if (!exists) {
             const newNotif = {
                 notifId: notifId,
                 animeId: anime.id,
                 title: anime.title,
-                img: anime.img,
-                seasonCover: anime.latestSeasonCover || anime.img,
+                img: anime.img, 
+                seasonCover: anime.latestSeasonCover || anime.img, 
                 blockName: anime.latestBlockName || "",
-                epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                epTitle: anime.latestEpTitle || "Nuevo Contenido", 
                 type: anime.updateType,
-                date: anime.lastUpdate,
+                date: anime.lastUpdate, 
                 seen: false,
                 isFinal: anime.isFinal || false
             };
+            // Agregamos al inicio del historial
             notificationsHistory.unshift(newNotif);
             newItemsFound.push(newNotif);
         }
     });
 
-    if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    
     if (newItemsFound.length > 0) {
+        // Limitar historial a 50 elementos
+        if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
-        // Solo metemos a la cola de popups los animes
-        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+        
+        // Solo mostrar popup de los 5 más recientes para no saturar
+        if (newItemsFound.length > 5) {
+            newItemsFound = newItemsFound.slice(0, 5);
+        }
+
+        notificationQueue = newItemsFound;
+        // Se llama desde index.html cuando desaparece el loader
     }
 }
 
+// FUNCIÓN: Se llama desde index.html cuando desaparece el loader
 window.startNotificationSequence = function() {
     showNextPopup();
 };
 
+/* --- LÓGICA DEL POPUP (MODAL DE INICIO) --- */
 function showNextPopup() {
     if (notificationQueue.length === 0) return;
     const notif = notificationQueue[0];
@@ -169,27 +92,31 @@ function showNextPopup() {
 function createPopupHTML(notif) {
     const existing = document.getElementById('eventModal');
     if (existing) existing.remove();
+
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     
-    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
-    let infoString = "";
+    const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
     
+    // MEJORA: Construcción explícita del título del episodio y bloque
+    let infoString = "";
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
     }
+    
     if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") {
         if (infoString !== "") infoString += " • ";
         infoString += `<span style="color:#fff">${notif.epTitle}</span>`;
-    } else if (infoString === "") {
-        infoString = "Nuevo Contenido";
+    } else {
+        if (infoString === "") infoString = "Nuevo Contenido";
     }
 
+    // Definir estilos de etiqueta según el tipo
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno"; // Reutilizamos este estilo
 
+    // Imagen de "FINAL" si aplica
     let finalImgHTML = '';
     if (notif.isFinal) {
         finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
@@ -200,35 +127,42 @@ function createPopupHTML(notif) {
             <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
                 <i class="fas fa-times"></i>
             </button>
+            
             <div class="event-visuals">
                 <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+                
                 <div class="covers-container">
                     <img src="${notif.img}" class="cover-back" alt="Poster">
                     <img src="${notif.seasonCover}" class="cover-front" alt="Season">
                 </div>
+                
                 <div class="event-type-badge ${badgeClass}">${notif.type}</div>
                 ${finalImgHTML}
             </div>
+            
             <div class="event-info">
                 <h2 class="event-title">${notif.title}</h2>
                 <div class="event-meta">${infoString}</div>
                 <p class="event-desc">${indieMessage}</p>
-                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}', '${notif.url || ''}')">
+                
+                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
                     <i class="fas fa-play"></i> VER AHORA
                 </button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
+    // Pequeño delay para permitir la transición CSS
     setTimeout(() => modal.classList.add('show'), 50);
 }
 
 function closePopup() {
     const modal = document.getElementById('eventModal');
-    if (modal) {
+    if(modal) {
         modal.classList.remove('show');
         setTimeout(() => {
             modal.remove();
+            // Marcar como visto el actual y pasar al siguiente
             const processed = notificationQueue.shift();
             if (processed) markAsRead(processed.notifId);
             showNextPopup();
@@ -236,32 +170,38 @@ function closePopup() {
     }
 }
 
-function goToAnimeFromPopup(animeId, notifId, customUrl) {
+function goToAnimeFromPopup(animeId, notifId) {
     markAsRead(notifId);
     notificationQueue = [];
-    if (customUrl && customUrl !== '') {
-        window.location.href = customUrl;
-    } else {
-        window.location.href = `anime-detail.html?id=${animeId}`;
-    }
+    // Limpiar cola si el usuario ya hizo clic
+    window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
+/* --- LÓGICA DEL MENÚ DE NOTIFICACIONES (CAMPANA) --- */
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
+    
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
+        // Ocultar badge al abrir
+        const badge = document.getElementById('notifBadge');
+        if(badge) badge.style.display = 'none';
+        // Marcar todas las visibles como vistas
         notificationsHistory.forEach(n => n.seen = true);
         saveHistoryToStorage();
+        
     } else {
         menu.classList.remove('active');
     }
 }
 
+// Cerrar menú si se hace clic fuera
 document.addEventListener('click', (e) => {
     const wrapper = document.querySelector('.notif-wrapper');
     const menu = document.getElementById('notifMenu');
+    // Si el clic no fue dentro del wrapper y el menú está abierto
     if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
         isMenuOpen = false;
         if(menu) menu.classList.remove('active');
@@ -271,55 +211,57 @@ document.addEventListener('click', (e) => {
 function renderNotificationList() {
     const listContainer = document.getElementById('notifList');
     if (!listContainer) return;
-    listContainer.innerHTML = '';
     
+    listContainer.innerHTML = '';
     if (notificationsHistory.length === 0) {
         listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
         return;
     }
-    
+
     const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
-    
     sortedHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
+        
+        // MEJORA: Mostrar Bloque Y Capítulo concatenados
         let infoString = "";
+        
+        // Bloque (Temporada X, Película, etc)
         if (item.blockName && item.blockName !== "Novedad") {
             infoString += `<span class="n-block">${item.blockName}</span>`;
         }
-        if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
-            if (infoString !== "") infoString += " ";
-            infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
-        } else if (infoString === "") {
-            infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
-        }
         
+        // Título del capítulo
+        if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
+             // Si ya pusimos el bloque, agregamos un separador visual
+             if (infoString !== "") infoString += " ";
+             infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
+        } else {
+             // Si no hay titulo de cap, y no habia bloque, poner default
+             if (infoString === "") infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+        }
+
+        // Color del texto según tipo
         let typeColor = "var(--neon-purple)";
         if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
         else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
-        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)"; // Neon cyan para respuestas
-      
+
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
+
         div.innerHTML = `
             <div class="notif-img-box">
                 <img src="${item.seasonCover}" alt="cover">
             </div>
             <div class="notif-content">
                 <div class="notif-header-line">
-                     <span class="n-title">${item.title}</span>
+                    <span class="n-title">${item.title}</span>
                 </div>
                 <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
-        
         div.addEventListener('click', () => {
-            // Si es respuesta lo redirige al video-player, sino al anime-detail
-            if (item.url) {
-                window.location.href = item.url;
-            } else {
-                window.location.href = `anime-detail.html?id=${item.animeId}`;
-            }
+            window.location.href = `anime-detail.html?id=${item.animeId}`;
         });
         listContainer.appendChild(div);
     });
