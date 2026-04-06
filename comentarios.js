@@ -57,9 +57,6 @@ function initComentariosSystem(db, auth) {
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
     document.addEventListener('click', () => closeAllCommentMenus());
-    
-    // === Manejar redirección desde notificación de respuesta ===
-    handleReplyToComment();
 }
 
 function autoResizeTextarea(el) {
@@ -181,7 +178,7 @@ window.toggleCommentMenu = function(id, event) {
     if (!isShowing) {
         currentMenu.classList.add('show');
         const commentBox = document.getElementById(`comment-${id}`);
-        if(commentBox) commentBox.style.zIndex = '9999';
+        if(commentBox) commentBox.style.zIndex = '9999'; // Mantener delante
     }
 };
 
@@ -244,6 +241,7 @@ function setupComentariosRealtimeListener() {
             const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
             const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
             if (scoreB !== scoreA) return scoreB - scoreA;
+            // Si empatan en score, el más nuevo va primero
             return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
         });
 
@@ -263,6 +261,7 @@ function setupComentariosRealtimeListener() {
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
             
             if (node.replies && node.replies.length > 0) {
+                // Las respuestas sí mantienen el orden cronológico antiguo primero
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 
                 if (level === 0) {
@@ -766,6 +765,7 @@ function updateComentariosUI() {
         const name = document.getElementById('comentarioUserName');
         if (name) {
             name.innerText = comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0];
+            // Aquí corregimos el color del input form (Ahora usa el color personalizado y la sombra cyberpunk)
             name.style.color = color;
             name.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
         }
@@ -804,73 +804,3 @@ function showToastComent(msg) {
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
 function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-
-// ============================================
-// FUNCIÓN CORREGIDA: Manejar redirección desde notificación de respuesta
-// ============================================
-function handleReplyToComment() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const replyToId = urlParams.get('replyTo');
-    if (!replyToId) return;
-
-    console.log(`[ReplyTo] Buscando comentario con ID: ${replyToId}`);
-
-    // Función para expandir todos los contenedores padres
-    function expandParentThreads(commentElement) {
-        let parent = commentElement.parentElement;
-        while (parent) {
-            if (parent.classList && parent.classList.contains('replies-thread')) {
-                if (parent.style.display === 'none') {
-                    parent.style.display = 'flex';
-                    // Buscar el botón de toggle correspondiente y actualizar texto
-                    const containerId = parent.id;
-                    if (containerId && containerId.startsWith('container-')) {
-                        const rootId = containerId.replace('container-', '');
-                        const toggleBtn = document.querySelector(`button[onclick*="toggleRespuestas('${rootId}')"]`);
-                        if (toggleBtn) {
-                            const textSpan = toggleBtn.querySelector('span');
-                            if (textSpan && textSpan.innerText.includes('Ver')) {
-                                toggleBtn.click(); // Simular clic para expandir
-                            } else if (textSpan && textSpan.innerText === 'Ocultar respuestas') {
-                                // Ya está expandido, no hacer nada
-                            }
-                        }
-                    }
-                }
-            }
-            parent = parent.parentElement;
-        }
-    }
-
-    // Intentar cada 500 ms hasta encontrar el comentario (máx 15 segundos)
-    let attempts = 0;
-    const maxAttempts = 30; // 15 segundos
-    const interval = setInterval(() => {
-        attempts++;
-        const targetComment = document.getElementById(`comment-${replyToId}`);
-        if (targetComment) {
-            clearInterval(interval);
-            console.log(`[ReplyTo] Comentario encontrado: ${replyToId}`);
-            
-            // Expandir hilos de respuestas
-            expandParentThreads(targetComment);
-            
-            // Pequeño retraso para asegurar que la expansión se complete
-            setTimeout(() => {
-                targetComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Resaltar temporalmente
-                targetComment.style.transition = 'background 0.3s, box-shadow 0.3s';
-                targetComment.style.backgroundColor = 'rgba(0, 255, 247, 0.3)';
-                targetComment.style.boxShadow = '0 0 0 2px var(--neon-cyan)';
-                setTimeout(() => {
-                    targetComment.style.backgroundColor = '';
-                    targetComment.style.boxShadow = '';
-                }, 4000);
-            }, 200);
-        } else if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.warn(`[ReplyTo] No se encontró el comentario con ID: ${replyToId} después de 15 segundos`);
-        }
-    }, 500);
-}
