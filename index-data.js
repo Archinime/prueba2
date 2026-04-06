@@ -35,27 +35,37 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1772757162010,
+        "lastUpdate": 1775158616756,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/fsaecbkjhqot7rnqy2lnl/sfsf.avif?rlkey=xg05r2gx62t7jn2z5m9q47ehm&st=5azi7pqp&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false
     },
     {
         "id": 3,
-        "title": "Konosuba",
+        "title": "KonoSuba!",
         "img": "konosubaportada.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
             "Aventura",
             "Comedia",
-            "Fantasía",
-            "Sobrenatural",
-            "Isekai",
             "Ecchi",
+            "Fantasía",
+            "Isekai",
+            "Sobrenatural",
             "Shōnen"
+        ],
+        "lastUpdate": 1774222579317,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "kono3.png",
+        "latestBlockName": "Ova 3",
+        "latestEpTitle": "Capítulo 2",
+        "isFinal": false,
+        "aliases": [
+            "Kono subarashii sekai ni shukufuku o!"
         ]
     },
     {
@@ -443,17 +453,23 @@ const animes = [
         "img": "zootopiaportada.avif",
         "rating": 4.7,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
+            "Animación",
             "Aventura",
             "Comedia",
-            "Policial",
-            "Infantil",
             "Familiar",
+            "Infantil",
             "Misterio",
-            "Animación",
-            "Dibujo Animado",
+            "Policial",
             "Kodomo"
-        ]
+        ],
+        "lastUpdate": 1774310037586,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://www.dropbox.com/scl/fi/8jsapi6ovjb24j9hwydhq/zootopia2.jpeg?rlkey=dee636x8blmjjuh6xltn7x2i5&st=x9bcl3m3&raw=1",
+        "latestBlockName": "Zootopia 2",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false
     },
     {
         "id": 27,
@@ -474,14 +490,21 @@ const animes = [
         "img": "Dr._Stoneportada.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
-            "Ciencia ficción",
             "Aventura",
+            "Ciencia ficción",
             "Comedia",
             "Divulgación Científica",
             "Post-apocalíptico",
             "Shōnen"
-        ]
+        ],
+        "lastUpdate": 1775146571127,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stone4.avif",
+        "latestBlockName": "Temporada 4 Parte III - FInal",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false
     },
     {
         "id": 29,
@@ -532,12 +555,12 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1773539611244,
+        "lastUpdate": 1774761458922,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2zghbbzs6lpi2lt6sf7ui/fumetsu3.jpg?rlkey=l8yfxc0yk2u13ie8wemgcuoal&st=t0qoyl96&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 19",
-        "isFinal": false,
+        "latestEpTitle": "Capítulo 22",
+        "isFinal": true,
         "aliases": [
             "Fumetsu no Anata e"
         ]
@@ -750,10 +773,10 @@ const animes = [
             "Hentai",
             "Seijin"
         ],
-        "lastUpdate": 1773366211665,
-        "updateType": "Ninguna",
-        "latestSeasonCover": "https://www.dropbox.com/scl/fi/totid4w011l0ftg088jwf/erisM.jpg?rlkey=bv2zu5u17sst8k4cjct0l0e0u&st=7f5sh8co&raw=1",
-        "latestBlockName": "My Dress-Up Darling",
+        "lastUpdate": 1775233012988,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/reze.avif",
+        "latestBlockName": "Clases Con Reze",
         "latestEpTitle": "Capítulo 2",
         "isFinal": false
     },
@@ -964,11 +987,11 @@ const animes = [
             "Tokusatsu",
             "Seinen"
         ],
-        "lastUpdate": 1773538857671,
+        "lastUpdate": 1775337397037,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1acwpuwtsx2f20urv44eo/Airbrush-IMAGE-ENHANCER-1763730194883-1763730194884.jpg?rlkey=ornue772yaoazcagrsinqj1fc&st=nlz517kl&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 20",
+        "latestEpTitle": "Capítulo 23",
         "isFinal": false,
         "aliases": [
             "Tojima Wants to Be a Kamen Rider"
@@ -1021,12 +1044,19 @@ const animes = [
         "img": "oyasumi.avif",
         "rating": 4.9,
         "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
         "genres": [
             "Hentai",
             "Romance",
             "Slice of Life",
             "Seijin"
-        ]
+        ],
+        "lastUpdate": 1774467255694,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "oyasumi1.jpg",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 4",
+        "isFinal": false
     },
     {
         "id": 58,
@@ -1159,12 +1189,12 @@ const animes = [
             "Misterio",
             "Seinen"
         ],
-        "lastUpdate": 1773008741372,
+        "lastUpdate": 1775325492328,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "gnosia1.avif",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 18",
-        "isFinal": false
+        "latestEpTitle": "Capítulo 21",
+        "isFinal": true
     },
     {
         "id": 65,
@@ -1198,11 +1228,11 @@ const animes = [
             "Fantasía",
             "Shōnen"
         ],
-        "lastUpdate": 1772856243815,
+        "lastUpdate": 1775238529950,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/68met98fq4br4u8cd7594/frieren2.avif?rlkey=w5jv3dne0ffs2ponw3ai1kgt0&st=uqyu2mmm&raw=1",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 5",
+        "latestEpTitle": "Capítulo 8",
         "isFinal": false,
         "aliases": [
             "Sōsō no Frieren"
@@ -1325,11 +1355,11 @@ const animes = [
             "Slice of Life",
             "Shōnen"
         ],
-        "lastUpdate": 1773597201550,
+        "lastUpdate": 1775402286707,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/87mra8kmnrk51w9uxoxc2/ImageToStl.com_v3_top_fv_kv02.avif?rlkey=yjbztlp5l7fjxsjuke5ffijf3&st=0iob3l2k&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 8",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "You And I Are Polar Opposites"
@@ -1339,7 +1369,7 @@ const animes = [
         "id": 73,
         "title": "Sentenced to Be a Hero",
         "img": "https://www.dropbox.com/scl/fi/xfnznn3sp5r6ffzkbfadj/ImageToStl.com_fgdfgfdg.avif?rlkey=89wcv2sq8ro8lwpxmd1umh3ce&st=7acedkk4&raw=1",
-        "rating": 4.8,
+        "rating": 4.9,
         "uploader": "archinime12@gmail.com",
         "uploaderImg": "Logo_Archinime.avif",
         "genres": [
@@ -1348,11 +1378,11 @@ const animes = [
             "Fantasía oscura",
             "Seinen"
         ],
-        "lastUpdate": 1773348695100,
+        "lastUpdate": 1774824570775,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/g6gmcpr341z0eav70s8xa/C2P4K6XQ5BBNBAKHMAM5XBFAKE.avif?rlkey=8q1u5gev6iq55ndsts7m6s5ij&st=x46rl6r1&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 10",
+        "latestEpTitle": "Capítulo 11",
         "isFinal": false,
         "aliases": [
             "Yuusha-kei ni Shosu"
@@ -1374,12 +1404,12 @@ const animes = [
             "Thriller",
             "Seinen"
         ],
-        "lastUpdate": 1773324308678,
+        "lastUpdate": 1773968239416,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/lxizxk8vjgtw98rlqs0gs/ImageToStl.com_MV5BMjhjNDQwYzEtY2EzNy00Zjk2LThmMjgtNGI2ODdlZDAxYzllXkEyXkFqcGc-._V1.avif?rlkey=evoiqoezadb87f7hqfqufabvg&st=qfm4dc84&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 10",
-        "isFinal": false,
+        "latestEpTitle": "Capítulo 11",
+        "isFinal": true,
         "aliases": [
             "Shibou Yuugi de Meshi wo Kuu"
         ]
@@ -1446,12 +1476,12 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1773539072846,
+        "lastUpdate": 1775243266221,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/1vev0mnfqzgdkb64yehck/fireforce3.avif?rlkey=26ytp6sdp69ilxsr5wcxwifah&st=rnme9z8u&raw=1",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 22",
-        "isFinal": false
+        "latestEpTitle": "Capítulo 25",
+        "isFinal": true
     },
     {
         "id": 78,
@@ -1494,12 +1524,12 @@ const animes = [
             "Sobrenatural",
             "Shōjo"
         ],
-        "lastUpdate": 1773538942915,
+        "lastUpdate": 1774643494613,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://www.dropbox.com/scl/fi/2ji05um3swkxlqysdr70h/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1768945509924-1768945509924.avif?rlkey=5cvtzsgy67fktx4om4qrphlco&st=ue9uf0aq&raw=1",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 10",
-        "isFinal": false
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
     },
     {
         "id": 80,
@@ -1519,11 +1549,11 @@ const animes = [
             "Thriller",
             "Shōnen"
         ],
-        "lastUpdate": 1773619612915,
+        "lastUpdate": 1775413769761,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZz2Pl5ZtIRJpcwNxr5Alrpg7RDymX4RfcJV&size=2000x3000",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "Jigokuraku."
@@ -1583,7 +1613,7 @@ const animes = [
     {
         "id": 83,
         "title": "Mairimashita! Iruma-kun",
-        "img": "https://www.dropbox.com/scl/fi/1jwtfdr7fniisbyk86ufq/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769436697375-1769436697376-1.avif?rlkey=7ykuw4c34w1dkr6wlnt2hmx82&st=nbyyeq8a&raw=1",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma.avif",
         "rating": 4.8,
         "uploader": "archinime12@gmail.com",
         "uploaderImg": "Logo_Archinime.avif",
@@ -1595,12 +1625,12 @@ const animes = [
             "Sobrenatural",
             "Shōnen"
         ],
-        "lastUpdate": 1769437840855,
-        "updateType": "NUEVO 🔥",
-        "latestSeasonCover": "https://www.dropbox.com/scl/fi/oqkpyyqku4fr3ghwhzcr0/iruma3.avif?rlkey=g4yh1imo1v86ubsaeb4k541nk&st=2yuirrws&raw=1",
-        "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 21",
-        "isFinal": true,
+        "lastUpdate": 1775318690574,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma4.avif",
+        "latestBlockName": "Temporada 4",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false,
         "aliases": [
             "Welcome to Demon School! Iruma-kun"
         ]
@@ -1777,11 +1807,11 @@ const animes = [
             "Drama",
             "Seinen"
         ],
-        "lastUpdate": 1773538760990,
+        "lastUpdate": 1775325685242,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/trigun-stargaze-character-visuals-v0-no7rngaincuf1.jpg",
         "latestBlockName": "Temporada 2",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false
     },
     {
@@ -1800,11 +1830,11 @@ const animes = [
             "Yuri",
             "Shōnen"
         ],
-        "lastUpdate": 1773348659101,
+        "lastUpdate": 1775158584383,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://api.pcloud.com/getpubthumb?code=XZHpEK5ZDYj1Ggi9U8bycVPaNOxCkQolhpak&size=2000x3000",
         "latestBlockName": "Temporada 1",
-        "latestEpTitle": "Capítulo 7",
+        "latestEpTitle": "Capítulo 10",
         "isFinal": false,
         "aliases": [
             "Omae Gotoki ga Maō ni Kateru to Omou na"
@@ -1850,11 +1880,398 @@ const animes = [
             "Thriller psicológico",
             "Seinen"
         ],
-        "lastUpdate": 1773781369664,
+        "lastUpdate": 1774380465794,
         "updateType": "NUEVO 🔥",
         "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ImageToStl.com_oshi%2Bt3.avif",
         "latestBlockName": "Temporada 3",
-        "latestEpTitle": "Capítulo 5",
+        "latestEpTitle": "Capítulo 6",
+        "isFinal": false
+    },
+    {
+        "id": 95,
+        "title": "Rooster Fighter",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Comedia",
+            "Parodia",
+            "Post-apocalíptico",
+            "Sobrenatural",
+            "Seinen"
+        ],
+        "lastUpdate": 1775402502141,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 4",
+        "isFinal": false,
+        "aliases": [
+            "Niwatori Fighter"
+        ]
+    },
+    {
+        "id": 96,
+        "title": "Mato Seihei no Slave",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei.avif",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Ecchi",
+            "Fantasía oscura",
+            "Harem",
+            "Shōnen"
+        ],
+        "lastUpdate": 1774367250048,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
+        "aliases": [
+            "Chained Soldier"
+        ]
+    },
+    {
+        "id": 97,
+        "title": "Wind Breaker",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winder.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Drama",
+            "Escolar",
+            "Yankī",
+            "Shōnen"
+        ],
+        "lastUpdate": 1774214367932,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winderbt2.avif",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true
+    },
+    {
+        "id": 98,
+        "title": "Sonic",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Animación",
+            "Aventura",
+            "Ciencia ficción",
+            "Comedia",
+            "Fantasía",
+            "Familiar",
+            "Infantil",
+            "Policial",
+            "Kodomo"
+        ],
+        "lastUpdate": 1775144553017,
+        "updateType": "Ninguna",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic4.avif",
+        "latestBlockName": "Película 4",
+        "latestEpTitle": "Trailer",
+        "isFinal": false
+    },
+    {
+        "id": 99,
+        "title": "Super Mario Bros",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mariop.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Animación",
+            "Aventura",
+            "Ciencia ficción",
+            "Comedia",
+            "Drama",
+            "Fantasía",
+            "Familiar",
+            "Infantil",
+            "Romance",
+            "Kodomo"
+        ],
+        "lastUpdate": 1775141427915,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario2.avif",
+        "latestBlockName": "Película 2",
+        "latestEpTitle": "Película 2 Subtítulos en línea",
+        "isFinal": false
+    },
+    {
+        "id": 100,
+        "title": "Komi-san wa, Komyushō desu.",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan.avif",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Coming-of-age",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Shōnen"
+        ],
+        "lastUpdate": 1774461121349,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan2.avif",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
+        "aliases": [
+            "Komi-san no puede comunicarse"
+        ]
+    },
+    {
+        "id": 101,
+        "title": "Boku no Kokoro no Yabai Yatsu",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro.avif",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Coming-of-age",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Shōnen"
+        ],
+        "lastUpdate": 1774639816966,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro2.avif",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 13",
+        "isFinal": false,
+        "aliases": [
+            "The Dangers in my Heart"
+        ]
+    },
+    {
+        "id": 102,
+        "title": "El incidente de Darwin",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin.avif",
+        "rating": 4.3,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Ciencia ficción",
+            "Deducción Social",
+            "Drama",
+            "Suspenso",
+            "Thriller",
+            "Seinen"
+        ],
+        "lastUpdate": 1775054393842,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 13",
+        "isFinal": false,
+        "aliases": [
+            "Darwin Jihen",
+            "The Darwin Incident"
+        ]
+    },
+    {
+        "id": 103,
+        "title": "Horimiya",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya.avif",
+        "rating": 4.8,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Shōnen"
+        ],
+        "lastUpdate": 1775058361747,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya2.avif",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 12",
+        "isFinal": true,
+        "aliases": [
+            "Hori-san to Miyamura-kun"
+        ]
+    },
+    {
+        "id": 104,
+        "title": "Dorohedoro",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro.avif",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Ciencia ficción",
+            "Fantasía oscura",
+            "Horror",
+            "Seinen"
+        ],
+        "lastUpdate": 1775094692304,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro2.avif",
+        "latestBlockName": "Temporada 2",
+        "latestEpTitle": "Capítulo 3",
+        "isFinal": false
+    },
+    {
+        "id": 105,
+        "title": "Ganbare! Nakamura-kun!!",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/gambarepor.avif",
+        "rating": 4.2,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Yaoi",
+            "Shōjo"
+        ],
+        "lastUpdate": 1775160587272,
+        "updateType": "NUEVO 🔥",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ganbare1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 2",
+        "isFinal": false,
+        "aliases": [
+            "Go For It, Nakamura-kun!!"
+        ]
+    },
+    {
+        "id": 106,
+        "title": "Rompiendo el hielo",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo.avif",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Coming-of-age",
+            "Drama",
+            "Escolar",
+            "Romance",
+            "Slice of Life",
+            "Shōjo"
+        ],
+        "lastUpdate": 1775161408341,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false,
+        "aliases": [
+            "Koori no Jouheki",
+            "The Ramparts of Ice"
+        ]
+    },
+    {
+        "id": 107,
+        "title": "Snowball Earth",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball.avif",
+        "rating": 4.5,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Ciencia ficción",
+            "Kaiju",
+            "Mecha",
+            "Post-apocalíptico",
+            "Survival",
+            "Seinen"
+        ],
+        "lastUpdate": 1775238844907,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false
+    },
+    {
+        "id": 108,
+        "title": "Rilakkuma",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma.avif",
+        "rating": 3.3,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Comedia",
+            "Drama",
+            "Familiar",
+            "Slice of Life",
+            "Josei"
+        ],
+        "lastUpdate": 1775317964546,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false
+    },
+    {
+        "id": 109,
+        "title": "Daemons of the Shadow Realm",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons.avif",
+        "rating": 4.9,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Aventura",
+            "Fantasía oscura",
+            "Sobrenatural",
+            "Shōnen"
+        ],
+        "lastUpdate": 1775325938735,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 1",
+        "isFinal": false,
+        "aliases": [
+            "Yomi no Tsugai"
+        ]
+    },
+    {
+        "id": 110,
+        "title": "Nippon Sangoku: Las tres naciones del sol carmesí",
+        "img": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon.avif",
+        "rating": 4.7,
+        "uploader": "archinime12@gmail.com",
+        "uploaderImg": "Logo_Archinime.avif",
+        "genres": [
+            "Acción",
+            "Drama",
+            "Militar",
+            "Post-apocalíptico",
+            "Seinen"
+        ],
+        "lastUpdate": 1775402835231,
+        "updateType": "ESTRENO 🚨",
+        "latestSeasonCover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon1.avif",
+        "latestBlockName": "Temporada 1",
+        "latestEpTitle": "Capítulo 1",
         "isFinal": false
     }
 ];
