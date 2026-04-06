@@ -1,15 +1,15 @@
 // notification-system.js
 /* Sistema de notificaciones combinado: actualizaciones de animes (localStorage) + respuestas en tiempo real (Firestore) */
+/* Las respuestas NO generan popup, solo aparecen en el menú y mantienen el badge hasta que se lean */
 
-let notificationQueue = []; 
-let notificationsHistory = []; 
+let notificationQueue = [];      // Solo para animes (popups)
+let notificationsHistory = [];   // Todas las notificaciones (animes + respuestas)
 let isMenuOpen = false;
-let repliesUnsubscribe = null; // Listener de respuestas en Firestore
+let repliesUnsubscribe = null;   // Listener de respuestas en Firestore
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
     
-    // Verificar si existe la base de datos de animes
     if (typeof animes !== 'undefined') {
         checkForNewUpdates();
     } else {
@@ -52,7 +52,7 @@ function listenForReplies(uid) {
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
-        .limit(10)
+        .limit(20)
         .onSnapshot(snapshot => {
             let hasNew = false;
             
@@ -86,7 +86,7 @@ function listenForReplies(uid) {
                         };
                         
                         notificationsHistory.unshift(newNotif);
-                        notificationQueue.push(newNotif);
+                        // NO se agrega a notificationQueue para que no aparezca popup
                         hasNew = true;
                     }
                 }
@@ -97,9 +97,7 @@ function listenForReplies(uid) {
                 saveHistoryToStorage();
                 renderNotificationList();
                 if (!isMenuOpen) updateBellBadge();
-                if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
-                    showNextPopup();
-                }
+                // No se muestra popup para respuestas
             }
         }, error => {
             console.error("Error al escuchar respuestas:", error);
@@ -120,7 +118,7 @@ function checkForNewUpdates() {
         if (anime.updateType === "Ninguna") return;
 
         const notifId = `${anime.id}_${anime.lastUpdate}`;
-        const exists = notificationsHistory.find(n => n.notifId === notifId);
+        const exists = notificationsHistory.some(n => n.notifId === notifId);
         
         if (!exists) {
             const newNotif = {
@@ -144,11 +142,13 @@ function checkForNewUpdates() {
     if (newItemsFound.length > 0) {
         if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
         saveHistoryToStorage();
-        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+        // Solo añadimos a la cola de popups un máximo de 5 animes nuevos
+        const newPopups = newItemsFound.slice(0, 5);
+        notificationQueue = notificationQueue.concat(newPopups);
     }
 }
 
-// --- Iniciar secuencia de popups (se llama desde el loader) ---
+// --- Iniciar secuencia de popups (solo para animes) ---
 window.startNotificationSequence = function() {
     showNextPopup();
 };
@@ -166,7 +166,7 @@ function createPopupHTML(notif) {
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     
-    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
+    const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
     let infoString = "";
     
     if (notif.blockName && notif.blockName !== "Novedad") {
@@ -182,7 +182,6 @@ function createPopupHTML(notif) {
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno";
 
     let finalImgHTML = '';
     if (notif.isFinal) {
@@ -207,7 +206,7 @@ function createPopupHTML(notif) {
                 <h2 class="event-title">${notif.title}</h2>
                 <div class="event-meta">${infoString}</div>
                 <p class="event-desc">${indieMessage}</p>
-                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}', '${notif.url || ''}')">
+                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
                     <i class="fas fa-play"></i> VER AHORA
                 </button>
             </div>
@@ -230,14 +229,10 @@ function closePopup() {
     }
 }
 
-function goToAnimeFromPopup(animeId, notifId, customUrl) {
+function goToAnimeFromPopup(animeId, notifId) {
     markAsRead(notifId);
     notificationQueue = [];
-    if (customUrl && customUrl !== '') {
-        window.location.href = customUrl;
-    } else {
-        window.location.href = `anime-detail.html?id=${animeId}`;
-    }
+    window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
 // --- Menú de notificaciones (campana) ---
@@ -248,10 +243,8 @@ function toggleNotifMenu() {
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
-        const badge = document.getElementById('notifBadge');
-        if(badge) badge.style.display = 'none';
-        notificationsHistory.forEach(n => n.seen = true);
-        saveHistoryToStorage();
+        // No marcamos automáticamente como leídas al abrir el menú
+        // Solo se marcan al hacer clic en una notificación
     } else {
         menu.classList.remove('active');
     }
@@ -281,6 +274,13 @@ function renderNotificationList() {
         const div = document.createElement('div');
         div.className = 'notif-item';
         
+        // Mostrar avatar circular si es respuesta
+        let imgBoxClass = 'notif-img-box';
+        let imgStyle = '';
+        if (item.type === 'RESPUESTA') {
+            imgBoxClass += ' rounded-avatar';
+        }
+        
         let infoString = "";
         if (item.blockName && item.blockName !== "Novedad") {
             infoString += `<span class="n-block">${item.blockName}</span>`;
@@ -298,9 +298,12 @@ function renderNotificationList() {
         else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
+        // Indicador visual de no leído
+        let unreadIndicator = !item.seen ? '<div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); width:8px; height:8px; background:var(--neon-pink); border-radius:50%;"></div>' : '';
 
         div.innerHTML = `
-            <div class="notif-img-box">
+            ${unreadIndicator}
+            <div class="${imgBoxClass}">
                 <img src="${item.seasonCover}" alt="cover">
             </div>
             <div class="notif-content">
@@ -312,6 +315,16 @@ function renderNotificationList() {
             </div>
         `;
         div.addEventListener('click', () => {
+            // Marcar como leída al hacer clic
+            if (!item.seen) {
+                markAsRead(item.notifId);
+                item.seen = true;
+                updateBellBadge();
+                // Actualizar visual del elemento sin recargar toda la lista
+                const indicator = div.querySelector('div[style*="position:absolute"]');
+                if (indicator) indicator.remove();
+            }
+            // Redirigir
             if (item.url) {
                 window.location.href = item.url;
             } else {
@@ -337,7 +350,7 @@ function updateBellBadge() {
 
 function markAsRead(notifId) {
     const target = notificationsHistory.find(n => n.notifId === notifId);
-    if (target) {
+    if (target && !target.seen) {
         target.seen = true;
         saveHistoryToStorage();
     }
