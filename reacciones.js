@@ -110,10 +110,7 @@ function injectReaccionesCSS() {
         .reactions-summary span.r-emoji:only-of-type { margin-right: 4px; }
 
         @media (max-width: 768px) {
-            .reactions-picker {
-                gap: 8px;
-                padding: 6px 10px;
-            }
+            .reactions-picker { gap: 8px; padding: 6px 10px; }
             .reaction-icon { font-size: 1.4rem; }
             .reactions-summary { padding: 3px 8px; font-size: 0.75rem; }
         }
@@ -121,9 +118,9 @@ function injectReaccionesCSS() {
     document.head.appendChild(style);
 }
 
-window.toggleReaccion = async function(commentId, tipoReaccion) {
-    if (!comentariosCurrentUser) return typeof openLoginModalFromComent === 'function' ?
-        openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
+window.toggleReaccion = async function(commentId, tipoReaccion, event) {
+    if (event) event.stopPropagation(); // Evitar que el clic cause fallos en la UI
+    if (!comentariosCurrentUser) return typeof openLoginModalFromComent === 'function' ? openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
@@ -133,6 +130,10 @@ window.toggleReaccion = async function(commentId, tipoReaccion) {
         if(typeof playUISound === 'function') playUISound('click');
     } catch (e) {
         console.error("Error al reaccionar", e);
+        // Si sale este error, entonces son tus Reglas de Firestore limitando el `update` a otros comentarios
+        if (e.message.includes("Missing or insufficient permissions")) {
+            alert("No se pudo reaccionar. Las reglas de la base de datos (Firestore) te impiden modificar un comentario que no es tuyo.");
+        }
     }
 };
 
@@ -173,7 +174,7 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     let summaryClass = 'reactions-summary';
     let summaryStyle = '';
     let clickAction = '';
-
+    
     if (total > 0) {
         if (currentUserReaction && REACTIONS_MAP[currentUserReaction]) {
             summaryClass += ' user-reacted';
@@ -189,11 +190,11 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     const pickerHTML = `
         <div class="reactions-picker">
             ${Object.keys(REACTIONS_MAP).map(type => 
-                `<span class="reaction-icon" title="${REACTIONS_MAP[type].name}" onclick="toggleReaccion('${commentId}', '${type}')">${REACTIONS_MAP[type].emoji}</span>`
+                `<span class="reaction-icon" title="${REACTIONS_MAP[type].name}" onclick="toggleReaccion('${commentId}', '${type}', event)">${REACTIONS_MAP[type].emoji}</span>`
             ).join('')}
         </div>
     `;
-
+    
     return `
         <div class="btn-reaccionar-container">
             <div class="${summaryClass}" style="${summaryStyle}" ${clickAction}>
