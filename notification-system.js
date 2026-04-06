@@ -1,16 +1,15 @@
-/* =======================================================
-   notification-system.js - ACTUALIZADO (Firebase + Popups)
-   ======================================================= */
+// notification-system.js
+/* Sistema de notificaciones combinado: actualizaciones de animes (localStorage) + respuestas en tiempo real (Firestore) */
 
-let notificationQueue = [];
-let notificationsHistory = [];
+let notificationQueue = []; 
+let notificationsHistory = []; 
 let isMenuOpen = false;
-let repliesUnsubscribe = null; // Conexión a Firebase
+let repliesUnsubscribe = null; // Listener de respuestas en Firestore
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
     
-    // 1. Chequear actualizaciones de animes
+    // Verificar si existe la base de datos de animes
     if (typeof animes !== 'undefined') {
         checkForNewUpdates();
     } else {
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotificationList();
     updateBellBadge();
 
-    // 2. Conectar con Firebase para escuchar respuestas en tiempo real
+    // Conectar a Firebase si está disponible
     if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -32,163 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Función que es llamada desde tu index.html cuando termina el loader
-window.startNotificationSequence = function() {
-    setTimeout(() => {
-        showNextNotification();
-    }, 1000);
-};
-
-// Escucha respuestas en Firebase y lanza el popup instantáneo
-function listenForReplies(uid) {
-    if (repliesUnsubscribe) repliesUnsubscribe();
-
-    repliesUnsubscribe = db.collection('comments')
-        .where('replyToUserId', '==', uid)
-        .orderBy('timestamp', 'desc')
-        .limit(10)
-        .onSnapshot(snapshot => {
-            snapshot.docChanges().forEach(change => {
-                if (change.type === "added") {
-                    const data = change.doc.data();
-                    if (!notificationsHistory.find(n => n.id === change.doc.id)) {
-                        const newNotif = {
-                            id: change.doc.id,
-                            title: "Nueva respuesta",
-                            type: "COMENTARIO 💬",
-                            info: `${data.userName} respondió a tu comentario`,
-                            seasonCover: data.userAvatar || 'Logo_Archinime.avif',
-                            url: data.url || '#',
-                            timestamp: data.timestamp?.toDate().getTime() || Date.now(),
-                            seen: false
-                        };
-                        
-                        notificationsHistory.unshift(newNotif);
-                        notificationQueue.push(newNotif); // Añadir a la cola de popups
-                        saveHistoryToStorage();
-                        renderNotificationList();
-                        showNextNotification(); // Lanzar popup
-                    }
-                }
-            });
-        });
-}
-
-function checkForNewUpdates() {
-    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
-    updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
-    updatedAnimes.forEach(anime => {
-        if (anime.updateType.includes("ACTUALIZACIÓN")) return; 
-
-        const notifId = `anime_${anime.id}_${anime.lastUpdate}`;
-        const alreadyExists = notificationsHistory.some(n => n.id === notifId);
-
-        if (!alreadyExists) {
-            let infoString = "";
-            if (anime.latestBlockName && anime.latestEpTitle) {
-                infoString = `${anime.latestBlockName} - ${anime.latestEpTitle}`;
-            } else if (anime.latestBlockName) {
-                infoString = anime.latestBlockName;
-            } else if (anime.latestEpTitle) {
-                infoString = anime.latestEpTitle;
-            }
-
-            const newNotif = {
-                id: notifId,
-                animeId: anime.id,
-                title: anime.title,
-                type: anime.updateType,
-                info: infoString,
-                seasonCover: anime.latestSeasonCover || anime.img,
-                isFinal: anime.isFinal,
-                timestamp: anime.lastUpdate,
-                seen: false
-            };
-            notificationsHistory.unshift(newNotif);
-            notificationQueue.push(newNotif); // Añadir a la cola de popups
-        }
-    });
-    saveHistoryToStorage();
-}
-
-// ==========================================
-// LÓGICA DE VENTANAS EMERGENTES (POPUPS)
-// ==========================================
-
-function showNextNotification() {
-    if (notificationQueue.length === 0) return;
-    if (document.querySelector('.notification-popup')) return; // Ya hay un popup en pantalla
-
-    const item = notificationQueue.shift();
-    showNotificationPopup(item);
-}
-
-function showNotificationPopup(item) {
-    const popup = document.createElement('div');
-    popup.className = 'notification-popup';
-
-    let typeColor = "#00f3ff"; // cyan por defecto
-    if (item.type.includes("NUEVO")) typeColor = "#ff0055"; // pink
-    else if (item.type.includes("ESTRENO")) typeColor = "#bc13fe"; // purple
-    else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "#f1c40f"; // yellow
-    else if (item.type.includes("COMENTARIO")) typeColor = "#00ff88"; // green
-
-    let finalLabel = item.isFinal ? `<span class="tag-final" style="font-size:0.6rem; background:#ff0055; color:#fff; padding:2px 4px; border-radius:3px; margin-left:5px;">FINALIZADO</span>` : "";
-
-    popup.innerHTML = `
-        <div class="notif-popup-content">
-            <img src="${item.seasonCover}" class="notif-popup-img" alt="cover">
-            <div class="notif-popup-text">
-                <span class="notif-popup-type" style="color:${typeColor}">${item.type} ${finalLabel}</span>
-                <span class="notif-popup-title">${item.title}</span>
-                <span class="notif-popup-desc">${item.info || ''}</span>
-            </div>
-            <button class="notif-popup-close">&times;</button>
-        </div>
-        <div class="notif-progress-bar" style="background:${typeColor};"></div>
-    `;
-
-    document.body.appendChild(popup);
-
-    // Redirigir al hacer clic en el popup (A VideoPlayer si es respuesta, o AnimeDetail si es anime)
-    popup.addEventListener('click', (e) => {
-        if (e.target.classList.contains('notif-popup-close')) return;
-        if (item.url) window.location.href = item.url;
-        else window.location.href = `anime-detail.html?id=${item.animeId}`;
-    });
-
-    // Botón de cerrar manual
-    const closeBtn = popup.querySelector('.notif-popup-close');
-    closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        closePopup(popup);
-    };
-
-    // Auto-cerrar después de 5 segundos
-    setTimeout(() => {
-        closePopup(popup);
-    }, 5000);
-}
-
-function closePopup(popup) {
-    if (!popup || !popup.parentElement) return;
-    popup.classList.add('fade-out');
-    setTimeout(() => {
-        if (popup.parentElement) popup.remove();
-        showNextNotification(); // Llama al siguiente en la cola
-    }, 500);
-}
-
-// ==========================================
-// LÓGICA DE HISTORIAL Y CAMPANA
-// ==========================================
-
+// --- Funciones de almacenamiento local ---
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored); } 
-        catch (e) { notificationsHistory = []; }
+        try { notificationsHistory = JSON.parse(stored); }
+        catch(e) { notificationsHistory = []; }
     }
 }
 
@@ -197,25 +45,257 @@ function saveHistoryToStorage() {
     updateBellBadge();
 }
 
-function renderNotificationList() {
-    const listContainer = document.getElementById('notificationList');
-    if (!listContainer) return;
+// --- Escucha en tiempo real de respuestas a comentarios (Firestore) ---
+function listenForReplies(uid) {
+    if (repliesUnsubscribe) repliesUnsubscribe();
 
+    repliesUnsubscribe = db.collection('comments')
+        .where('replyToUserId', '==', uid)
+        .orderBy('timestamp', 'desc')
+        .limit(10)
+        .onSnapshot(snapshot => {
+            let hasNew = false;
+            
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    if (data.userId === uid) return; // No notificarse a sí mismo
+
+                    const docId = change.doc.id;
+                    const notifId = `reply_${docId}`;
+                    const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
+
+                    if (!alreadyExists) {
+                        let rawText = data.texto || "";
+                        let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+                        if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
+                        
+                        const newNotif = {
+                            notifId: notifId,
+                            type: 'RESPUESTA',
+                            animeId: data.animeId,
+                            title: `¡${data.userName} te respondió!`,
+                            img: data.userAvatar || 'invitado.avif',
+                            seasonCover: data.userAvatar || 'invitado.avif',
+                            blockName: 'Foro',
+                            epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
+                            date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
+                            seen: false,
+                            isFinal: false,
+                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}`
+                        };
+                        
+                        notificationsHistory.unshift(newNotif);
+                        notificationQueue.push(newNotif);
+                        hasNew = true;
+                    }
+                }
+            });
+
+            if (hasNew) {
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                saveHistoryToStorage();
+                renderNotificationList();
+                if (!isMenuOpen) updateBellBadge();
+                if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
+                    showNextPopup();
+                }
+            }
+        }, error => {
+            console.error("Error al escuchar respuestas:", error);
+            if (error.message.includes('index')) {
+                console.warn("⚠️ Se requiere un índice compuesto en Firestore para esta consulta. Crea el índice desde el enlace en la consola.");
+            }
+        });
+}
+
+// --- Detección de nuevos animes / actualizaciones (desde index-data.js) ---
+function checkForNewUpdates() {
+    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
+    updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
+
+    let newItemsFound = [];
+    updatedAnimes.forEach(anime => {
+        if (anime.updateType.includes("ACTUALIZACIÓN")) return;
+        if (anime.updateType === "Ninguna") return;
+
+        const notifId = `${anime.id}_${anime.lastUpdate}`;
+        const exists = notificationsHistory.find(n => n.notifId === notifId);
+        
+        if (!exists) {
+            const newNotif = {
+                notifId: notifId,
+                animeId: anime.id,
+                title: anime.title,
+                img: anime.img,
+                seasonCover: anime.latestSeasonCover || anime.img,
+                blockName: anime.latestBlockName || "",
+                epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                type: anime.updateType,
+                date: anime.lastUpdate,
+                seen: false,
+                isFinal: anime.isFinal || false
+            };
+            notificationsHistory.unshift(newNotif);
+            newItemsFound.push(newNotif);
+        }
+    });
+
+    if (newItemsFound.length > 0) {
+        if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+        saveHistoryToStorage();
+        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
+    }
+}
+
+// --- Iniciar secuencia de popups (se llama desde el loader) ---
+window.startNotificationSequence = function() {
+    showNextPopup();
+};
+
+function showNextPopup() {
+    if (notificationQueue.length === 0) return;
+    const notif = notificationQueue[0];
+    createPopupHTML(notif);
+}
+
+function createPopupHTML(notif) {
+    const existing = document.getElementById('eventModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'eventModal';
+    
+    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
+    let infoString = "";
+    
+    if (notif.blockName && notif.blockName !== "Novedad") {
+        infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+    }
+    if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") {
+        if (infoString !== "") infoString += " • ";
+        infoString += `<span style="color:#fff">${notif.epTitle}</span>`;
+    } else if (infoString === "") {
+        infoString = "Nuevo Contenido";
+    }
+
+    let badgeClass = "badge-default";
+    if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
+    else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
+    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno";
+
+    let finalImgHTML = '';
+    if (notif.isFinal) {
+        finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
+    }
+
+    modal.innerHTML = `
+        <div class="event-card">
+            <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="event-visuals">
+                <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+                <div class="covers-container">
+                    <img src="${notif.img}" class="cover-back" alt="Poster">
+                    <img src="${notif.seasonCover}" class="cover-front" alt="Season">
+                </div>
+                <div class="event-type-badge ${badgeClass}">${notif.type}</div>
+                ${finalImgHTML}
+            </div>
+            <div class="event-info">
+                <h2 class="event-title">${notif.title}</h2>
+                <div class="event-meta">${infoString}</div>
+                <p class="event-desc">${indieMessage}</p>
+                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}', '${notif.url || ''}')">
+                    <i class="fas fa-play"></i> VER AHORA
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 50);
+}
+
+function closePopup() {
+    const modal = document.getElementById('eventModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+            const processed = notificationQueue.shift();
+            if (processed) markAsRead(processed.notifId);
+            showNextPopup();
+        }, 300);
+    }
+}
+
+function goToAnimeFromPopup(animeId, notifId, customUrl) {
+    markAsRead(notifId);
+    notificationQueue = [];
+    if (customUrl && customUrl !== '') {
+        window.location.href = customUrl;
+    } else {
+        window.location.href = `anime-detail.html?id=${animeId}`;
+    }
+}
+
+// --- Menú de notificaciones (campana) ---
+function toggleNotifMenu() {
+    const menu = document.getElementById('notifMenu');
+    isMenuOpen = !isMenuOpen;
+    
+    if (isMenuOpen) {
+        menu.classList.add('active');
+        renderNotificationList();
+        const badge = document.getElementById('notifBadge');
+        if(badge) badge.style.display = 'none';
+        notificationsHistory.forEach(n => n.seen = true);
+        saveHistoryToStorage();
+    } else {
+        menu.classList.remove('active');
+    }
+}
+
+document.addEventListener('click', (e) => {
+    const wrapper = document.querySelector('.notif-wrapper');
+    const menu = document.getElementById('notifMenu');
+    if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
+        isMenuOpen = false;
+        if(menu) menu.classList.remove('active');
+    }
+});
+
+function renderNotificationList() {
+    const listContainer = document.getElementById('notifList');
+    if (!listContainer) return;
+    
     listContainer.innerHTML = '';
     if (notificationsHistory.length === 0) {
-        listContainer.innerHTML = '<div class="empty-notif">No tienes notificaciones</div>';
+        listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
         return;
     }
 
-    notificationsHistory.forEach((item, index) => {
+    const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
+    sortedHistory.forEach(item => {
         const div = document.createElement('div');
-        div.className = `notification-item ${item.seen ? 'seen' : 'unseen'}`;
+        div.className = 'notif-item';
         
-        let typeColor = "#00f3ff";
-        if (item.type.includes("NUEVO")) typeColor = "#ff0055";
-        else if (item.type.includes("ESTRENO")) typeColor = "#bc13fe";
-        else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "#f1c40f";
-        else if (item.type.includes("COMENTARIO")) typeColor = "#00ff88";
+        let infoString = "";
+        if (item.blockName && item.blockName !== "Novedad") {
+            infoString += `<span class="n-block">${item.blockName}</span>`;
+        }
+        if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
+            if (infoString !== "") infoString += " ";
+            infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
+        } else if (infoString === "") {
+            infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+        }
+
+        let typeColor = "var(--neon-purple)";
+        if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
+        else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
 
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
 
@@ -226,19 +306,17 @@ function renderNotificationList() {
             <div class="notif-content">
                 <div class="notif-header-line">
                     <span class="n-title">${item.title}</span>
-                    <button class="delete-notif-btn" title="Eliminar" onclick="deleteNotification(event, ${index})"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
-                <div class="n-meta">${item.info || ''}</div>
+                <div class="n-meta">${infoString}</div>
             </div>
         `;
-        
-        div.addEventListener('click', (e) => {
-            if(e.target.closest('.delete-notif-btn')) return;
-            item.seen = true;
-            saveHistoryToStorage();
-            if (item.url) window.location.href = item.url;
-            else window.location.href = `anime-detail.html?id=${item.animeId}`;
+        div.addEventListener('click', () => {
+            if (item.url) {
+                window.location.href = item.url;
+            } else {
+                window.location.href = `anime-detail.html?id=${item.animeId}`;
+            }
         });
         listContainer.appendChild(div);
     });
@@ -257,49 +335,10 @@ function updateBellBadge() {
     }
 }
 
-function toggleNotificationMenu() {
-    const menu = document.getElementById('notificationMenu');
-    if (!menu) return;
-    isMenuOpen = !isMenuOpen;
-    if (isMenuOpen) {
-        menu.classList.add('active');
-        renderNotificationList(); 
-    } else {
-        menu.classList.remove('active');
-        markAllAsSeen();
+function markAsRead(notifId) {
+    const target = notificationsHistory.find(n => n.notifId === notifId);
+    if (target) {
+        target.seen = true;
+        saveHistoryToStorage();
     }
 }
-
-document.addEventListener('click', (e) => {
-    const menu = document.getElementById('notificationMenu');
-    const btn = document.querySelector('.notif-bell-btn');
-    if (isMenuOpen && menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
-        toggleNotificationMenu();
-    }
-});
-
-function markAllAsSeen() {
-    let changed = false;
-    notificationsHistory.forEach(n => {
-        if (!n.seen) { n.seen = true; changed = true; }
-    });
-    if (changed) saveHistoryToStorage();
-}
-
-window.markAsRead = function() {
-    markAllAsSeen();
-    renderNotificationList();
-};
-
-window.clearAllNotifications = function() {
-    notificationsHistory = [];
-    saveHistoryToStorage();
-    renderNotificationList();
-};
-
-window.deleteNotification = function(event, index) {
-    event.stopPropagation();
-    notificationsHistory.splice(index, 1);
-    saveHistoryToStorage();
-    renderNotificationList();
-};

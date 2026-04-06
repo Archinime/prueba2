@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -197,6 +198,78 @@
   .tag-final { background: #ff0000; color: white; padding: 1px 4px; border-radius: 2px; font-size: 0.55em; }
   .empty-notif { padding: 30px; text-align: center; color: #666; font-style: italic; }
 
+  /* --- ESTILOS MODAL POPUP (EVENTOS) --- */
+  #eventModal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95); backdrop-filter: blur(15px);
+    z-index: 99999; display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: all 0.5s ease-in-out; padding: 20px;
+  }
+  #eventModal.show { opacity: 1; pointer-events: auto; }
+  .event-card {
+    background: rgba(11, 12, 16, 0.95); width: 100%; max-width: 420px; border: 1px solid transparent;
+    background-image: linear-gradient(#0b0c10, #0b0c10), linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+    background-origin: border-box; background-clip: content-box, border-box; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 0 80px rgba(188, 19, 254, 0.15), 0 20px 40px rgba(0,0,0,0.8);
+    transform: scale(0.9) translateY(40px);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+    display: flex; flex-direction: column; position: relative;
+  }
+  #eventModal.show .event-card { transform: scale(1) translateY(0); }
+  .event-visuals {
+    position: relative; width: 100%; height: 260px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: #000; border-bottom: 2px solid var(--neon-cyan);
+  }
+  .visual-bg {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    filter: blur(20px) brightness(0.5) saturate(1.2);
+    transform: scale(1.2); transition: transform 6s ease;
+  }
+  #eventModal.show .visual-bg { transform: scale(1); }
+  .covers-container { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; justify-content: center; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)); }
+  .cover-back {
+    position: absolute; bottom: 25px; left: 50%; width: 110px; height: 165px; object-fit: cover;
+    border-radius: 8px; opacity: 0.8; transform: translateX(-50%) rotate(-10deg) scale(0.95);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1;
+  }
+  .cover-front {
+    position: absolute; bottom: 25px; left: 50%; width: 130px; height: 195px; object-fit: cover;
+    border-radius: 10px; border: 2px solid var(--neon-cyan); transform: translateX(-50%) rotate(5deg) scale(1); z-index: 5;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  #eventModal.show .cover-back { transform: translateX(calc(-50% + 70px)) rotate(-10deg) scale(0.95); }
+  #eventModal.show .cover-front { transform: translateX(calc(-50% - 70px)) rotate(5deg) scale(1); }
+  .event-type-badge {
+    position: absolute; top: 15px; left: 15px; z-index: 10; padding: 6px 14px; border-radius: 30px;
+    font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-transform: uppercase; backdrop-filter: blur(5px);
+  }
+  .badge-default { background: linear-gradient(135deg, #8c52ff, #5e17eb); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .badge-estreno { background: #ff0055; color: white; box-shadow: 0 0 15px rgba(255, 0, 85, 0.6); border: 1px solid #ff5588; }
+  .badge-prox { background: var(--neon-yellow); color: black; border: 1px solid #fff; }
+  .final-stamp {
+    position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%) rotate(-25deg) scale(0); z-index: 20;
+    color: #ff0000; border: 3px solid #ff0000; padding: 5px 15px; font-weight: 900; font-size: 1.2rem; text-shadow: 0 0 15px black; background: rgba(0,0,0,0.85);
+    text-transform: uppercase; pointer-events: none; box-shadow: 0 0 30px rgba(255,0,0,0.4);
+    letter-spacing: 2px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transition-delay: 0.3s;
+  }
+  #eventModal.show .final-stamp { transform: translate(-50%, -50%) rotate(-25deg) scale(1); }
+  .event-close {
+    position: absolute; top: 15px; right: 15px; z-index: 50; background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; backdrop-filter: blur(4px);
+  }
+  .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg) scale(1.1); box-shadow: 0 0 15px var(--neon-pink); }
+  .event-info { background: linear-gradient(to bottom, #111, #050505); padding: 25px; text-align: center; position: relative; z-index: 5; }
+  .event-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 900; color: white; margin-bottom: 8px; line-height: 1.1; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+  .event-meta { display: inline-block; color: var(--neon-cyan); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; background: rgba(0, 243, 255, 0.1); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(0, 243, 255, 0.2); letter-spacing: 1px; }
+  .event-desc { color: #aaa; font-size: 0.9rem; font-style: italic; margin-bottom: 25px; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+  .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 30px; font-weight: 900; font-size: 1rem; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); position: relative; overflow: hidden; }
+  .event-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transition: 0.5s; }
+  .event-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 30px var(--neon-cyan), 0 0 60px rgba(0, 243, 255, 0.4); transform: scale(1.03); }
+  .event-btn:hover::before { left: 100%; }
+
   .controls-container { padding: 20px 3%; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
   select { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-color: rgba(20, 20, 25, 0.9); color: #e0e0e0; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; letter-spacing: 0.5px; cursor: pointer; outline: none; padding: 12px 35px 12px 20px; min-width: 160px; border: 1px solid rgba(188, 19, 254, 0.4); border-radius: 0; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: calc(100% - 12px) center; background-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.3s ease; }
   select:hover, select:focus { color: white; background-color: rgba(30, 30, 40, 0.95); border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transform: translateY(-2px); background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); }
@@ -237,124 +310,16 @@
     .card .info { padding: 40px 8px 8px; }
     .card .info strong { font-size: 0.85rem; }
     .card .info span { font-size: 0.65rem; }
+    .event-card { width: 90%; max-height: 90vh; overflow-y: auto; }
+    .cover-back { transform: translateX(-50%) rotate(0deg) scale(0.8); }
+    .cover-front { transform: translateX(-50%) rotate(0deg) scale(0.8); }
+    #eventModal.show .cover-back { transform: translateX(calc(-50% + 50px)) rotate(-8deg) scale(0.9); }
+    #eventModal.show .cover-front { transform: translateX(calc(-50% - 50px)) rotate(5deg); }
   }
   @media (max-width: 480px) {
     .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .nav-logo-text { font-size: 1.1rem; }
-  }
-
-  /* =========================================
-     ESTILOS PARA POPUPS DE NOTIFICACIÓN
-     ========================================= */
-  .notification-popup {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 320px;
-      background: rgba(10, 12, 16, 0.95);
-      border: 1px solid #00f3ff; /* Borde Neón */
-      box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      z-index: 10000;
-      cursor: pointer;
-      animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-  }
-
-  .notif-popup-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      position: relative;
-  }
-
-  .notif-popup-img {
-      width: 55px;
-      height: 75px;
-      object-fit: cover;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  }
-
-  .notif-popup-text {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      overflow: hidden;
-  }
-
-  .notif-popup-type {
-      font-size: 0.7rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 2px;
-  }
-
-  .notif-popup-title {
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.9rem;
-      font-weight: bold;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      margin-bottom: 4px;
-  }
-
-  .notif-popup-desc {
-      color: #aaa;
-      font-size: 0.8rem;
-      font-family: 'Poppins', sans-serif;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-  }
-
-  .notif-popup-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.5);
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: 0.3s;
-      line-height: 1;
-  }
-
-  .notif-popup-close:hover {
-      color: #ff0055;
-      transform: scale(1.1);
-  }
-
-  .notif-progress-bar {
-      height: 3px;
-      width: 100%;
-      animation: progressShrink 5s linear forwards; /* Barra de tiempo de 5 seg */
-  }
-
-  @keyframes slideInRight {
-      from { transform: translateX(120%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-  }
-
-  .notification-popup.fade-out {
-      animation: slideOutRight 0.5s forwards;
-  }
-
-  @keyframes slideOutRight {
-      to { transform: translateX(120%); opacity: 0; }
-  }
-
-  @keyframes progressShrink {
-      from { width: 100%; }
-      to { width: 0%; }
+    .event-card { width: 95%; }
   }
 </style>
 </head>
@@ -664,7 +629,6 @@
             dropdownAvatar.style.borderColor = color;
             dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
             
-            // Corrección: Aquí aplicamos el color al nombre de usuario
             dropdownName.style.color = color;
             dropdownName.style.textShadow = `0 0 10px ${color}`;
             
@@ -685,7 +649,6 @@
         dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
         dropdownAvatar.style.boxShadow = 'none';
         
-        // Reset del color del nombre para el invitado
         dropdownName.style.color = 'var(--neon-cyan)';
         dropdownName.style.textShadow = 'none';
       }
