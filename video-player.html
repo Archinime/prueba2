@@ -128,7 +128,7 @@
     
     /* ===== SERVIDORES ===== */
     .options { display: flex;
-    gap: 10px; justify-content: flex-end; }
+        gap: 10px; justify-content: flex-end; }
     
     .opt-btn { 
         padding: 6px 14px;
@@ -152,7 +152,8 @@
     }
     
     h1 { text-align: center;
-    font-size: 1.3rem; margin: 5px 0; }
+    font-size: 1.3rem;
+        margin: 5px 0; }
     
     /* ===== BOTONES PREMIUM CYBERPUNK (ANTERIOR, SIGUIENTE Y DESCARGAR) ===== */
     .controls { 
@@ -253,10 +254,12 @@
     }
     
     .comentarios-header i { font-size: 2.2rem; color: var(--primary-color); text-shadow: 0 0 15px rgba(0,255,247,0.5); }
-    .comentarios-header h3 { font-size: 1.6rem; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 2px; text-transform: uppercase;}
+    .comentarios-header h3 { font-size: 1.6rem; font-weight: 900; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;
+        text-transform: uppercase;}
     
     /* --- TARJETA DE CADA COMENTARIO --- */
-    .comentarios-list { margin-bottom: 25px; display: flex; flex-direction: column; gap: 20px; }
+    .comentarios-list { margin-bottom: 25px;
+        display: flex; flex-direction: column; gap: 20px; }
 
     .comentario-item {
         background: rgba(20, 20, 25, 0.7);
@@ -395,7 +398,8 @@
         .emoji-btn, .sticker-btn { padding: 12px; }
         
         /* Ajuste de Botones en móvil para que encajen perfectos */
-        .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
+        .controls { grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto; gap: 10px; }
         #prevBtn { grid-column: 1; grid-row: 1; }
         #nextBtn { grid-column: 2; grid-row: 1; }
         #downloadBtn { grid-column: 1/-1; grid-row: 2; width: 100%; }
@@ -497,38 +501,38 @@
 
         <div id="comentarioFormOriginalLocation">
             <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
-                <div class="comentario-user-info">
+                 <div class="comentario-user-info">
                     <img id="comentarioUserAvatar" src="invitado.avif">
                     <span id="comentarioUserName">Usuario</span>
                 </div>
                 
-                <div class="comentario-input-wrapper">
+                 <div class="comentario-input-wrapper">
                     <textarea id="comentarioTexto" placeholder="Escribe un nuevo comentario... (Presiona Enter para enviar) 😊" maxlength="500"></textarea>
                     <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                     <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
-                        <i class="fas fa-sticky-note"></i>
+                         <i class="fas fa-sticky-note"></i>
                     </button>
                 </div>
                 
                 <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
                     <div class="preview-sticker-wrapper">
-                        <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;">
+                         <img id="previewStickerImgObj" src="" style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;">
                         <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none; max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: contain;"></video>
                         <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
                     </div>
                 </div>
                 
-                <div id="emojiPanel" class="emoji-panel"></div>
+                 <div id="emojiPanel" class="emoji-panel"></div>
                 
                 <div id="stickerPanelFull" class="sticker-panel-full">
                     <div class="sticker-tabs">
                         <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
-                        <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
+                         <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
                     </div>
             
                     <div id="misStickersTab" class="sticker-tab-content active">
                         <div id="userStickersContainer" class="stickers-grid">
-                            <div class="sticker-empty">Cargando...</div>
+                             <div class="sticker-empty">Cargando...</div>
                         </div>
                     </div>
             
@@ -541,19 +545,19 @@
                                     <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
                                 </label>
                                 <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
-                                <div class="upload-preview" id="stickerPreview" style="display:none;">
+                                 <div class="upload-preview" id="stickerPreview" style="display:none;">
                                     <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
                                     <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
-                                </div>
+                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                 </div>
             
                 <div class="comentario-actions">
                     <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
                         <i class="fas fa-paper-plane"></i> Enviar Comentario
-                    </button>
+                     </button>
                 </div>
             </div>
         </div>
@@ -577,7 +581,7 @@
         <button onclick="loginWithEmail()">Iniciar sesión</button>
       </div>
       <div id="authRegisterForm" class="auth-form" style="display:none;">
-        <input type="email" id="registerEmail" placeholder="Correo electrónico">
+         <input type="email" id="registerEmail" placeholder="Correo electrónico">
         <input type="password" id="registerPassword" placeholder="Contraseña">
         <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
         <button onclick="registerWithEmail()">Registrarse</button>
@@ -586,8 +590,11 @@
         <div class="provider-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Continuar con Google
         </div>
+        <div class="provider-btn" onclick="loginWithGitHub()">
+          <i class="fab fa-github"></i> Continuar con GitHub
+        </div>
       </div>
-      <div id="authError" class="auth-error"></div>
+       <div id="authError" class="auth-error"></div>
     </div>
   </div>
 
@@ -607,7 +614,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
+    
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
+    const providerGitHub = new firebase.auth.GithubAuthProvider(); // INICIALIZACIÓN GITHUB
     
     const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     const emojiPanel = document.getElementById('emojiPanel');
@@ -630,7 +639,7 @@
         document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
         document.getElementById('authError').innerText = '';
       });
-    });
+     });
     
     async function loginWithEmail() {
       const email = document.getElementById('loginEmail').value;
@@ -662,6 +671,16 @@
     async function loginWithGoogle() {
       try {
         await auth.signInWithPopup(providerGoogle);
+        closeAuthModal();
+      } catch (err) {
+        document.getElementById('authError').innerText = err.message;
+      }
+    }
+
+    // FUNCIÓN DE INICIO DE SESIÓN CON GITHUB
+    async function loginWithGitHub() {
+      try {
+        await auth.signInWithPopup(providerGitHub);
         closeAuthModal();
       } catch (err) {
         document.getElementById('authError').innerText = err.message;
@@ -797,7 +816,7 @@
                         console.log("Episodio auto-marcado como visto en Firestore");
                     }
                 } catch (e) {
-                    console.error("Error al auto-marcar episodio en Firestore:", e);
+                     console.error("Error al auto-marcar episodio en Firestore:", e);
                 }
             } else {
                 localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
@@ -805,6 +824,7 @@
             }
         });
     };
+
     if (epData) {
       document.title = `Ver ${epData.title} - Archinime`;
       document.getElementById('epTitle').innerText = epData.title;
