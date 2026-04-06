@@ -1,24 +1,115 @@
-/* notification-system.js - Solo notificaciones de los 5 últimos animes (sin repetir) */
+/* notification-system.js - Notificaciones de animes y respuestas a comentarios (Firestore) */
 
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
+let repliesUnsubscribe = null; // Guardará la conexión a Firebase
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof animes === 'undefined') {
-        console.warn('Sistema de Notificaciones: index-data.js no cargado.');
-        return;
-    }
     loadHistoryFromStorage();
-    checkForNewUpdates();
+    
+    if (typeof animes !== 'undefined') {
+        checkForNewUpdates();
+    } else {
+        console.warn('Sistema de Notificaciones: index-data.js no cargado.');
+    }
+    
     renderNotificationList();
     updateBellBadge();
+
+    // === NUEVO: Conectar con Firebase para escuchar respuestas ===
+    if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Si el usuario está logueado, escuchar respuestas a sus comentarios
+                listenForReplies(user.uid);
+            } else {
+                // Si cierra sesión, desconectar el listener
+                if (repliesUnsubscribe) repliesUnsubscribe();
+            }
+        });
+    }
 });
+
+// Función maestra que vigila Firestore en tiempo real
+function listenForReplies(uid) {
+    if (repliesUnsubscribe) repliesUnsubscribe();
+
+    repliesUnsubscribe = db.collection('comments')
+        .where('replyToUserId', '==', uid)
+        .orderBy('timestamp', 'desc')
+        .limit(10) // Solo traer las últimas 10 para no saturar
+        .onSnapshot(snapshot => {
+            let hasNew = false;
+            
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    
+                    // Evitar notificarte si te respondes a ti mismo por accidente
+                    if (data.userId === uid) return;
+
+                    const docId = change.doc.id;
+                    const notifId = `reply_${docId}`;
+                    const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
+
+                    if (!alreadyExists) {
+                        // Limpiar el texto si contiene un sticker para que se vea bien en la notificación
+                        let rawText = data.texto || "";
+                        let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+                        if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
+                        
+                        const newNotif = {
+                            notifId: notifId,
+                            type: 'RESPUESTA',
+                            animeId: data.animeId,
+                            title: `¡${data.userName} te respondió!`,
+                            img: data.userAvatar || 'invitado.avif',
+                            seasonCover: data.userAvatar || 'invitado.avif',
+                            blockName: 'Foro',
+                            epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
+                            date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
+                            seen: false,
+                            isFinal: false,
+                            // Redirigir directo al reproductor donde le respondieron
+                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}`
+                        };
+                        
+                        // Añadir al inicio del historial
+                        notificationsHistory.unshift(newNotif);
+                        hasNew = true;
+                        
+                        // Agregar a la cola para que salte el popup en vivo mientras navega
+                        notificationQueue.push(newNotif);
+                    }
+                }
+            });
+
+            if (hasNew) {
+                // Limitar historial a 50
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                saveHistoryToStorage();
+                renderNotificationList();
+                if (!isMenuOpen) updateBellBadge();
+                
+                // Disparar popup si el usuario está activo
+                if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
+                    showNextPopup();
+                }
+            }
+        }, error => {
+            console.error("Error al escuchar respuestas en Firebase:", error);
+            if (error.message.includes('index')) {
+                console.warn("⚠️ ¡ATENCIÓN ADMIN! Firestore requiere que crees un Índice Compuesto para esta consulta. Haz clic en el enlace rojo que aparece arriba en la consola para crearlo automáticamente.");
+            }
+        });
+}
 
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
-        try { notificationsHistory = JSON.parse(stored); } catch(e) { notificationsHistory = []; }
+        try { notificationsHistory = JSON.parse(stored);
+        } catch(e) { notificationsHistory = []; }
     }
 }
 
@@ -28,19 +119,13 @@ function saveHistoryToStorage() {
 }
 
 function checkForNewUpdates() {
-    // 1. Filtrar animes que tengan lastUpdate y updateType (y que no sea "Ninguna")
     let updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType && a.updateType !== 'Ninguna');
-    
-    // 2. Ordenar por fecha más reciente (lastUpdate es timestamp)
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-    
-    // 3. Tomar solo los 5 más recientes
     const latestFive = updatedAnimes.slice(0, 5);
     
     let newItemsFound = [];
     latestFive.forEach(anime => {
         const notifId = `${anime.id}_${anime.lastUpdate}`;
-        // Solo si no existe ya en el historial
         const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
         
         if (!alreadyExists) {
@@ -57,21 +142,17 @@ function checkForNewUpdates() {
                 seen: false,
                 isFinal: anime.isFinal || false
             };
-            // Insertar al inicio del historial (más reciente primero)
             notificationsHistory.unshift(newNotif);
             newItemsFound.push(newNotif);
         }
     });
-    
-    // Limitar historial a 50 elementos para no acumular demasiados
+
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
     if (newItemsFound.length > 0) {
         saveHistoryToStorage();
-        // La cola de notificaciones serán solo los nuevos encontrados (máximo 5)
-        notificationQueue = newItemsFound.slice(0, 5);
-    } else {
-        notificationQueue = [];
+        // Solo metemos a la cola de popups los animes
+        notificationQueue = notificationQueue.concat(newItemsFound.slice(0, 5));
     }
 }
 
@@ -88,13 +169,12 @@ function showNextPopup() {
 function createPopupHTML(notif) {
     const existing = document.getElementById('eventModal');
     if (existing) existing.remove();
-
     const modal = document.createElement('div');
     modal.id = 'eventModal';
     
-    const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
-    
+    const indieMessage = notif.type === 'RESPUESTA' ? "Alguien interactuó contigo en los comentarios." : "¡Ya disponible en la plataforma! Disfruta del estreno.";
     let infoString = "";
+    
     if (notif.blockName && notif.blockName !== "Novedad") {
         infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
     }
@@ -108,6 +188,7 @@ function createPopupHTML(notif) {
     let badgeClass = "badge-default";
     if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
+    else if (notif.type === "RESPUESTA") badgeClass = "badge-estreno"; // Reutilizamos este estilo
 
     let finalImgHTML = '';
     if (notif.isFinal) {
@@ -132,7 +213,7 @@ function createPopupHTML(notif) {
                 <h2 class="event-title">${notif.title}</h2>
                 <div class="event-meta">${infoString}</div>
                 <p class="event-desc">${indieMessage}</p>
-                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
+                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}', '${notif.url || ''}')">
                     <i class="fas fa-play"></i> VER AHORA
                 </button>
             </div>
@@ -155,10 +236,14 @@ function closePopup() {
     }
 }
 
-function goToAnimeFromPopup(animeId, notifId) {
+function goToAnimeFromPopup(animeId, notifId, customUrl) {
     markAsRead(notifId);
     notificationQueue = [];
-    window.location.href = `anime-detail.html?id=${animeId}`;
+    if (customUrl && customUrl !== '') {
+        window.location.href = customUrl;
+    } else {
+        window.location.href = `anime-detail.html?id=${animeId}`;
+    }
 }
 
 function toggleNotifMenu() {
@@ -167,7 +252,6 @@ function toggleNotifMenu() {
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
-        // Marcar todas como vistas al abrir el menú
         notificationsHistory.forEach(n => n.seen = true);
         saveHistoryToStorage();
     } else {
@@ -188,12 +272,14 @@ function renderNotificationList() {
     const listContainer = document.getElementById('notifList');
     if (!listContainer) return;
     listContainer.innerHTML = '';
+    
     if (notificationsHistory.length === 0) {
         listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
         return;
     }
-    // Mostrar las más recientes primero (ya están ordenadas por fecha descendente en el historial)
+    
     const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date);
+    
     sortedHistory.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
@@ -207,9 +293,12 @@ function renderNotificationList() {
         } else if (infoString === "") {
             infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
         }
+        
         let typeColor = "var(--neon-purple)";
         if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
         else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)"; // Neon cyan para respuestas
+      
         let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
         div.innerHTML = `
             <div class="notif-img-box">
@@ -217,14 +306,20 @@ function renderNotificationList() {
             </div>
             <div class="notif-content">
                 <div class="notif-header-line">
-                    <span class="n-title">${item.title}</span>
+                     <span class="n-title">${item.title}</span>
                 </div>
                 <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
                 <div class="n-meta">${infoString}</div>
             </div>
         `;
+        
         div.addEventListener('click', () => {
-            window.location.href = `anime-detail.html?id=${item.animeId}`;
+            // Si es respuesta lo redirige al video-player, sino al anime-detail
+            if (item.url) {
+                window.location.href = item.url;
+            } else {
+                window.location.href = `anime-detail.html?id=${item.animeId}`;
+            }
         });
         listContainer.appendChild(div);
     });
