@@ -20,7 +20,6 @@ function initComentariosSystem(db, auth) {
     auth.onAuthStateChanged(async (user) => {
         comentariosCurrentUser = user;
         if (user) {
-            // Obtener el color personalizado del usuario para crear nuevos comentarios
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().customColor) {
@@ -43,7 +42,6 @@ function initComentariosSystem(db, auth) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault(); 
-                    
                     if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
                         enviarComentarioTexto();
                     }
@@ -82,7 +80,7 @@ function injectCommentsCSS() {
         }
         
         .comentario-user-info { display: flex !important; align-items: center !important; gap: 12px !important; margin-bottom: 15px !important; }
-        #comentarioUserAvatar { width: 42px !important; height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary) !important; box-shadow: 0 0 12px rgba(0,255,247,0.3); }
+        #comentarioUserAvatar { width: 42px !important; height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary); transition: all 0.3s; }
         #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; color: #fff !important; letter-spacing: 0.5px; }
 
         .comentario-item { 
@@ -178,15 +176,13 @@ window.toggleCommentMenu = function(id, event) {
     closeAllCommentMenus();
     if (!isShowing) {
         currentMenu.classList.add('show');
-        // Elevar el z-index para que el menú no sea tapado
         const commentBox = document.getElementById(`comment-${id}`);
-        if(commentBox) commentBox.style.zIndex = '9999';
+        if(commentBox) commentBox.style.zIndex = '9999'; // Mantener delante
     }
 };
 
 window.closeAllCommentMenus = function() {
     document.querySelectorAll('.comment-dropdown').forEach(m => m.classList.remove('show'));
-    // Restaurar z-index
     document.querySelectorAll('.comentario-item').forEach(m => m.style.zIndex = '');
 };
 
@@ -237,6 +233,17 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
+        
+        // ORDENAMIENTO POR POPULARIDAD (Estilo YouTube)
+        // Se calcula un score basado en reacciones + número de respuestas
+        roots.sort((a, b) => {
+            const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
+            const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
+            if (scoreB !== scoreA) return scoreB - scoreA;
+            // Si empatan en score, el más nuevo va primero
+            return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
+        });
+
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -252,6 +259,7 @@ function setupComentariosRealtimeListener() {
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
             if (node.replies && node.replies.length > 0) {
+                // Las respuestas sí mantienen el orden cronológico antiguo primero
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
@@ -301,7 +309,6 @@ function setupComentariosRealtimeListener() {
 window.eliminarComentarioSistema = async function(id) {
     if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
     try {
-        // Función recursiva para aniquilar el árbol de comentarios hacia abajo
         async function borrarHilo(commentId) {
             const replies = await comentariosDb.collection('comments').where('replyToId', '==', commentId).get();
             for (const doc of replies.docs) {
@@ -321,13 +328,11 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
     
-    // Verificaciones de permisos (El Admin supremo puede borrar todo, los usuarios ya NO pueden borrar los suyos)
     const isAdmin = comentariosCurrentUser?.email === 'archinime12@gmail.com';
     const isOwner = comentariosCurrentUser?.uid === c.userId;
 
     const avatar = c.userAvatar || 'invitado.avif';
     const userName = c.userName || 'Usuario';
-    // Se usa el color persistente de DB o se autogenera uno basado en la ID
     const neonColor = c.customColor || getNeonColorByString(c.userId || userName);
     const neonGlow = hexToRgbA(neonColor, 0.4);
 
@@ -347,8 +352,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
-    
-    // BOTÓN ELIMINAR PODEROSO (Solo ADMIN)
     const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
     
     const optionsMenu = `
@@ -654,7 +657,7 @@ async function enviarComentarioTexto() {
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
-            customColor: window.comentariosCurrentUserColor || null, // Se inyecta el color de opciones
+            customColor: window.comentariosCurrentUserColor || null, 
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -688,7 +691,7 @@ window.enviarRespuestaDinamica = async function() {
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
             userId: comentariosCurrentUser.uid, userName: comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0],
             userAvatar: comentariosCurrentUser.photoURL || 'invitado.avif', texto: textoFinal,
-            customColor: window.comentariosCurrentUserColor || null, // Se inyecta el color de opciones
+            customColor: window.comentariosCurrentUserColor || null,
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -721,6 +724,7 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
@@ -730,8 +734,16 @@ function updateComentariosUI() {
     } else {
         if (loginMsg) loginMsg.style.display = 'none';
         if (formContainer) formContainer.style.display = 'block';
+        
         const avatar = document.getElementById('comentarioUserAvatar');
-        if (avatar) avatar.src = comentariosCurrentUser.photoURL || 'invitado.avif';
+        if (avatar) {
+            avatar.src = comentariosCurrentUser.photoURL || 'invitado.avif';
+            // Aplicar color en el avatar donde se va a comentar
+            const color = window.comentariosCurrentUserColor || getNeonColorByString(comentariosCurrentUser.uid || comentariosCurrentUser.email);
+            avatar.style.borderColor = color;
+            avatar.style.boxShadow = `0 0 15px ${hexToRgbA(color, 0.5)}`;
+        }
+        
         const name = document.getElementById('comentarioUserName');
         if (name) name.innerText = comentariosCurrentUser.displayName || comentariosCurrentUser.email.split('@')[0];
     }

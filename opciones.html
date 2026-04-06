@@ -117,7 +117,7 @@
     </div>
 
     <div class="form-group">
-      <label>Color de Nombre (Afecta comentarios)</label>
+      <label>Color de Nombre (Afecta comentarios y tu Avatar)</label>
       <div class="color-picker-wrapper">
         <input type="color" id="nameColor" class="color-picker" value="#00fff7">
         <span style="font-size: 0.85rem; color: #aaa;">Elige tu color neón representativo</span>
@@ -146,6 +146,7 @@
 
     let currentUser = null;
     let newAvatarUrl = null;
+    let lastProfileUpdate = 0; // Guardará en milisegundos cuándo fue el último cambio
 
     // Función para obtener el color dinámico si el usuario no tiene uno seteado
     function getNeonColorByString(str) {
@@ -164,13 +165,20 @@
 
         try {
           const doc = await db.collection('users').doc(user.uid).get();
-          if (doc.exists && doc.data().customColor) {
-            document.getElementById('nameColor').value = doc.data().customColor;
+          if (doc.exists) {
+              if (doc.data().customColor) {
+                  document.getElementById('nameColor').value = doc.data().customColor;
+              } else {
+                  document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
+              }
+              // Obtener la fecha de la última actualización
+              if (doc.data().lastProfileUpdate) {
+                  lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
+              }
           } else {
-            // Se calcula y asigna el color que le corresponde por defecto para que sepa cuál es el suyo
-            document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
+              document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
           }
-        } catch(e) { console.error("Error obteniendo color: ", e); }
+        } catch(e) { console.error("Error obteniendo datos: ", e); }
       } else {
         window.location.href = 'index.html'; 
       }
@@ -180,7 +188,6 @@
       const file = e.target.files[0];
       if (!file) return;
 
-      // Límite añadido: 2 MB
       if (file.size > 2 * 1024 * 1024) {
           alert('La imagen es muy pesada. El tamaño máximo permitido es 2 MB.');
           e.target.value = '';
@@ -222,23 +229,34 @@
         return;
       }
 
+      // === VALIDACIÓN DE 5 DÍAS ANTI-SPAM ===
+      const isAdmin = currentUser.email === 'archinime12@gmail.com';
+      const now = Date.now();
+      const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
+      
+      if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
+          const msLeft = fiveDaysMs - (now - lastProfileUpdate);
+          const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+          statusMsg.style.color = '#ff0055';
+          statusMsg.innerText = `⏳ Has cambiado tu perfil recientemente. Vuelve a intentarlo en ${daysLeft} días.`;
+          return;
+      }
+
       saveBtn.disabled = true;
       saveBtn.innerText = 'GUARDANDO...';
       statusMsg.innerText = '';
 
       try {
-        // 1. Actualizar Auth Profile
         await currentUser.updateProfile({
           displayName: newName,
           photoURL: newAvatarUrl
         });
 
-        // 2. Guardar color en colección de usuarios
         await db.collection('users').doc(currentUser.uid).set({
-          customColor: newColor
+          customColor: newColor,
+          lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() // Guarda el timestamp del cambio
         }, { merge: true });
 
-        // 3. Batch Update de TODO su historial de comentarios para actualizar los datos en tiempo real
         statusMsg.style.color = '#fff';
         statusMsg.innerText = 'Actualizando comentarios históricos...';
         
@@ -260,6 +278,9 @@
         if (ops > 0) {
           await batch.commit();
         }
+
+        // Actualizamos la variable local para que no siga intentando al momento
+        lastProfileUpdate = Date.now();
 
         statusMsg.style.color = '#00fff7';
         statusMsg.innerText = '¡Cambios guardados exitosamente!';

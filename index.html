@@ -71,6 +71,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
   :root {
@@ -147,7 +148,6 @@
   .user-dropdown { position: absolute; top: 55px; right: 0; width: 260px; background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); opacity: 0; pointer-events: none; transform: translateY(-10px); transition: all 0.25s; z-index: 2000; backdrop-filter: blur(10px); }
   .user-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
   
-  /* Cabecera del dropdown como botón hacia opciones */
   .user-dropdown-header { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
   .user-dropdown-header:hover { background: rgba(188, 19, 254, 0.15); }
   .user-dropdown-header img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--neon-cyan); }
@@ -264,6 +264,7 @@
   <audio id="bg-music"></audio> 
 
   <nav class="cyber-nav">
+   
     <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
       <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
       <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
@@ -302,7 +303,7 @@
       <div class="user-menu">
         <img id="userAvatarBtn" src="invitado.avif" alt="Usuario">
         <div id="userDropdown" class="user-dropdown">
-          <div class="user-dropdown-header" onclick="location.href='opciones.html'" title="Configurar cuenta">
+          <div class="user-dropdown-header" onclick="goToProfile()" title="Configurar cuenta">
             <img id="dropdownAvatar" src="invitado.avif">
             <div>
               <div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div>
@@ -408,8 +409,9 @@
     firebase.initializeApp(firebaseConfig);
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const auth = firebase.auth();
+    const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
-    const providerGitHub = new firebase.auth.GithubAuthProvider(); // Nuevo proveedor
+    const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
   <script>
@@ -423,6 +425,17 @@
   
   <script>
     let currentUser = null;
+
+    // Redirige a Opciones de perfil. Si no hay usuario, pide logueo
+    function goToProfile() {
+      if (!currentUser) {
+        showAuthModal();
+        document.getElementById('authError').innerText = "⚠️ Debes iniciar sesión para configurar tu perfil.";
+        return;
+      }
+      location.href = 'opciones.html';
+    }
+
     function showAuthModal() {
       document.getElementById('authModal').classList.add('show');
     }
@@ -440,7 +453,7 @@
           document.getElementById('authLoginForm').style.display = 'flex';
           document.getElementById('authRegisterForm').style.display = 'none';
         } else {
-          document.getElementById('authLoginForm').style.display = 'none';
+           document.getElementById('authLoginForm').style.display = 'none';
           document.getElementById('authRegisterForm').style.display = 'flex';
         }
         document.getElementById('authError').innerText = '';
@@ -486,7 +499,6 @@
       }
     }
 
-    // NUEVA FUNCIÓN PARA GITHUB
     async function loginWithGitHub() {
       try {
         await auth.signInWithPopup(providerGitHub);
@@ -503,13 +515,21 @@
       });
     }
 
+    // Calcular color por defecto
+    function getNeonColorFallback(str) {
+      const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return neonColors[Math.abs(hash) % neonColors.length];
+    }
+
     function updateUserUI(user) {
       currentUser = user;
       const avatarBtn = document.getElementById('userAvatarBtn');
       const dropdownAvatar = document.getElementById('dropdownAvatar');
       const dropdownName = document.getElementById('dropdownName');
       const loginItem = document.getElementById('loginBtnItem');
-      
+
       if (user) {
         const photoURL = user.photoURL || 'invitado.avif';
         avatarBtn.src = photoURL;
@@ -517,12 +537,22 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0];
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
         loginItem.onclick = () => logoutUser();
-        
+
         if (user.email === 'archinime12@gmail.com') {
           document.getElementById('adminBtn').style.display = 'flex';
         } else {
           document.getElementById('adminBtn').style.display = 'none';
         }
+
+        // Obtener color guardado o generarlo por defecto y aplicarlo a los avatares
+        db.collection('users').doc(user.uid).get().then(doc => {
+            let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
+            avatarBtn.style.borderColor = color;
+            avatarBtn.style.boxShadow = `0 0 15px ${color}`;
+            dropdownAvatar.style.borderColor = color;
+            dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
+        }).catch(e => console.log(e));
+
       } else {
         avatarBtn.src = 'invitado.avif';
         dropdownAvatar.src = 'invitado.avif';
@@ -530,6 +560,12 @@
         loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
         loginItem.onclick = () => showAuthModal();
         document.getElementById('adminBtn').style.display = 'none';
+        
+        // Reset estilos de invitado
+        avatarBtn.style.borderColor = 'var(--neon-cyan)';
+        avatarBtn.style.boxShadow = 'none';
+        dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
+        dropdownAvatar.style.boxShadow = 'none';
       }
     }
 
@@ -539,7 +575,6 @@
       e.stopPropagation();
       userDropdown.classList.toggle('active');
     });
-    
     document.addEventListener('click', (e) => {
       if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) {
         userDropdown.classList.remove('active');
@@ -601,6 +636,7 @@
         });
       });
     });
+
     const gridEl = document.getElementById('grid');
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
