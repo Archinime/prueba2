@@ -24,7 +24,7 @@ function initComentariosSystem(db, auth) {
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().customColor) {
-                    window.comentariosCurrentUserColor = userDoc.data().customColor;
+                  window.comentariosCurrentUserColor = userDoc.data().customColor;
                 }
             } catch(e) {}
         } else {
@@ -37,13 +37,13 @@ function initComentariosSystem(db, auth) {
             setupComentariosRealtimeListener();
         }
     });
-
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault(); 
+                    
                     if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
                         enviarComentarioTexto();
                     }
@@ -86,9 +86,11 @@ function injectCommentsCSS() {
         #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; color: #fff !important; letter-spacing: 0.5px; }
 
         .comentario-item { 
-            position: relative; background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: relative;
+            background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--cm-border); border-left: 3px solid var(--user-color, var(--cm-neon-primary));
-            border-radius: 12px; margin-bottom: 12px; padding: 16px; display: flex; flex-direction: row; gap: 15px;
+            border-radius: 12px; margin-bottom: 12px;
+            padding: 16px; display: flex; flex-direction: row; gap: 15px;
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
@@ -174,11 +176,18 @@ window.toggleCommentMenu = function(id, event) {
     const currentMenu = document.getElementById(`dropdown-${id}`);
     const isShowing = currentMenu.classList.contains('show');
     closeAllCommentMenus();
-    if (!isShowing) currentMenu.classList.add('show');
+    if (!isShowing) {
+        currentMenu.classList.add('show');
+        // Elevar el z-index para que el menú no sea tapado
+        const commentBox = document.getElementById(`comment-${id}`);
+        if(commentBox) commentBox.style.zIndex = '9999';
+    }
 };
 
 window.closeAllCommentMenus = function() {
     document.querySelectorAll('.comment-dropdown').forEach(m => m.classList.remove('show'));
+    // Restaurar z-index
+    document.querySelectorAll('.comentario-item').forEach(m => m.style.zIndex = '');
 };
 
 function getNeonColorByString(str) {
@@ -228,7 +237,6 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -243,7 +251,6 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
-
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 if (level === 0) {
@@ -277,7 +284,6 @@ function setupComentariosRealtimeListener() {
         let html = '';
         roots.forEach(root => html += renderNode(root, 0, false, null));
         container.innerHTML = html;
-
         openContainers.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -291,7 +297,7 @@ function setupComentariosRealtimeListener() {
     }, (error) => console.error('Error en comentarios:', error));
 }
 
-// LOGICA GLOBAL DE ELIMINAR (ADMIN & USER)
+// LOGICA GLOBAL DE ELIMINAR (ADMIN ONLY)
 window.eliminarComentarioSistema = async function(id) {
     if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
     try {
@@ -315,7 +321,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
     
-    // Verificaciones de permisos (El Admin supremo puede borrar todo)
+    // Verificaciones de permisos (El Admin supremo puede borrar todo, los usuarios ya NO pueden borrar los suyos)
     const isAdmin = comentariosCurrentUser?.email === 'archinime12@gmail.com';
     const isOwner = comentariosCurrentUser?.uid === c.userId;
 
@@ -332,10 +338,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
-            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;"
-            onclick="openStickerModal('${c.stickerUrl}')">
-                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;"
-            onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
+            <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;" onclick="openStickerModal('${c.stickerUrl}')">
+                <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
@@ -344,9 +348,9 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
     
-    // BOTÓN ELIMINAR PODEROSO (Solo Dueño o ADMIN)
-    const deleteMenuBtn = (isOwner || isAdmin) ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
-
+    // BOTÓN ELIMINAR PODEROSO (Solo ADMIN)
+    const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
+    
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
@@ -361,13 +365,11 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     
-    const botonResponder = comentariosCurrentUser ?
-        `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    const botonResponder = comentariosCurrentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
-            ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
-            style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
+            ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();" style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
             
             ${optionsMenu}
 
@@ -410,14 +412,12 @@ window.iniciarEdicion = function(commentId) {
         </div>
     `;
 };
-
 window.cancelarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer) return;
     textContainer.innerHTML = textContainer.getAttribute('data-original-html');
     textContainer.classList.remove('editing');
 };
-
 window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
@@ -436,7 +436,6 @@ window.guardarEdicion = async function(commentId) {
         }
     } catch (error) { alert("Error: " + error.message); }
 };
-
 window.reportarComentario = function(id) {
     if(!comentariosCurrentUser) return openLoginModalFromComent();
     showToastComent('🚩 Reportado.');
@@ -457,7 +456,6 @@ window.toggleRespuestas = function(rootId) {
         }
     }
 };
-
 window.showMoreReplies = function(rootId) {
     document.querySelectorAll(`.hidden-reply-${rootId}`).forEach(el => el.style.display = 'block');
     const btn = document.getElementById(`showMore-${rootId}`);
@@ -485,7 +483,6 @@ function procesarTextoComentario(texto) {
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `<div class="comentario-media-wrapper"><${tag} src="${url}" class="comentario-media" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}></div>`;
     });
-
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
         let palabra = palabras[i];
@@ -508,7 +505,6 @@ window.restaurarPanelesGlobales = function() {
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
-
     if (originalContainer && actionsDiv) {
         if(previewEl) originalContainer.insertBefore(previewEl, actionsDiv);
         if(emojiEl) originalContainer.insertBefore(emojiEl, actionsDiv);
@@ -517,7 +513,6 @@ window.restaurarPanelesGlobales = function() {
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
-
 window.prepararRespuesta = function(commentId, userName, userId) {
     if (!comentariosCurrentUser) return openLoginModalFromComent();
     cancelarRespuesta(true);
@@ -623,7 +618,6 @@ window.closeStickerModal = function() {
         setTimeout(() => { modal.style.display = 'none'; document.getElementById('stickerModalVid').src = ''; }, 300);
     }
 };
-
 window.validarBotonPrincipal = function(textarea) {
     if(!textarea) return;
     const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
@@ -720,7 +714,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
-
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -728,7 +721,6 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
-
 function updateComentariosUI() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');

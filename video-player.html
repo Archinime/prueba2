@@ -536,23 +536,22 @@
                         </div>
                     </div>
             
-                    <div id="subirStickersTab" class="sticker-tab-content">
-                        <div class="add-sticker-container">
-                            <p class="add-sticker-desc">📸 Sube imágenes o videos desde tu computadora</p>
-                            <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 50MB)</p>
-                            <div class="upload-sticker-area">
-                                <label for="stickerFileInput" class="upload-sticker-label">
-                                    <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
-                                </label>
-                                <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
-                                 <div class="upload-preview" id="stickerPreview" style="display:none;">
-                                    <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
-                                    <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
-                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                 </div>
+<div id="subirStickersTab" class="sticker-tab-content">
+    <div class="add-sticker-container">
+        <p class="add-sticker-desc">📸 Sube imágenes o videos desde tu computadora</p>
+        <p class="add-sticker-hint">Formatos: JPG, PNG, GIF, MP4, WEBM (máx. 2 MB)</p>
+        <div class="upload-sticker-area">
+            <label for="stickerFileInput" class="upload-sticker-label">
+                <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
+            </label>
+            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
+            <div class="upload-preview" id="stickerPreview" style="display:none;">
+                <img id="previewImage" style="display:none; max-width:150px; max-height:150px; border-radius:12px;">
+                <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; max-height:150px; border-radius:12px;"></video>
+            </div>
+        </div>
+    </div>
+</div>
             
                 <div class="comentario-actions">
                     <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">

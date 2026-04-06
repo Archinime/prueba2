@@ -10,7 +10,6 @@ let userStickersCollection = [];
 // ⚙️ CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
-
 // Stickers por defecto (Cuenta en 0)
 const DEFAULT_STICKERS = [];
 
@@ -37,7 +36,6 @@ async function loadUserStickers() {
         if (doc.exists && doc.data().stickers) {
             // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
-            
             // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
             if(userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
@@ -59,9 +57,7 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
-    
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-    
     if (validStickers.length === 0) {
         container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
@@ -81,7 +77,6 @@ function renderUserStickers() {
             </div>
         `;
     });
-    
     container.innerHTML = html;
 }
 
@@ -105,11 +100,9 @@ async function eliminarSticker(urlSticker, event) {
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
-        
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
-
     } catch (e) {
         console.error(e);
         alert("Error al eliminar el sticker de la base de datos.");
@@ -124,8 +117,10 @@ async function subirStickerDesdePC(input) {
     
     const file = input.files[0];
     if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-        alert('El archivo es muy pesado. Máximo 50MB.');
+    
+    // LIMITE REDUCIDO A 2 MB
+    if (file.size > 2 * 1024 * 1024) {
+        alert('El archivo es muy pesado. Máximo 2 MB.');
         return;
     }
 
@@ -155,7 +150,6 @@ async function subirStickerDesdePC(input) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
-        
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
@@ -193,7 +187,6 @@ async function guardarStickerEnColeccion(url) {
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
-        
         userStickersCollection.push(url);
         renderUserStickers();
     } catch (e) {
@@ -218,7 +211,6 @@ window.robarStickerSistema = async function(url) {
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
-        
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();

@@ -60,7 +60,8 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; font-size: 0.9rem; color: #ccc; margin-bottom: 8px; font-weight: 600; }
     .form-group input[type="text"] {
-      width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+      width: 100%; padding: 14px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
       background: rgba(0,0,0,0.5); color: white; font-family: 'Poppins'; outline: none; transition: 0.3s;
     }
     .form-group input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
@@ -141,10 +142,18 @@
     const db = firebase.firestore();
 
     const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-    const CLOUDINARY_PRESET = 'stickers_archinime'; // Usamos el mismo para facilitar tu gestión
+    const CLOUDINARY_PRESET = 'stickers_archinime';
 
     let currentUser = null;
     let newAvatarUrl = null;
+
+    // Función para obtener el color dinámico si el usuario no tiene uno seteado
+    function getNeonColorByString(str) {
+        const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        return neonColors[Math.abs(hash) % neonColors.length];
+    }
 
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -157,6 +166,9 @@
           const doc = await db.collection('users').doc(user.uid).get();
           if (doc.exists && doc.data().customColor) {
             document.getElementById('nameColor').value = doc.data().customColor;
+          } else {
+            // Se calcula y asigna el color que le corresponde por defecto para que sepa cuál es el suyo
+            document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
           }
         } catch(e) { console.error("Error obteniendo color: ", e); }
       } else {
@@ -167,6 +179,13 @@
     document.getElementById('avatarInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+
+      // Límite añadido: 2 MB
+      if (file.size > 2 * 1024 * 1024) {
+          alert('La imagen es muy pesada. El tamaño máximo permitido es 2 MB.');
+          e.target.value = '';
+          return;
+      }
       
       const btnLabel = document.querySelector('.upload-btn');
       btnLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
@@ -194,7 +213,6 @@
       if (!currentUser) return;
       const saveBtn = document.getElementById('saveBtn');
       const statusMsg = document.getElementById('statusMsg');
-      
       const newName = document.getElementById('displayName').value.trim();
       const newColor = document.getElementById('nameColor').value;
 
@@ -226,8 +244,7 @@
         
         const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
         const snapshot = await commentsRef.get();
-        
-        // Firestore limita los batch a 500 operaciones, lo haremos normal o fraccionado
+
         const batch = db.batch();
         let ops = 0;
         
@@ -246,7 +263,6 @@
 
         statusMsg.style.color = '#00fff7';
         statusMsg.innerText = '¡Cambios guardados exitosamente!';
-        
       } catch (err) {
         console.error(err);
         statusMsg.style.color = '#ff0055';
