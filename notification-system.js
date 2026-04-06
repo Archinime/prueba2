@@ -244,7 +244,6 @@ function toggleNotifMenu() {
         menu.classList.add('active');
         renderNotificationList();
         // No marcamos automáticamente como leídas al abrir el menú
-        // Solo se marcan al hacer clic en una notificación
     } else {
         menu.classList.remove('active');
     }
@@ -274,9 +273,8 @@ function renderNotificationList() {
         const div = document.createElement('div');
         div.className = 'notif-item';
         
-        // Mostrar avatar circular si es respuesta
+        // Determinar clase para la imagen: rectangular por defecto, circular solo si es respuesta
         let imgBoxClass = 'notif-img-box';
-        let imgStyle = '';
         if (item.type === 'RESPUESTA') {
             imgBoxClass += ' rounded-avatar';
         }
