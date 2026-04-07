@@ -122,7 +122,7 @@
   ::-webkit-scrollbar-track { background: #020202; }
   ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
-  /* Loader mejorado */
+  /* Loader */
   #page-loader {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
@@ -142,7 +142,7 @@
   .loader-sub { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-purple); letter-spacing: 4px; margin-top: 20px; animation: pulseText 1.2s infinite; }
   .loader-line { width: 0; height: 2px; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); margin-top: 30px; box-shadow: 0 0 12px var(--neon-cyan); border-radius: 2px; animation: loadLine 1.2s forwards ease-out; }
 
-  /* Fondo y overlay mejorados */
+  /* Fondo y overlay */
   #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
     filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
     background: url('galaxia-morado1.avif') no-repeat center center / cover; }
@@ -154,16 +154,25 @@
     background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
     z-index: -3; pointer-events: none; opacity: 0.25; }
 
-  /* Navbar Alineada Perfectamente */
-  .cyber-nav { position: sticky; top: 0; z-index: 1000;
-    background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(12px);
-    padding: 8px 3%; display: flex; justify-content: space-between; align-items: center;
+  /* ===== NAVBAR MEJORADA (GRID) ===== */
+  .cyber-nav {
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(5, 5, 10, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 0 3%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 20px;
     height: var(--header-height);
-    border-bottom: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
   }
-  .cyber-nav::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
+  .cyber-nav::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
-    background-size: 200% 100%; animation: borderFlow 3s linear infinite; opacity: 0.9; }
+    background-size: 200% 100%; animation: borderFlow 3s linear infinite; opacity: 0.9;
+  }
   .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; }
   .nav-logo:hover { transform: scale(1.02); }
   .nav-logo img { height: 44px; width: 44px; object-fit: contain; border-radius: 12px;
@@ -175,7 +184,7 @@
   }
   @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
-  .search-wrapper { position: relative; margin: 0 25px; flex-grow: 1; max-width: 500px; }
+  .search-wrapper { position: relative; width: 100%; max-width: 500px; margin: 0 auto; }
   .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
     border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
     transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem; backdrop-filter: blur(4px); }
@@ -183,10 +192,8 @@
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
   .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
 
-  /* Acciones de Navbar (Iconos alineados y centrados) */
-  .nav-actions { display: flex; align-items: center; justify-content: center; gap: 15px; height: 100%; }
-  .notif-wrapper, .user-menu { display: flex; align-items: center; justify-content: center; height: 100%; position: relative; }
-  
+  /* Acciones Navbar */
+  .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
   .cyber-btn-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
     border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex;
     align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s var(--transition-smooth);
@@ -198,7 +205,7 @@
   #installBtn { display: none; }
   .install-pulse { animation: pulseBorder 1.5s infinite; }
 
-  /* Menú usuario mejorado */
+  /* Menú usuario */
   #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
     cursor: pointer; transition: 0.2s; background: #111; }
   #userAvatarBtn:hover { transform: scale(1.08); box-shadow: 0 0 15px var(--neon-cyan); }
@@ -215,7 +222,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones rediseñadas sin scroll horizontal */
+  /* Notificaciones */
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
     color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
@@ -227,8 +234,6 @@
   .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
     color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
     letter-spacing: 2px; }
-  
-  /* Aquí eliminamos el scroll en X y evitamos el desbordamiento de texto */
   .notif-list { max-height: 420px; overflow-y: auto; overflow-x: hidden; }
   .notif-item { display: flex; gap: 15px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
     transition: background 0.2s; cursor: pointer; align-items: center; max-width: 100%; box-sizing: border-box; }
@@ -237,25 +242,49 @@
     border: 1px solid rgba(255,255,255,0.15); }
   .notif-img-box img { width: 100%; height: 100%; object-fit: cover; }
   .notif-img-box.rounded-avatar { width: 50px; height: 50px; border-radius: 50% !important; }
-  
-  /* Flex: 1 min-width: 0 es crucial para que el text-overflow funcione dentro del flexbox */
   .notif-content { flex: 1; min-width: 0; overflow: hidden; }
   .n-title { font-size: 0.9rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .n-type { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
   .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
 
-  /* Controles (selects) mejorados */
-  .controls-container { padding: 20px 3%; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
-    background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent); margin-bottom: 20px; }
-  select { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(8px); color: #e0e0e0;
-    font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer;
-    padding: 12px 32px 12px 20px; min-width: 170px; border: 1px solid rgba(188, 19, 254, 0.5);
-    border-radius: 40px; transition: all 0.2s; appearance: none;
+  /* Controles (selects) mejorados - siempre en una fila */
+  .controls-container {
+    padding: 20px 3%;
+    display: flex;
+    gap: 20px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent);
+    margin-bottom: 20px;
+  }
+  select {
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(8px);
+    color: #e0e0e0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    padding: 12px 32px 12px 20px;
+    min-width: 0;
+    flex: 1;
+    border: 1px solid rgba(188, 19, 254, 0.5);
+    border-radius: 40px;
+    transition: all 0.2s;
+    appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat; background-position: calc(100% - 15px) center; background-size: 14px; }
-  select:hover, select:focus { border-color: var(--neon-cyan); color: white; background: rgba(0,0,0,0.8);
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transform: translateY(-2px); }
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+    background-size: 14px;
+  }
+  select:hover, select:focus {
+    border-color: var(--neon-cyan);
+    color: white;
+    background: rgba(0,0,0,0.8);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    transform: translateY(-2px);
+  }
 
   /* Grid y Cards */
   .container { max-width: 1600px; margin: 0 auto; padding: 10px 20px 80px; }
@@ -281,7 +310,7 @@
   .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
     letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
 
-  /* Modal de autenticación rediseñado (Alineación y botón X) */
+  /* Modal de autenticación */
   .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
     backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
@@ -290,19 +319,14 @@
     max-width: 440px; padding: 35px; position: relative; transform: scale(0.96); transition: transform 0.3s;
     box-shadow: 0 25px 45px rgba(0,0,0,0.9); display: flex; flex-direction: column; }
   .auth-modal.show .auth-card { transform: scale(1); }
-  
-  /* Botón de cerrar "X" espectacular */
   .auth-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; 
     background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-size: 1.3rem; cursor: pointer; color: #aaa; transition: 0.2s; border: 1px solid transparent; z-index: 10;}
   .auth-close:hover { color: white; background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
-  
   .auth-tabs { display: flex; justify-content: space-around; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; }
   .auth-tab { padding: 12px 15px; cursor: pointer; font-weight: 800; color: #aaa; border-bottom: 2px solid transparent;
     transition: 0.2s; font-size: 1.1rem; flex-grow: 1; text-align: center; }
   .auth-tab.active { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan); }
-  
-  /* Formularios como flex columns consistentes */
   .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
   .auth-form input { width: 100%; box-sizing: border-box; background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 16px;
     color: white; font-size: 1rem; transition: 0.2s; }
@@ -310,7 +334,6 @@
   .auth-form button { width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none;
     padding: 14px; border-radius: 40px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; }
   .auth-form button:hover { background: var(--neon-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,243,255,0.3); }
-  
   .auth-providers { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; width: 100%; }
   .provider-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px;
     border-radius: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
@@ -326,13 +349,10 @@
     border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
     transform: scale(0.9) translateY(30px); transition: transform 0.4s var(--transition-smooth); position: relative; }
   #eventModal.show .event-card { transform: scale(1) translateY(0); }
-  
-  /* Botón X también para estrenos (Por si se usa) */
   .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50;
     background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white;
     cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem;}
   .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
-
   .event-visuals { position: relative; height: 280px; background: #000; }
   .visual-bg { position: absolute; inset: 0; background-size: cover; filter: blur(20px) brightness(0.5); transform: scale(1.2); }
   .covers-container { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 100%; gap: 15px; padding-bottom: 20px; }
@@ -346,13 +366,13 @@
   .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
-  /* Responsive mejorado */
+  /* Responsive */
   @media (max-width: 768px) {
-    .cyber-nav { flex-wrap: wrap; height: auto; gap: 12px; padding: 12px 16px; justify-content: center; }
+    .cyber-nav { gap: 12px; padding: 0 16px; }
     .nav-logo-text { font-size: 1.3rem; }
-    .search-wrapper { order: 3; width: 100%; margin: 0; max-width: 100%; }
-    .controls-container { gap: 10px; overflow-x: auto; justify-content: flex-start; padding: 12px 16px; }
-    select { min-width: 130px; font-size: 0.7rem; padding: 8px 20px 8px 12px; }
+    .search-wrapper { max-width: none; }
+    .controls-container { gap: 10px; padding: 12px 16px; flex-wrap: nowrap; }
+    select { font-size: 0.7rem; padding: 10px 24px 10px 12px; min-width: 0; flex: 1; background-position: calc(100% - 8px) center; background-size: 10px; }
     .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .notif-dropdown { position: fixed; top: 70px; left: 10px; right: 10px; width: auto; }
     .card .info { padding: 40px 8px 8px; }
@@ -366,7 +386,7 @@
     #userAvatarBtn { width: 38px; height: 38px; }
   }
 
-  /* Animaciones clave */
+  /* Animaciones */
   @keyframes trueGlitch { 0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
     20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); transform: translate(2px, -1px); }
     40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); transform: translate(-2px, 2px); }

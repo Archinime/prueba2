@@ -201,7 +201,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function openInNewTab(url){ try{ const w = window.open(url, '_blank'); if (w) w.focus(); }catch(e){} }
 
 /* ----------------------------
-    Chroma + FG logic
+    Chroma + FG logic (se mantiene igual)
 ---------------------------- */
 const fgContainer = document.getElementById('fgContainer');
 const fgCanvas = document.getElementById('fgCanvas');
@@ -642,102 +642,6 @@ document.addEventListener('visibilitychange', ()=> {
         }
     }
 }, {passive:true});
-
-/* =========================================
-   SISTEMA DE POPUPS MÓVILES (RECTÁNGULO CENTRADO)
-   ========================================= */
-(function() {
-    const SELECT_IDS = ['genre-select', 'demographic-select', 'rating-select']; 
-    let activePopup = null;
-    let activeOverlay = null;
-
-    function isMobile() {
-        return window.matchMedia('(max-width: 768px)').matches;
-    }
-
-    function closePopup() {
-        if (activePopup) {
-            activePopup.classList.remove('active');
-            setTimeout(() => { if (activePopup) activePopup.remove(); }, 300);
-        }
-        if (activeOverlay) {
-            activeOverlay.classList.remove('active');
-            setTimeout(() => { if (activeOverlay) activeOverlay.remove(); }, 300);
-        }
-        activePopup = null;
-        activeOverlay = null;
-    }
-
-    function createPopupFor(selectEl) {
-        const wrapper = document.createElement('div');
-        wrapper.style.position = 'relative';
-        wrapper.style.display = 'inline-block';
-        wrapper.style.width = '100%';
-        wrapper.className = 'select-wrapper';
-        selectEl.parentNode.insertBefore(wrapper, selectEl);
-        wrapper.appendChild(selectEl);
-
-        const touchTarget = document.createElement('div');
-        touchTarget.style.position = 'absolute';
-        touchTarget.style.inset = '0';
-        touchTarget.style.zIndex = '10';
-        touchTarget.style.cursor = 'pointer';
-        wrapper.appendChild(touchTarget);
-
-        touchTarget.addEventListener('click', (e) => {
-            if (!isMobile()) return; 
-            e.preventDefault();
-            e.stopPropagation();
-            if (activePopup) closePopup();
-
-            activeOverlay = document.createElement('div');
-            activeOverlay.className = 'mobile-popup-overlay';
-            document.body.appendChild(activeOverlay);
-
-            activePopup = document.createElement('div');
-            activePopup.className = 'mobile-select-popup';
-
-            Array.from(selectEl.options).forEach(opt => {
-                const optEl = document.createElement('div');
-                optEl.className = 'opt';
-                if (opt.selected) optEl.classList.add('selected');
-                optEl.innerText = opt.text || opt.value;
-                
-                optEl.addEventListener('click', () => {
-                    selectEl.value = opt.value;
-                    selectEl.dispatchEvent(new Event('change')); 
-                    closePopup();
-                });
-                activePopup.appendChild(optEl);
-            });
-
-            document.body.appendChild(activePopup);
-
-            requestAnimationFrame(() => {
-                activeOverlay.classList.add('active');
-                activePopup.classList.add('active');
-            });
-
-            activeOverlay.addEventListener('click', closePopup);
-        });
-    }
-
-    function initPopups() {
-        SELECT_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if(el && !el.dataset.popupInit) {
-                el.dataset.popupInit = 'true';
-                createPopupFor(el);
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', initPopups);
-    
-    window.addEventListener('resize', () => {
-        if (!isMobile()) closePopup();
-    });
-})();
 
 function init(){
     fgContainer.style.display = 'none';
