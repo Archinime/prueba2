@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3";
+      const APP_VERSION = "2025-04-06-v2.1"; // Versión actualizada
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -91,512 +91,469 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    :root {
-      --neon-cyan: #00f3ff;
-      --neon-purple: #bc13fe;
-      --neon-pink: #ff0055;
-      --neon-yellow: #f1c40f;
-      --dark-bg: #050505;
-      --glass-bg: rgba(10, 12, 16, 0.65);
-      --text: #ffffff;
-      --header-height: 72px;
-      --glow-intensity: 0.6;
-      --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      background-color: var(--dark-bg);
-      background-image: url('galaxia-morado1.avif');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      font-family: 'Poppins', sans-serif;
-      color: white;
-      overflow-x: hidden;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      scroll-behavior: smooth;
-    }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #020202; }
-    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
+<style>
+  :root {
+    --neon-cyan: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-pink: #ff0055;
+    --neon-yellow: #f1c40f;
+    --dark-bg: #050505;
+    --glass-bg: rgba(10, 12, 16, 0.65);
+    --text: #ffffff;
+    --header-height: 72px;
+    --glow-intensity: 0.6;
+    --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    background-color: var(--dark-bg);
+    background-image: url('galaxia-morado1.avif');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #020202; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
-    /* Loader mejorado */
-    #page-loader {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
-      z-index: 99999;
-      display: flex; justify-content: center; align-items: center; flex-direction: column;
-      transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
-      backdrop-filter: blur(8px);
-    }
-    .loader-glitch-wrapper { position: relative; display: inline-block; filter: drop-shadow(0 0 15px var(--neon-cyan)); }
-    .loader-glitch { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; color: white;
-      font-weight: 900; letter-spacing: 8px; text-transform: uppercase; position: relative;
-      text-shadow: 0 0 20px var(--neon-cyan);
-    }
-    .loader-glitch::before, .loader-glitch::after { content: 'Archinime'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
-    .loader-glitch::before { left: 4px; text-shadow: -3px 0 var(--neon-pink); clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
-      animation: trueGlitch 2s infinite linear alternate-reverse; }
-    .loader-glitch::after { left: -4px; text-shadow: 2px 0 var(--neon-cyan);
-      clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%); animation: trueGlitch2 2.5s infinite linear alternate-reverse; }
-    .loader-sub { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-purple); letter-spacing: 4px; margin-top: 20px;
-      animation: pulseText 1.2s infinite; }
-    .loader-line { width: 0; height: 2px; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); margin-top: 30px;
-      box-shadow: 0 0 12px var(--neon-cyan); border-radius: 2px; animation: loadLine 1.2s forwards ease-out; }
+  /* Loader mejorado */
+  #page-loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
+    z-index: 99999;
+    display: flex; justify-content: center; align-items: center; flex-direction: column;
+    transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
+    backdrop-filter: blur(8px);
+  }
+  .loader-glitch-wrapper { position: relative; display: inline-block; filter: drop-shadow(0 0 15px var(--neon-cyan)); }
+  .loader-glitch { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; color: white;
+    font-weight: 900; letter-spacing: 8px; text-transform: uppercase; position: relative;
+    text-shadow: 0 0 20px var(--neon-cyan);
+  }
+  .loader-glitch::before, .loader-glitch::after { content: 'Archinime'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
+  .loader-glitch::before { left: 4px; text-shadow: -3px 0 var(--neon-pink); clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%); animation: trueGlitch 2s infinite linear alternate-reverse; }
+  .loader-glitch::after { left: -4px; text-shadow: 2px 0 var(--neon-cyan); clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%); animation: trueGlitch2 2.5s infinite linear alternate-reverse; }
+  .loader-sub { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-purple); letter-spacing: 4px; margin-top: 20px; animation: pulseText 1.2s infinite; }
+  .loader-line { width: 0; height: 2px; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); margin-top: 30px; box-shadow: 0 0 12px var(--neon-cyan); border-radius: 2px; animation: loadLine 1.2s forwards ease-out; }
 
-    /* Fondo y overlay */
-    #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
-      filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease; background: url('galaxia-morado1.avif') no-repeat center center / cover; }
-    #bg-video.loaded { opacity: 1; }
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
-      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; }
-    #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
-      z-index: -3; pointer-events: none; opacity: 0.25; }
+  /* Fondo y overlay mejorados */
+  #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
+    filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
+    background: url('galaxia-morado1.avif') no-repeat center center / cover; }
+  #bg-video.loaded { opacity: 1; }
+  #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
+    z-index: -4; pointer-events: none; transition: opacity 0.8s ease; }
+  #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
+    z-index: -3; pointer-events: none; opacity: 0.25; }
 
-    /* Navbar mejor alineada */
-    .cyber-nav { 
-      position: sticky; top: 0; z-index: 1000; background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(12px);
-      padding: 8px 3%; display: flex; justify-content: space-between; align-items: center;
-      height: var(--header-height); border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-    }
-    .cyber-nav::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
-      background-size: 200% 100%; animation: borderFlow 3s linear infinite; opacity: 0.9; }
-    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; flex-shrink: 0; }
-    .nav-logo:hover { transform: scale(1.02); }
-    .nav-logo img { height: 44px; width: 44px; object-fit: contain; border-radius: 12px;
-      box-shadow: 0 0 12px rgba(188, 19, 254, 0.5); transition: all 0.3s; }
-    .nav-logo-text { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: 2px;
-      background: linear-gradient(135deg, #ffffff, var(--neon-cyan), var(--neon-purple));
-      background-size: 200% auto;
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-      animation: shimmer 6s linear infinite;
-    }
-    @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  /* Navbar Alineada Perfectamente */
+  .cyber-nav { position: sticky; top: 0; z-index: 1000;
+    background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(12px);
+    padding: 8px 3%; display: flex; justify-content: space-between; align-items: center;
+    height: var(--header-height);
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  }
+  .cyber-nav::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
+    background-size: 200% 100%; animation: borderFlow 3s linear infinite; opacity: 0.9; }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; }
+  .nav-logo:hover { transform: scale(1.02); }
+  .nav-logo img { height: 44px; width: 44px; object-fit: contain; border-radius: 12px;
+    box-shadow: 0 0 12px rgba(188, 19, 254, 0.5); transition: all 0.3s; }
+  .nav-logo:hover img { transform: rotate(5deg) scale(1.05); box-shadow: 0 0 20px var(--neon-purple); }
+  .nav-logo-text { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: 2px;
+    background: linear-gradient(135deg, #ffffff, var(--neon-cyan), var(--neon-purple)); background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
-    .search-wrapper { position: relative; margin: 0 25px; flex-grow: 1; max-width: 500px; }
-    .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
-      border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
-      transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem;
-      backdrop-filter: blur(4px);
-    }
-    .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05);
-      transform: translateY(-1px); }
-    .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
+  .search-wrapper { position: relative; margin: 0 25px; flex-grow: 1; max-width: 500px; }
+  .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
+    transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem; backdrop-filter: blur(4px); }
+  .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
+  .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
 
-    /* Contenedor de acciones nav: alineación perfecta */
-    .nav-actions { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-      flex-shrink: 0;
-    }
-    .cyber-btn-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      color: var(--neon-cyan);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s var(--transition-smooth);
-      font-size: 1.2rem;
-      backdrop-filter: blur(4px);
-    }
-    .cyber-btn-icon:hover { background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan);
-      box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
-    #installBtn { display: none; }
-    .install-pulse { animation: pulseBorder 1.5s infinite; }
+  /* Acciones de Navbar (Iconos alineados y centrados) */
+  .nav-actions { display: flex; align-items: center; justify-content: center; gap: 15px; height: 100%; }
+  .notif-wrapper, .user-menu { display: flex; align-items: center; justify-content: center; height: 100%; position: relative; }
+  
+  .cyber-btn-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex;
+    align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s var(--transition-smooth);
+    font-size: 1.2rem; backdrop-filter: blur(4px); padding: 0; outline: none;
+  }
+  .cyber-btn-icon img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .cyber-btn-icon:hover { background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
+  #installBtn { display: none; }
+  .install-pulse { animation: pulseBorder 1.5s infinite; }
 
-    /* Menú usuario */
-    .user-menu { position: relative; }
-    #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
-      cursor: pointer; transition: 0.2s; background: #111; }
-    #userAvatarBtn:hover { transform: scale(1.08); box-shadow: 0 0 15px var(--neon-cyan); }
-    .user-dropdown { position: absolute; top: 55px; right: 0; width: 280px; background: rgba(15, 15, 20, 0.98);
-      border: 1px solid var(--neon-purple); border-radius: 16px; backdrop-filter: blur(20px);
-      box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px);
-      transition: all 0.25s var(--transition-smooth); z-index: 2000; }
-    .user-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  /* Menú usuario mejorado */
+  #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
+    cursor: pointer; transition: 0.2s; background: #111; }
+  #userAvatarBtn:hover { transform: scale(1.08); box-shadow: 0 0 15px var(--neon-cyan); }
+  .user-dropdown { position: absolute; top: 60px; right: 0; width: 280px; background: rgba(15, 15, 20, 0.98);
+    border: 1px solid var(--neon-purple); border-radius: 16px; backdrop-filter: blur(20px);
+    box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px);
+    transition: all 0.25s var(--transition-smooth); z-index: 2000; }
+  .user-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .user-dropdown-header { padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: 0.2s; border-radius: 16px 16px 0 0; }
+  .user-dropdown-header:hover { background: rgba(188, 19, 254, 0.15); }
+  .user-dropdown-header img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--neon-cyan); }
+  .user-dropdown-item { padding: 14px 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
+    gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
+  .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-    /* Notificaciones: sin scroll horizontal y con texto truncado */
-    .notif-wrapper { position: relative; }
-    .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
-      padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
-      color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .notif-dropdown { position: absolute; top: 55px; right: -15px; width: 380px; background: rgba(15, 15, 20, 0.98);
-      border: 1px solid var(--neon-purple); border-radius: 20px; backdrop-filter: blur(20px);
-      box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px);
-      transition: all 0.25s var(--transition-smooth); z-index: 2000; overflow: hidden; }
-    .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
-      color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
-      letter-spacing: 2px; }
-    /* Eliminar scroll horizontal y truncar textos largos */
-    .notif-list { 
-      max-height: 420px; 
-      overflow-y: auto; 
-      overflow-x: hidden; 
-    }
-    .notif-item { 
-      display: flex; 
-      gap: 15px; 
-      padding: 14px 16px; 
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      transition: background 0.2s; 
-      cursor: pointer; 
-      align-items: center;
-      flex-wrap: nowrap;
-      overflow: hidden;
-    }
-    .notif-item:hover { background: rgba(0, 243, 255, 0.08); }
-    .notif-img-box { width: 55px; height: 75px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #000;
-      border: 1px solid rgba(255,255,255,0.15); }
-    .notif-img-box img { width: 100%; height: 100%; object-fit: cover; }
-    .notif-img-box.rounded-avatar { width: 50px; height: 50px; border-radius: 50% !important; }
-    .notif-content { flex: 1; min-width: 0; } /* min-width 0 permite truncamiento */
-    .n-title { 
-      font-size: 0.9rem; 
-      font-weight: 700; 
-      color: white; 
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-    }
-    .n-type { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
-    .n-meta { 
-      font-size: 0.7rem; 
-      color: #aaa; 
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-    }
-    .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
+  /* Notificaciones rediseñadas sin scroll horizontal */
+  .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
+    padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
+    color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  .notif-dropdown { position: absolute; top: 60px; right: -15px; width: 380px; background: rgba(15, 15, 20, 0.98);
+    border: 1px solid var(--neon-purple); border-radius: 20px; backdrop-filter: blur(20px);
+    box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px);
+    transition: all 0.25s var(--transition-smooth); z-index: 2000; overflow: hidden; }
+  .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
+    color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
+    letter-spacing: 2px; }
+  
+  /* Aquí eliminamos el scroll en X y evitamos el desbordamiento de texto */
+  .notif-list { max-height: 420px; overflow-y: auto; overflow-x: hidden; }
+  .notif-item { display: flex; gap: 15px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.2s; cursor: pointer; align-items: center; max-width: 100%; box-sizing: border-box; }
+  .notif-item:hover { background: rgba(0, 243, 255, 0.08); }
+  .notif-img-box { width: 55px; height: 75px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #000;
+    border: 1px solid rgba(255,255,255,0.15); }
+  .notif-img-box img { width: 100%; height: 100%; object-fit: cover; }
+  .notif-img-box.rounded-avatar { width: 50px; height: 50px; border-radius: 50% !important; }
+  
+  /* Flex: 1 min-width: 0 es crucial para que el text-overflow funcione dentro del flexbox */
+  .notif-content { flex: 1; min-width: 0; overflow: hidden; }
+  .n-title { font-size: 0.9rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .n-type { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
+  .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
 
-    /* Controles (selects) */
-    .controls-container { padding: 20px 3%; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
-      background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent); margin-bottom: 20px; }
-    select { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(8px); color: #e0e0e0;
-      font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer;
-      padding: 12px 32px 12px 20px; min-width: 170px; border: 1px solid rgba(188, 19, 254, 0.5);
-      border-radius: 40px; transition: all 0.2s; appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat; background-position: calc(100% - 15px) center; background-size: 14px; }
-    select:hover, select:focus { border-color: var(--neon-cyan); color: white; background: rgba(0,0,0,0.8);
-      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transform: translateY(-2px); }
+  /* Controles (selects) mejorados */
+  .controls-container { padding: 20px 3%; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent); margin-bottom: 20px; }
+  select { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(8px); color: #e0e0e0;
+    font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer;
+    padding: 12px 32px 12px 20px; min-width: 170px; border: 1px solid rgba(188, 19, 254, 0.5);
+    border-radius: 40px; transition: all 0.2s; appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: calc(100% - 15px) center; background-size: 14px; }
+  select:hover, select:focus { border-color: var(--neon-cyan); color: white; background: rgba(0,0,0,0.8);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); transform: translateY(-2px); }
 
-    /* Grid y Cards */
-    .container { max-width: 1600px; margin: 0 auto; padding: 10px 20px 80px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px; }
-    .card { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 2/3; cursor: pointer;
-      transition: all 0.35s var(--transition-smooth); background: #0a0a0c; box-shadow: 0 12px 25px rgba(0,0,0,0.6);
-      transform: translateZ(0); will-change: transform; }
-    .card::before { content: ''; position: absolute; inset: 0; border-radius: 16px; padding: 2px;
-      background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(188,19,254,0.3));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-    .card:hover { transform: scale(1.03) translateY(-8px); box-shadow: 0 20px 30px rgba(0,0,0,0.8); }
-    .card:hover::before { opacity: 1; }
-    .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .card:hover img { transform: scale(1.08); }
-    .card .info { position: absolute; bottom: 0; left: 0; width: 100%;
-      background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
-      padding: 70px 15px 18px; display: flex; flex-direction: column; gap: 6px; transform: translateY(8px);
-      opacity: 0.95; transition: 0.3s; }
-    .card:hover .info { transform: translateY(0); opacity: 1; }
-    .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
-    .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
-      letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+  /* Grid y Cards */
+  .container { max-width: 1600px; margin: 0 auto; padding: 10px 20px 80px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px; }
+  .card { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 2/3; cursor: pointer;
+    transition: all 0.35s var(--transition-smooth); background: #0a0a0c; box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+    transform: translateZ(0); will-change: transform; }
+  .card::before { content: ''; position: absolute; inset: 0; border-radius: 16px; padding: 2px;
+    background: linear-gradient(135deg, rgba(0,243,255,0.3), rgba(188,19,254,0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .card:hover { transform: scale(1.03) translateY(-8px); box-shadow: 0 20px 30px rgba(0,0,0,0.8); }
+  .card:hover::before { opacity: 1; }
+  .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .card:hover img { transform: scale(1.08); }
+  .card .info { position: absolute; bottom: 0; left: 0; width: 100%;
+    background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
+    padding: 70px 15px 18px; display: flex; flex-direction: column; gap: 6px;
+    transform: translateY(8px); opacity: 0.95; transition: 0.3s; }
+  .card:hover .info { transform: translateY(0); opacity: 1; }
+  .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
+  .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
+    letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
 
-    /* Modal de autenticación rediseñado y centrado */
-    .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
-    .auth-modal.show { opacity: 1; pointer-events: auto; }
-    .auth-card { background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 28px; width: 100%;
-      max-width: 440px; padding: 35px; position: relative; transform: scale(0.96); transition: transform 0.3s;
-      box-shadow: 0 25px 45px rgba(0,0,0,0.9); }
-    .auth-modal.show .auth-card { transform: scale(1); }
-    .auth-close { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #aaa; transition: 0.2s; }
-    .auth-close:hover { color: var(--neon-pink); transform: rotate(90deg); }
-    .auth-tabs { display: flex; gap: 25px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .auth-tab { padding: 12px 0; cursor: pointer; font-weight: 800; color: #aaa; border-bottom: 2px solid transparent;
-      transition: 0.2s; font-size: 1.1rem; }
-    .auth-tab.active { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan); }
-    .auth-form { display: flex; flex-direction: column; gap: 15px; }
-    .auth-form input { background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 16px;
-      color: white; font-size: 1rem; transition: 0.2s; width: 100%; }
-    .auth-form input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 12px rgba(0,243,255,0.2); }
-    .auth-form button { background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none;
-      padding: 14px; border-radius: 40px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-    .auth-form button:hover { background: var(--neon-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,243,255,0.3); }
-    .auth-providers { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .provider-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px;
-      border-radius: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
-      transition: 0.2s; color: white; font-weight: 600; }
-    .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
-    .auth-error { color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.85rem; }
+  /* Modal de autenticación rediseñado (Alineación y botón X) */
+  .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
+  .auth-modal.show { opacity: 1; pointer-events: auto; }
+  .auth-card { background: rgba(15, 15, 19, 0.95); border: 1px solid var(--neon-purple); border-radius: 28px; width: 100%;
+    max-width: 440px; padding: 35px; position: relative; transform: scale(0.96); transition: transform 0.3s;
+    box-shadow: 0 25px 45px rgba(0,0,0,0.9); display: flex; flex-direction: column; }
+  .auth-modal.show .auth-card { transform: scale(1); }
+  
+  /* Botón de cerrar "X" espectacular */
+  .auth-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; 
+    background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; cursor: pointer; color: #aaa; transition: 0.2s; border: 1px solid transparent; z-index: 10;}
+  .auth-close:hover { color: white; background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
+  
+  .auth-tabs { display: flex; justify-content: space-around; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; }
+  .auth-tab { padding: 12px 15px; cursor: pointer; font-weight: 800; color: #aaa; border-bottom: 2px solid transparent;
+    transition: 0.2s; font-size: 1.1rem; flex-grow: 1; text-align: center; }
+  .auth-tab.active { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan); }
+  
+  /* Formularios como flex columns consistentes */
+  .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+  .auth-form input { width: 100%; box-sizing: border-box; background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 16px;
+    color: white; font-size: 1rem; transition: 0.2s; }
+  .auth-form input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 12px rgba(0,243,255,0.2); }
+  .auth-form button { width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none;
+    padding: 14px; border-radius: 40px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+  .auth-form button:hover { background: var(--neon-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,243,255,0.3); }
+  
+  .auth-providers { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; width: 100%; }
+  .provider-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px;
+    border-radius: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
+    transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; }
+  .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
 
-    /* Event Modal (popup de estrenos) con X visible */
-    #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92);
-      backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: 0.4s; padding: 20px; }
-    #eventModal.show { opacity: 1; pointer-events: auto; }
-    .event-card { background: #0e0e12; width: 100%; max-width: 460px; border-radius: 32px; overflow: hidden;
-      border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
-      transform: scale(0.9) translateY(30px); transition: transform 0.4s var(--transition-smooth); position: relative; }
-    #eventModal.show .event-card { transform: scale(1) translateY(0); }
-    .event-visuals { position: relative; height: 280px; background: #000; }
-    .visual-bg { position: absolute; inset: 0; background-size: cover; filter: blur(20px) brightness(0.5); transform: scale(1.2); }
-    .covers-container { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 100%; gap: 15px; padding-bottom: 20px; }
-    .cover-back { width: 110px; height: 165px; object-fit: cover; border-radius: 12px; opacity: 0.8; transform: rotate(-8deg) translateX(15px);
-      border: 1px solid rgba(255,255,255,0.3); }
-    .cover-front { width: 130px; height: 195px; object-fit: cover; border-radius: 16px; border: 2px solid var(--neon-cyan);
-      transform: rotate(3deg) translateX(-15px); box-shadow: 0 10px 25px black; z-index: 2; }
-    .event-type-badge { position: absolute; top: 18px; left: 18px; padding: 6px 16px; border-radius: 30px;
-      background: var(--neon-pink); color: white; font-weight: 800; font-size: 0.7rem; letter-spacing: 1px;
-      box-shadow: 0 0 15px var(--neon-pink); z-index: 3; }
-    .event-info { padding: 25px; text-align: center; background: linear-gradient(to top, #0a0a0e, #111116); }
-    .event-title { font-family: 'Orbitron'; font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
-    .event-meta { color: var(--neon-cyan); font-weight: 600; margin-bottom: 15px; letter-spacing: 1px; }
-    .event-desc { color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
-    .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px;
-      font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
-      justify-content: center; gap: 10px; }
-    .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
-    /* Botón de cierre siempre visible */
-    .event-close {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 50;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.4);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.3s;
-      font-size: 1.2rem;
-    }
-    .event-close:hover { background: var(--neon-pink); transform: rotate(90deg); border-color: var(--neon-pink); }
+  /* Event Modal (popup de estrenos) */
+  #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: 0.4s; padding: 20px; }
+  #eventModal.show { opacity: 1; pointer-events: auto; }
+  .event-card { background: #0e0e12; width: 100%; max-width: 460px; border-radius: 32px; overflow: hidden;
+    border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
+    transform: scale(0.9) translateY(30px); transition: transform 0.4s var(--transition-smooth); position: relative; }
+  #eventModal.show .event-card { transform: scale(1) translateY(0); }
+  
+  /* Botón X también para estrenos (Por si se usa) */
+  .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50;
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem;}
+  .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .cyber-nav { flex-wrap: wrap; height: auto; gap: 12px; padding: 12px 16px; }
-      .nav-logo-text { font-size: 1.3rem; }
-      .search-wrapper { order: 3; width: 100%; margin: 0; max-width: 100%; }
-      .controls-container { gap: 10px; overflow-x: auto; justify-content: flex-start; padding: 12px 16px; }
-      select { min-width: 130px; font-size: 0.7rem; padding: 8px 20px 8px 12px; }
-      .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-      .notif-dropdown { position: fixed; top: 70px; left: 10px; right: 10px; width: auto; }
-      .card .info { padding: 40px 8px 8px; }
-      .card .info strong { font-size: 0.8rem; }
-      .card .info span { font-size: 0.6rem; }
-    }
-    @media (max-width: 480px) {
-      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .nav-logo-text { display: none; }
-      .cyber-btn-icon { width: 38px; height: 38px; }
-      #userAvatarBtn { width: 38px; height: 38px; }
-    }
+  .event-visuals { position: relative; height: 280px; background: #000; }
+  .visual-bg { position: absolute; inset: 0; background-size: cover; filter: blur(20px) brightness(0.5); transform: scale(1.2); }
+  .covers-container { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 100%; gap: 15px; padding-bottom: 20px; }
+  .cover-back { width: 110px; height: 165px; object-fit: cover; border-radius: 12px; opacity: 0.8; transform: rotate(-8deg) translateX(15px); border: 1px solid rgba(255,255,255,0.3); }
+  .cover-front { width: 130px; height: 195px; object-fit: cover; border-radius: 16px; border: 2px solid var(--neon-cyan); transform: rotate(3deg) translateX(-15px); box-shadow: 0 10px 25px black; z-index: 2; }
+  .event-type-badge { position: absolute; top: 18px; left: 18px; padding: 6px 16px; border-radius: 30px; background: var(--neon-pink); color: white; font-weight: 800; font-size: 0.7rem; letter-spacing: 1px; box-shadow: 0 0 15px var(--neon-pink); z-index: 3; }
+  .event-info { padding: 25px; text-align: center; background: linear-gradient(to top, #0a0a0e, #111116); }
+  .event-title { font-family: 'Orbitron'; font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+  .event-meta { color: var(--neon-cyan); font-weight: 600; margin-bottom: 15px; letter-spacing: 1px; }
+  .event-desc { color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
+  .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
-    /* Animaciones clave */
-    @keyframes trueGlitch { 0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
-      20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); transform: translate(2px, -1px); }
-      40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); transform: translate(-2px, 2px); }
-      60% { clip-path: polygon(0 40%, 100% 40%, 100% 45%, 0 45%); transform: translate(2px, -2px); }
-      80% { clip-path: polygon(0 30%, 100% 30%, 100% 30%, 0 30%); transform: translate(-1px, 1px); }
-      100% { clip-path: polygon(0 25%, 100% 25%, 100% 35%, 0 35%); transform: translate(1px, -1px); } }
-    @keyframes trueGlitch2 { 0% { clip-path: polygon(0 65%, 100% 65%, 100% 70%, 0 70%); transform: translate(2px, -1px); }
-      20% { clip-path: polygon(0 80%, 100% 80%, 100% 80%, 0 80%); transform: translate(-2px, 2px); }
-      40% { clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%); transform: translate(2px, -2px); }
-      60% { clip-path: polygon(0 90%, 100% 90%, 100% 95%, 0 95%); transform: translate(-1px, 1px); }
-      80% { clip-path: polygon(0 85%, 100% 85%, 100% 85%, 0 85%); transform: translate(1px, -1px); }
-      100% { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); transform: translate(-2px, 1px); } }
-    @keyframes pulseText { 0%,100% { opacity: 0.8; } 50% { opacity: 0.4; } }
-    @keyframes loadLine { to { width: 280px; } }
-    @keyframes borderFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
-    @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); } }
-  </style>
+  /* Responsive mejorado */
+  @media (max-width: 768px) {
+    .cyber-nav { flex-wrap: wrap; height: auto; gap: 12px; padding: 12px 16px; justify-content: center; }
+    .nav-logo-text { font-size: 1.3rem; }
+    .search-wrapper { order: 3; width: 100%; margin: 0; max-width: 100%; }
+    .controls-container { gap: 10px; overflow-x: auto; justify-content: flex-start; padding: 12px 16px; }
+    select { min-width: 130px; font-size: 0.7rem; padding: 8px 20px 8px 12px; }
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .notif-dropdown { position: fixed; top: 70px; left: 10px; right: 10px; width: auto; }
+    .card .info { padding: 40px 8px 8px; }
+    .card .info strong { font-size: 0.8rem; }
+    .card .info span { font-size: 0.6rem; }
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .nav-logo-text { display: none; }
+    .cyber-btn-icon { width: 38px; height: 38px; }
+    #userAvatarBtn { width: 38px; height: 38px; }
+  }
+
+  /* Animaciones clave */
+  @keyframes trueGlitch { 0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
+    20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); transform: translate(2px, -1px); }
+    40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); transform: translate(-2px, 2px); }
+    60% { clip-path: polygon(0 40%, 100% 40%, 100% 45%, 0 45%); transform: translate(2px, -2px); }
+    80% { clip-path: polygon(0 30%, 100% 30%, 100% 30%, 0 30%); transform: translate(-1px, 1px); }
+    100% { clip-path: polygon(0 25%, 100% 25%, 100% 35%, 0 35%); transform: translate(1px, -1px); } }
+  @keyframes trueGlitch2 { 0% { clip-path: polygon(0 65%, 100% 65%, 100% 70%, 0 70%); transform: translate(2px, -1px); }
+    20% { clip-path: polygon(0 80%, 100% 80%, 100% 80%, 0 80%); transform: translate(-2px, 2px); }
+    40% { clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%); transform: translate(2px, -2px); }
+    60% { clip-path: polygon(0 90%, 100% 90%, 100% 95%, 0 95%); transform: translate(-1px, 1px); }
+    80% { clip-path: polygon(0 85%, 100% 85%, 100% 85%, 0 85%); transform: translate(1px, -1px); }
+    100% { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); transform: translate(-2px, 1px); } }
+  @keyframes pulseText { 0%,100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+  @keyframes loadLine { to { width: 280px; } }
+  @keyframes borderFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); } }
+</style>
 </head>
 <body>
 
-<div id="page-loader">
-  <div class="loader-glitch-wrapper">
-    <div class="loader-glitch">Archinime</div>
-  </div>
-  <div class="loader-sub">CARGANDO SISTEMA...</div>
-  <div style="width: 280px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; border-radius: 2px;">
-    <div class="loader-line"></div>
-  </div>
-</div>
-
-<video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
-  <source src="galaxia.mp4" type="video/mp4">
-</video>
-<div id="overlay" aria-hidden="true"></div>
-<div id="scanlines"></div>
-<audio id="bg-music"></audio> 
-
-<nav class="cyber-nav">
-  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
-    <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
-    <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
-  </a>
-
-  <div class="search-wrapper">
-    <input id="search" class="search-input" placeholder="Buscar anime, género o alias..." aria-label="Buscar anime">
-    <i class="fas fa-search search-icon"></i>
-  </div>
-
-  <div class="nav-actions header-actions">
-    <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
-      <i class="fas fa-download"></i>
-    </button>
-    <button id="adminBtn" class="cyber-btn-icon" title="Panel de Administración" style="display: none;">
-      <img src="admin.avif" alt="Admin" style="width: 24px; border-radius: 50%;">
-    </button>
-    <div class="notif-wrapper">
-      <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control">
-        <i class="fas fa-bell"></i>
-        <span id="notifBadge" class="notif-badge" style="display:none"></span>
-      </button>
-      <div id="notifMenu" class="notif-dropdown">
-        <div class="notif-header"><i class="fas fa-bell"></i> NOTIFICACIONES</div>
-        <div id="notifList" class="notif-list"><div class="empty-notif" style="padding:20px; text-align:center;">Buscando señal...</div></div>
-      </div>
+  <div id="page-loader">
+    <div class="loader-glitch-wrapper">
+        <div class="loader-glitch">Archinime</div>
     </div>
-    <div class="user-menu">
-      <img id="userAvatarBtn" src="invitado.avif" alt="Usuario">
-      <div id="userDropdown" class="user-dropdown">
-        <div class="user-dropdown-header" onclick="goToProfile()" title="Configurar cuenta">
-          <img id="dropdownAvatar" src="invitado.avif">
-          <div>
-            <div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div>
-            <div style="font-size: 0.7rem; color: #aaa;"><i class="fas fa-cog"></i> Opciones</div>
+    <div class="loader-sub">CARGANDO SISTEMA...</div>
+    <div style="width: 280px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; border-radius: 2px;">
+      <div class="loader-line"></div>
+    </div>
+  </div>
+
+  <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
+    <source src="galaxia.mp4" type="video/mp4">
+  </video>
+  <div id="overlay" aria-hidden="true"></div>
+  <div id="scanlines"></div>
+  <audio id="bg-music"></audio> 
+
+  <nav class="cyber-nav">
+    <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
+      <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime">
+      <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
+    </a>
+
+    <div class="search-wrapper">
+      <input id="search" class="search-input" placeholder="Buscar anime, género o alias..." aria-label="Buscar anime">
+      <i class="fas fa-search search-icon"></i>
+    </div>
+
+    <div class="nav-actions header-actions">
+      <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
+        <i class="fas fa-download"></i>
+      </button>
+      <button id="adminBtn" class="cyber-btn-icon" title="Panel de Administración" style="display: none;">
+        <img src="admin.avif" alt="Admin" style="width: 100%; height: 100%; border-radius: 50%;">
+      </button>
+      <div class="notif-wrapper">
+        <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control">
+          <i class="fas fa-bell"></i>
+          <span id="notifBadge" class="notif-badge" style="display:none"></span>
+        </button>
+        <div id="notifMenu" class="notif-dropdown">
+          <div class="notif-header"><i class="fas fa-bell"></i> NOTIFICACIONES</div>
+          <div id="notifList" class="notif-list">
+            <div class="empty-notif" style="padding:20px; text-align:center;">Buscando señal...</div>
           </div>
         </div>
-        <div id="userDropdownItems">
-          <div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div>
+      </div>
+      <div class="user-menu">
+        <img id="userAvatarBtn" src="invitado.avif" alt="Usuario">
+        <div id="userDropdown" class="user-dropdown">
+          <div class="user-dropdown-header" onclick="goToProfile()" title="Configurar cuenta">
+            <img id="dropdownAvatar" src="invitado.avif">
+            <div>
+              <div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div>
+              <div style="font-size: 0.7rem; color: #aaa;"><i class="fas fa-cog"></i> Opciones</div>
+            </div>
+          </div>
+          <div id="userDropdownItems">
+            <div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div>
+          </div>
         </div>
       </div>
+      <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
+        <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;">
+      </button>
     </div>
-    <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
-      <img src="youtube.avif" alt="YT" style="width:22px; border-radius:50%;">
-    </button>
+  </nav>
+
+  <div id="authModal" class="auth-modal">
+    <div class="auth-card">
+      <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+        <div class="auth-tab" data-tab="register">Registrarse</div>
+      </div>
+      
+      <div id="authLoginForm" class="auth-form">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="loginWithEmail()">Iniciar sesión</button>
+      </div>
+      <div id="authRegisterForm" class="auth-form" style="display:none;">
+        <input type="email" id="registerEmail" placeholder="Correo electrónico">
+        <input type="password" id="registerPassword" placeholder="Contraseña">
+        <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
+        <button onclick="registerWithEmail()">Registrarse</button>
+      </div>
+      
+      <div class="auth-providers">
+        <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
+        <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
+      </div>
+      <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
+    </div>
   </div>
-</nav>
 
-<div id="authModal" class="auth-modal">
-  <div class="auth-card">
-    <div class="auth-close" onclick="closeAuthModal()">&times;</div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
-      <div class="auth-tab" data-tab="register">Registrarse</div>
-    </div>
-    <div id="authLoginForm" class="auth-form">
-      <input type="email" id="loginEmail" placeholder="Correo electrónico">
-      <input type="password" id="loginPassword" placeholder="Contraseña">
-      <button onclick="loginWithEmail()">Iniciar sesión</button>
-    </div>
-    <div id="authRegisterForm" class="auth-form" style="display:none;">
-      <input type="email" id="registerEmail" placeholder="Correo electrónico">
-      <input type="password" id="registerPassword" placeholder="Contraseña">
-      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
-      <button onclick="registerWithEmail()">Registrarse</button>
-    </div>
-    <div class="auth-providers">
-      <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
-      <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
-    </div>
-    <div id="authError" class="auth-error"></div>
+  <div class="controls-container controls" id="controls">
+    <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
+        <option value="">🎭 Todos los géneros</option>
+        <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
+        <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
+        <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
+        <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
+    </select>
+    <select id="demographic-select" onchange="filtro()" aria-label="Demografía">
+      <option value="">👥 Todas las demografías</option>
+      <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
+    </select>
+    <select id="rating-select" onchange="filtro()" aria-label="Ranking">
+      <option value="">⭐ RANKING GLOBAL</option>
+      <option value="excellent">🏆 S-TIER (4.8+)</option>
+      <option value="good">🔥 A-TIER (4.6+)</option>
+      <option value="regular">📀 B-TIER (&lt;4.5)</option>
+    </select>
   </div>
-</div>
 
-<div class="controls-container controls" id="controls">
-  <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
-    <option value="">🎭 Todos los géneros</option>
-    <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
-    <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
-    <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
-    <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
-  </select>
-  <select id="demographic-select" onchange="filtro()" aria-label="Demografía">
-    <option value="">👥 Todas las demografías</option>
-    <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
-  </select>
-  <select id="rating-select" onchange="filtro()" aria-label="Ranking">
-    <option value="">⭐ RANKING GLOBAL</option>
-    <option value="excellent">🏆 S-TIER (4.8+)</option>
-    <option value="good">🔥 A-TIER (4.6+)</option>
-    <option value="regular">📀 B-TIER (&lt;4.5)</option>
-  </select>
-</div>
+  <main class="container">
+    <div class="grid" id="grid"></div>
+  </main>
 
-<main class="container">
-  <div class="grid" id="grid"></div>
-</main>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const providerGoogle = new firebase.auth.GoogleAuthProvider();
+    const providerGitHub = new firebase.auth.GithubAuthProvider();
+  </script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
-    authDomain: "login-admin-archinime.firebaseapp.com",
-    projectId: "login-admin-archinime",
-    storageBucket: "login-admin-archinime.firebasestorage.app",
-    messagingSenderId: "938164660242",
-    appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
-  };
-  firebase.initializeApp(firebaseConfig);
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const providerGoogle = new firebase.auth.GoogleAuthProvider();
-  const providerGitHub = new firebase.auth.GithubAuthProvider();
-</script>
-
-<script>
-  const version = Date.now();
-  document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-  document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
-  document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-  document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
-  document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
-</script>
-
-<script>
-  let currentUser = null;
-  function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } location.href = 'opciones.html'; }
-  function showAuthModal() { document.getElementById('authModal').classList.add('show'); }
-  function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
-  document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
-  async function loginWithEmail() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function registerWithEmail() { const email = document.getElementById('registerEmail').value; const pass = document.getElementById('registerPassword').value; const confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  function logoutUser() { auth.signOut().then(() => { location.reload(); }); }
-  function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
-  function updateUserUI(user) { currentUser = user; const avatarBtn = document.getElementById('userAvatarBtn'); const dropdownAvatar = document.getElementById('dropdownAvatar'); const dropdownName = document.getElementById('dropdownName'); const loginItem = document.getElementById('loginBtnItem'); if (user) { const photoURL = user.photoURL || 'invitado.avif'; avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; dropdownName.innerText = user.displayName || user.email.split('@')[0]; loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = () => logoutUser(); if (user.email === 'archinime12@gmail.com') document.getElementById('adminBtn').style.display = 'flex'; else document.getElementById('adminBtn').style.display = 'none'; db.collection('users').doc(user.uid).get().then(doc => { let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; }).catch(e => console.log(e)); } else { avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; dropdownName.innerText = 'Invitado'; loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = () => showAuthModal(); document.getElementById('adminBtn').style.display = 'none'; avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; } }
-  const userAvatarBtn = document.getElementById('userAvatarBtn'); const userDropdown = document.getElementById('userDropdown'); userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
-  auth.onAuthStateChanged(user => { updateUserUI(user); });
-  document.getElementById('adminBtn').addEventListener('click', () => { window.open('Archinime%20CMS%20-%20Creador.html', '_blank'); });
-  window.toggleNotifMenu = function() { const menu = document.getElementById('notifMenu'); menu.classList.toggle('active'); };
-  window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
-  const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
-  const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
-</script>
+  <script>
+    const version = Date.now();
+    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
+    document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
+    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+  </script>
+  
+  <script>
+    let currentUser = null;
+    function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } location.href = 'opciones.html'; }
+    function showAuthModal() { document.getElementById('authModal').classList.add('show'); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
+    document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
+    async function loginWithEmail() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function registerWithEmail() { const email = document.getElementById('registerEmail').value; const pass = document.getElementById('registerPassword').value; const confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    function logoutUser() { auth.signOut().then(() => { location.reload(); }); }
+    function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
+    function updateUserUI(user) { currentUser = user; const avatarBtn = document.getElementById('userAvatarBtn'); const dropdownAvatar = document.getElementById('dropdownAvatar'); const dropdownName = document.getElementById('dropdownName'); const loginItem = document.getElementById('loginBtnItem'); if (user) { const photoURL = user.photoURL || 'invitado.avif'; avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; dropdownName.innerText = user.displayName || user.email.split('@')[0]; loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = () => logoutUser(); if (user.email === 'archinime12@gmail.com') document.getElementById('adminBtn').style.display = 'flex'; else document.getElementById('adminBtn').style.display = 'none'; db.collection('users').doc(user.uid).get().then(doc => { let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; }).catch(e => console.log(e)); } else { avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; dropdownName.innerText = 'Invitado'; loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = () => showAuthModal(); document.getElementById('adminBtn').style.display = 'none'; avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; } }
+    const userAvatarBtn = document.getElementById('userAvatarBtn'); const userDropdown = document.getElementById('userDropdown'); userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    auth.onAuthStateChanged(user => { updateUserUI(user); });
+    document.getElementById('adminBtn').addEventListener('click', () => { window.open('Archinime%20CMS%20-%20Creador.html', '_blank'); });
+    window.toggleNotifMenu = function() { const menu = document.getElementById('notifMenu'); menu.classList.toggle('active'); };
+    window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
+    // Efecto tilt en cards (optimizado)
+    const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
+    const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
+  </script>
 </body>
 </html>
