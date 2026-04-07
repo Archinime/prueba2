@@ -619,7 +619,6 @@
       <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
         <i class="fas fa-download"></i>
       </button>
-      <!-- Botón de administrador eliminado -->
       <div class="notif-wrapper">
         <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control">
           <i class="fas fa-bell"></i>
@@ -706,6 +705,7 @@
   </main>
 
   <script>
+    // Definición global de firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -720,29 +720,76 @@
     const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     const providerGitHub = new firebase.auth.GithubAuthProvider();
+
+    // Función global para bloquear scroll
+    window.disableBodyScroll = function() {
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+    };
+    window.enableBodyScroll = function() {
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+    };
   </script>
 
+  <!-- Carga de scripts con manejo de errores y definición de animes por defecto -->
   <script>
-    const version = Date.now();
-    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-    document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+    // Definir animes como array vacío por defecto para evitar errores
+    window.animes = window.animes || [];
+    
+    // Función para ocultar loader después de que todo esté listo
+    function hideLoader() {
+      const loader = document.getElementById('page-loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => {
+          loader.style.visibility = 'hidden';
+          loader.style.display = 'none';
+        }, 400);
+      }
+    }
+
+    // Cargar scripts dinámicamente
+    const scripts = [
+      'index-data.js',
+      'animaciones.js',
+      'musica_fondo.js',
+      'notification-system.js',
+      'script-index.js'
+    ];
+    
+    let scriptsLoaded = 0;
+    function onScriptLoad() {
+      scriptsLoaded++;
+      if (scriptsLoaded === scripts.length) {
+        // Todos los scripts cargados, ocultar loader
+        hideLoader();
+        if (window.startNotificationSequence) window.startNotificationSequence();
+      }
+    }
+    
+    function onScriptError(err) {
+      console.warn('Error cargando script:', err);
+      scriptsLoaded++; // continuar igual
+      if (scriptsLoaded === scripts.length) hideLoader();
+    }
+    
+    scripts.forEach(src => {
+      const script = document.createElement('script');
+      script.src = src + '?v=' + Date.now();
+      script.onload = onScriptLoad;
+      script.onerror = onScriptError;
+      document.body.appendChild(script);
+    });
+    
+    // Timeout de respaldo: ocultar loader después de 3 segundos máximo
+    setTimeout(() => {
+      hideLoader();
+    }, 3000);
   </script>
 
   <!-- Script para selects personalizados en móviles -->
   <script>
-    // Funciones para bloquear/desbloquear scroll
-    function disableBodyScroll() {
-      document.body.classList.add('modal-open');
-      document.documentElement.classList.add('modal-open');
-    }
-    function enableBodyScroll() {
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-    }
-
     (function() {
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
       if (!isMobile) return;
@@ -769,9 +816,7 @@
           optDiv.textContent = opt.textContent;
           optDiv.addEventListener('click', () => {
             selectElement.value = opt.value;
-            // Disparar evento change para que filtro() se ejecute
             selectElement.dispatchEvent(new Event('change'));
-            // Actualizar texto del trigger
             triggerElement.textContent = opt.textContent;
             closePopup();
           });
@@ -783,7 +828,7 @@
         
         function closePopup() {
           overlay.classList.remove('active');
-          enableBodyScroll();
+          window.enableBodyScroll();
           setTimeout(() => overlay.remove(), 300);
         }
         
@@ -791,26 +836,22 @@
           if (e.target === overlay) closePopup();
         });
         
-        disableBodyScroll();
+        window.disableBodyScroll();
         setTimeout(() => overlay.classList.add('active'), 10);
       }
       
-      // Reemplazar cada select por un trigger personalizado
       const selects = ['genre-select', 'demographic-select', 'rating-select'];
       selects.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
-        // Obtener texto de la opción seleccionada
         const selectedOption = select.options[select.selectedIndex];
         trigger.textContent = selectedOption ? selectedOption.textContent : select.options[0].textContent;
         trigger.addEventListener('click', () => createSelectPopup(select, trigger));
         select.parentNode.insertBefore(trigger, select);
-        // Ocultar el select original (ya lo hace CSS)
       });
       
-      // También ajustar placeholder del buscador en móviles
       const searchInput = document.getElementById('search');
       if (searchInput) searchInput.placeholder = 'Buscar';
     })();
@@ -821,11 +862,11 @@
     function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } location.href = 'opciones.html'; }
     function showAuthModal() { 
       document.getElementById('authModal').classList.add('show');
-      disableBodyScroll();
+      window.disableBodyScroll();
     }
     function closeAuthModal() { 
       document.getElementById('authModal').classList.remove('show');
-      enableBodyScroll();
+      window.enableBodyScroll();
       document.getElementById('authError').innerText = '';
     }
     document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
@@ -835,34 +876,42 @@
     async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
     function logoutUser() { auth.signOut().then(() => { location.reload(); }); }
     function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
-    function updateUserUI(user) { currentUser = user; const avatarBtn = document.getElementById('userAvatarBtn'); const dropdownAvatar = document.getElementById('dropdownAvatar'); const dropdownName = document.getElementById('dropdownName'); const loginItem = document.getElementById('loginBtnItem'); if (user) { const photoURL = user.photoURL || 'invitado.avif'; avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; dropdownName.innerText = user.displayName || user.email.split('@')[0]; loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = () => logoutUser(); // Admin button removed, no need to show anything db.collection('users').doc(user.uid).get().then(doc => { let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; }).catch(e => console.log(e)); } else { avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; dropdownName.innerText = 'Invitado'; loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = () => showAuthModal(); avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; } }
+    function updateUserUI(user) { currentUser = user; const avatarBtn = document.getElementById('userAvatarBtn'); const dropdownAvatar = document.getElementById('dropdownAvatar'); const dropdownName = document.getElementById('dropdownName'); const loginItem = document.getElementById('loginBtnItem'); if (user) { const photoURL = user.photoURL || 'invitado.avif'; avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; dropdownName.innerText = user.displayName || user.email.split('@')[0]; loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = () => logoutUser(); db.collection('users').doc(user.uid).get().then(doc => { let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; }).catch(e => console.log(e)); } else { avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; dropdownName.innerText = 'Invitado'; loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = () => showAuthModal(); avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; } }
     const userAvatarBtn = document.getElementById('userAvatarBtn'); const userDropdown = document.getElementById('userDropdown'); userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
     
-    // Función mejorada para toggle de notificaciones con bloqueo de scroll y centrado
     window.toggleNotifMenu = function() { 
       const menu = document.getElementById('notifMenu'); 
       const isActive = menu.classList.contains('active');
       if (!isActive) {
         menu.classList.add('active');
-        disableBodyScroll();
+        window.disableBodyScroll();
       } else {
         menu.classList.remove('active');
-        enableBodyScroll();
+        window.enableBodyScroll();
       }
     };
     
-    // Cerrar menú de notificaciones al hacer clic fuera (y habilitar scroll)
     document.addEventListener('click', (e) => {
       const wrapper = document.querySelector('.notif-wrapper');
       const menu = document.getElementById('notifMenu');
       if (wrapper && !wrapper.contains(e.target) && menu && menu.classList.contains('active')) {
         menu.classList.remove('active');
-        enableBodyScroll();
+        window.enableBodyScroll();
       }
     });
     
-    window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
+    window.addEventListener('load', () => { 
+      const bgVideo = document.getElementById('bg-video'); 
+      const forcePlayVideo = () => { 
+        bgVideo.muted = true; 
+        bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { 
+          document.body.addEventListener('click', () => bgVideo.play(), { once: true }); 
+        }); 
+      }; 
+      forcePlayVideo(); 
+    });
+    
     // Efecto tilt en cards
     const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
     const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
