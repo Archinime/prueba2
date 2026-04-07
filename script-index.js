@@ -6,76 +6,23 @@
 function render(list) {
     const grid = document.getElementById('grid');
     if (!list || list.length === 0) {
-        // Inyectamos un diseño Cyberpunk elegante para cuando no hay resultados
         if (!document.getElementById('archinime-no-results-css')) {
             const style = document.createElement('style');
             style.id = 'archinime-no-results-css';
             style.innerHTML = `
                 .cyber-no-results {
-                    grid-column: 1 / -1;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 60px 20px;
-                    background: rgba(10, 12, 16, 0.7);
-                    border: 1px solid var(--neon-purple);
-                    border-radius: 16px;
-                    box-shadow: 0 0 30px rgba(188, 19, 254, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05);
-                    backdrop-filter: blur(10px);
-                    text-align: center;
-                    margin-top: 20px;
-                    animation: fadeInCyber 0.5s ease forwards;
+                    grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+                    padding: 60px 20px; background: rgba(10, 12, 16, 0.7); border: 1px solid var(--neon-purple); border-radius: 16px;
+                    box-shadow: 0 0 30px rgba(188, 19, 254, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05); backdrop-filter: blur(10px);
+                    text-align: center; margin-top: 20px; animation: fadeInCyber 0.5s ease forwards;
                 }
-                .cyber-no-results i {
-                    font-size: 3.5rem;
-                    color: var(--neon-cyan);
-                    margin-bottom: 15px;
-                    filter: drop-shadow(0 0 10px var(--neon-cyan));
-                    animation: floatIcon 3s ease-in-out infinite;
-                }
-                .cyber-no-results h2 {
-                    font-family: 'Orbitron', sans-serif;
-                    font-size: 1.8rem;
-                    color: #fff;
-                    margin-bottom: 10px;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    text-shadow: 0 0 10px var(--neon-purple);
-                }
-                .cyber-no-results p {
-                    color: #aaa;
-                    font-size: 1rem;
-                    margin-bottom: 25px;
-                    max-width: 500px;
-                    line-height: 1.5;
-                }
-                .btn-cyber-reset {
-                    background: transparent;
-                    border: 2px solid var(--neon-pink);
-                    color: #fff;
-                    font-family: 'Orbitron', sans-serif;
-                    padding: 12px 30px;
-                    font-size: 1rem;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
-                }
-                .btn-cyber-reset:hover {
-                    background: var(--neon-pink);
-                    box-shadow: 0 0 25px var(--neon-pink);
-                    color: #fff;
-                    transform: scale(1.05);
-                }
-                @keyframes fadeInCyber {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes floatIcon {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
+                .cyber-no-results i { font-size: 3.5rem; color: var(--neon-cyan); margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--neon-cyan)); animation: floatIcon 3s ease-in-out infinite; }
+                .cyber-no-results h2 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-purple); }
+                .cyber-no-results p { color: #aaa; font-size: 1rem; margin-bottom: 25px; max-width: 500px; line-height: 1.5; }
+                .btn-cyber-reset { background: transparent; border: 2px solid var(--neon-pink); color: #fff; font-family: 'Orbitron', sans-serif; padding: 12px 30px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 0, 85, 0.3); }
+                .btn-cyber-reset:hover { background: var(--neon-pink); box-shadow: 0 0 25px var(--neon-pink); color: #fff; transform: scale(1.05); }
+                @keyframes fadeInCyber { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
             `;
             document.head.appendChild(style);
         }
@@ -85,12 +32,9 @@ function render(list) {
             <i class="fas fa-satellite-dish"></i>
             <h2>¡Ups! Sin Resultados</h2>
             <p>Verifica el nombre o prueba buscar por un alias.<br>Si no aparece, puedes solicitar que se suba a la base de datos.</p>
-            <button class="btn-cyber-reset" id="btn-reset">
-                RESTAURAR RADARES
-            </button>
+            <button class="btn-cyber-reset" id="btn-reset">RESTAURAR RADARES</button>
         </div>
         `;
-        
         const btn = document.getElementById('btn-reset');
         if (btn) btn.addEventListener('click', () => {
             document.getElementById('search').value = '';
@@ -117,18 +61,15 @@ function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeo
 
 const debouncedFiltro = debounce(filtro, 200);
 function normalizeText(s){
-    try {
-        return (s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-    } catch(e) {
-        return (s||'').toLowerCase().replace(/[\u0300-\u036f]/g, '');
-    }
+    try { return (s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''); } 
+    catch(e) { return (s||'').toLowerCase().replace(/[\u0300-\u036f]/g, ''); }
 }
 
 function getBestTitleForSort(a){ 
     const titles = [a.title].concat(a.aliases || []);
     const norm = titles.map(t=>normalizeText(t)); 
     norm.sort(); 
-    return norm[0]; 
+    return norm[0];
 }
 
 function filtro(){
@@ -137,7 +78,6 @@ function filtro(){
     const g = document.getElementById('genre-select').value;
     const d = document.getElementById('demographic-select') ? document.getElementById('demographic-select').value : '';
     const cat = document.getElementById('rating-select').value;
-
     const filtrados = animes.filter(a=>{
         const titles = [a.title].concat(a.aliases || []);
         const matchesText = !qn || titles.some(t => normalizeText(t).startsWith(qn));
@@ -151,7 +91,7 @@ function filtro(){
     
         return matchesText && byGenre && byDemo && byRating;
     });
-
+    
     let resultList = filtrados.slice();
     if (qn) {
         resultList.sort((A,B)=>{
@@ -177,7 +117,7 @@ function shuffleArray(arr){
         const j=Math.floor(Math.random()*(i+1)); 
         [a[i],a[j]]=[a[j],a[i]]; 
     } 
-    return a; 
+    return a;
 }
 
 if (typeof animes !== 'undefined') {
@@ -318,7 +258,6 @@ function adjustContainerToVideo(video, infoObj){
     const hints = getPerformanceHints();
     let maxW = Math.min(window.innerWidth * 0.32, 360);
     let maxH = Math.min(window.innerHeight * 0.4, 640);
-    
     if (window.matchMedia('(max-width:767px)').matches) {
         if (infoObj && infoObj.id === 'rem') {
             maxW = Math.min(window.innerWidth * 0.30, 180);
@@ -346,7 +285,6 @@ function adjustContainerToVideo(video, infoObj){
     fgCanvas.height = Math.round(displayH * dpr);
     fgCanvas.style.width = displayW + 'px';
     fgCanvas.style.height = displayH + 'px';
-    
     if (ctx && typeof ctx.setTransform === 'function') {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
@@ -377,12 +315,10 @@ function applyChromaKey(imageData, settings, keyColor = 'green'){
     const len = data.length;
     const thresh = settings.threshold ?? 0.4; const minDiff = settings.diff ?? 30;
     const soften = settings.soft ?? 30;
-    
     for (let i = 0; i < len; i += 4) {
         const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
         if (a === 0) continue;
         const sum = r + g + b + 1;
-        
         if (keyColor === 'blue') {
             const maxrg = Math.max(r, g);
             const blueScore = (b - maxrg) / sum;
@@ -416,7 +352,6 @@ function processFrame(video, infoObj){
     if (!usingChroma || visibilityPaused) return;
     if (video.paused || video.ended) return;
     if (!offCtx) return;
-    
     try { 
         offCtx.drawImage(video, 0, 0, off.width, off.height);
     } catch (err) {
@@ -469,13 +404,9 @@ function scheduleNextVideo(afterSeconds = 3, excludeId = null){
 const fireCanvas = document.createElement('canvas');
 fireCanvas.className = 'firework-canvas';
 fireCanvas.style.position = 'absolute';
-fireCanvas.style.left = '0';
-fireCanvas.style.top = '0';
-fireCanvas.style.width = '100%';
-fireCanvas.style.height = '100%';
-fireCanvas.style.zIndex = '9999';
-fireCanvas.style.pointerEvents = 'none';
-
+fireCanvas.style.left = '0'; fireCanvas.style.top = '0';
+fireCanvas.style.width = '100%'; fireCanvas.style.height = '100%';
+fireCanvas.style.zIndex = '9999'; fireCanvas.style.pointerEvents = 'none';
 if (fgContainer) {
     fgContainer.appendChild(fireCanvas);
 } else {
@@ -490,8 +421,7 @@ function resizeFireCanvas(){
     const h = Math.max(1, Math.floor(rect.height * dpr));
     
     if (fireCanvas.width !== w || fireCanvas.height !== h) {
-        fireCanvas.width = w;
-        fireCanvas.height = h;
+        fireCanvas.width = w; fireCanvas.height = h;
         fireCanvas.style.width = rect.width + 'px';
         fireCanvas.style.height = rect.height + 'px';
         fctx.setTransform(dpr,0,0,dpr,0,0);
@@ -533,7 +463,6 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 
     const safeTimeoutMs = Math.round(duration + 400);
     const start = performance.now();
-    
     return new Promise(resolve => {
         let lastFrameTime = 0;
         let finished = false;
@@ -566,7 +495,6 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
                     p.x += p.vx * (dt/16.67);
                     p.y += p.vy * (dt/16.67);
                     p.vy += 0.16 * (dt/16.67);
-
                     const alpha = Math.max(0, Math.min(1, lifeRatio));
                     fctx.globalAlpha = alpha;
                     fctx.beginPath();
@@ -643,7 +571,6 @@ async function playVideoClip(infoObj){
 
     fgVideo.src = infoObj.src;
     fgVideo.load();
-    
     const onMeta = () => {
         fgVideo.removeEventListener('loadedmetadata', onMeta);
         if (infoObj.id === 'hola') { fgContainer.style.bottom = '0px'; }
@@ -665,7 +592,6 @@ async function playVideoClip(infoObj){
         fgVideo.style.display = 'block';
         fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
     };
-
     fgVideo.onended = () => {
         scheduleNextVideo(3, infoObj.id);
     };
@@ -717,99 +643,102 @@ document.addEventListener('visibilitychange', ()=> {
     }
 }, {passive:true});
 
-/* ----------------------------
-   SISTEMA DE DROPDOWNS CUSTOM CYBERPUNK
-   (Reemplaza el selector nativo y el antiguo popup móvil)
-   ---------------------------- */
-function initCustomSelects() {
-    // Busca todos los selects dentro de tu barra de filtros
-    const selects = document.querySelectorAll('.filters select');
-    
-    selects.forEach(select => {
-        // 1. Ocultar el select nativo (ya tiene clase .native-select en CSS)
-        select.classList.add('native-select');
-        
-        // 2. Crear la estructura custom
+/* =========================================
+   SISTEMA DE POPUPS MÓVILES (RECTÁNGULO CENTRADO)
+   ========================================= */
+(function() {
+    const SELECT_IDS = ['genre-select', 'demographic-select', 'rating-select']; 
+    let activePopup = null;
+    let activeOverlay = null;
+
+    function isMobile() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function closePopup() {
+        if (activePopup) {
+            activePopup.classList.remove('active');
+            setTimeout(() => { if (activePopup) activePopup.remove(); }, 300);
+        }
+        if (activeOverlay) {
+            activeOverlay.classList.remove('active');
+            setTimeout(() => { if (activeOverlay) activeOverlay.remove(); }, 300);
+        }
+        activePopup = null;
+        activeOverlay = null;
+    }
+
+    function createPopupFor(selectEl) {
         const wrapper = document.createElement('div');
-        wrapper.classList.add('custom-select-wrapper');
-        
-        const trigger = document.createElement('div');
-        trigger.classList.add('custom-select-trigger');
-        // El texto inicial es la opción seleccionada por defecto
-        trigger.innerHTML = `<span>${select.options[select.selectedIndex].text}</span> <i class="fas fa-chevron-down"></i>`;
-        
-        const optionsContainer = document.createElement('div');
-        optionsContainer.classList.add('custom-options');
-        
-        // 3. Generar las opciones basadas en el select real
-        Array.from(select.options).forEach(option => {
-            const customOption = document.createElement('div');
-            customOption.classList.add('custom-option');
-            customOption.textContent = option.text;
-            customOption.dataset.value = option.value;
-            
-            if (option.selected) {
-                customOption.classList.add('selected');
-            }
-            
-            // Evento al seleccionar una opción
-            customOption.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Actualizar visualmente
-                trigger.querySelector('span').textContent = this.textContent;
-                
-                // Quitar clase selected de los demás
-                optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                // Cerrar el menú
-                wrapper.classList.remove('open');
-                
-                // Sincronizar con el select oculto real y disparar el evento "change"
-                select.value = this.dataset.value;
-                select.dispatchEvent(new Event('change'));
-            });
-            
-            optionsContainer.appendChild(customOption);
-        });
-        
-        // 4. Armar el DOM
-        wrapper.appendChild(trigger);
-        wrapper.appendChild(optionsContainer);
-        
-        // Insertar el wrapper justo después del select nativo
-        select.parentNode.insertBefore(wrapper, select.nextSibling);
-        
-        // 5. Lógica de abrir/cerrar
-        trigger.addEventListener('click', function(e) {
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        wrapper.style.width = '100%';
+        wrapper.className = 'select-wrapper';
+        selectEl.parentNode.insertBefore(wrapper, selectEl);
+        wrapper.appendChild(selectEl);
+
+        const touchTarget = document.createElement('div');
+        touchTarget.style.position = 'absolute';
+        touchTarget.style.inset = '0';
+        touchTarget.style.zIndex = '10';
+        touchTarget.style.cursor = 'pointer';
+        wrapper.appendChild(touchTarget);
+
+        touchTarget.addEventListener('click', (e) => {
+            if (!isMobile()) return; 
+            e.preventDefault();
             e.stopPropagation();
-            // Cierra otros selects abiertos
-            document.querySelectorAll('.custom-select-wrapper').forEach(w => {
-                if (w !== wrapper) w.classList.remove('open');
+            if (activePopup) closePopup();
+
+            activeOverlay = document.createElement('div');
+            activeOverlay.className = 'mobile-popup-overlay';
+            document.body.appendChild(activeOverlay);
+
+            activePopup = document.createElement('div');
+            activePopup.className = 'mobile-select-popup';
+
+            Array.from(selectEl.options).forEach(opt => {
+                const optEl = document.createElement('div');
+                optEl.className = 'opt';
+                if (opt.selected) optEl.classList.add('selected');
+                optEl.innerText = opt.text || opt.value;
+                
+                optEl.addEventListener('click', () => {
+                    selectEl.value = opt.value;
+                    selectEl.dispatchEvent(new Event('change')); 
+                    closePopup();
+                });
+                activePopup.appendChild(optEl);
             });
-            wrapper.classList.toggle('open');
+
+            document.body.appendChild(activePopup);
+
+            requestAnimationFrame(() => {
+                activeOverlay.classList.add('active');
+                activePopup.classList.add('active');
+            });
+
+            activeOverlay.addEventListener('click', closePopup);
         });
-    });
+    }
+
+    function initPopups() {
+        SELECT_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if(el && !el.dataset.popupInit) {
+                el.dataset.popupInit = 'true';
+                createPopupFor(el);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initPopups);
     
-    // Cerrar los dropdowns si se hace clic fuera de ellos
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
-            w.classList.remove('open');
-        });
+    window.addEventListener('resize', () => {
+        if (!isMobile()) closePopup();
     });
-}
+})();
 
-// Inicializar cuando el DOM esté listo (sin interferir con otras inicializaciones)
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCustomSelects);
-} else {
-    initCustomSelects();
-}
-
-/* ----------------------------
-    Inicialización del video foreground
-    ---------------------------- */
 function init(){
     fgContainer.style.display = 'none';
     fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
