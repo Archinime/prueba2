@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.0";
+      const APP_VERSION = "2025-04-06-v3.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -274,7 +274,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones - Fix móvil */
+  /* Notificaciones - Fix móvil: centrado */
   .notif-wrapper { position: relative; display: flex; align-items: center; }
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
@@ -333,7 +333,7 @@
   .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
 
-  /* Selects personalizados unificados (PC y móvil con estilo elegante) */
+  /* Selects personalizados unificados */
   .controls-container {
     padding: 20px 3%;
     display: flex;
@@ -344,11 +344,7 @@
     margin-bottom: 20px;
     position: relative;
   }
-  /* Ocultamos los selects nativos */
-  .controls-container select {
-    display: none;
-  }
-  /* Trigger personalizado */
+  .controls-container select { display: none; }
   .custom-select-trigger {
     background: rgba(10, 10, 15, 0.85);
     backdrop-filter: blur(8px);
@@ -386,7 +382,6 @@
     background: rgba(0,0,0,0.8);
     color: white;
   }
-  /* Dropdown flotante (PC) */
   .custom-select-dropdown {
     position: absolute;
     background: #0f0f13;
@@ -414,7 +409,6 @@
     background: rgba(0, 243, 255, 0.15);
     color: var(--neon-cyan);
   }
-  /* Móvil: popup centrado (igual que antes, pero más limpio) */
   .select-popup-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -556,7 +550,6 @@
   .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
-  /* Responsive grid */
   @media (max-width: 768px) {
     .controls-container { gap: 10px; padding: 12px 16px; }
     .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -570,7 +563,6 @@
     .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   }
 
-  /* Animaciones */
   @keyframes trueGlitch { 0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
     20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); transform: translate(2px, -1px); }
     40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); transform: translate(-2px, 2px); }
@@ -686,7 +678,6 @@
   </div>
 
   <div class="controls-container controls" id="controls">
-    <!-- Los selects nativos se ocultan, los triggers se crean con JS -->
     <select id="genre-select">
         <option value="">🎭 Todos los géneros</option>
         <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
@@ -727,18 +718,527 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
+  <!-- INICIO: notification-system.js integrado y modificado -->
+  <script>
+    // notification-system.js (modificado)
+    // - Colores de badges en popups: NUEVO -> morado, ESTRENO -> rojo, PRÓXIMAMENTE -> amarillo
+    // - Menú de notificaciones en móviles centrado (ya aplicado en CSS)
+    
+    let notificationQueue = [];
+    let notificationsHistory = [];
+    let isMenuOpen = false;
+    let repliesUnsubscribe = null;
+    let isFirstTimeSetup = false;
+
+    if (typeof disableBodyScroll !== 'function') {
+      window.disableBodyScroll = function() {
+        document.body.classList.add('modal-open');
+        document.documentElement.classList.add('modal-open');
+      };
+      window.enableBodyScroll = function() {
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHistoryFromStorage();
+        if (typeof animes !== 'undefined') {
+            checkForNewUpdates();
+        } else {
+            console.warn('Sistema de Notificaciones: index-data.js no cargado.');
+        }
+        renderNotificationList();
+        updateBellBadge();
+
+        if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    syncNotificationsWithCloud(user.uid);
+                    listenForReplies(user.uid);
+                } else {
+                    if (repliesUnsubscribe) repliesUnsubscribe();
+                }
+            });
+        }
+    });
+
+    function loadHistoryFromStorage() {
+        const stored = localStorage.getItem('archinime_notif_history');
+        if (stored) {
+            try { 
+                notificationsHistory = JSON.parse(stored);
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+            } catch(e) { 
+                notificationsHistory = [];
+            }
+        }
+    }
+
+    function saveHistoryToStorage() {
+        localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
+        let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+        updateBellBadge();
+        if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
+            db.collection('users').doc(auth.currentUser.uid).set({
+                notifHistory: notificationsHistory,
+                seenNotifIds: seenNotifIds
+            }, { merge: true }).catch(e => console.error("Error guardando notifs en la nube", e));
+        }
+    }
+
+    async function syncNotificationsWithCloud(uid) {
+        try {
+            const docRef = db.collection('users').doc(uid);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.seenNotifIds) {
+                    let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+                    let mergedSeen = Array.from(new Set([...localSeen, ...data.seenNotifIds]));
+                    if (mergedSeen.length > 1000) mergedSeen = mergedSeen.slice(-1000);
+                    localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(mergedSeen));
+                }
+                if (data.notifHistory) {
+                    const cloudHistory = data.notifHistory || [];
+                    let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+                    let newQueue = [];
+                    notificationQueue.forEach(q => {
+                        const inCloud = cloudHistory.find(c => c.notifId === q.notifId);
+                        if (!inCloud && !localSeen.includes(q.notifId)) {
+                            newQueue.push(q);
+                        }
+                    });
+                    notificationQueue = newQueue;
+                    let merged = [...notificationsHistory, ...cloudHistory];
+                    let uniqueMap = new Map();
+                    merged.forEach(n => {
+                        if (uniqueMap.has(n.notifId)) {
+                            if (n.seen) uniqueMap.set(n.notifId, n);
+                        } else {
+                            uniqueMap.set(n.notifId, n);
+                        }
+                    });
+                    notificationsHistory = Array.from(uniqueMap.values()).sort((a,b) => b.date - a.date).slice(0, 50);
+                }
+            }
+            saveHistoryToStorage();
+            renderNotificationList();
+            updateBellBadge();
+        } catch (e) {
+            console.error("Error sincronizando notificaciones:", e);
+        }
+    }
+
+    function listenForReplies(uid) {
+        if (repliesUnsubscribe) repliesUnsubscribe();
+        repliesUnsubscribe = db.collection('comments')
+            .where('replyToUserId', '==', uid)
+            .orderBy('timestamp', 'desc')
+            .limit(20)
+            .onSnapshot(snapshot => {
+                let hasNew = false;
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        if (data.userId === uid) return;
+                        const docId = change.doc.id;
+                        const notifId = `reply_${docId}`;
+                        const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
+                        if (!alreadyExists) {
+                            let rawText = data.texto || "";
+                            let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+                            if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
+                            const newNotif = {
+                                notifId: notifId,
+                                type: 'RESPUESTA',
+                                animeId: data.animeId,
+                                title: `¡${data.userName} te respondió!`,
+                                img: data.userAvatar || 'invitado.avif',
+                                seasonCover: data.userAvatar || 'invitado.avif',
+                                blockName: 'Foro',
+                                epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
+                                date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
+                                seen: false,
+                                isFinal: false,
+                                url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
+                            };
+                            notificationsHistory.unshift(newNotif);
+                            hasNew = true;
+                        }
+                    }
+                });
+                if (hasNew) {
+                    if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                    saveHistoryToStorage();
+                    renderNotificationList();
+                    if (!isMenuOpen) updateBellBadge();
+                }
+            }, error => {
+                console.error("Error al escuchar respuestas:", error);
+            });
+    }
+
+    function checkForNewUpdates() {
+        const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
+        updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
+
+        let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+        let hasChanges = false;
+        const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
+        
+        if (isFirstVisit) {
+            const newNotifsToAdd = [];
+            const popupsToQueue = [];
+            const latestFive = updatedAnimes.slice(0, 5);
+            const rest = updatedAnimes.slice(5);
+            
+            latestFive.forEach(anime => {
+                const notifId = `${anime.id}_${anime.lastUpdate}`;
+                if (!seenNotifIds.includes(notifId)) {
+                    seenNotifIds.push(notifId);
+                    hasChanges = true;
+                    const newNotif = {
+                        notifId: notifId,
+                        animeId: anime.id,
+                        title: anime.title,
+                        img: anime.img,
+                        seasonCover: anime.latestSeasonCover || anime.img,
+                        blockName: anime.latestBlockName || "",
+                        epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                        type: anime.updateType,
+                        date: anime.lastUpdate,
+                        seen: true,
+                        isFinal: anime.isFinal || false,
+                        popupShown: true
+                    };
+                    newNotifsToAdd.push(newNotif);
+                    popupsToQueue.push(newNotif);
+                }
+            });
+            rest.forEach(anime => {
+                const notifId = `${anime.id}_${anime.lastUpdate}`;
+                if (!seenNotifIds.includes(notifId)) {
+                    seenNotifIds.push(notifId);
+                    hasChanges = true;
+                    const newNotif = {
+                        notifId: notifId,
+                        animeId: anime.id,
+                        title: anime.title,
+                        img: anime.img,
+                        seasonCover: anime.latestSeasonCover || anime.img,
+                        blockName: anime.latestBlockName || "",
+                        epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                        type: anime.updateType,
+                        date: anime.lastUpdate,
+                        seen: true,
+                        isFinal: anime.isFinal || false,
+                        popupShown: false
+                    };
+                    newNotifsToAdd.push(newNotif);
+                }
+            });
+            if (newNotifsToAdd.length > 0) {
+                notificationsHistory = [...newNotifsToAdd, ...notificationsHistory];
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                saveHistoryToStorage();
+                notificationQueue = notificationQueue.concat(popupsToQueue.slice(0, 5));
+            }
+        } 
+        else {
+            updatedAnimes.forEach(anime => {
+                if (anime.updateType.includes("ACTUALIZACIÓN")) return;
+                if (anime.updateType === "Ninguna") return;
+                const notifId = `${anime.id}_${anime.lastUpdate}`;
+                if (!seenNotifIds.includes(notifId)) {
+                    seenNotifIds.push(notifId);
+                    hasChanges = true;
+                    const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
+                    if (!existsInHistory) {
+                        const newNotif = {
+                            notifId: notifId,
+                            animeId: anime.id,
+                            title: anime.title,
+                            img: anime.img,
+                            seasonCover: anime.latestSeasonCover || anime.img,
+                            blockName: anime.latestBlockName || "",
+                            epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                            type: anime.updateType,
+                            date: anime.lastUpdate,
+                            seen: false,
+                            isFinal: anime.isFinal || false,
+                            popupShown: true
+                        };
+                        notificationsHistory.unshift(newNotif);
+                        notificationQueue.push(newNotif);
+                    }
+                }
+            });
+            if (hasChanges) {
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                saveHistoryToStorage();
+            }
+        }
+        
+        if (hasChanges) {
+            if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+            localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+        }
+    }
+
+    window.startNotificationSequence = function() {
+        showNextPopup();
+    };
+    function showNextPopup() {
+        if (notificationQueue.length === 0) return;
+        const notif = notificationQueue[0];
+        createPopupHTML(notif);
+    }
+
+    function createPopupHTML(notif) {
+        const existing = document.getElementById('eventModal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'eventModal';
+        const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
+        let infoString = "";
+        if (notif.blockName && notif.blockName !== "Novedad") {
+            infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+        }
+        if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") {
+            if (infoString !== "") infoString += " • ";
+            infoString += `<span style="color:#fff">${notif.epTitle}</span>`;
+        } else if (infoString === "") {
+            infoString = "Nuevo Contenido";
+        }
+
+        // Asignar clase según tipo: NUEVO -> morado, ESTRENO -> rojo, PRÓXIMAMENTE -> amarillo
+        let badgeClass = "badge-default";
+        let badgeColor = "#bc13fe"; // morado por defecto (NUEVO)
+        if (notif.type.includes("ESTRENO")) {
+            badgeClass = "badge-estreno";
+            badgeColor = "#ff0055"; // rojo
+        } else if (notif.type.includes("PRÓXIMAMENTE")) {
+            badgeClass = "badge-prox";
+            badgeColor = "#f1c40f"; // amarillo
+        } else if (notif.type.includes("NUEVO")) {
+            badgeClass = "badge-nuevo";
+            badgeColor = "#bc13fe"; // morado
+        }
+        
+        let finalImgHTML = '';
+        if (notif.isFinal) {
+            finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
+        }
+
+        modal.innerHTML = `
+            <div class="event-card">
+                <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="event-visuals">
+                    <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+                    <div class="covers-container">
+                        <img src="${notif.img}" class="cover-back" alt="Poster">
+                        <img src="${notif.seasonCover}" class="cover-front" alt="Season">
+                    </div>
+                    <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>
+                    ${finalImgHTML}
+                </div>
+                <div class="event-info">
+                    <h2 class="event-title">${notif.title}</h2>
+                    <div class="event-meta">${infoString}</div>
+                    <p class="event-desc">${indieMessage}</p>
+                    <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
+                        <i class="fas fa-play"></i> VER AHORA
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        if (typeof disableBodyScroll === 'function') disableBodyScroll();
+        setTimeout(() => modal.classList.add('show'), 50);
+    }
+
+    function closePopup() {
+        const modal = document.getElementById('eventModal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.remove();
+                const processed = notificationQueue.shift();
+                if (processed && !processed.seen) {
+                    markAsRead(processed.notifId);
+                }
+                if (typeof enableBodyScroll === 'function') enableBodyScroll();
+                showNextPopup();
+            }, 300);
+        }
+    }
+
+    function goToAnimeFromPopup(animeId, notifId) {
+        if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) {
+            markAsRead(notifId);
+        }
+        notificationQueue = [];
+        if (typeof enableBodyScroll === 'function') enableBodyScroll();
+        window.location.href = `anime-detail.html?id=${animeId}`;
+    }
+
+    function toggleNotifMenu() {
+        const menu = document.getElementById('notifMenu');
+        isMenuOpen = !isMenuOpen;
+        if (isMenuOpen) {
+            menu.classList.add('active');
+            if (typeof disableBodyScroll === 'function') disableBodyScroll();
+            renderNotificationList();
+        } else {
+            menu.classList.remove('active');
+            if (typeof enableBodyScroll === 'function') enableBodyScroll();
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const wrapper = document.querySelector('.notif-wrapper');
+        const menu = document.getElementById('notifMenu');
+        if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
+            isMenuOpen = false;
+            if(menu) menu.classList.remove('active');
+            if (typeof enableBodyScroll === 'function') enableBodyScroll();
+        }
+    });
+
+    function renderNotificationList() {
+        const listContainer = document.getElementById('notifList');
+        if (!listContainer) return;
+        
+        requestAnimationFrame(() => {
+            if (notificationsHistory.length === 0) {
+                listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
+                return;
+            }
+
+            const visibleCount = Math.min(notificationsHistory.length, 30);
+            const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date).slice(0, visibleCount);
+            const fragment = document.createDocumentFragment();
+            
+            sortedHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'notif-item';
+                
+                let imgBoxClass = 'notif-img-box';
+                if (item.type === 'RESPUESTA') {
+                    imgBoxClass += ' rounded-avatar';
+                }
+          
+                let infoString = "";
+                if (item.blockName && item.blockName !== "Novedad") {
+                    infoString += `<span class="n-block">${item.blockName}</span>`;
+                }
+                if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
+                    if (infoString !== "") infoString += " ";
+                    infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
+                } else if (infoString === "") {
+                    infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+                }
+
+                let typeColor = "var(--neon-purple)";
+                if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
+                else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+                else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
+
+                let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
+                const unreadDot = !item.seen ?
+                    '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
+                
+                div.innerHTML = `
+                    <div style="position: relative; display: inline-block;">
+                        ${unreadDot}
+                        <div class="${imgBoxClass}">
+                            <img src="${item.seasonCover}" alt="cover" loading="lazy">
+                        </div>
+                    </div>
+                    <div class="notif-content">
+                        <div class="notif-header-line">
+                             <span class="n-title">${item.title}</span>
+                        </div>
+                        <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
+                        <div class="n-meta">${infoString}</div>
+                    </div>
+                `;
+                
+                div.addEventListener('click', (e) => {
+                    if (!item.seen) {
+                        markAsRead(item.notifId);
+                        item.seen = true;
+                        updateBellBadge();
+                        const dot = div.querySelector('.unread-dot');
+                        if (dot) dot.remove();
+                    }
+                    if (item.url) {
+                        window.location.href = item.url;
+                    } else {
+                        window.location.href = `anime-detail.html?id=${item.animeId}`;
+                    }
+                });
+                fragment.appendChild(div);
+            });
+            
+            listContainer.innerHTML = '';
+            listContainer.appendChild(fragment);
+            
+            if (notificationsHistory.length > 30) {
+                const moreDiv = document.createElement('div');
+                moreDiv.className = 'notif-item';
+                moreDiv.style.justifyContent = 'center';
+                moreDiv.style.opacity = '0.7';
+                moreDiv.innerHTML = `<div style="text-align:center; width:100%;"><i class="fas fa-ellipsis-h"></i> ${notificationsHistory.length - 30} notificaciones antiguas</div>`;
+                fragment.appendChild(moreDiv);
+            }
+        });
+    }
+
+    function updateBellBadge() {
+        const unread = notificationsHistory.filter(n => !n.seen).length;
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+            if (unread > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = unread > 9 ? '+9' : unread;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    function markAsRead(notifId) {
+        const target = notificationsHistory.find(n => n.notifId === notifId);
+        if (target && !target.seen) {
+            target.seen = true;
+            saveHistoryToStorage();
+            updateBellBadge();
+            renderNotificationList();
+        }
+    }
+
+    // Exponer funciones globales necesarias
+    window.toggleNotifMenu = toggleNotifMenu;
+    window.closePopup = closePopup;
+    window.goToAnimeFromPopup = goToAnimeFromPopup;
+  </script>
+  <!-- FIN: notification-system.js modificado -->
+
   <script>
     const version = Date.now();
     document.write('<script src="index-data.js?v=' + version + '"><\/script>');
     document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
     document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="notification-system.js?v=' + version + '" defer><\/script>');
     document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
   </script>
 
-  <!-- Script para selects personalizados unificados (PC + móvil con estilo elegante) -->
+  <!-- Script para selects personalizados unificados (PC + móvil) -->
   <script>
-    // Funciones para bloquear/desbloquear scroll
     function disableBodyScroll() {
       document.body.classList.add('modal-open');
       document.documentElement.classList.add('modal-open');
@@ -748,7 +1248,6 @@
       document.documentElement.classList.remove('modal-open');
     }
 
-    // Sistema de selects personalizados
     (function() {
       const selects = ['genre-select', 'demographic-select', 'rating-select'];
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
@@ -758,33 +1257,25 @@
         trigger.textContent = selected ? selected.textContent : selectEl.options[0].textContent;
       }
 
-      // Crear trigger y manejar eventos
       selects.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
 
-        // Crear trigger
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
         updateTriggerText(trigger, select);
-        
-        // Insertar antes del select
         select.parentNode.insertBefore(trigger, select);
         
-        // Función para abrir el selector
         const openSelector = () => {
           if (isMobile) {
-            // Popup centrado (móvil)
             const overlay = document.createElement('div');
             overlay.className = 'select-popup-overlay';
             const popup = document.createElement('div');
             popup.className = 'select-popup';
-            
             const header = document.createElement('div');
             header.className = 'select-popup-header';
             header.textContent = select.getAttribute('aria-label') || 'Seleccionar';
             popup.appendChild(header);
-            
             Array.from(select.options).forEach(opt => {
               const optDiv = document.createElement('div');
               optDiv.className = 'select-popup-option';
@@ -798,32 +1289,25 @@
               });
               popup.appendChild(optDiv);
             });
-            
             overlay.appendChild(popup);
             document.body.appendChild(overlay);
-            
             function closePopup() {
               overlay.classList.remove('active');
               enableBodyScroll();
               setTimeout(() => overlay.remove(), 300);
             }
-            
             overlay.addEventListener('click', (e) => { if (e.target === overlay) closePopup(); });
             disableBodyScroll();
             setTimeout(() => overlay.classList.add('active'), 10);
           } else {
-            // Dropdown flotante (PC)
-            // Eliminar dropdown previo si existe
             const existing = document.querySelector('.custom-select-dropdown');
             if (existing) existing.remove();
-            
             const rect = trigger.getBoundingClientRect();
             const dropdown = document.createElement('div');
             dropdown.className = 'custom-select-dropdown';
             dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
             dropdown.style.left = (rect.left + window.scrollX) + 'px';
             dropdown.style.minWidth = rect.width + 'px';
-            
             Array.from(select.options).forEach(opt => {
               const optDiv = document.createElement('div');
               optDiv.className = 'custom-select-option';
@@ -840,9 +1324,7 @@
               });
               dropdown.appendChild(optDiv);
             });
-            
             document.body.appendChild(dropdown);
-            
             const closeDropdown = (e) => {
               if (!dropdown.contains(e.target) && e.target !== trigger) {
                 dropdown.remove();
@@ -856,7 +1338,6 @@
             }, 10);
           }
         };
-        
         trigger.addEventListener('click', openSelector);
       });
     })();
@@ -894,7 +1375,6 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0]; 
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; 
         loginItem.onclick = () => logoutUser(); 
-        // Admin button eliminado, no mostramos nada
         db.collection('users').doc(user.uid).get().then(doc => { 
           let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); 
           avatarBtn.style.borderColor = color; 
@@ -924,32 +1404,8 @@
     document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
     
-    // Toggle notificaciones con bloqueo de scroll (ya está mejorado en CSS)
-    window.toggleNotifMenu = function() { 
-      const menu = document.getElementById('notifMenu'); 
-      const isActive = menu.classList.contains('active');
-      if (!isActive) {
-        menu.classList.add('active');
-        disableBodyScroll();
-      } else {
-        menu.classList.remove('active');
-        enableBodyScroll();
-      }
-    };
-    
-    // Cerrar menú de notificaciones al hacer clic fuera
-    document.addEventListener('click', (e) => {
-      const wrapper = document.querySelector('.notif-wrapper');
-      const menu = document.getElementById('notifMenu');
-      if (wrapper && !wrapper.contains(e.target) && menu && menu.classList.contains('active')) {
-        menu.classList.remove('active');
-        enableBodyScroll();
-      }
-    });
-    
     window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
     
-    // Efecto tilt en cards
     const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
     const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
