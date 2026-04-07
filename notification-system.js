@@ -1,8 +1,4 @@
 // notification-system.js
-// (El contenido es el mismo que te di anteriormente, pero lo incluyo por completitud)
-// Asegúrate de que este archivo tenga el código que ya te proporcioné.
-// Si no lo tienes, aquí está completo (sin cambios respecto a la versión anterior, pero funciona correctamente con el nuevo CSS).
-
 /* Sistema de notificaciones optimizado: 
    - Renderizado con DocumentFragment y límite de 30 notificaciones visibles.
    - Uso de requestAnimationFrame para evitar bloqueos de UI.
