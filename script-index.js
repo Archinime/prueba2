@@ -90,6 +90,7 @@ function render(list) {
             </button>
         </div>
         `;
+        
         const btn = document.getElementById('btn-reset');
         if (btn) btn.addEventListener('click', () => {
             document.getElementById('search').value = '';
@@ -102,10 +103,9 @@ function render(list) {
         return;
     }
 
-    // OPTIMIZACIÓN: innerHTML en un solo paso
     grid.innerHTML = list.map(a => `
     <div class="card" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0">
-        <img src="${a.img}" alt="${a.title}" loading="lazy">
+        <img src="${a.img}" alt="${a.title}">
         <div class="info"><strong>${a.title}</strong><span>⭐ ${a.rating ? (a.rating.toFixed? a.rating.toFixed(1): a.rating) : '—'}</span></div>
     </div>
     `).join('');
@@ -113,13 +113,9 @@ function render(list) {
 
 function updateResultsCount(count){ const el = document.getElementById('results-count'); if (el) el.textContent = count; }
 
-function debounce(fn, wait){ 
-    let t; 
-    return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; 
-}
+function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
 
-const debouncedFiltro = debounce(filtro, 150); // Ligeramente más rápido
-
+const debouncedFiltro = debounce(filtro, 200);
 function normalizeText(s){
     try {
         return (s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
@@ -132,30 +128,19 @@ function getBestTitleForSort(a){
     const titles = [a.title].concat(a.aliases || []);
     const norm = titles.map(t=>normalizeText(t)); 
     norm.sort(); 
-    return norm[0];
-}
-
-// OPTIMIZACIÓN CRÍTICA: Pre-calcular strings normalizados una vez para evitar lag al escribir
-function precalcularTextos() {
-    if (typeof animes !== 'undefined') {
-        animes.forEach(a => {
-            a._normTitle = normalizeText(a.title);
-            a._normAliases = (a.aliases || []).map(t => normalizeText(t));
-            a._bestTitleSort = getBestTitleForSort(a);
-        });
-    }
+    return norm[0]; 
 }
 
 function filtro(){
     const qRaw = document.getElementById('search').value || '';
-    const qn = normalizeText(qRaw.trim());
+    const q = qRaw.trim(); const qn = normalizeText(q);
     const g = document.getElementById('genre-select').value;
     const d = document.getElementById('demographic-select') ? document.getElementById('demographic-select').value : '';
     const cat = document.getElementById('rating-select').value;
 
     const filtrados = animes.filter(a=>{
-        // Usamos los strings precalculados (100 veces más rápido)
-        const matchesText = !qn || a._normTitle.startsWith(qn) || a._normAliases.some(t => t.startsWith(qn));
+        const titles = [a.title].concat(a.aliases || []);
+        const matchesText = !qn || titles.some(t => normalizeText(t).startsWith(qn));
         const byGenre = !g || (a.genres && a.genres.includes(g));
         const byDemo  = !d || (a.genres && a.genres.includes(d));
         let byRating = true;
@@ -170,13 +155,16 @@ function filtro(){
     let resultList = filtrados.slice();
     if (qn) {
         resultList.sort((A,B)=>{
-            const aStarts = A._normTitle.startsWith(qn) || A._normAliases.some(t=>t.startsWith(qn));
-            const bStarts = B._normTitle.startsWith(qn) || B._normAliases.some(t=>t.startsWith(qn));
+            const titlesA = [A.title].concat(A.aliases||[]).map(t=>normalizeText(t));
+            const titlesB = [B.title].concat(B.aliases||[]).map(t=>normalizeText(t));
+            const aStarts = titlesA.some(t=>t.startsWith(qn));
+            const bStarts = titlesB.some(t=>t.startsWith(qn));
             if (aStarts !== bStarts) return aStarts ? -1 : 1;
-            return A._bestTitleSort < B._bestTitleSort ? -1 : A._bestTitleSort > B._bestTitleSort ? 1 : 0;
+            const na = getBestTitleForSort(A); const nb = getBestTitleForSort(B);
+            return na < nb ? -1 : na > nb ? 1 : 0;
         });
     } else {
-        resultList.sort((A,B)=> A._normTitle < B._normTitle ? -1 : A._normTitle > B._normTitle ? 1 : 0);
+        resultList.sort((A,B)=> normalizeText(A.title) < normalizeText(B.title) ? -1 : normalizeText(A.title) > normalizeText(B.title) ? 1 : 0);
     }
 
     render(resultList);
@@ -189,11 +177,10 @@ function shuffleArray(arr){
         const j=Math.floor(Math.random()*(i+1)); 
         [a[i],a[j]]=[a[j],a[i]]; 
     } 
-    return a;
+    return a; 
 }
 
 if (typeof animes !== 'undefined') {
-    precalcularTextos(); // Inicializamos el caché de textos
     render(shuffleArray(animes));
     updateResultsCount(animes.length);
 } else {
@@ -281,7 +268,7 @@ const fgCanvas = document.getElementById('fgCanvas');
 const fgVideo = document.getElementById('fgVideo');
 const bgVideo = document.getElementById('bg-video');
 const bgMusic = document.getElementById('bg-music');
-const ctx = fgCanvas ? (fgCanvas.getContext ? fgCanvas.getContext('2d', { alpha: true }) : null) : null;
+const ctx = fgCanvas.getContext ? fgCanvas.getContext('2d', { alpha: true }) : null;
 
 let off = document.createElement('canvas');
 let offCtx = off.getContext ? off.getContext('2d') : null;
@@ -303,7 +290,6 @@ function pickRandomVideo(excludeId){
 }
 
 function placeRandomSide(infoObj){
-    if(!fgContainer) return;
     const side = Math.random() < 0.5 ? 'left' : 'right';
     const margin = window.matchMedia('(max-width:767px)').matches ? '12px' : '20px';
     if (side === 'left') { fgContainer.style.left = margin; fgContainer.style.right = ''; }
@@ -327,12 +313,12 @@ function drawProcessedToScreen(){
 }
 
 function adjustContainerToVideo(video, infoObj){
-    if(!fgContainer || !fgCanvas) return;
     const vw = video.videoWidth || 16;
     const vh = video.videoHeight || 9;
     const hints = getPerformanceHints();
     let maxW = Math.min(window.innerWidth * 0.32, 360);
     let maxH = Math.min(window.innerHeight * 0.4, 640);
+    
     if (window.matchMedia('(max-width:767px)').matches) {
         if (infoObj && infoObj.id === 'rem') {
             maxW = Math.min(window.innerWidth * 0.30, 180);
@@ -360,6 +346,7 @@ function adjustContainerToVideo(video, infoObj){
     fgCanvas.height = Math.round(displayH * dpr);
     fgCanvas.style.width = displayW + 'px';
     fgCanvas.style.height = displayH + 'px';
+    
     if (ctx && typeof ctx.setTransform === 'function') {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
@@ -390,10 +377,12 @@ function applyChromaKey(imageData, settings, keyColor = 'green'){
     const len = data.length;
     const thresh = settings.threshold ?? 0.4; const minDiff = settings.diff ?? 30;
     const soften = settings.soft ?? 30;
+    
     for (let i = 0; i < len; i += 4) {
         const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
         if (a === 0) continue;
         const sum = r + g + b + 1;
+        
         if (keyColor === 'blue') {
             const maxrg = Math.max(r, g);
             const blueScore = (b - maxrg) / sum;
@@ -426,13 +415,14 @@ function applyChromaKey(imageData, settings, keyColor = 'green'){
 function processFrame(video, infoObj){
     if (!usingChroma || visibilityPaused) return;
     if (video.paused || video.ended) return;
-    if (!offCtx || !fgCanvas || !fgVideo) return;
+    if (!offCtx) return;
+    
     try { 
         offCtx.drawImage(video, 0, 0, off.width, off.height);
     } catch (err) {
         usingChroma = false; fgCanvas.style.display = 'none';
         fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ let p = document.getElementById('playOverlay'); if(p) p.style.display = 'flex'; });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
         return;
     }
     
@@ -441,7 +431,7 @@ function processFrame(video, infoObj){
         frame = offCtx.getImageData(0,0,off.width,off.height);
     } catch (err) {
         usingChroma = false; fgCanvas.style.display = 'none'; fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ let p = document.getElementById('playOverlay'); if(p) p.style.display = 'flex'; });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
         return;
     }
     
@@ -456,7 +446,7 @@ function startChromaIntervalIfNeeded(infoObj){
     const hints = getPerformanceHints();
     chromaFps = hints.processingScale >= 0.85 ? 30 : hints.processingScale >= 0.6 ? 20 : 12;
     stopChromaInterval();
-    if (!usingChroma || visibilityPaused || !fgVideo) return;
+    if (!usingChroma || visibilityPaused) return;
     chromaIntervalId = setInterval(()=>{ processFrame(fgVideo, infoObj); }, Math.round(1000 / chromaFps));
 }
 
@@ -464,12 +454,8 @@ function stopChromaInterval(){
     if (chromaIntervalId) { clearInterval(chromaIntervalId); chromaIntervalId = null; }
 }
 
-function showContainer(){ 
-    if(fgContainer){ fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter');}
-}
-function hideContainerInstantlyForTransition(){ 
-    if(fgContainer){ fgContainer.classList.remove('enter'); fgContainer.classList.add('exit'); }
-}
+function showContainer(){ fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter'); }
+function hideContainerInstantlyForTransition(){ fgContainer.classList.remove('enter'); fgContainer.classList.add('exit'); }
 
 function scheduleNextVideo(afterSeconds = 3, excludeId = null){
     if (scheduledTimer){ clearTimeout(scheduledTimer); scheduledTimer = null; }
@@ -489,13 +475,15 @@ fireCanvas.style.width = '100%';
 fireCanvas.style.height = '100%';
 fireCanvas.style.zIndex = '9999';
 fireCanvas.style.pointerEvents = 'none';
+
 if (fgContainer) {
     fgContainer.appendChild(fireCanvas);
+} else {
+    console.warn('fgContainer no existe al crear fireCanvas — creando canvas sin appendChild.');
 }
 const fctx = fireCanvas.getContext ? fireCanvas.getContext('2d') : null;
 
 function resizeFireCanvas(){
-    if(!fgContainer) return;
     const rect = fgContainer.getBoundingClientRect();
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const w = Math.max(1, Math.floor(rect.width * dpr));
@@ -506,14 +494,13 @@ function resizeFireCanvas(){
         fireCanvas.height = h;
         fireCanvas.style.width = rect.width + 'px';
         fireCanvas.style.height = rect.height + 'px';
-        if(fctx) fctx.setTransform(dpr,0,0,dpr,0,0);
+        fctx.setTransform(dpr,0,0,dpr,0,0);
     }
 }
 window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
 
 function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
-    if(!fgContainer) return Promise.resolve();
     const hints = getPerformanceHints();
     const rect = fgContainer.getBoundingClientRect();
     const areaFactor = Math.min(2.2, Math.max(0.45, (rect.width * rect.height) / (360 * 640)));
@@ -523,6 +510,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
     else if (hints.processingScale < 0.6) effectiveCount = Math.max(18, Math.round(effectiveCount * 0.45));
     else if (hints.processingScale < 0.85) effectiveCount = Math.max(28, Math.round(effectiveCount * 0.7));
     effectiveCount = Math.min(220, effectiveCount);
+    
     const targetFps = hints.processingScale >= 0.85 ? 50 : hints.processingScale >= 0.6 ? 36 : 24;
     const frameInterval = 1000 / targetFps;
 
@@ -545,6 +533,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 
     const safeTimeoutMs = Math.round(duration + 400);
     const start = performance.now();
+    
     return new Promise(resolve => {
         let lastFrameTime = 0;
         let finished = false;
@@ -577,6 +566,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
                     p.x += p.vx * (dt/16.67);
                     p.y += p.vy * (dt/16.67);
                     p.vy += 0.16 * (dt/16.67);
+
                     const alpha = Math.max(0, Math.min(1, lifeRatio));
                     fctx.globalAlpha = alpha;
                     fctx.beginPath();
@@ -616,7 +606,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 }
 
 async function doFireworkThenHide(){
-    if (isAnimatingExplosion || !fgContainer || !fgVideo) return;
+    if (isAnimatingExplosion) return;
     isAnimatingExplosion = true;
     try {
         await new Promise(r => setTimeout(r, 8));
@@ -646,23 +636,24 @@ async function doFireworkThenHide(){
 }
 
 async function playVideoClip(infoObj){
-    if (!infoObj || !fgVideo) return;
+    if (!infoObj) return;
     currentVideoObj = infoObj;
     usingChroma = true;
     if (lastObjectUrl) { try { URL.revokeObjectURL(lastObjectUrl); } catch(e){}; lastObjectUrl = null; }
 
     fgVideo.src = infoObj.src;
     fgVideo.load();
+    
     const onMeta = () => {
         fgVideo.removeEventListener('loadedmetadata', onMeta);
         if (infoObj.id === 'hola') { fgContainer.style.bottom = '0px'; }
         else { fgContainer.style.bottom = '20px'; }
         placeRandomSide(infoObj);
         adjustContainerToVideo(fgVideo, infoObj);
-        if(fgCanvas) fgCanvas.style.display = 'block';
+        fgCanvas.style.display = 'block';
         fgVideo.style.display = 'none';
         fgVideo.play().catch(()=>{});
-        if(bgVideo) bgVideo.play().catch(()=>{});
+        bgVideo.play().catch(()=>{});
         startChromaIntervalIfNeeded(infoObj);
         showContainer();
     };
@@ -670,49 +661,44 @@ async function playVideoClip(infoObj){
     fgVideo.addEventListener('loadedmetadata', onMeta);
     fgVideo.onerror = (e) => {
         usingChroma = false;
-        if(fgCanvas) fgCanvas.style.display = 'none';
+        fgCanvas.style.display = 'none';
         fgVideo.style.display = 'block';
-        fgVideo.play().catch(()=>{ let p = document.getElementById('playOverlay'); if(p) p.style.display = 'flex'; });
+        fgVideo.play().catch(()=>{ document.getElementById('playOverlay').style.display = 'flex'; });
     };
+
     fgVideo.onended = () => {
         scheduleNextVideo(3, infoObj.id);
     };
 }
 
-if(fgContainer) {
-    fgContainer.addEventListener('click', async (ev) => {
-        if (isAnimatingExplosion) return;
-        if (scheduledTimer) { clearTimeout(scheduledTimer); scheduledTimer = null; }
-        usingChroma = false;
-        stopChromaInterval();
-        try {
-            await doFireworkThenHide();
-        } catch (err) {
-            console.warn('Error during fireworks click flow:', err);
-        }
-        const currentId = currentVideoObj ? currentVideoObj.id : null;
-        const next = pickRandomVideo(currentId);
-        setTimeout(() => { playVideoClip(next); }, 420);
-    });
-}
+fgContainer.addEventListener('click', async (ev) => {
+    if (isAnimatingExplosion) return;
+    if (scheduledTimer) { clearTimeout(scheduledTimer); scheduledTimer = null; }
+    usingChroma = false;
+    stopChromaInterval();
+    try {
+        await doFireworkThenHide();
+    } catch (err) {
+        console.warn('Error during fireworks click flow:', err);
+    }
+    const currentId = currentVideoObj ? currentVideoObj.id : null;
+    const next = pickRandomVideo(currentId);
+    setTimeout(() => { playVideoClip(next); }, 420);
+});
 
-const playBtnEl = document.getElementById('playBtn');
-if(playBtnEl) {
-    playBtnEl.addEventListener('click', ()=>{
-        document.getElementById('playOverlay').style.display = 'none';
-        if(bgVideo) bgVideo.play().catch(()=>{}); 
-        if(fgVideo) fgVideo.play().catch(()=>{});
-        try { if(bgMusic) bgMusic.play().catch(()=>{}); } catch(e){}
-        if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
-    });
-}
+document.getElementById('playBtn').addEventListener('click', ()=>{
+    document.getElementById('playOverlay').style.display = 'none';
+    bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
+    try { bgMusic.play().catch(()=>{}); } catch(e){}
+    if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
+});
 
 let resizeRaf = null;
 window.addEventListener('resize', ()=> {
     if (resizeRaf) return;
     resizeRaf = requestAnimationFrame(()=> {
         resizeFireCanvas();
-        if (currentVideoObj && fgVideo && fgVideo.videoWidth && fgVideo.videoHeight) {
+        if (currentVideoObj && fgVideo.videoWidth && fgVideo.videoHeight) {
             adjustContainerToVideo(fgVideo, currentVideoObj);
         }
         resizeRaf = null;
@@ -732,7 +718,7 @@ document.addEventListener('visibilitychange', ()=> {
 }, {passive:true});
 
 /* ----------------------------
-    POPUP MÓVIL
+    POPUP MÓVIL (FIX: Estilos aplicados en CSS)
 ---------------------------- */
 (function mobileSelectPopups() {
     const mobileQ = () => window.matchMedia('(max-width:780px)').matches;
@@ -769,7 +755,7 @@ document.addEventListener('visibilitychange', ()=> {
                  openPopupFor(selectEl);
             }, 10);
         }, {passive:false});
-
+        
         selectEl.addEventListener('keydown', (e) => {
             if (!mobileQ()) return;
             if (e.key === 'Enter' || e.key === ' ') {
@@ -796,6 +782,7 @@ document.addEventListener('visibilitychange', ()=> {
         popup.style.maxHeight = maxHeight + 'px';
         const width = Math.min(rect.width, Math.max(120, winW - 24));
         popup.style.minWidth = Math.max(150, width) + 'px';
+        
         let top = rect.bottom + 6;
         const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 40 : maxHeight));
         if (top + estimatedHeight + pad > winH) {
@@ -863,6 +850,7 @@ document.addEventListener('visibilitychange', ()=> {
         document.addEventListener('pointerdown', outsideListener, true);
         resizeListener = () => closePopup();
         window.addEventListener('resize', resizeListener);
+        
         scrollListener = function scrollHandler(ev) {
             if (!activePopup) return;
             if (activePopup.contains(ev.target) || ev.target === selectEl) return;
@@ -892,9 +880,8 @@ document.addEventListener('visibilitychange', ()=> {
 })();
 
 function init(){
-    if(fgContainer) fgContainer.style.display = 'none';
-    if(fgCanvas) fgCanvas.style.display = 'none'; 
-    if(fgVideo) fgVideo.style.display = 'none';
+    fgContainer.style.display = 'none';
+    fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
     const first = pickRandomVideo(null);
     if (!first) return;
     playVideoClip(first);

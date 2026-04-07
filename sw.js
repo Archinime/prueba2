@@ -1,15 +1,10 @@
-// Service Worker con nombre de caché único (basado en timestamp)
-// Cada vez que se modifica este archivo, la caché anterior se invalida automáticamente.
-const CACHE_NAME = 'archinime-os-v' + Date.now();
-
+const CACHE_NAME = 'archinime-os-v' + Date.now(); // Fuerza renovación de caché
 const urlsToCache = [
-  './',
-  'index.html',
+  // No cacheamos index.html intencionalmente para evitar versión antigua
   'styles-index.css',
   'Logo_Archinime.avif'
 ];
 
-// Instalación: cachea lo básico
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -17,14 +12,12 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activación: elimina todas las cachés antiguas (cualquier nombre que no sea el actual)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Eliminando caché antigua:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -34,8 +27,18 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// Estrategia: Network First (siempre intenta ir a la red primero)
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  
+  // Nunca devolver index.html desde caché, siempre ir a la red
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  
+  // Para el resto de recursos, usar network-first
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {
@@ -45,8 +48,6 @@ self.addEventListener('fetch', event => {
         });
         return networkResponse;
       })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });
