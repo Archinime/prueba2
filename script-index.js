@@ -718,167 +718,98 @@ document.addEventListener('visibilitychange', ()=> {
 }, {passive:true});
 
 /* ----------------------------
-    POPUP MÓVIL (FIX: Estilos aplicados en CSS)
----------------------------- */
-(function mobileSelectPopups() {
-    const mobileQ = () => window.matchMedia('(max-width:780px)').matches;
-    const SELECT_IDS = ['genre-select','demographic-select','rating-select'];
-    let activePopup = null;
-    let outsideListener = null;
-    let resizeListener = null;
-    let scrollListener = null;
-
-    function closePopup() {
-        if (activePopup) {
-            try { activePopup.remove(); } catch(e){}
-            activePopup = null;
-        }
-        if (outsideListener) { document.removeEventListener('pointerdown', outsideListener, true); outsideListener = null; }
-        if (resizeListener) { window.removeEventListener('resize', resizeListener); resizeListener = null; }
-        if (scrollListener) { window.removeEventListener('scroll', scrollListener, true); scrollListener = null; }
-    }
-
-    function createPopupFor(selectEl) {
-        selectEl.addEventListener('click', function onClick(e){
-            if (!mobileQ()) return;
-            e.preventDefault();
-            e.stopPropagation();
-            openPopupFor(selectEl);
-        });
+   SISTEMA DE DROPDOWNS CUSTOM CYBERPUNK
+   (Reemplaza el selector nativo y el antiguo popup móvil)
+   ---------------------------- */
+function initCustomSelects() {
+    // Busca todos los selects dentro de tu barra de filtros
+    const selects = document.querySelectorAll('.filters select');
+    
+    selects.forEach(select => {
+        // 1. Ocultar el select nativo (ya tiene clase .native-select en CSS)
+        select.classList.add('native-select');
         
-        selectEl.addEventListener('touchend', function onTouch(e){
-            if (!mobileQ()) return;
-            setTimeout(() => {
-                if (document.activeElement === selectEl) return;
-                 e.preventDefault();
-                 e.stopPropagation();
-                 openPopupFor(selectEl);
-            }, 10);
-        }, {passive:false});
+        // 2. Crear la estructura custom
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('custom-select-wrapper');
         
-        selectEl.addEventListener('keydown', (e) => {
-            if (!mobileQ()) return;
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openPopupFor(selectEl);
+        const trigger = document.createElement('div');
+        trigger.classList.add('custom-select-trigger');
+        // El texto inicial es la opción seleccionada por defecto
+        trigger.innerHTML = `<span>${select.options[select.selectedIndex].text}</span> <i class="fas fa-chevron-down"></i>`;
+        
+        const optionsContainer = document.createElement('div');
+        optionsContainer.classList.add('custom-options');
+        
+        // 3. Generar las opciones basadas en el select real
+        Array.from(select.options).forEach(option => {
+            const customOption = document.createElement('div');
+            customOption.classList.add('custom-option');
+            customOption.textContent = option.text;
+            customOption.dataset.value = option.value;
+            
+            if (option.selected) {
+                customOption.classList.add('selected');
             }
-        });
-    }
-
-    function openPopupFor(selectEl) {
-        closePopup();
-        const rect = selectEl.getBoundingClientRect();
-        const docEl = document.documentElement;
-        const winW = Math.max(docEl.clientWidth || 0, window.innerWidth || 0);
-        const winH = Math.max(docEl.clientHeight || 0, window.innerHeight || 0);
-        
-        const popup = document.createElement('div');
-        popup.className = 'mobile-select-popup'; 
-        popup.setAttribute('role','listbox');
-        popup.setAttribute('aria-label', selectEl.getAttribute('aria-label') || 'Opciones');
-
-        const pad = 8;
-        const maxHeight = window.matchMedia('(max-width:420px)').matches ? 200 : 300;
-        popup.style.maxHeight = maxHeight + 'px';
-        const width = Math.min(rect.width, Math.max(120, winW - 24));
-        popup.style.minWidth = Math.max(150, width) + 'px';
-        
-        let top = rect.bottom + 6;
-        const estimatedHeight = Math.min(maxHeight, (selectEl.options ? selectEl.options.length * 40 : maxHeight));
-        if (top + estimatedHeight + pad > winH) {
-            top = rect.top - estimatedHeight - 6;
-            if (top < pad) top = pad;
-        }
-        popup.style.left = Math.max(pad, rect.left) + 'px';
-        popup.style.top = Math.max(pad, top) + 'px';
-
-        const opts = Array.from(selectEl.options);
-        opts.forEach((opt, idx) => {
-            const d = document.createElement('div');
-            d.className = 'opt';
-            d.setAttribute('role','option');
-            d.setAttribute('data-value', opt.value || opt.text);
-            d.setAttribute('tabindex','0');
-            if (opt.selected) d.setAttribute('aria-selected','true');
-            d.textContent = opt.textContent || opt.innerText || opt.value;
-
-            d.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                try {
-                    selectEl.value = opt.value;
-                    Array.from(selectEl.options).forEach(o => o.selected = (o.value === opt.value));
-                    const evCh = new Event('change', { bubbles: true });
-                    selectEl.dispatchEvent(evCh);
-                } catch(e){}
-                closePopup();
-                try { selectEl.focus(); } catch(e){}
+            
+            // Evento al seleccionar una opción
+            customOption.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Actualizar visualmente
+                trigger.querySelector('span').textContent = this.textContent;
+                
+                // Quitar clase selected de los demás
+                optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Cerrar el menú
+                wrapper.classList.remove('open');
+                
+                // Sincronizar con el select oculto real y disparar el evento "change"
+                select.value = this.dataset.value;
+                select.dispatchEvent(new Event('change'));
             });
             
-            d.addEventListener('keydown', (ev) => {
-                if (ev.key === 'Enter' || ev.key === ' ') {
-                    ev.preventDefault();
-                    d.click();
-                } else if (ev.key === 'ArrowDown') {
-                    ev.preventDefault();
-                    const next = d.nextElementSibling;
-                    if (next) next.focus();
-                } else if (ev.key === 'ArrowUp') {
-                    ev.preventDefault();
-                    const prev = d.previousElementSibling;
-                    if (prev) prev.focus();
-                } else if (ev.key === 'Escape') {
-                    closePopup();
-                    try { selectEl.focus(); } catch(e){}
-                }
-            });
-            popup.appendChild(d);
+            optionsContainer.appendChild(customOption);
         });
-
-        document.body.appendChild(popup);
-        activePopup = popup;
-        const selected = popup.querySelector('.opt[aria-selected="true"]') || popup.querySelector('.opt');
-        if (selected) { 
-            selected.focus();
-            popup.scrollTop = Math.max(0, selected.offsetTop - 8);
-        }
-
-        outsideListener = function outsideHandler(ev){
-            if (!activePopup) return;
-            if (ev.target === selectEl || activePopup.contains(ev.target)) return;
-            closePopup();
-        };
-        document.addEventListener('pointerdown', outsideListener, true);
-        resizeListener = () => closePopup();
-        window.addEventListener('resize', resizeListener);
         
-        scrollListener = function scrollHandler(ev) {
-            if (!activePopup) return;
-            if (activePopup.contains(ev.target) || ev.target === selectEl) return;
-            closePopup();
-        };
-        window.addEventListener('scroll', scrollListener, true);
-    }
-
-    function init() {
-        try {
-            SELECT_IDS.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) createPopupFor(el);
+        // 4. Armar el DOM
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(optionsContainer);
+        
+        // Insertar el wrapper justo después del select nativo
+        select.parentNode.insertBefore(wrapper, select.nextSibling);
+        
+        // 5. Lógica de abrir/cerrar
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Cierra otros selects abiertos
+            document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+                if (w !== wrapper) w.classList.remove('open');
             });
-        } catch(e) {
-            console.warn('mobileSelectPopups init error', e);
-        }
-    }
-
-    window.addEventListener('resize', function(){
-        if (!mobileQ()) closePopup();
-    }, { passive:true });
+            wrapper.classList.toggle('open');
+        });
+    });
     
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window._closeMobileSelectPopup = closePopup;
-})();
+    // Cerrar los dropdowns si se hace clic fuera de ellos
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            w.classList.remove('open');
+        });
+    });
+}
 
+// Inicializar cuando el DOM esté listo (sin interferir con otras inicializaciones)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomSelects);
+} else {
+    initCustomSelects();
+}
+
+/* ----------------------------
+    Inicialización del video foreground
+    ---------------------------- */
 function init(){
     fgContainer.style.display = 'none';
     fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
