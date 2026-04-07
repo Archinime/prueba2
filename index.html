@@ -118,12 +118,10 @@
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
   }
-  /* Clase para bloquear scroll cuando un popup está abierto */
-  body.no-scroll {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
+  /* Clase para bloquear scroll al abrir modales/popups */
+  body.modal-open, html.modal-open {
+    overflow: hidden !important;
+    position: relative;
   }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #020202; }
@@ -289,7 +287,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones - centrado en móvil */
+  /* Notificaciones */
   .notif-wrapper { position: relative; display: flex; align-items: center; }
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
@@ -312,19 +310,22 @@
     z-index: 2000;
     overflow: hidden;
   }
-  .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
-  /* En móviles, centramos el dropdown */
+  /* En móviles, centrar el menú de notificaciones */
   @media (max-width: 768px) {
     .notif-dropdown {
-      left: 50%;
-      right: auto;
+      position: fixed;
+      top: 70px;
+      left: 50% !important;
+      right: auto !important;
       transform: translateX(-50%) translateY(-15px);
-      width: 90vw;
+      width: 90%;
+      max-width: 360px;
     }
     .notif-dropdown.active {
       transform: translateX(-50%) translateY(0);
     }
   }
+  .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
   .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
     color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
     letter-spacing: 2px; }
@@ -409,7 +410,7 @@
     }
   }
 
-  /* Popup para selects en móviles - con bloqueo de scroll */
+  /* Popup para selects en móviles */
   .select-popup-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -730,25 +731,21 @@
     document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
   </script>
 
-  <!-- Script para selects personalizados en móviles y bloqueo de scroll -->
+  <!-- Script para selects personalizados en móviles -->
   <script>
+    // Funciones para bloquear/desbloquear scroll
+    function disableBodyScroll() {
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+    }
+    function enableBodyScroll() {
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+    }
+
     (function() {
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
       if (!isMobile) return;
-
-      // Función para bloquear/desbloquear scroll del body
-      let scrollLockCounter = 0;
-      function lockBodyScroll() {
-        scrollLockCounter++;
-        document.body.classList.add('no-scroll');
-      }
-      function unlockBodyScroll() {
-        scrollLockCounter--;
-        if (scrollLockCounter <= 0) {
-          scrollLockCounter = 0;
-          document.body.classList.remove('no-scroll');
-        }
-      }
 
       // Función para crear un popup de selección
       function createSelectPopup(selectElement, triggerElement) {
@@ -772,7 +769,9 @@
           optDiv.textContent = opt.textContent;
           optDiv.addEventListener('click', () => {
             selectElement.value = opt.value;
+            // Disparar evento change para que filtro() se ejecute
             selectElement.dispatchEvent(new Event('change'));
+            // Actualizar texto del trigger
             triggerElement.textContent = opt.textContent;
             closePopup();
           });
@@ -784,7 +783,7 @@
         
         function closePopup() {
           overlay.classList.remove('active');
-          unlockBodyScroll();
+          enableBodyScroll();
           setTimeout(() => overlay.remove(), 300);
         }
         
@@ -792,8 +791,7 @@
           if (e.target === overlay) closePopup();
         });
         
-        // Bloquear scroll al abrir
-        lockBodyScroll();
+        disableBodyScroll();
         setTimeout(() => overlay.classList.add('active'), 10);
       }
       
@@ -804,70 +802,32 @@
         if (!select) return;
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
+        // Obtener texto de la opción seleccionada
         const selectedOption = select.options[select.selectedIndex];
         trigger.textContent = selectedOption ? selectedOption.textContent : select.options[0].textContent;
         trigger.addEventListener('click', () => createSelectPopup(select, trigger));
         select.parentNode.insertBefore(trigger, select);
+        // Ocultar el select original (ya lo hace CSS)
       });
       
-      // Ajustar placeholder del buscador
+      // También ajustar placeholder del buscador en móviles
       const searchInput = document.getElementById('search');
       if (searchInput) searchInput.placeholder = 'Buscar';
-    })();
-  </script>
-
-  <!-- Script para manejar notificaciones en móvil: centrar y bloquear scroll -->
-  <script>
-    (function() {
-      const isMobile = window.matchMedia('(max-width: 768px)').matches;
-      if (!isMobile) return;
-
-      let scrollLockCounter = 0;
-      function lockBodyScroll() {
-        scrollLockCounter++;
-        document.body.classList.add('no-scroll');
-      }
-      function unlockBodyScroll() {
-        scrollLockCounter--;
-        if (scrollLockCounter <= 0) {
-          scrollLockCounter = 0;
-          document.body.classList.remove('no-scroll');
-        }
-      }
-
-      const notifBtn = document.getElementById('notifBtn');
-      const notifMenu = document.getElementById('notifMenu');
-      if (notifBtn && notifMenu) {
-        const originalToggle = window.toggleNotifMenu;
-        window.toggleNotifMenu = function() {
-          if (notifMenu.classList.contains('active')) {
-            unlockBodyScroll();
-          } else {
-            lockBodyScroll();
-          }
-          originalToggle();
-        };
-        // Al hacer clic en una notificación, también desbloquear
-        notifMenu.addEventListener('click', (e) => {
-          if (notifMenu.classList.contains('active')) {
-            unlockBodyScroll();
-          }
-        });
-        // Si se cierra el menú por clic fuera, desbloquear
-        document.addEventListener('click', (e) => {
-          if (notifMenu.classList.contains('active') && !notifBtn.contains(e.target) && !notifMenu.contains(e.target)) {
-            unlockBodyScroll();
-          }
-        });
-      }
     })();
   </script>
 
   <script>
     let currentUser = null;
     function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } location.href = 'opciones.html'; }
-    function showAuthModal() { document.getElementById('authModal').classList.add('show'); }
-    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
+    function showAuthModal() { 
+      document.getElementById('authModal').classList.add('show');
+      disableBodyScroll();
+    }
+    function closeAuthModal() { 
+      document.getElementById('authModal').classList.remove('show');
+      enableBodyScroll();
+      document.getElementById('authError').innerText = '';
+    }
     document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
     async function loginWithEmail() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
     async function registerWithEmail() { const email = document.getElementById('registerEmail').value; const pass = document.getElementById('registerPassword').value; const confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
@@ -879,11 +839,30 @@
     const userAvatarBtn = document.getElementById('userAvatarBtn'); const userDropdown = document.getElementById('userDropdown'); userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
     document.getElementById('adminBtn').addEventListener('click', () => { window.open('Archinime%20CMS%20-%20Creador.html', '_blank'); });
-    // La función toggleNotifMenu ya está definida antes, pero la redefinimos para asegurar el bloqueo
+    
+    // Función mejorada para toggle de notificaciones con bloqueo de scroll
     window.toggleNotifMenu = function() { 
       const menu = document.getElementById('notifMenu'); 
-      menu.classList.toggle('active');
+      const isActive = menu.classList.contains('active');
+      if (!isActive) {
+        menu.classList.add('active');
+        disableBodyScroll();
+      } else {
+        menu.classList.remove('active');
+        enableBodyScroll();
+      }
     };
+    
+    // Cerrar menú de notificaciones al hacer clic fuera (y habilitar scroll)
+    document.addEventListener('click', (e) => {
+      const wrapper = document.querySelector('.notif-wrapper');
+      const menu = document.getElementById('notifMenu');
+      if (wrapper && !wrapper.contains(e.target) && menu && menu.classList.contains('active')) {
+        menu.classList.remove('active');
+        enableBodyScroll();
+      }
+    });
+    
     window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
     // Efecto tilt en cards
     const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });

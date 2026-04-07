@@ -3,6 +3,7 @@
    - Renderizado con DocumentFragment y límite de 30 notificaciones visibles.
    - Uso de requestAnimationFrame para evitar bloqueos de UI.
    - Sincronización con Firestore y caché local.
+   - Control de scroll del fondo al abrir popups.
 */
 
 let notificationQueue = [];
@@ -10,6 +11,18 @@ let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let isFirstTimeSetup = false;
+
+// Funciones para bloquear/desbloquear scroll (se definen en el scope global si no existen)
+if (typeof disableBodyScroll !== 'function') {
+  window.disableBodyScroll = function() {
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+  };
+  window.enableBodyScroll = function() {
+    document.body.classList.remove('modal-open');
+    document.documentElement.classList.remove('modal-open');
+  };
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
@@ -157,7 +170,7 @@ function listenForReplies(uid) {
         });
 }
 
-// --- Detección de nuevos animes / actualizaciones (sin cambios en lógica, solo optimización) ---
+// --- Detección de nuevos animes / actualizaciones ---
 function checkForNewUpdates() {
     const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
     updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
@@ -326,6 +339,8 @@ function createPopupHTML(notif) {
         </div>
     `;
     document.body.appendChild(modal);
+    // Bloquear scroll al abrir el popup
+    if (typeof disableBodyScroll === 'function') disableBodyScroll();
     setTimeout(() => modal.classList.add('show'), 50);
 }
 
@@ -339,6 +354,8 @@ function closePopup() {
             if (processed && !processed.seen) {
                 markAsRead(processed.notifId);
             }
+            // Habilitar scroll después de cerrar el popup
+            if (typeof enableBodyScroll === 'function') enableBodyScroll();
             showNextPopup();
         }, 300);
     }
@@ -349,6 +366,8 @@ function goToAnimeFromPopup(animeId, notifId) {
         markAsRead(notifId);
     }
     notificationQueue = [];
+    // Asegurar que se habilite scroll antes de redirigir
+    if (typeof enableBodyScroll === 'function') enableBodyScroll();
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
@@ -358,9 +377,11 @@ function toggleNotifMenu() {
     isMenuOpen = !isMenuOpen;
     if (isMenuOpen) {
         menu.classList.add('active');
+        if (typeof disableBodyScroll === 'function') disableBodyScroll();
         renderNotificationList();
     } else {
         menu.classList.remove('active');
+        if (typeof enableBodyScroll === 'function') enableBodyScroll();
     }
 }
 
@@ -370,6 +391,7 @@ document.addEventListener('click', (e) => {
     if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
         isMenuOpen = false;
         if(menu) menu.classList.remove('active');
+        if (typeof enableBodyScroll === 'function') enableBodyScroll();
     }
 });
 
