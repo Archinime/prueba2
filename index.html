@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v2.1";
+      const APP_VERSION = "2025-04-06-v3.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -118,7 +118,6 @@
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
   }
-  /* Clase para bloquear scroll al abrir modales/popups */
   body.modal-open, html.modal-open {
     overflow: hidden !important;
     position: relative;
@@ -173,7 +172,6 @@
     background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
     background-size: 200% 100%; animation: borderFlow 3s linear infinite; opacity: 0.9;
   }
-  /* Desktop layout (grid) */
   @media (min-width: 769px) {
     .cyber-nav {
       display: grid;
@@ -188,7 +186,6 @@
       max-width: 500px;
     }
   }
-  /* Mobile layout (flex wrap) */
   @media (max-width: 768px) {
     .cyber-nav {
       display: flex;
@@ -198,17 +195,9 @@
       padding: 12px 16px;
       gap: 12px;
     }
-    .nav-logo {
-      order: 1;
-    }
-    .nav-actions {
-      order: 2;
-    }
-    .search-wrapper {
-      order: 3;
-      width: 100%;
-      margin-top: 4px;
-    }
+    .nav-logo { order: 1; }
+    .nav-actions { order: 2; }
+    .search-wrapper { order: 3; width: 100%; margin-top: 4px; }
   }
 
   .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; }
@@ -234,7 +223,6 @@
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
   .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
 
-  /* Acciones Navbar */
   .nav-actions {
     display: flex;
     align-items: center;
@@ -266,7 +254,6 @@
   #installBtn { display: none; }
   .install-pulse { animation: pulseBorder 1.5s infinite; }
 
-  /* Menú usuario */
   .user-menu { position: relative; display: flex; align-items: center; }
   #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
     cursor: pointer; transition: 0.2s; background: #111; display: block; }
@@ -287,7 +274,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones */
+  /* Notificaciones - Fix móvil */
   .notif-wrapper { position: relative; display: flex; align-items: center; }
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
@@ -309,8 +296,10 @@
     transition: all 0.25s var(--transition-smooth);
     z-index: 2000;
     overflow: hidden;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
   }
-  /* En móviles, centrar el menú de notificaciones */
   @media (max-width: 768px) {
     .notif-dropdown {
       position: fixed;
@@ -320,6 +309,7 @@
       transform: translateX(-50%) translateY(-15px);
       width: 90%;
       max-width: 360px;
+      max-height: 70vh;
     }
     .notif-dropdown.active {
       transform: translateX(-50%) translateY(0);
@@ -328,8 +318,8 @@
   .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
   .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
     color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
-    letter-spacing: 2px; }
-  .notif-list { max-height: 420px; overflow-y: auto; overflow-x: hidden; }
+    letter-spacing: 2px; flex-shrink: 0; }
+  .notif-list { max-height: calc(70vh - 60px); overflow-y: auto; overflow-x: hidden; }
   .notif-item { display: flex; gap: 15px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
     transition: background 0.2s; cursor: pointer; align-items: center; max-width: 100%; box-sizing: border-box; }
   .notif-item:hover { background: rgba(0, 243, 255, 0.08); }
@@ -343,7 +333,7 @@
   .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
 
-  /* Controles (selects) - siempre en una fila */
+  /* Selects personalizados unificados (PC y móvil con estilo elegante) */
   .controls-container {
     padding: 20px 3%;
     display: flex;
@@ -352,70 +342,84 @@
     justify-content: center;
     background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent);
     margin-bottom: 20px;
+    position: relative;
   }
-  /* Estilos base para selects (se mantienen) */
-  select {
+  /* Ocultamos los selects nativos */
+  .controls-container select {
+    display: none;
+  }
+  /* Trigger personalizado */
+  .custom-select-trigger {
     background: rgba(10, 10, 15, 0.85);
     backdrop-filter: blur(8px);
     color: #e0e0e0;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
-    cursor: pointer;
     padding: 12px 32px 12px 20px;
     min-width: 0;
     flex: 1;
+    text-align: center;
     border: 1px solid rgba(188, 19, 254, 0.5);
     border-radius: 40px;
+    cursor: pointer;
     transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bc13fe' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: calc(100% - 15px) center;
-    background-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
   }
-  select:hover, select:focus {
+  .custom-select-trigger::after {
+    content: '\f0d7';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: var(--neon-purple);
+    transition: transform 0.2s;
+  }
+  .custom-select-trigger:hover {
     border-color: var(--neon-cyan);
-    color: white;
     background: rgba(0,0,0,0.8);
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-    transform: translateY(-2px);
+    color: white;
   }
-  /* En móviles, los selects se reemplazarán por un popup, así que los ocultamos */
-  @media (max-width: 768px) {
-    .controls-container select {
-      display: none;
-    }
-    .custom-select-trigger {
-      background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(8px);
-      color: #e0e0e0;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.5px;
-      padding: 10px 12px;
-      flex: 1;
-      text-align: center;
-      border: 1px solid rgba(188, 19, 254, 0.5);
-      border-radius: 40px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .custom-select-trigger:hover {
-      border-color: var(--neon-cyan);
-      background: rgba(0,0,0,0.8);
-    }
+  /* Dropdown flotante (PC) */
+  .custom-select-dropdown {
+    position: absolute;
+    background: #0f0f13;
+    border: 1px solid var(--neon-purple);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 10001;
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 180px;
+    backdrop-filter: blur(12px);
+    transform-origin: top center;
+    animation: dropdownFade 0.2s ease;
   }
-
-  /* Popup para selects en móviles */
+  .custom-select-option {
+    padding: 12px 20px;
+    color: #ddd;
+    font-size: 0.85rem;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: 0.15s;
+    white-space: nowrap;
+  }
+  .custom-select-option:hover {
+    background: rgba(0, 243, 255, 0.15);
+    color: var(--neon-cyan);
+  }
+  /* Móvil: popup centrado (igual que antes, pero más limpio) */
   .select-popup-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     backdrop-filter: blur(8px);
     z-index: 10001;
     display: flex;
@@ -462,12 +466,14 @@
     text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
-  .select-popup-option:last-child {
-    border-bottom: none;
-  }
+  .select-popup-option:last-child { border-bottom: none; }
   .select-popup-option:hover, .select-popup-option.selected {
     background: rgba(0, 243, 255, 0.1);
     color: var(--neon-cyan);
+  }
+  @keyframes dropdownFade {
+    from { opacity: 0; transform: scaleY(0.9); }
+    to { opacity: 1; transform: scaleY(1); }
   }
 
   /* Grid y Cards */
@@ -617,9 +623,7 @@
       <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
         <i class="fas fa-download"></i>
       </button>
-      <button id="adminBtn" class="cyber-btn-icon" title="Panel de Administración" style="display: none;">
-        <img src="admin.avif" alt="Admin" style="width: 100%; height: 100%; border-radius: 50%;">
-      </button>
+      <!-- Botón de administrador eliminado -->
       <div class="notif-wrapper">
         <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control">
           <i class="fas fa-bell"></i>
@@ -682,18 +686,19 @@
   </div>
 
   <div class="controls-container controls" id="controls">
-    <select id="genre-select" onchange="filtro()" aria-label="Seleccionar género">
+    <!-- Los selects nativos se ocultan, los triggers se crean con JS -->
+    <select id="genre-select">
         <option value="">🎭 Todos los géneros</option>
         <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
         <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
         <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
         <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
     </select>
-    <select id="demographic-select" onchange="filtro()" aria-label="Demografía">
+    <select id="demographic-select">
       <option value="">👥 Todas las demografías</option>
       <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
     </select>
-    <select id="rating-select" onchange="filtro()" aria-label="Ranking">
+    <select id="rating-select">
       <option value="">⭐ RANKING GLOBAL</option>
       <option value="excellent">🏆 S-TIER (4.8+)</option>
       <option value="good">🔥 A-TIER (4.6+)</option>
@@ -731,7 +736,7 @@
     document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
   </script>
 
-  <!-- Script para selects personalizados en móviles -->
+  <!-- Script para selects personalizados unificados (PC + móvil con estilo elegante) -->
   <script>
     // Funciones para bloquear/desbloquear scroll
     function disableBodyScroll() {
@@ -743,76 +748,117 @@
       document.documentElement.classList.remove('modal-open');
     }
 
+    // Sistema de selects personalizados
     (function() {
-      const isMobile = window.matchMedia('(max-width: 768px)').matches;
-      if (!isMobile) return;
-
-      // Función para crear un popup de selección
-      function createSelectPopup(selectElement, triggerElement) {
-        const options = Array.from(selectElement.options);
-        const currentValue = selectElement.value;
-        
-        const overlay = document.createElement('div');
-        overlay.className = 'select-popup-overlay';
-        const popup = document.createElement('div');
-        popup.className = 'select-popup';
-        
-        const header = document.createElement('div');
-        header.className = 'select-popup-header';
-        header.textContent = selectElement.getAttribute('aria-label') || 'Seleccionar';
-        popup.appendChild(header);
-        
-        options.forEach(opt => {
-          const optDiv = document.createElement('div');
-          optDiv.className = 'select-popup-option';
-          if (opt.value === currentValue) optDiv.classList.add('selected');
-          optDiv.textContent = opt.textContent;
-          optDiv.addEventListener('click', () => {
-            selectElement.value = opt.value;
-            // Disparar evento change para que filtro() se ejecute
-            selectElement.dispatchEvent(new Event('change'));
-            // Actualizar texto del trigger
-            triggerElement.textContent = opt.textContent;
-            closePopup();
-          });
-          popup.appendChild(optDiv);
-        });
-        
-        overlay.appendChild(popup);
-        document.body.appendChild(overlay);
-        
-        function closePopup() {
-          overlay.classList.remove('active');
-          enableBodyScroll();
-          setTimeout(() => overlay.remove(), 300);
-        }
-        
-        overlay.addEventListener('click', (e) => {
-          if (e.target === overlay) closePopup();
-        });
-        
-        disableBodyScroll();
-        setTimeout(() => overlay.classList.add('active'), 10);
-      }
-      
-      // Reemplazar cada select por un trigger personalizado
       const selects = ['genre-select', 'demographic-select', 'rating-select'];
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+      function updateTriggerText(trigger, selectEl) {
+        const selected = selectEl.options[selectEl.selectedIndex];
+        trigger.textContent = selected ? selected.textContent : selectEl.options[0].textContent;
+      }
+
+      // Crear trigger y manejar eventos
       selects.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
+
+        // Crear trigger
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
-        // Obtener texto de la opción seleccionada
-        const selectedOption = select.options[select.selectedIndex];
-        trigger.textContent = selectedOption ? selectedOption.textContent : select.options[0].textContent;
-        trigger.addEventListener('click', () => createSelectPopup(select, trigger));
+        updateTriggerText(trigger, select);
+        
+        // Insertar antes del select
         select.parentNode.insertBefore(trigger, select);
-        // Ocultar el select original (ya lo hace CSS)
+        
+        // Función para abrir el selector
+        const openSelector = () => {
+          if (isMobile) {
+            // Popup centrado (móvil)
+            const overlay = document.createElement('div');
+            overlay.className = 'select-popup-overlay';
+            const popup = document.createElement('div');
+            popup.className = 'select-popup';
+            
+            const header = document.createElement('div');
+            header.className = 'select-popup-header';
+            header.textContent = select.getAttribute('aria-label') || 'Seleccionar';
+            popup.appendChild(header);
+            
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div');
+              optDiv.className = 'select-popup-option';
+              if (opt.value === select.value) optDiv.classList.add('selected');
+              optDiv.textContent = opt.textContent;
+              optDiv.addEventListener('click', () => {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change'));
+                updateTriggerText(trigger, select);
+                closePopup();
+              });
+              popup.appendChild(optDiv);
+            });
+            
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+            
+            function closePopup() {
+              overlay.classList.remove('active');
+              enableBodyScroll();
+              setTimeout(() => overlay.remove(), 300);
+            }
+            
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closePopup(); });
+            disableBodyScroll();
+            setTimeout(() => overlay.classList.add('active'), 10);
+          } else {
+            // Dropdown flotante (PC)
+            // Eliminar dropdown previo si existe
+            const existing = document.querySelector('.custom-select-dropdown');
+            if (existing) existing.remove();
+            
+            const rect = trigger.getBoundingClientRect();
+            const dropdown = document.createElement('div');
+            dropdown.className = 'custom-select-dropdown';
+            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.left = (rect.left + window.scrollX) + 'px';
+            dropdown.style.minWidth = rect.width + 'px';
+            
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div');
+              optDiv.className = 'custom-select-option';
+              optDiv.textContent = opt.textContent;
+              if (opt.value === select.value) {
+                optDiv.style.background = 'rgba(0, 243, 255, 0.15)';
+                optDiv.style.color = 'var(--neon-cyan)';
+              }
+              optDiv.addEventListener('click', () => {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change'));
+                updateTriggerText(trigger, select);
+                dropdown.remove();
+              });
+              dropdown.appendChild(optDiv);
+            });
+            
+            document.body.appendChild(dropdown);
+            
+            const closeDropdown = (e) => {
+              if (!dropdown.contains(e.target) && e.target !== trigger) {
+                dropdown.remove();
+                document.removeEventListener('click', closeDropdown);
+                document.removeEventListener('scroll', closeDropdown);
+              }
+            };
+            setTimeout(() => {
+              document.addEventListener('click', closeDropdown);
+              document.addEventListener('scroll', closeDropdown);
+            }, 10);
+          }
+        };
+        
+        trigger.addEventListener('click', openSelector);
       });
-      
-      // También ajustar placeholder del buscador en móviles
-      const searchInput = document.getElementById('search');
-      if (searchInput) searchInput.placeholder = 'Buscar';
     })();
   </script>
 
@@ -835,12 +881,50 @@
     async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
     function logoutUser() { auth.signOut().then(() => { location.reload(); }); }
     function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
-    function updateUserUI(user) { currentUser = user; const avatarBtn = document.getElementById('userAvatarBtn'); const dropdownAvatar = document.getElementById('dropdownAvatar'); const dropdownName = document.getElementById('dropdownName'); const loginItem = document.getElementById('loginBtnItem'); if (user) { const photoURL = user.photoURL || 'invitado.avif'; avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; dropdownName.innerText = user.displayName || user.email.split('@')[0]; loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = () => logoutUser(); if (user.email === 'archinime12@gmail.com') document.getElementById('adminBtn').style.display = 'flex'; else document.getElementById('adminBtn').style.display = 'none'; db.collection('users').doc(user.uid).get().then(doc => { let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; }).catch(e => console.log(e)); } else { avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; dropdownName.innerText = 'Invitado'; loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = () => showAuthModal(); document.getElementById('adminBtn').style.display = 'none'; avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; } }
-    const userAvatarBtn = document.getElementById('userAvatarBtn'); const userDropdown = document.getElementById('userDropdown'); userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    function updateUserUI(user) { 
+      currentUser = user; 
+      const avatarBtn = document.getElementById('userAvatarBtn'); 
+      const dropdownAvatar = document.getElementById('dropdownAvatar'); 
+      const dropdownName = document.getElementById('dropdownName'); 
+      const loginItem = document.getElementById('loginBtnItem'); 
+      if (user) { 
+        const photoURL = user.photoURL || 'invitado.avif'; 
+        avatarBtn.src = photoURL; 
+        dropdownAvatar.src = photoURL; 
+        dropdownName.innerText = user.displayName || user.email.split('@')[0]; 
+        loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; 
+        loginItem.onclick = () => logoutUser(); 
+        // Admin button eliminado, no mostramos nada
+        db.collection('users').doc(user.uid).get().then(doc => { 
+          let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); 
+          avatarBtn.style.borderColor = color; 
+          avatarBtn.style.boxShadow = `0 0 15px ${color}`; 
+          dropdownAvatar.style.borderColor = color; 
+          dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; 
+          dropdownName.style.color = color; 
+          dropdownName.style.textShadow = `0 0 8px ${color}`; 
+        }).catch(e => console.log(e)); 
+      } else { 
+        avatarBtn.src = 'invitado.avif'; 
+        dropdownAvatar.src = 'invitado.avif'; 
+        dropdownName.innerText = 'Invitado'; 
+        loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; 
+        loginItem.onclick = () => showAuthModal(); 
+        avatarBtn.style.borderColor = 'var(--neon-cyan)'; 
+        avatarBtn.style.boxShadow = 'none'; 
+        dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; 
+        dropdownAvatar.style.boxShadow = 'none'; 
+        dropdownName.style.color = 'var(--neon-cyan)'; 
+        dropdownName.style.textShadow = 'none'; 
+      } 
+    }
+    const userAvatarBtn = document.getElementById('userAvatarBtn'); 
+    const userDropdown = document.getElementById('userDropdown'); 
+    userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); 
+    document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
-    document.getElementById('adminBtn').addEventListener('click', () => { window.open('Archinime%20CMS%20-%20Creador.html', '_blank'); });
     
-    // Función mejorada para toggle de notificaciones con bloqueo de scroll
+    // Toggle notificaciones con bloqueo de scroll (ya está mejorado en CSS)
     window.toggleNotifMenu = function() { 
       const menu = document.getElementById('notifMenu'); 
       const isActive = menu.classList.contains('active');
@@ -853,7 +937,7 @@
       }
     };
     
-    // Cerrar menú de notificaciones al hacer clic fuera (y habilitar scroll)
+    // Cerrar menú de notificaciones al hacer clic fuera
     document.addEventListener('click', (e) => {
       const wrapper = document.querySelector('.notif-wrapper');
       const menu = document.getElementById('notifMenu');
@@ -864,6 +948,7 @@
     });
     
     window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
+    
     // Efecto tilt en cards
     const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
     const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
