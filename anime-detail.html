@@ -214,12 +214,12 @@
       border-color: var(--neon-cyan);
     }
 
-    /* --- BÚSQUEDA RÁPIDA MEJORADA (z-index alto) --- */
+    /* --- BÚSQUEDA RÁPIDA CON Z-INDEX EXTREMO --- */
     .search-container {
       position: relative;
       flex: 1;
       max-width: 350px;
-      z-index: 1000;
+      z-index: 10000; /* Aseguramos que el contenedor tenga prioridad */
     }
     .search-container input {
       width: 100%;
@@ -231,6 +231,8 @@
       font-size: 0.9rem;
       outline: none;
       transition: 0.2s;
+      position: relative;
+      z-index: 10001;
     }
     .search-container input:focus {
       border-color: var(--neon-cyan);
@@ -239,7 +241,7 @@
     }
     .search-dropdown {
       position: absolute;
-      top: calc(100% + 5px);
+      top: calc(100% + 8px);
       left: 0;
       right: 0;
       background: #0f0f13;
@@ -247,21 +249,53 @@
       border-radius: 16px;
       max-height: 300px;
       overflow-y: auto;
-      z-index: 10000;  /* MUY ALTO para que esté por encima de la imagen */
+      z-index: 100000; /* Z-index extremadamente alto */
       display: none;
       backdrop-filter: blur(12px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,243,255,0.2);
+    }
+    .search-dropdown::-webkit-scrollbar {
+      width: 6px;
+    }
+    .search-dropdown::-webkit-scrollbar-track {
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+    .search-dropdown::-webkit-scrollbar-thumb {
+      background: var(--neon-cyan);
+      border-radius: 8px;
     }
     .search-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px;
+      padding: 10px 15px;
       cursor: pointer;
       border-bottom: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s;
     }
-    .search-item:hover { background: rgba(0,243,255,0.1); }
-    .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
+    .search-item:last-child {
+      border-bottom: none;
+    }
+    .search-item:hover { 
+      background: rgba(0,243,255,0.15);
+    }
+    .search-item img { 
+      width: 40px; 
+      height: 55px; 
+      object-fit: cover; 
+      border-radius: 6px;
+      border: 1px solid rgba(0,243,255,0.3);
+    }
+    .search-item-title {
+      font-weight: 600;
+      color: #fff;
+    }
+    .search-no-results {
+      padding: 15px;
+      text-align: center;
+      color: #aaa;
+    }
 
     /* --- PORTADA (sin z-index conflictivo) --- */
     .anime-cover {
@@ -501,6 +535,15 @@
       .video-list { grid-template-columns: repeat(2, 1fr); }
       h1 { font-size: 1.6rem; margin: 15px 0 10px; }
       .star { font-size: 1.5rem; }
+      .search-container { max-width: 100%; }
+      .search-dropdown { 
+        position: fixed; 
+        top: auto; 
+        left: 5%; 
+        right: 5%; 
+        width: 90%;
+        max-height: 60vh;
+      }
     }
     .rec-card {
       background: rgba(0,0,0,0.5);
@@ -548,7 +591,6 @@
     @media (max-width: 768px) {
       .container { margin: 70px 15px 30px; padding: 15px; }
       .top-buttons { margin: -15px -15px 20px -15px; padding: 12px 15px; }
-      .search-container { max-width: 100%; }
     }
   </style>
 </head>
@@ -895,7 +937,7 @@
   }
   function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ---------- BÚSQUEDA RÁPIDA (con z-index alto) ----------
+  // ---------- BÚSQUEDA RÁPIDA (con z-index extremadamente alto) ----------
   if (typeof data !== 'undefined') {
     const searchInput = document.getElementById('quick-search');
     const resultsDiv = document.getElementById('quick-search-results');
@@ -917,7 +959,17 @@
         resultsDiv.style.display = 'block';
       }
     });
-    document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) resultsDiv.style.display = 'none'; });
+    document.addEventListener('click', (e) => { 
+      if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+        resultsDiv.style.display = 'none';
+      }
+    });
+    // También cerrar al hacer scroll para mantener limpia la interfaz
+    window.addEventListener('scroll', () => {
+      if (resultsDiv.style.display === 'block') {
+        resultsDiv.style.display = 'none';
+      }
+    });
   }
 
   // ---------- AUTENTICACIÓN Y RECARGA ----------
