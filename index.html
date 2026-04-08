@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.4"; // versión actualizada para forzar recarga limpia
+      const APP_VERSION = "2025-04-06-v3.5"; // versión actualizada para forzar recarga limpia
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -90,6 +90,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- SCRIPTS CRÍTICOS: index-data.js debe cargarse ANTES de que se ejecute el resto de la lógica -->
+  <script src="index-data.js?v=20250406"></script>
 
 <style>
   :root {
@@ -750,27 +753,29 @@
       };
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // Inicialización diferida: esperamos a que animes esté definido
+    function initNotificationsWhenReady() {
+      if (typeof animes !== 'undefined' && animes) {
         loadHistoryFromStorage();
-        if (typeof animes !== 'undefined') {
-            checkForNewUpdates();
-        } else {
-            console.warn('Sistema de Notificaciones: index-data.js no cargado.');
-        }
+        checkForNewUpdates();
         renderNotificationList();
         updateBellBadge();
-
-        if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    syncNotificationsWithCloud(user.uid);
-                    listenForReplies(user.uid);
-                } else {
-                    if (repliesUnsubscribe) repliesUnsubscribe();
-                }
-            });
+        if (typeof auth !== 'undefined') {
+          auth.onAuthStateChanged(user => {
+            if (user) {
+              syncNotificationsWithCloud(user.uid);
+              listenForReplies(user.uid);
+            } else {
+              if (repliesUnsubscribe) repliesUnsubscribe();
+            }
+          });
         }
-    });
+      } else {
+        setTimeout(initNotificationsWhenReady, 100);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initNotificationsWhenReady);
 
     function loadHistoryFromStorage() {
         const stored = localStorage.getItem('archinime_notif_history');
@@ -889,6 +894,7 @@
     }
 
     function checkForNewUpdates() {
+        if (typeof animes === 'undefined') return;
         const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
         updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
 
@@ -1227,41 +1233,18 @@
   </script>
   <!-- FIN: notification-system.js modificado -->
 
-  <!-- CARGA SEGURA DE SCRIPTS EXTERNOS (reemplaza document.write) -->
+  <!-- Scripts no críticos: se cargan después de que la página esté visible -->
   <script>
     (function() {
       const scripts = [
-        { src: "index-data.js", async: false, defer: false },
-        { src: "animaciones.js", async: false, defer: true },
-        { src: "musica_fondo.js", async: false, defer: true },
-        { src: "script-index.js", async: false, defer: true }
+        { src: "animaciones.js", defer: true },
+        { src: "musica_fondo.js", defer: true },
+        { src: "script-index.js", defer: true }  // este script contiene la lógica del grid y filtros
       ];
-      
-      let loadedCount = 0;
-      let errors = [];
-
-      function scriptLoaded() {
-        loadedCount++;
-        if (loadedCount === scripts.length) {
-          // Todos los scripts cargaron (o fallaron, pero al menos se intentaron)
-          console.log("Todos los scripts externos procesados.");
-          // No hacemos nada especial, el loader se ocultará con el evento load + fallback
-        }
-      }
-
-      function scriptError(src) {
-        errors.push(src);
-        console.error(`Error cargando script: ${src}`);
-        scriptLoaded(); // contamos como intentado
-      }
-
       scripts.forEach(scriptInfo => {
         const script = document.createElement('script');
         script.src = scriptInfo.src + "?v=" + Date.now();
-        if (scriptInfo.async) script.async = true;
         if (scriptInfo.defer) script.defer = true;
-        script.onload = scriptLoaded;
-        script.onerror = () => scriptError(scriptInfo.src);
         document.body.appendChild(script);
       });
     })();
@@ -1434,33 +1417,40 @@
     document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
     
-    // NUEVO: Loader robusto con fallback forzado y evento load
-    window.addEventListener('load', function() {
+    // Loader robusto: espera a que window load + que animes esté definido
+    function hideLoader() {
       const loader = document.getElementById('page-loader');
       if (!loader) return;
-      // Animación de salida suave
+      loader.style.opacity = '0';
       setTimeout(() => {
-        loader.style.opacity = '0';
-        setTimeout(() => {
-          loader.style.visibility = 'hidden';
-          loader.style.display = 'none';
-          // Iniciar notificaciones después de que la UI esté visible
-          if (window.startNotificationSequence) window.startNotificationSequence();
-        }, 400);
-      }, 300); // breve retraso para que la animación del loader se aprecie pero sin bloquear
-    });
-
-    // Fallback extremo: si después de 4 segundos el loader sigue visible, lo forzamos a ocultarse
-    setTimeout(function() {
-      const loader = document.getElementById('page-loader');
-      if (loader && loader.style.display !== 'none' && window.getComputedStyle(loader).visibility !== 'hidden') {
-        console.warn("Loader ocultado por fallback de tiempo");
-        loader.style.opacity = '0';
-        setTimeout(() => {
-          loader.style.visibility = 'hidden';
-          loader.style.display = 'none';
-        }, 200);
+        loader.style.visibility = 'hidden';
+        loader.style.display = 'none';
+        if (window.startNotificationSequence) window.startNotificationSequence();
+      }, 400);
+    }
+    window.addEventListener('load', function() {
+      if (typeof animes !== 'undefined' && animes && animes.length > 0) {
+        hideLoader();
+      } else {
+        // esperar un poco más a que index-data.js termine
+        let attempts = 0;
+        const checkAnimes = setInterval(() => {
+          if (typeof animes !== 'undefined' && animes && animes.length > 0) {
+            clearInterval(checkAnimes);
+            hideLoader();
+          } else if (attempts >= 30) { // 3 segundos máximo
+            clearInterval(checkAnimes);
+            console.warn("animes no definido después de esperar, ocultando loader igualmente");
+            hideLoader();
+          }
+          attempts++;
+        }, 100);
       }
+    });
+    // Fallback extremo: a los 4 segundos ocultar siempre
+    setTimeout(() => {
+      const loader = document.getElementById('page-loader');
+      if (loader && loader.style.display !== 'none') hideLoader();
     }, 4000);
     
     // Video background
@@ -1501,43 +1491,46 @@
   <!-- Script para sobrescribir los ratings con los valores de Firestore -->
   <script>
     (async function updateRatingsFromFirestore() {
-        if (typeof animes === 'undefined') {
-            console.warn('animes no cargado aún');
-            return;
+        // Esperar a que animes exista
+        const waitForAnimes = setInterval(() => {
+          if (typeof animes !== 'undefined') {
+            clearInterval(waitForAnimes);
+            doUpdate();
+          }
+        }, 100);
+        async function doUpdate() {
+          if (!db) return;
+          const snapshot = await db.collection('animeRatings').get();
+          const ratingsMap = new Map();
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              ratingsMap.set(parseInt(doc.id), {
+                  avg: data.avg,
+                  count: data.count
+              });
+          });
+          function updateCards() {
+              const cards = document.querySelectorAll('.card');
+              cards.forEach(card => {
+                  const animeId = card.dataset.id;
+                  if (animeId && ratingsMap.has(parseInt(animeId))) {
+                      const ratingObj = ratingsMap.get(parseInt(animeId));
+                      const ratingSpan = card.querySelector('.rating-value');
+                      if (ratingSpan) {
+                          ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
+                      }
+                  }
+              });
+          }
+          const observer = new MutationObserver(() => {
+              if (document.querySelector('.card')) {
+                  updateCards();
+                  observer.disconnect();
+              }
+          });
+          observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
+          setTimeout(updateCards, 500);
         }
-        const db = firebase.firestore();
-        const snapshot = await db.collection('animeRatings').get();
-        const ratingsMap = new Map();
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            ratingsMap.set(parseInt(doc.id), {
-                avg: data.avg,
-                count: data.count
-            });
-        });
-        
-        function updateCards() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                const animeId = card.dataset.id;
-                if (animeId && ratingsMap.has(parseInt(animeId))) {
-                    const ratingObj = ratingsMap.get(parseInt(animeId));
-                    const ratingSpan = card.querySelector('.rating-value');
-                    if (ratingSpan) {
-                        ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
-                    }
-                }
-            });
-        }
-        
-        const observer = new MutationObserver(() => {
-            if (document.querySelector('.card')) {
-                updateCards();
-                observer.disconnect();
-            }
-        });
-        observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
-        setTimeout(updateCards, 500);
     })();
   </script>
 
