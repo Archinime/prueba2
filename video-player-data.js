@@ -407,6 +407,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/14GvXicm4X7knXt9Ctq2a3i-FiM43JgMk/preview",
                 "link2": "",
                 "title": "Jujutsu Kaisen T3 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/ju38:9",
+                "link2": "",
+                "title": "Jujutsu Kaisen T3 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Jk39:1",
+                "link2": "",
+                "title": "Jujutsu Kaisen T3 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@any:a/jjk310:2",
+                "link2": "",
+                "title": "Jujutsu Kaisen T3 Cap 10"
             }
         }
     },
@@ -415,244 +430,256 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1mlmhdv2zOqhNAQ-Ii85VfshrgV3K2aVz/preview",
                 "link2": "https://www.dropbox.com/scl/fi/d85e3fd9dma3c0oao4z5p/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-1.mp4?rlkey=gdyo8h37600vuz4xtuhe63c4t&st=jv8oj8ns&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 1"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1mTxxpssd6EAiiy2mnVq4KC4KlGbmBkYx/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ddnb1rxe9k4n4ahmfygbz/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-2.mp4?rlkey=swk1jy9lqgmqk58qb6930mp5w&st=5os922wo&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 2"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1lHi1OjQ9DZye1-W7QMgP-b1P88ppeOcS/preview",
                 "link2": "https://www.dropbox.com/scl/fi/tdr3ly33odyby08ne1wwt/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-3.mp4?rlkey=tgy8833hakcjijbybdzhpcpmk&st=pd1odh44&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 3"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1JoCT3i5MS-hQUJEDH8lWEIz8Dt-ktf0y/preview",
                 "link2": "https://www.dropbox.com/scl/fi/szx884iao5cm5l8j7z6sv/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-4.mp4?rlkey=kih6a6wqxkx2wv6qd4q90mtqn&st=uz4g7lcb&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 4"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1TKdbSnSTsqqDQNxbCj33KysEBTKmspua/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ufifcckovo7p87uy2huxe/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-5.mp4?rlkey=lofj30e8q5l599uo5u6xxdzam&st=1ddb24m9&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 5"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1sXeK-siRFSwR3K7iBBe7W2SSdeHpg4Es/preview",
                 "link2": "https://www.dropbox.com/scl/fi/n3xqbufdwjeqt8x3kmdbs/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-6.mp4?rlkey=9qaqtmsrex96qw3qmlnjy4yge&st=bna4b6xb&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 6"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1X59v5OTISnPH2nAmjIhF_YfJqcxf9M02/preview",
                 "link2": "https://www.dropbox.com/scl/fi/jxdvdp8s5myee44yf71wv/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-7.mp4?rlkey=hx0j30bbet47nd8crdcxepvyb&st=i03ph7a6&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 7"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1lXon0cHAcqA-gzSXO1y4G_Xa7ooMY2C3/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3o7vu3d8xli760xn4vdw6/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-8.mp4?rlkey=n73hqovvmgo7wmayuuoukdi18&st=mqsbyynv&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 8"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1z1bw5igNGYc9Rm_L2tsrInkdm3cBTZAH/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hf6ud6on5m7hu5ib0roi6/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-9.mp4?rlkey=o7whvnyq7vhwmhy7mm7e6igdp&st=j9le4g5y&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 9"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1Wq5JwPaKckHkYzLMP21CQfhbiqavaTY4/preview",
                 "link2": "https://www.dropbox.com/scl/fi/k7lrhwn5cqhiew2iw6bsg/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-10.mp4?rlkey=wirjbeofaefvoibb0g35e1skj&st=r2krolkg&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 10"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1-iy53O1cQQmBJgrgIhAZIOtU80jQVSg1/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fpgxve2e8mdytfcl1sowe/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-11.mp4?rlkey=2vkpsksmw1hxmn57wwj94kn8v&st=raovsek7&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 11"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1aMZjEtmdvdFj-jujdjaiYGT3X3kEQm0i/preview",
                 "link2": "https://www.dropbox.com/scl/fi/bd6v592gq68z5zn268nk7/KonoSuba-Explosi-n-en-un-mundo-maravilloso-Cap-12.mp4?rlkey=opbt0iengt11jr25g2t2li9ic&st=1m3qiwfw&raw=1",
-                "title": "KonoSuba: Explosión en un mundo maravilloso Cap 12"
+                "title": "KonoSuba! KonoSuba: Explosión en un mundo maravilloso Cap 12"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1s23K2kobScKbhddn6kbEKYPNVn1TlS4-/preview",
                 "link2": "https://www.dropbox.com/scl/fi/7mw5jj1gcqee3hm3hogta/Konosuba-temporada-1-capitulo-1.mp4?rlkey=m7dwevzfmxdwplf1lxkn0yebg&st=8oyw5vil&raw=1",
-                "title": "Konosuba T1 Cap 1"
+                "title": "KonoSuba! T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1XqdwCI_V2xD1D_9La_64PKqvgPyDc6-8/preview",
                 "link2": "https://www.dropbox.com/scl/fi/sq7bvjbkqr5xiqvpcogrl/Konosuba-temporada-1-capitulo-2.mp4?rlkey=7436ru4xkdg03mb2wyto2dv9w&st=e0rosfgd&raw=1",
-                "title": "Konosuba T1 Cap 2"
+                "title": "KonoSuba! T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1qUnFvvZyrDm4e9l9sLOlpAgniZtNF1D9/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3ldvnz3vnn68fppd26c4p/Konosuba-temporada-1-capitulo-3.mp4?rlkey=hsv5i90hrlqpptuvni8ai37jp&st=6aw85pcr&raw=1",
-                "title": "Konosuba T1 Cap 3"
+                "title": "KonoSuba! T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1295_c95K09nJlXvsr_TsUi3Y1Cigs9oY/preview",
                 "link2": "https://www.dropbox.com/scl/fi/xu9e12akcxcfryzxenvuk/Konosuba-temporada-1-capitulo-4.mp4?rlkey=eu0cpc6v18yivfdipt9ieextj&st=u7xbc5f7&raw=1",
-                "title": "Konosuba T1 Cap 4"
+                "title": "KonoSuba! T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1paeqYcXXbgNAQ3xWkBMBLYgLfHKb6GEj/preview",
                 "link2": "https://www.dropbox.com/scl/fi/mmvnfra3q74ar9g4e6p74/Konosuba-temporada-1-capitulo-5.mp4?rlkey=9mxdge6s4ipc0xrvpbs0auc04&st=i7o3jge4&raw=1",
-                "title": "Konosuba T1 Cap 5"
+                "title": "KonoSuba! T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1MmFhw2txMF3h151K3Bom1t-DllAlC4AM/preview",
                 "link2": "https://www.dropbox.com/scl/fi/xaur8474k12h76nsryram/Konosuba-temporada-1-capitulo-6.mp4?rlkey=z94mn0uhxh0nggtkvorxi7ha2&st=vq5wdcqd&raw=1",
-                "title": "Konosuba T1 Cap 6"
+                "title": "KonoSuba! T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1eZeqSpQGwfQvJ_sI3B3pxdlGQde2nt-G/preview",
                 "link2": "https://www.dropbox.com/scl/fi/nn9lipvkbgsizwhk7ggmt/Konosuba-temporada-1-capitulo-7.mp4?rlkey=zlx7adcjwpg4ub3ojzc9y9t3m&st=0q1tvhtx&raw=1",
-                "title": "Konosuba T1 Cap 7"
+                "title": "KonoSuba! T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1jniyzG70s94cIf_7DmbY82IKFeZaqBKZ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/nn1tptmn24mh0ayursdw3/Konosuba-temporada-1-capitulo-8.mp4?rlkey=rs3ov0c2y9tli0x9l5jrr4r6k&st=gggs059d&raw=1",
-                "title": "Konosuba T1 Cap 8"
+                "title": "KonoSuba! T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1MMmeDmyrt-Sj51S5e38c6vWNpnQZOQTD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/7n6buke5wushh7v3zfdvw/Konosuba-temporada-1-capitulo-9.mp4?rlkey=v2hn3d64got41b5u8lzepm4r3&st=de1i91k1&raw=1",
-                "title": "Konosuba T1 Cap 9"
+                "title": "KonoSuba! T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1cew9pz-2qorlswxuK8ho8fyYCRN0I3IS/preview",
                 "link2": "https://www.dropbox.com/scl/fi/0muafn4xtz70wxqibknf6/Konosuba-temporada-1-capitulo-10.mp4?rlkey=dwlzhu8j8xpa02njh6nki4abs&st=zbkicsov&raw=1",
-                "title": "Konosuba T1 Cap 10"
+                "title": "KonoSuba! T1 Cap 10"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1MqS0mxCcahwoNeikKlANdas7jUZQmj-F/preview",
                 "link2": "https://www.dropbox.com/scl/fi/iqbvofr4dfek9yrvyo42o/Konosuba-OVA-1.mp4?rlkey=rsejvimb6ob52gtioupi7johu&st=jypnotph&raw=1",
-                "title": "KonoSuba OVA 1 La ¡Bendita sea esta maravillosa gargantilla!"
+                "title": "KonoSuba! Ova 1 Cap 1"
             }
         },
         "4": {
             "1": {
                 "link": "https://drive.google.com/file/d/1AAWxfZP30W8hPSWXQq791TuGrYvUzwDn/preview",
                 "link2": "https://www.dropbox.com/scl/fi/td7z0o5hdi39soq542zi2/Konosuba-temporada-2-capitulo-1.mp4?rlkey=u7vdh20v0y5cj5d2wofoptnzw&st=ik5cd3vu&raw=1",
-                "title": "Konosuba T2 Cap 1"
+                "title": "KonoSuba! T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1QOZJl2ouWx3ut4KFf8NxUTjXFGdXiqOu/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hvk2nqjorvm4wo4n0oc1h/Konosuba-temporada-2-capitulo-2.mp4?rlkey=h4qkm209c64wjbh81ap10pifa&st=vvmvg50w&raw=1",
-                "title": "Konosuba T2 Cap 2"
+                "title": "KonoSuba! T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1qZ6R4AnGryOhz9_j7Ay1ox4Xs5rwJHRf/preview",
                 "link2": "https://www.dropbox.com/scl/fi/lqu2g92n3l89khjeygynh/Konosuba-temporada-2-capitulo-3.mp4?rlkey=9f5xelhijb2382qm0lsu1m3d6&st=kya6r653&raw=1",
-                "title": "Konosuba T2 Cap 3"
+                "title": "KonoSuba! T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1tCtMisi3VSXJ5NCrP5rUT79kfG87Zgn4/preview",
                 "link2": "https://www.dropbox.com/scl/fi/mg2w16jwtk114hqo854iv/Konosuba-temporada-2-capitulo-4.mp4?rlkey=bggk86fe9h4ntoeu5qks4j35d&st=0v5utiga&raw=1",
-                "title": "Konosuba T2 Cap 4"
+                "title": "KonoSuba! T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1iaq9IKHiI-4Vd2Ekm-3OlaY0Fy2_larD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/vfx021rsyh6g9zgg3k4ub/Konosuba-temporada-2-capitulo-5.mp4?rlkey=az0dxwba3qwq51e4kdfznkmk9&st=wolqhfg5&raw=1",
-                "title": "Konosuba T2 Cap 5"
+                "title": "KonoSuba! T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1q1lqDEGq9bGnnUfP2d6fiqzTEhja1eiD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/f04pw8dwbjz5g78mrad64/Konosuba-temporada-2-cap-6.mp4?rlkey=fhspdbliaj5apkv01qefwbvkw&st=ycggktp7&raw=1",
-                "title": "Konosuba T2 Cap 6"
+                "title": "KonoSuba! T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1FZPgDfPr_HEZJVLowW7iRdezGQOLtoFn/preview",
                 "link2": "https://www.dropbox.com/scl/fi/atws9vf26vhejy8uz9edp/Konosuba-temporada-2-cap-7.mp4?rlkey=efdw91076kpcs6s5akng884z0&st=w99p48oo&raw=1",
-                "title": "Konosuba T2 Cap 7"
+                "title": "KonoSuba! T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1AJKWYVCE5HiaPJB8KO4Hn30tQyqn7RWX/preview",
                 "link2": "https://www.dropbox.com/scl/fi/1eb4bf5b4z20qvv1r74el/Konosuba-temporada-2-capitulo-8.mp4?rlkey=wwycbokmf4nf3swdlf5vd4wmb&st=zq3d6vl4&raw=1",
-                "title": "Konosuba T2 Cap 8"
+                "title": "KonoSuba! T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1jM4r3dqW7fFwBupS7YMTnQSqQJBWDg-G/preview",
                 "link2": "https://www.dropbox.com/scl/fi/7k51ugtkqmazb5h5ibrex/Konosuba-Temporada-2-Capitulo-9-Espa-ol-Latino.mp4?rlkey=pw4xg16v8v0kv70v4hlddxcsu&st=7rjomo6v&raw=1",
-                "title": "Konosuba T2 Cap 9"
+                "title": "KonoSuba! T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1FzcuAPvOwjrpw-41BzexpuWyppcmk5ar/preview",
                 "link2": "https://www.dropbox.com/scl/fi/cxv5yg6r1am2nu793mo08/Konosuba-temporada-2-cap-10.mp4?rlkey=uqddznfnvb94vbm2b57v6a5ol&st=15svir7c&raw=1",
-                "title": "Konosuba T2 Cap 10"
+                "title": "KonoSuba! T2 Cap 10"
             }
         },
         "5": {
             "1": {
                 "link": "https://drive.google.com/file/d/1yc0hOKkC3yLlCLnxOJ7DGyQ4cK1994WC/preview",
                 "link2": "https://www.dropbox.com/scl/fi/g20nwz9z1dm7tja0qtqvg/Konosuba-OVA-2.mp4?rlkey=72pq2kso86jrq4l2b3dg7slit&st=049nyw04&raw=1",
-                "title": "KonoSuba OVA 2 ¡Bendita sea esta maravillosa pieza de arte!"
+                "title": "KonoSuba! Ova 2 Cap 1"
             }
         },
         "6": {
             "1": {
                 "link": "https://drive.google.com/file/d/1GDdwVwX5IiKA5L97IsaH-u0c_T6OMMqV/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hyl4eur6kqntu2ozeizgu/Konosuba-Temporada-2-Pel-cula-Espa-ol-Latino.mp4?rlkey=st3432fudhrwaxad8ru97lsfx&st=pzg0s915&raw=1",
-                "title": "Konosuba Pelicula 1 \"La Leyenda Carmesí\""
+                "title": "KonoSuba! Película 1: La Leyenda Carmesí"
             }
         },
         "7": {
             "1": {
                 "link": "https://drive.google.com/file/d/13UHN7CEDhHRSPCck0KRBAfN3Gc4BakeK/preview",
                 "link2": "https://www.dropbox.com/scl/fi/i22l6ijecclkufdrysi5r/Konosuba-Temporada-3-Capitulo-1-Espa-ol-Latino.mp4?rlkey=l2ryz566b6wcopayhdqv2u1ls&st=wnb5ozk8&raw=1",
-                "title": "Konosuba T3 Cap 1"
+                "title": "KonoSuba! T3 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1vt95qHFLh-tXDcYkCWhOddlqkMa8hQsQ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/rydgtjc1kizy7c8a98kbb/Konosuba-Temporada-3-Capitulo-2-Espa-ol-Latino.mp4?rlkey=6d8gm5eo9du91e6rw0rhx33bn&st=dwn6cjdp&raw=1",
-                "title": "Konosuba T3 Cap 2"
+                "title": "KonoSuba! T3 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/11tRMruEj0D8TxjZeYMNWMF_bkAdnnGwy/preview",
                 "link2": "https://www.dropbox.com/scl/fi/7c6eskzgzw95d7n7vtinz/Konosuba-Temporada-3-Capitulo-3-Espa-ol-Latino.mp4?rlkey=a1kk39fufmnzjzugm8tvrxnfn&st=xcfc7hs1&raw=1",
-                "title": "Konosuba T3 Cap 3"
+                "title": "KonoSuba! T3 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1GwYgeCnvkCLtoFV7rEb9sz9crIylxuIT/preview",
                 "link2": "https://www.dropbox.com/scl/fi/n5h1vlbxwhlmfsqw75qgo/Konosuba-Temporada-3-Capitulo-4-Espa-ol-Latino.mp4?rlkey=z3nohbgobmiwr28o0wc6ipwvg&st=9ubfq3xu&raw=1",
-                "title": "Konosuba T3 Cap 4"
+                "title": "KonoSuba! T3 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1tKWDbALZABBEx7L-eVpGxpFS_OYDY5U1/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ltl1zrtscbj7eq08dlfva/Konosuba-Temporada-3-Capitulo-5-Espa-ol-Latino.mp4?rlkey=b31pz7jc0gyg9d3l6qmvm4uuu&st=cguu8qrv&raw=1",
-                "title": "Konosuba T3 Cap 5"
+                "title": "KonoSuba! T3 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/13Ki5erjF372oUpet1oikHiTkunoxpai5/preview",
                 "link2": "https://www.dropbox.com/scl/fi/1m53j5anshau171sys6tw/Konosuba-Temporada-3-Capitulo-6-Espa-ol-Latino.mp4?rlkey=s9fjkt32fcermqevrecwzhx1a&st=73zai8rj&raw=1",
-                "title": "Konosuba T3 Cap 6"
+                "title": "KonoSuba! T3 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1caPhm7Wi2qnDu_1TXo47VJK8WNlu8e9b/preview",
                 "link2": "https://www.dropbox.com/scl/fi/byvas3t6unx7fu0pnal8s/Konosuba-Temporada-3-Capitulo-7-Espa-ol-Latino.mp4?rlkey=gggs4wgr6iy5mvug7zakcx1ej&st=n50aldnc&raw=1",
-                "title": "Konosuba T3 Cap 7"
+                "title": "KonoSuba! T3 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/14GilFmw3XmYNzlg15Cli1T-SVt69erwB/preview",
                 "link2": "https://www.dropbox.com/scl/fi/szzlksezmsgoh1qjocd77/Konosuba-Temporada-3-Capitulo-8-Espa-ol-Latino.mp4?rlkey=gwqan9xwazhlftun1vops5ve1&st=o8onr8ao&raw=1",
-                "title": "Konosuba T3 Cap 8"
+                "title": "KonoSuba! T3 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1fjRs1BQMPptw25s0MI0u5QpuSV0vMDIn/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hak49mtphnj23b4y3uw2l/Konosuba-Temporada-3-Capitulo-9-Espa-ol-Latino.mp4?rlkey=2se2cb8epv90of14to5tlckon&st=d85bxlbx&raw=1",
-                "title": "Konosuba T3 Cap 9"
+                "title": "KonoSuba! T3 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1lxRBPMtMCjEyD2Ilqcypn8rGfg2o1NVw/preview",
                 "link2": "https://www.dropbox.com/scl/fi/46hlrxw3zch1zizdeorbo/Konosuba-Temporada-3-Capitulo-10-Espa-ol-Latino.mp4?rlkey=x2q3dovgi7vgxg4zo996792gv&st=imx2a5an&raw=1",
-                "title": "Konosuba T3 Cap 10"
+                "title": "KonoSuba! T3 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1A1ZoLMXCpSOqI3sHVqUjNLEhrg_BjmRz/preview",
                 "link2": "https://www.dropbox.com/scl/fi/qepig1ktfvcgeg97mepiw/Konosuba-Temporada-3-Capitulo-11-Espa-ol-Latino.mp4?rlkey=3jnxyndee30nlaaub8hdwmcdl&st=lkxdltvh&raw=1",
-                "title": "Konosuba T3 Cap 11"
+                "title": "KonoSuba! T3 Cap 11"
+            }
+        },
+        "8": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1gM2kbFAj_LUF3Qad5nLDCpL8dw8xZ-mx/preview",
+                "title": "KonoSuba! Ova 3 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/17Enjg1YbuHYJI0SS1AtliAvrYcNQ5Wvv/preview",
+                "title": "KonoSuba! Ova 3 Cap 2"
             }
         }
     },
@@ -3855,16 +3882,16 @@ const players = {
     "26": {
         "1": {
             "1": {
-                "link": "https://www.dropbox.com/scl/fi/q5np47bjvtu4obyocyvk0/Zootopia-1.mp4?rlkey=lv3ftdnjyshtuln1d4b4u4328&st=qjnn3oa5&raw=1",
-                "link2": "https://drive.google.com/file/d/1IID3y0_7ZeHWgMSZXqXhs4exRWCZSGsR/preview",
-                "title": "Zootopia 1"
+                "link": "https://ok.ru/videoembed/12787901795013",
+                "link2": "https://www.dropbox.com/scl/fi/q5np47bjvtu4obyocyvk0/Zootopia-1.mp4?rlkey=lv3ftdnjyshtuln1d4b4u4328&st=qjnn3oa5&raw=1",
+                "title": "Zootopia Zootopia 1 Cap 1"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/19LsauRPPIzp1V9dR5FriSXPoX_lcexgQ/preview",
                 "link2": "https://drive.google.com/file/d/1-xElJz9WhfOm8Eh1QiofybaMUspwsRF_/preview",
-                "title": "Zootopia 2"
+                "title": "Zootopia Zootopia 2 Cap 1"
             }
         }
     },
@@ -4116,7 +4143,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1DH18lUrl-qumABZRWLUMmu6IO_TshgB5/preview",
                 "link2": "https://www.dropbox.com/scl/fi/6uhqsbjw8qm1f8ilhav0g/Dr.-Stone-Especial-1-Dr.-Stone-Ryusui.mp4?rlkey=8ywkclp41qtg0ivgqhlfeou66&st=y3aqr7lc&raw=1",
-                "title": "Dr. Stone Especial 1: Dr. Stone: Ryusui"
+                "title": "Dr. Stone Especial 1: Ryusui"
             }
         },
         "4": {
@@ -4291,66 +4318,75 @@ const players = {
                 "link": "https://drive.google.com/file/d/1achqUcQYqE14rcPer2G3MKfiE4fOLz74/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fnq50t4of0y1m9eu4wewx/Dr.-Stone-Temporada-4-Capitulo-12.mp4?rlkey=emqowfzxq2us7ytjt17fwcfus&st=gkkqfxle&raw=1",
                 "title": "Dr. Stone T4 Cap 12"
-            },
-            "13": {
+            }
+        },
+        "6": {
+            "1": {
                 "link": "https://drive.google.com/file/d/1R1Nkvi-_ujzAbOEbeb_Eip2MpidXAY5G/preview",
-                "link2": "https://www.dropbox.com/scl/fi/5k5woforl71tobl8dhw6w/Dr.-Stone-Temporada-4-Capitulo-13.mp4?rlkey=9crbdufdcugw2l3tnnir2z9sv&st=ry3tqhh4&raw=1",
-                "title": "Dr. Stone T4 Cap 13"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 1"
             },
-            "14": {
+            "2": {
                 "link": "https://drive.google.com/file/d/149E3PkW8vrv5EErlkAwTp1Aw6PeIAA1U/preview",
-                "link2": "https://www.dropbox.com/scl/fi/njbked279ajr6hacg7xor/Dr.-Stone-Temporada-4-Capitulo-14.mp4?rlkey=mspj91gquluum6lrd55r0yjbx&st=25mqalpf&raw=1",
-                "title": "Dr. Stone T4 Cap 14"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 2"
             },
-            "15": {
+            "3": {
                 "link": "https://drive.google.com/file/d/1rX4EP1doifl_ICgJJwueHnGR3S_mFDMl/preview",
-                "link2": "https://www.dropbox.com/scl/fi/s009iv5kaxwzfmcqf962y/Dr.-Stone-Temporada-4-Capitulo-15.mp4?rlkey=31tq34s4cp00a52k7c67z4ioh&st=bj8atecv&raw=1",
-                "title": "Dr. Stone T4 Cap 15"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 3"
             },
-            "16": {
+            "4": {
                 "link": "https://drive.google.com/file/d/1cvYkPjC9mjZYTQyKxYjxhvdY657raK8u/preview",
-                "link2": "https://www.dropbox.com/scl/fi/rkp66pqhc4xd0c3o2tykb/Dr.-Stone-Temporada-4-Capitulo-16.mp4?rlkey=s4qtyu645uflpsavdt90370og&st=bwrebbpz&raw=1",
-                "title": "Dr. Stone T4 Cap 16"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 4"
             },
-            "17": {
+            "5": {
                 "link": "https://drive.google.com/file/d/10msU3Q-yNlm0EvCWDryDmbGYWVeZE8fF/preview",
-                "link2": "https://www.dropbox.com/scl/fi/kdm5chgbflv4ne2eh9yhn/Dr.-Stone-Temporada-4-Capitulo-17.mp4?rlkey=g24438qveahtq1rkvi3s5gxd6&st=wvu7l5xr&raw=1",
-                "title": "Dr. Stone T4 Cap 17"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 5"
             },
-            "18": {
+            "6": {
                 "link": "https://drive.google.com/file/d/1axhLh9DpJqCDUpmqkYLQRbJeI8bIJwr6/preview",
-                "link2": "https://www.dropbox.com/scl/fi/yvhscbmobhkm1llpdovmv/Dr.-Stone-Temporada-4-Capitulo-18.mp4?rlkey=frkoj8sj3zd5oamgu1iivho6o&st=8itmbong&raw=1",
-                "title": "Dr. Stone T4 Cap 18"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 6"
             },
-            "19": {
+            "7": {
                 "link": "https://drive.google.com/file/d/1-N-7UPdJ8AIP4rWYvhBq_yKpesphmJsL/preview",
-                "link2": "https://www.dropbox.com/scl/fi/p7zypzyp7j7p4dh7ltdro/Dr.-Stone-Temporada-4-Capitulo-19.mp4?rlkey=oewatrsjovz67r61t032agk6b&st=zcber1o6&raw=1",
-                "title": "Dr. Stone T4 Cap 19"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 7"
             },
-            "20": {
+            "8": {
                 "link": "https://drive.google.com/file/d/1fP3-TrJApXT9ujbRx061WIjJC4iqjKCI/preview",
-                "link2": "https://www.dropbox.com/scl/fi/arvrks4qr0yiynryb2vdb/Dr.-Stone-Temporada-4-Capitulo-20.mp4?rlkey=01skdvehz6eevtfkmbxwo4df4&st=glsu1w6u&raw=1",
-                "title": "Dr. Stone T4 Cap 20"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 8"
             },
-            "21": {
+            "9": {
                 "link": "https://drive.google.com/file/d/1yPYhEIfakGUf0gMXg4xqzHuoVXkBQKZT/preview",
-                "link2": "https://www.dropbox.com/scl/fi/rkhdgniclgoji0asog5rv/Dr.-Stone-Temporada-4-Capitulo-21.mp4?rlkey=4vhhxhyysvw305eqtsw7vabg4&st=9f1g4tgw&raw=1",
-                "title": "Dr. Stone T4 Cap 21"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 9"
             },
-            "22": {
+            "10": {
                 "link": "https://drive.google.com/file/d/1IkTucIQzCQWX6qkDFKfIH0duBZwavOcE/preview",
-                "link2": "https://www.dropbox.com/scl/fi/k93166284hmrun17xugbj/Dr.-Stone-Temporada-4-Capitulo-22.mp4?rlkey=6csrd2ju9ui479a46m03efx69&st=11rcg95m&raw=1",
-                "title": "Dr. Stone T4 Cap 22"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 10"
             },
-            "23": {
+            "11": {
                 "link": "https://drive.google.com/file/d/1WpN7CzbtVqPD_yabhhFGJcok4y84QLm8/preview",
-                "link2": "https://www.dropbox.com/scl/fi/m1hbeqkuora8yihrqtoz2/Dr.-Stone-Temporada-4-Capitulo-23.mp4?rlkey=yvz352646omw9ug5bvza0j1ey&st=qfsvwmrk&raw=1",
-                "title": "Dr. Stone T4 Cap 23"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 11"
             },
-            "24": {
+            "12": {
                 "link": "https://drive.google.com/file/d/1LttR5D0x4q9kcNdyRdYBeKvwAs8f5oG5/preview",
-                "link2": "https://www.dropbox.com/scl/fi/ocnpk72b7v32qazarsawa/Dr.-Stone-Temporada-4-Capitulo-24.mp4?rlkey=1rnnts2qkl547ivupuwulewk2&st=t68qs812&raw=1",
-                "title": "Dr. Stone T4 Cap 24"
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte II Cap 12"
+            }
+        },
+        "7": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/Drst425:5",
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte III - FInal Cap 1"
             }
         }
     },
@@ -4482,12 +4518,12 @@ const players = {
                 "title": "To Your Eternity T1 Cap 2"
             },
             "3": {
-                "link": "https://drive.google.com/file/d/1d4__vsnAHl9gAJnSgg2cgzr2Ceo5GTQs/preview",
+                "link": "https://odysee.com/$/embed/tty13:4",
                 "link2": "https://www.dropbox.com/scl/fi/xtxz2kvp2lmz2wunhqt9f/To-Your-Eternity-T1-Cap-3.mp4?rlkey=udh6hnulp3ogltz2sa0obe3n2&st=llaomxbn&raw=1",
                 "title": "To Your Eternity T1 Cap 3"
             },
             "4": {
-                "link": "https://drive.google.com/file/d/1-zQlvuzXp2UOd2xlg0bh12xwtcmiGieK/preview",
+                "link": "https://odysee.com/$/embed/tty14:4",
                 "link2": "https://www.dropbox.com/scl/fi/fjs9di8heeoiirxrwkt13/To-Your-Eternity-T1-Cap-4.mp4?rlkey=iqkocsn85vnfhacgy8jb9v407&st=yqa0raod&raw=1",
                 "title": "To Your Eternity T1 Cap 4"
             },
@@ -4584,12 +4620,12 @@ const players = {
                 "title": "To Your Eternity T2 Cap 2"
             },
             "3": {
-                "link": "https://drive.google.com/file/d/1wf4UXzYjR-LnPwYymnXeOMBgYCPNqu6O/preview",
+                "link": "https://odysee.com/$/embed/tty23:a",
                 "link2": "https://www.dropbox.com/scl/fi/3d68ddnxfpxfrz6dejco0/To-Your-Eternity-T2-Cap-3.mp4?rlkey=fy2v7qlo0m9cr9vya843yt61j&st=on7tpepy&raw=1",
                 "title": "To Your Eternity T2 Cap 3"
             },
             "4": {
-                "link": "https://drive.google.com/file/d/16kUZ9GfaWLqiO4iTQNKNV9awHAr9GN2K/preview",
+                "link": "https://odysee.com/$/embed/tty24:c",
                 "link2": "https://www.dropbox.com/scl/fi/8r47jhl3insl126j3o7kv/To-Your-Eternity-T2-Cap-4.mp4?rlkey=qmv5dh6ykgz4eax9h6u4rwpzt&st=uuei6w3j&raw=1",
                 "title": "To Your Eternity T2 Cap 4"
             },
@@ -4769,6 +4805,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/14bCX-FCrgMxhMnDQp5mJXf3P0qudRNXt/preview",
                 "link2": "",
                 "title": "To Your Eternity T3 Cap 19"
+            },
+            "20": {
+                "link": "https://odysee.com/$/embed/@any:a/tt320:c",
+                "link2": "",
+                "title": "To Your Eternity T3 Cap 20"
+            },
+            "21": {
+                "link": "https://odysee.com/$/embed/tty321:3",
+                "link2": "",
+                "title": "To Your Eternity T3 Cap 21"
+            },
+            "22": {
+                "link": "https://odysee.com/$/embed/tty322:7",
+                "link2": "",
+                "title": "To Your Eternity T3 Cap 22"
             }
         }
     },
@@ -6226,6 +6277,18 @@ const players = {
                 "link": "https://odysee.com/$/embed/43152:8",
                 "link2": "",
                 "title": "Maplestar My Dress-Up Darling Cap 2"
+            }
+        },
+        "16": {
+            "1": {
+                "link": "https://odysee.com/$/embed/mr1:4",
+                "link2": "",
+                "title": "Maplestar Clases Con Reze Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://odysee.com/$/embed/Rm:1",
+                "title": "Maplestar Clases Con Reze Cap 2"
             }
         }
     },
@@ -8176,6 +8239,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1K4cs4SH2bzmHv1JUfE04jUjxArIfOV_r/preview",
                 "link2": "",
                 "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 20"
+            },
+            "21": {
+                "link": "https://odysee.com/$/embed/@any:a/ttw121:9",
+                "link2": "",
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 21"
+            },
+            "22": {
+                "link": "https://odysee.com/$/embed/ttkw22:3",
+                "link2": "",
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 22"
+            },
+            "23": {
+                "link": "https://odysee.com/$/embed/@any:a/ttw123:9",
+                "link2": "",
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 23"
             }
         }
     },
@@ -8345,20 +8423,24 @@ const players = {
     "57": {
         "1": {
             "1": {
-                "link": "https://drive.google.com/file/d/1VB-00wKILX3piZcPV4yy2njOWauoxxkG/preview",
-                "title": "Oyasumi Sex Cap 1"
+                "link": "https://odysee.com/$/embed/Oyx11:2",
+                "link2": "https://drive.google.com/file/d/1VB-00wKILX3piZcPV4yy2njOWauoxxkG/preview",
+                "title": "Oyasumi Sex T1 Cap 1"
             },
             "2": {
-                "link": "https://drive.google.com/file/d/1eGTl3lvheAZlFTCCKGksvAIxP3pE4jGA/preview",
-                "title": "Oyasumi Sex Cap 2"
+                "link": "https://odysee.com/$/embed/Oyx12:8",
+                "link2": "https://drive.google.com/file/d/1eGTl3lvheAZlFTCCKGksvAIxP3pE4jGA/preview",
+                "title": "Oyasumi Sex T1 Cap 2"
             },
             "3": {
-                "link": "https://drive.google.com/file/d/10L2jvxFgA375hP-yPwFcGGI9U4rGqfXH/preview",
-                "title": "Oyasumi Sex Cap 3"
+                "link": "https://odysee.com/$/embed/Oya13:b",
+                "link2": "https://drive.google.com/file/d/10L2jvxFgA375hP-yPwFcGGI9U4rGqfXH/preview",
+                "title": "Oyasumi Sex T1 Cap 3"
             },
             "4": {
-                "link": "https://drive.google.com/file/d/17FhjkUZDpQL09Lym99JRCvYIGUj4Jgd8/preview",
-                "title": "Oyasumi Sex Cap 4"
+                "link": "https://odysee.com/$/embed/Oyx14:e",
+                "link2": "https://drive.google.com/file/d/17FhjkUZDpQL09Lym99JRCvYIGUj4Jgd8/preview",
+                "title": "Oyasumi Sex T1 Cap 4"
             }
         }
     },
@@ -9651,6 +9733,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1pL5GccED3j-yBBGYuT3K_kjD0VjOrkzX/preview",
                 "link2": "",
                 "title": "Gnosia T1 Cap 18"
+            },
+            "19": {
+                "link": "https://odysee.com/$/embed/@any:a/gn119:e",
+                "link2": "",
+                "title": "Gnosia T1 Cap 19"
+            },
+            "20": {
+                "link": "https://odysee.com/$/embed/Gs120:a",
+                "link2": "",
+                "title": "Gnosia T1 Cap 20"
+            },
+            "21": {
+                "link": "https://odysee.com/$/embed/@yudi:1/gns21:e",
+                "link2": "",
+                "title": "Gnosia T1 Cap 21"
             }
         }
     },
@@ -9982,6 +10079,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/11fyC1Yc6OedhGbhJQR8vr9Sm7fkXYnjo/preview",
                 "link2": "",
                 "title": "Frieren: Más allá del final del viaje T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@any:a/fr26:8",
+                "link2": "",
+                "title": "Frieren: Más allá del final del viaje T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/ff27:6",
+                "link2": "",
+                "title": "Frieren: Más allá del final del viaje T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/fr28:2",
+                "link2": "",
+                "title": "Frieren: Más allá del final del viaje T2 Cap 8"
             }
         }
     },
@@ -10529,6 +10641,16 @@ const players = {
                 "link": "https://drive.google.com/file/d/1YUeDm7LGq8BatznHhcZBd7lP1TvNIjpz/preview",
                 "link2": "",
                 "title": "Seihantai na Kimi to Boku T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Sei19:6",
+                "link2": "",
+                "title": "Seihantai na Kimi to Boku T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/opp110:e",
+                "link2": "",
+                "title": "Seihantai na Kimi to Boku T1 Cap 10"
             }
         }
     },
@@ -10583,6 +10705,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/1FMZRRrWaaIODevINjprNqBBuBABPfox7/preview",
                 "link2": "",
                 "title": "Sentenced to Be a Hero T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/Stb11:5",
+                "link2": "",
+                "title": "Sentenced to Be a Hero T1 Cap 11"
             }
         }
     },
@@ -10637,6 +10764,11 @@ const players = {
                 "link": "https://drive.google.com/file/d/14gznxwSdWqugOHNj3cyQt2pGgXDYlSdx/preview",
                 "link2": "",
                 "title": "SHIBOYUGI: Me gano el pan participando de juegos mortales T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@any:a/shi111:a",
+                "link2": "",
+                "title": "SHIBOYUGI: Me gano el pan participando de juegos mortales T1 Cap 11"
             }
         }
     },
@@ -11394,6 +11526,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1P_5WCml5GF-6C5o7pCVNiraV2ELAs8ir/preview",
                 "link2": "",
                 "title": "Fire Force T3 Cap 22"
+            },
+            "23": {
+                "link": "https://odysee.com/$/embed/@any:a/ff323:6",
+                "link2": "",
+                "title": "Fire Force T3 Cap 23"
+            },
+            "24": {
+                "link": "https://odysee.com/$/embed/frfr324:c",
+                "link2": "",
+                "title": "Fire Force T3 Cap 24"
+            },
+            "25": {
+                "link": "https://odysee.com/$/embed/ffre325:c",
+                "link2": "",
+                "title": "Fire Force T3 Cap 25"
             }
         }
     },
@@ -11512,6 +11659,16 @@ const players = {
                 "link": "https://drive.google.com/file/d/14U3L-wECe7cNmS48dn4-7CznsuZrcAkK/preview",
                 "link2": "",
                 "title": "Dark Moon: The Blood Altar T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@any:a/dm111:8",
+                "link2": "",
+                "title": "Dark Moon: The Blood Altar T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/dm112:d",
+                "link2": "",
+                "title": "Dark Moon: The Blood Altar T1 Cap 12"
             }
         }
     },
@@ -11618,6 +11775,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1PjMq2xUxVvhP3vII8LDuN3DQXzF-5UYO/preview",
                 "link2": "",
                 "title": "Hell's Paradise T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/Hp28:8",
+                "link2": "",
+                "title": "Hell's Paradise T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/hp29:8",
+                "link2": "",
+                "title": "Hell's Paradise T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/hpr210:b",
+                "link2": "",
+                "title": "Hell's Paradise T2 Cap 10"
             }
         }
     },
@@ -12268,6 +12440,13 @@ const players = {
                 "link": "https://drive.google.com/file/d/1Mh3bI0k62BQHAscYgcvdFA8AvUqCF50A/preview",
                 "link2": "",
                 "title": "Mairimashita! Iruma-kun T3 Cap 21"
+            }
+        },
+        "4": {
+            "1": {
+                "link": "https://odysee.com/$/embed/mrmik41:5",
+                "link2": "",
+                "title": "Mairimashita! Iruma-kun T4 Cap 1"
             }
         }
     },
@@ -14243,6 +14422,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1gHEJ6xWoqo7io-yvk2vl92jsColoaxuI/preview",
                 "link2": "",
                 "title": "Trigun Stampede T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/ts28:0",
+                "link2": "",
+                "title": "Trigun Stampede T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Ts29:0",
+                "link2": "",
+                "title": "Trigun Stampede T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@yudi:1/tsz210:7",
+                "link2": "",
+                "title": "Trigun Stampede T2 Cap 10"
             }
         }
     },
@@ -14282,6 +14476,21 @@ const players = {
                 "link": "https://drive.google.com/file/d/1iFkhcfZ_zM2pk_FApN7e_oZb0zcfeDrT/preview",
                 "link2": "",
                 "title": "Roll Over and Die T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/omae18:c",
+                "link2": "",
+                "title": "Roll Over and Die T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Ogmg19:b",
+                "link2": "",
+                "title": "Roll Over and Die T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@any:a/oggm110:6",
+                "link2": "",
+                "title": "Roll Over and Die T1 Cap 10"
             }
         }
     },
@@ -14636,6 +14845,1032 @@ const players = {
                 "link": "https://odysee.com/$/embed/@yudi:1/9435:5",
                 "link2": "",
                 "title": "Oshi no Ko T3 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/osh36:9",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 6"
+            }
+        }
+    },
+    "95": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/Rf11:8",
+                "link2": "",
+                "title": "Rooster Fighter T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/rf12:4",
+                "link2": "",
+                "title": "Rooster Fighter T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/rf13:7",
+                "link2": "",
+                "title": "Rooster Fighter T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/rf14:9",
+                "link2": "",
+                "title": "Rooster Fighter T1 Cap 4"
+            }
+        }
+    },
+    "96": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms11:c",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms12:8",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms13:5",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms14:a",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms15:e",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms16:f",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/Ms17:3",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms18:4",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Ms19:1",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms110:8",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms111:3",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/@any:a/Ms112:6",
+                "link2": "",
+                "title": "Mato Seihei no Slave T1 Cap 12"
+            }
+        }
+    },
+    "97": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/Wb11:5",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/Wb12:8",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/Wb13:a",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/Wb14:c",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/Wb15:c",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/Wb16:2",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/wb17:8",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/wb18:8",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/wb19:8",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/wb110:3",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/wb111:4",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/wb112:f",
+                "link2": "",
+                "title": "Wind Breaker T1 Cap 12"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://odysee.com/$/embed/wb21:f",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/wb22:6",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/wb23:e",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/wb24:b",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/wb25:8",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/wb26:2",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/wb27:a",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/wb28:d",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/wb29:4",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/wb210:3",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/wb211:2",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/wb212:8",
+                "link2": "",
+                "title": "Wind Breaker T2 Cap 12"
+            }
+        }
+    },
+    "98": {
+        "1": {
+            "1": {
+                "link": "https://drive.google.com/file/d/1EP_KoLxqwk273Ga9MifYul6Ncv2jFTGu/preview",
+                "link2": "",
+                "title": "Sonic Película 1: Película 1"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://drive.google.com/file/d/16qQX-fAmthlrKfedQftW6I6bYih3MXNO/preview",
+                "link2": "",
+                "title": "Sonic Película 2: Película 2"
+            }
+        },
+        "3": {
+            "1": {
+                "link": "https://drive.google.com/file/d/1GMFAUXPscaLdiHLRuVjvxiW1Xpaa8dsE/preview",
+                "link2": "",
+                "title": "Sonic Película 3: Película 3"
+            }
+        },
+        "4": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1tB0PtQ-uFbjwBB_jyhbhrnuzLRWVaEbv/preview",
+                "title": "Sonic Película 4: Trailer"
+            }
+        }
+    },
+    "99": {
+        "1": {
+            "1": {
+                "link": "https://drive.google.com/file/d/1k73NlnV5Lln9J70ibbJW6vUSCMCGjaK0/preview",
+                "link2": "https://ok.ru/videoembed/12787530336965",
+                "title": "Super Mario Bros Película 1: Película 1"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://drive.google.com/file/d/1XAoZ2sYYoPWpLyE_ei4LmCqIjyNd-ml8/preview",
+                "link2": "https://drive.google.com/file/d/1bmwe5KhGZ_TmxoEZes01Vb_ExEiwmR0i/preview",
+                "title": "Super Mario Bros Película 2: Película 2 Subtítulos en línea"
+            }
+        }
+    },
+    "100": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/Ksw11:6",
+                "link2": "https://drive.google.com/file/d/1gR2y1YXNzGTx14h3XTV2aXkovuoSod_O/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/Ksw1:9",
+                "link2": "https://drive.google.com/file/d/1fAY1FbZP-fuzjKZls34WEwqQunhrnJfX/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/Ksw13:3",
+                "link2": "https://drive.google.com/file/d/1pNcOl165xFtPAT65yPEeRrrguBiwSJH4/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/Ksw14:9",
+                "link2": "https://drive.google.com/file/d/1dOvT4NYDEOuKLFk-Jg7A9_eeg20YJJxz/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/Ksw15:d",
+                "link2": "https://drive.google.com/file/d/1FWCg8Gkt7HfC_Wf6QHQs4_S-BVn-7gD0/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/Ksw16:1",
+                "link2": "https://drive.google.com/file/d/18j3cUE0kDiT-niiVhaU38CgGYC_1GITb/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/Ksw17:a",
+                "link2": "https://drive.google.com/file/d/14OsPaNehgVexC-dPAeslXvcZ0VpeHjq3/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/Ksw18:3",
+                "link2": "https://drive.google.com/file/d/1Ve684yjgUsnw9ZrJhm6zDPOcbyKMzAye/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Ksw19:4",
+                "link2": "https://drive.google.com/file/d/1Rm_NFVpntmF1L_S0WydtcaKBuMKkvIUX/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/Ksw110:3",
+                "link2": "https://drive.google.com/file/d/1hlWwhkio9Ztl9stRylGNReDLg9PcJ2XV/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/Ksw111:a",
+                "link2": "https://drive.google.com/file/d/1dLBA_2J2FZ9xwwN4AZZ7mDXs1402Bh7z/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/Ksw112:6",
+                "link2": "https://drive.google.com/file/d/1QT6tJzG--45yc0vlsvZY5siqb8HabXE8/preview",
+                "title": "Komi-san wa, Komyushō desu. T1 Cap 12"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://odysee.com/$/embed/Ksw21:4",
+                "link2": "https://drive.google.com/file/d/1U17dmwaRJ1tJn8MSLLxvfBVn8dnnqTTO/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/Ksw22:6",
+                "link2": "https://drive.google.com/file/d/1YN8rV5o4iVTOVXR0-te7W9CWPSyAMrZe/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/Kswt23:0",
+                "link2": "https://drive.google.com/file/d/1QFCR59aVNUcWiOP_1_LURpMdsz0O5bbJ/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/Kswt24:2",
+                "link2": "https://drive.google.com/file/d/1ESjEjJzEOGxFhnVFTxFu9Td5HZGeUp27/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/kswt25:a",
+                "link2": "https://drive.google.com/file/d/1tRm1NE3Inm6fheWs6x-XrXYfIkmu8oHq/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/kswt26:3",
+                "link2": "https://drive.google.com/file/d/1wlBKHZK1vwrq3aczBr1eN1p2mCDDDL-P/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/Kswt27:9",
+                "link2": "https://drive.google.com/file/d/1HTuLyxm6hUSJpj1sLRrozRwgu7mRkmVl/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/Kswt28:0",
+                "link2": "https://drive.google.com/file/d/1Ht5Y5lTkdoKsHIQ5ALBvRgdqyNgJ8QZ6/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Kswt29:c",
+                "link2": "https://drive.google.com/file/d/12mxYagntWtuycWMSHTWLUwfTZK-KDWRL/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/Kswt210:9",
+                "link2": "https://drive.google.com/file/d/1wjypYFbCRhRCvNyxk3uRFBXi9tygms9u/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/Kswt211:a",
+                "link2": "https://drive.google.com/file/d/1yNzc1nuhwhWC8N0jFln3nUqIWjyW8500/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/Kswt212:8",
+                "link2": "https://drive.google.com/file/d/19WbcA2ko90qVNksWiKWu6ritfm0hhaOl/preview",
+                "title": "Komi-san wa, Komyushō desu. T2 Cap 12"
+            }
+        }
+    },
+    "101": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/Bkny11:c",
+                "link2": "https://drive.google.com/file/d/1W9GOwR02_aRcNPPugRnIatx39djh-L_L/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/Bkny112:5",
+                "link2": "https://drive.google.com/file/d/13Zxt4j4WO-oC1fOWu4dpy1Fqutnh-CER/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/Bkny113:4",
+                "link2": "https://drive.google.com/file/d/1sDHOl1NTXJUTd7x1rxVr3xFpIs0R-f5W/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/Bkny114:3",
+                "link2": "https://drive.google.com/file/d/1rMbCyMe3F9cBYlpWF5T1gbqaUupZaAFA/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/Bkny115:2",
+                "link2": "https://drive.google.com/file/d/1MrqLmdgdJMN_smbZiJyciqmWJb6K9YYj/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/Bkny116:8",
+                "link2": "https://drive.google.com/file/d/1hKSyxQz8Bf-NakOhqwhSBjhBqLWlDtDv/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/Bkny117:3",
+                "link2": "https://drive.google.com/file/d/1YI4vLWA6evGtlMCC5-ih39y8WzQWUU5f/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/Bkny118:5",
+                "link2": "https://drive.google.com/file/d/1wFmJ2wlXFLLpz1u6gexEKs7uZbFGLCJN/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/Bkny119:c",
+                "link2": "https://drive.google.com/file/d/1TpEq7Pk0GepSfRf9-_PlJTLVTUJBqH5t/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/Bkny1110:b",
+                "link2": "https://drive.google.com/file/d/1DXrGSYXXhoEb5rAgj8e6NnW81LQbzbmP/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/Bkny111:8",
+                "link2": "https://drive.google.com/file/d/1Q1rmu-rJUSUX1g89zaeeS-wAWdM2HXV7/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/Bkny1112:7",
+                "link2": "https://drive.google.com/file/d/1H1k64FD4uwH27_Xsun-OorMNLgn5tgan/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T1 Cap 12"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://odysee.com/$/embed/nknnyy21:6",
+                "link2": "https://drive.google.com/file/d/1Poka6mA-NFLvb-r8r3hEG3ifAWLrzIWR/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/nknnyy22:8",
+                "link2": "https://drive.google.com/file/d/1E02IgozxT0f18roR7yy8elak23aT9nkx/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/nknnyy23:4",
+                "link2": "https://drive.google.com/file/d/1D8eTGDV4Bk5HXiXhCajx70GaI9YJsFfW/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/nknnyy24:4",
+                "link2": "https://drive.google.com/file/d/18ogzGgvXHfdqMrfCsovQfFbSXyeh1FUf/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/nknnyy25:2",
+                "link2": "https://drive.google.com/file/d/1dVouptou2D1Q8SEmppq9X_3ayuffSWhZ/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/nknnyy26:d",
+                "link2": "https://drive.google.com/file/d/1CXjzPPJmwPEFespsbymkS6025Ow3sISD/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/nknnyy27:d",
+                "link2": "https://drive.google.com/file/d/14ZWJ3fO2KbbfJqrUyt7TLQRfrorDZfa7/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/nknnyy28:0",
+                "link2": "https://drive.google.com/file/d/1Z_nGrOohwUgqAdI1NKfpRTNujijlVEkp/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/nknnyy29:e",
+                "link2": "https://drive.google.com/file/d/1peJewdBSHQNTWLEV4joexmj2Xqn4opjI/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/nknnyy210:0",
+                "link2": "https://drive.google.com/file/d/1LngA-P6yBwTyLxKi8hlDGxZI6hmm3bRY/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/nknnyy211:f",
+                "link2": "https://drive.google.com/file/d/1f33_qQeAoVQcqxXCVlIOTgELgeZYbj4_/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/nknnyy212:c",
+                "link2": "https://drive.google.com/file/d/1CRy323NFmKKX47GAWmXDETTQr9N6yJ5g/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/nknnyy213:1",
+                "link2": "https://drive.google.com/file/d/1EQtFY3MPwWyTZlA-UdVyteYiYdYf9K2Q/preview",
+                "title": "Boku no Kokoro no Yabai Yatsu T2 Cap 13"
+            }
+        }
+    },
+    "102": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/IDT1C1:f",
+                "link2": "https://drive.google.com/file/d/1wJ85wLwef6U4jF9qwPlm6VhQ5R26muhq/preview",
+                "title": "El incidente de Darwin T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/IDT1C2:c",
+                "link2": "https://drive.google.com/file/d/1LTSmdFOnaYwiqzgKLRlL5hsMVXlIETBD/preview",
+                "title": "El incidente de Darwin T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/IDT1C3:9",
+                "link2": "https://drive.google.com/file/d/1uAmvfrf8eM7i7oehCbelMRP0quNOwCZX/preview",
+                "title": "El incidente de Darwin T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/IDT1C4:2",
+                "link2": "https://drive.google.com/file/d/1rJF-jJ7iWd4Yx1MbLd929TCUxdnAsmCx/preview",
+                "title": "El incidente de Darwin T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/IDT1C5:9",
+                "link2": "https://drive.google.com/file/d/1Ro6JJ9NKeiXeliiRkWbKClEZjIlSGA8d/preview",
+                "title": "El incidente de Darwin T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/IDT1C6:e",
+                "link2": "https://drive.google.com/file/d/1I3MiOuYlLRWqZDZJjwD50pKaTAvyzbpQ/preview",
+                "title": "El incidente de Darwin T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/IDT1C7:2",
+                "link2": "https://drive.google.com/file/d/1OgrEwwkyGkl9ub-LJ4WLrDKmjRMsGo6U/preview",
+                "title": "El incidente de Darwin T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/IDT1C8:d",
+                "link2": "https://drive.google.com/file/d/17hIQXjlNuF9NsdQr0g5Yk92pcka1w1_5/preview",
+                "title": "El incidente de Darwin T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/IDT1C9:5",
+                "link2": "https://drive.google.com/file/d/10yJqJnOrGM-OCTJqGUQNADhsOVqVqOpI/preview",
+                "title": "El incidente de Darwin T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/IDT1C10:3",
+                "link2": "https://drive.google.com/file/d/1c-kHI2MVlPecgQd3b77ZUNQB3ypt4XQL/preview",
+                "title": "El incidente de Darwin T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/IDT1C11:0",
+                "link2": "https://drive.google.com/file/d/1cPcLpc4txnRhNybc3QlM7HD_MlJ8Yvgf/preview",
+                "title": "El incidente de Darwin T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/IDT1C12:3",
+                "link2": "https://drive.google.com/file/d/17jhZqWAbvnNhdAhs004qMfeJxo8kX-b9/preview",
+                "title": "El incidente de Darwin T1 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/@any:a/idw113:d",
+                "link2": "",
+                "title": "El incidente de Darwin T1 Cap 13"
+            }
+        }
+    },
+    "103": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c1:7",
+                "link2": "",
+                "title": "Horimiya T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c2:c",
+                "link2": "",
+                "title": "Horimiya T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c3:6",
+                "link2": "",
+                "title": "Horimiya T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c4:b",
+                "link2": "",
+                "title": "Horimiya T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c5:8",
+                "link2": "",
+                "title": "Horimiya T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c6:2",
+                "link2": "",
+                "title": "Horimiya T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c7:4",
+                "link2": "",
+                "title": "Horimiya T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c8:e",
+                "link2": "",
+                "title": "Horimiya T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c9:f",
+                "link2": "",
+                "title": "Horimiya T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c10:1",
+                "link2": "",
+                "title": "Horimiya T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c11:3",
+                "link2": "",
+                "title": "Horimiya T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c12:5",
+                "link2": "",
+                "title": "Horimiya T1 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/@any:a/Hrmys1c13:c",
+                "link2": "",
+                "title": "Horimiya T1 Cap 13"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/hry21:4",
+                "link2": "",
+                "title": "Horimiya T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@any:a/hry22:e",
+                "link2": "",
+                "title": "Horimiya T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@any:a/hry23:c",
+                "link2": "",
+                "title": "Horimiya T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/@any:a/hry24:a",
+                "link2": "",
+                "title": "Horimiya T2 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@any:a/hry25:5",
+                "link2": "",
+                "title": "Horimiya T2 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/@any:a/hry26:3",
+                "link2": "",
+                "title": "Horimiya T2 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/@any:a/hry27:b",
+                "link2": "",
+                "title": "Horimiya T2 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/@any:a/hry28:6",
+                "link2": "",
+                "title": "Horimiya T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/@any:a/hry29:2",
+                "link2": "",
+                "title": "Horimiya T2 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/@any:a/hry210:0",
+                "link2": "",
+                "title": "Horimiya T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@any:a/hry211:b",
+                "link2": "",
+                "title": "Horimiya T2 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/@any:a/hry212:9",
+                "link2": "",
+                "title": "Horimiya T2 Cap 12"
+            }
+        }
+    },
+    "104": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/doro11:8",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/doro12:b",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/doro13:c",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/doro14:d",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/doro15:8",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/doro16:4",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/doro17:1",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/doro18:e",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/doro19:5",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/doro110:9",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/doro111:2",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/doro112:2",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/doro113:9",
+                "link2": "",
+                "title": "Dorohedoro T1 Cap 13"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "",
+                "link2": "https://odysee.com/$/embed/doroova:9",
+                "title": "Dorohedoro OVA 1 \"Anécdotas diabólicas\""
+            }
+        },
+        "3": {
+            "1": {
+                "link": "https://odysee.com/$/embed/doro21:c",
+                "link2": "",
+                "title": "Dorohedoro T2 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/doro22:c",
+                "link2": "",
+                "title": "Dorohedoro T2 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/doro23:c",
+                "link2": "",
+                "title": "Dorohedoro T2 Cap 3"
+            }
+        }
+    },
+    "105": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/gnk11:a",
+                "link2": "",
+                "title": "Ganbare! Nakamura-kun!! T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@any:a/gnk12:c",
+                "link2": "",
+                "title": "Ganbare! Nakamura-kun!! T1 Cap 2"
+            }
+        }
+    },
+    "106": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@any:a/knj11:e",
+                "link2": "",
+                "title": "Rompiendo el hielo T1 Cap 1"
+            }
+        }
+    },
+    "107": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/se11:c",
+                "link2": "",
+                "title": "Snowball Earth T1 Cap 1"
+            }
+        }
+    },
+    "108": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/rlkk11:c",
+                "link2": "",
+                "title": "Rilakkuma T1 Cap 1"
+            }
+        }
+    },
+    "109": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/@yudi:1/dots11:e",
+                "link2": "",
+                "title": "Daemons of the Shadow Realm T1 Cap 1"
+            }
+        }
+    },
+    "110": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/npps11:9",
+                "link2": "",
+                "title": "Nippon Sangoku: Las tres naciones del sol carmesí T1 Cap 1"
+            }
+        }
+    },
+    "111": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/wha11:4",
+                "link2": "",
+                "title": "Witch Hat Atelier T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/wha12:3",
+                "link2": "",
+                "title": "Witch Hat Atelier T1 Cap 2"
+            }
+        }
+    },
+    "112": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/scr1:0",
+                "link2": "",
+                "title": "Scarlet Película 1"
+            }
+        }
+    },
+    "113": {
+        "1": {
+            "1": {
+                "link": "https://odysee.com/$/embed/caja11:a",
+                "link2": "https://drive.google.com/file/d/1OJchBdVVKewW-7Pm5ekLHEeZJFaD296x/preview",
+                "title": "Blue Box T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/caja122:7",
+                "link2": "https://drive.google.com/file/d/17rduRYVmEgqTJdPOHxALdshOYI3Mbjsm/preview",
+                "title": "Blue Box T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/cajax3:5",
+                "link2": "https://drive.google.com/file/d/1Icp3KCf3xGPe8zRRbBn9B_OlDTf4oDNG/preview",
+                "title": "Blue Box T1 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/caja4:8",
+                "link2": "https://drive.google.com/file/d/1NrisuZpUu3sEUZtzvhWdzKE1NQsPo8Sg/preview",
+                "title": "Blue Box T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/caja5:6",
+                "link2": "https://drive.google.com/file/d/13iiZOe5dp6L2njNyOjMlewSAnJFikGHl/preview",
+                "title": "Blue Box T1 Cap 5"
+            },
+            "6": {
+                "link": "https://odysee.com/$/embed/caja6:9",
+                "link2": "https://drive.google.com/file/d/11MekRxopCJhCgG5wsZ21dGv_JRHd-HGF/preview",
+                "title": "Blue Box T1 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/caja7:4",
+                "link2": "https://drive.google.com/file/d/1NaQdeK-1j48XW8E2CPGb2rzJdzhThN9M/preview",
+                "title": "Blue Box T1 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/caja8:8",
+                "link2": "https://drive.google.com/file/d/1lnwrWp0b4UNG5ncI3ch2MyuBoPO9UTkt/preview",
+                "title": "Blue Box T1 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/caja9:3",
+                "link2": "https://drive.google.com/file/d/128S1Mwx41CO3hSDdu-xc_KfnjNXOEdvP/preview",
+                "title": "Blue Box T1 Cap 9"
+            },
+            "10": {
+                "link": "https://odysee.com/$/embed/caja10:c",
+                "link2": "https://drive.google.com/file/d/1wo9zU2BW_eTchDmrpHZXNICZaYALQC4o/preview",
+                "title": "Blue Box T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/caja111:0",
+                "link2": "https://drive.google.com/file/d/1xk0rAOylBqHCvec4gEVsORyTyz6fsQ0p/preview",
+                "title": "Blue Box T1 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/caja112:e",
+                "link2": "https://drive.google.com/file/d/134DBLPPMblecJvZ9weVRzPV_AyQrodxo/preview",
+                "title": "Blue Box T1 Cap 12"
+            },
+            "13": {
+                "link": "https://odysee.com/$/embed/caja13:a",
+                "link2": "https://drive.google.com/file/d/1oTEQD3a7gyybw19lojxQWKoOHmkq7shh/preview",
+                "title": "Blue Box T1 Cap 13"
+            },
+            "14": {
+                "link": "https://odysee.com/$/embed/caja14:8",
+                "link2": "https://drive.google.com/file/d/1GfjxLdLee7pSl3c9KA5EIz43g9nrQI4a/preview",
+                "title": "Blue Box T1 Cap 14"
+            },
+            "15": {
+                "link": "https://odysee.com/$/embed/caja15:4",
+                "link2": "https://drive.google.com/file/d/1y6Ba3-L5XxAcpCPrJVVi8ilwkScodgmz/preview",
+                "title": "Blue Box T1 Cap 15"
+            },
+            "16": {
+                "link": "https://odysee.com/$/embed/caja16:2",
+                "link2": "https://drive.google.com/file/d/1WG49rItHyR4vFWtHpMsvm0LLhnSDgCp0/preview",
+                "title": "Blue Box T1 Cap 16"
+            },
+            "17": {
+                "link": "https://odysee.com/$/embed/caja17:7",
+                "link2": "https://drive.google.com/file/d/1A8lxcHj7yXfJmcSmDkwDQlUu2du_ato9/preview",
+                "title": "Blue Box T1 Cap 17"
+            },
+            "18": {
+                "link": "https://odysee.com/$/embed/caja18:b",
+                "link2": "https://drive.google.com/file/d/1b5YX5Eo3FyHnNd0cRt00wSQOEpF4XmAJ/preview",
+                "title": "Blue Box T1 Cap 18"
+            },
+            "19": {
+                "link": "https://odysee.com/$/embed/cajac19:5",
+                "link2": "https://drive.google.com/file/d/1rRm-cOB9paJM3uZ4cALqbaT75g20UDZC/preview",
+                "title": "Blue Box T1 Cap 19"
+            },
+            "20": {
+                "link": "https://odysee.com/$/embed/caja20:0",
+                "link2": "https://drive.google.com/file/d/1HjdgvpVfPfQFTe9lQ9Q6h837u_RmLrBM/preview",
+                "title": "Blue Box T1 Cap 20"
+            },
+            "21": {
+                "link": "https://odysee.com/$/embed/caja21:a1",
+                "link2": "https://drive.google.com/file/d/1ZTT_8v-_ErWl9eWc3sIWmZ9pS4YptRTP/preview",
+                "title": "Blue Box T1 Cap 21"
+            },
+            "22": {
+                "link": "https://odysee.com/$/embed/caja22:1",
+                "link2": "https://drive.google.com/file/d/1hIqSPqPWu3GUk7-QWeG0VN9EuqYHNak9/preview",
+                "title": "Blue Box T1 Cap 22"
+            },
+            "23": {
+                "link": "https://odysee.com/$/embed/caja23:a",
+                "link2": "https://drive.google.com/file/d/1arnMVQYCLfwDixDA9OghCCfZNGd1PZft/preview",
+                "title": "Blue Box T1 Cap 23"
+            },
+            "24": {
+                "link": "https://odysee.com/$/embed/caja24:b",
+                "link2": "https://drive.google.com/file/d/1rRxeqM4cyT0IJAspxFBN3uR38xpFn5ET/preview",
+                "title": "Blue Box T1 Cap 24"
+            },
+            "25": {
+                "link": "https://odysee.com/$/embed/caja25:b",
+                "link2": "https://drive.google.com/file/d/1aj0_1PoD9tF5IQOeikD454Y33qwP7uOj/preview",
+                "title": "Blue Box T1 Cap 25"
             }
         }
     }

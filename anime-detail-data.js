@@ -288,6 +288,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 3"
@@ -295,14 +304,13 @@ const data = {
         ]
     },
     "3": {
-        "title": "¡KonoSuba! ¡Una bendición para este maravilloso mundo!",
+        "title": "KonoSuba!",
         "desc": "Kazuma Satou es un chico de preparatoria otaku y hikikomori que no suele salir de casa, pero cuando lo hace, un fatídico (y ridículo) accidente acaba con su vida. En el otro mundo aparece una diosa ante él y le propone comenzar de nuevo su vida en un mundo de magia y espada, pero las condiciones son un tanto peculiares, así que acabará comenzando de cero como aventurero y acompañado de una diosa.",
         "cover": "konosubaportada.avif",
         "uploader": "archinime12@gmail.com",
         "seasons": [
             {
                 "num": 1,
-                "name": "KonoSuba: Explosión en un mundo maravilloso",
                 "cover": "konome.jpg",
                 "eps": [
                     {
@@ -341,11 +349,11 @@ const data = {
                     {
                         "title": "Capítulo 12"
                     }
-                ]
+                ],
+                "name": "KonoSuba: Explosión en un mundo maravilloso"
             },
             {
                 "num": 2,
-                "name": "Temporada 1",
                 "cover": "konosuba.jpg",
                 "eps": [
                     {
@@ -378,21 +386,21 @@ const data = {
                     {
                         "title": "Capítulo 10"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             },
             {
                 "num": 3,
-                "name": "Ova 1",
                 "cover": "https://www.dropbox.com/scl/fi/kxgfmbxwbx0gff57djm4j/89iISQwnZos1oum2oF6g2udEyd1ujz3hP04KnsfY-1.png?rlkey=lnyzlxqtbz2s3xrsqfdd4vooa&st=ozr66w1k&raw=1",
                 "eps": [
                     {
-                        "title": "¡Bendita sea esta maravillosa gargantilla!"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Ova 1"
             },
             {
                 "num": 4,
-                "name": "Temporada 2",
                 "cover": "KONO2.jpg",
                 "eps": [
                     {
@@ -425,31 +433,31 @@ const data = {
                     {
                         "title": "Capítulo 10"
                     }
-                ]
+                ],
+                "name": "Temporada 2"
             },
             {
                 "num": 5,
-                "name": "Ova 2",
                 "cover": "https://www.dropbox.com/scl/fi/5v47ftp62xm36dxvyvytk/KonoOva2.jpg?rlkey=he334e5mning06qxouu5w5x72&st=p5vtvl4o&raw=1",
                 "eps": [
                     {
-                        "title": "¡Bendita sea esta maravillosa pieza de arte!"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Ova 2"
             },
             {
                 "num": 6,
-                "name": "Película 1",
                 "cover": "https://www.dropbox.com/scl/fi/yheu84pklqou4gtqfxwi2/konopeli.jpg?rlkey=haxntxcllpl8n5eooxmtz3t5p&st=45m3sgf7&raw=1",
                 "eps": [
                     {
                         "title": "La Leyenda Carmesí"
                     }
-                ]
+                ],
+                "name": "Película 1"
             },
             {
                 "num": 7,
-                "name": "Temporada 3",
                 "cover": "https://www.dropbox.com/scl/fi/lvj3auv41jv0c92equ9yw/konosubatem3.jpg?rlkey=1q282bs80zi6khlvi4msh3v0q&st=rprkna4u&raw=1",
                 "eps": [
                     {
@@ -485,17 +493,21 @@ const data = {
                     {
                         "title": "Capítulo 11"
                     }
-                ]
+                ],
+                "name": "Temporada 3"
             },
             {
                 "num": 8,
-                "name": "Ova 3",
                 "cover": "kono3.png",
                 "eps": [
                     {
-                        "title": "¡Bonus Stage!"
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
                     }
-                ]
+                ],
+                "name": "Ova 3"
             }
         ]
     },
@@ -2869,23 +2881,23 @@ const data = {
         "seasons": [
             {
                 "num": 1,
-                "name": "Zootopia 1",
                 "cover": "https://www.dropbox.com/scl/fi/h4u28g5gc8h06lqpapm7n/zootopia1.jpg?rlkey=d5g0vyhomx7ki87j4kkb9gfvt&st=iy9nscle&raw=1",
                 "eps": [
                     {
-                        "title": "Zootopia 1"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Zootopia 1"
             },
             {
                 "num": 2,
-                "name": "Zootopia 2",
                 "cover": "https://www.dropbox.com/scl/fi/8jsapi6ovjb24j9hwydhq/zootopia2.jpeg?rlkey=dee636x8blmjjuh6xltn7x2i5&st=x9bcl3m3&raw=1",
                 "eps": [
                     {
-                        "title": "Zootopia 2"
+                        "title": "Capítulo 1"
                     }
-                ]
+                ],
+                "name": "Zootopia 2"
             }
         ]
     },
@@ -2947,8 +2959,7 @@ const data = {
         "seasons": [
             {
                 "num": 1,
-                "name": "Temporada 1",
-                "cover": "https://www.dropbox.com/scl/fi/ff7ghfhr8lhf6kxtfujns/drstone.jpg?rlkey=ejiu7gfaphzs6q12ugz7t8c36&st=mad899yo&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stonetemporada1.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -3022,12 +3033,12 @@ const data = {
                     {
                         "title": "Capítulo 24"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             },
             {
                 "num": 2,
-                "name": "Temporada 2",
-                "cover": "https://www.dropbox.com/scl/fi/hg2jkiw7nf5awcj3ho85i/dtstones2.jpg?rlkey=3y4egujqn3haoizunk9geb1d8&st=zt2xytu0&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stonetemporada12.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -3062,22 +3073,22 @@ const data = {
                     {
                         "title": "Capítulo 11"
                     }
-                ]
+                ],
+                "name": "Temporada 2"
             },
             {
                 "num": 3,
-                "name": "Especial",
-                "cover": "https://www.dropbox.com/scl/fi/tpnv3v2y4flbqwyu4wnon/dcstoneova.jpg?rlkey=tfa6ppjywrliyzhi6kj0datgy&st=duv90d1j&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stoneova.avif",
                 "eps": [
                     {
                         "title": "Ryusui"
                     }
-                ]
+                ],
+                "name": "Especial 1"
             },
             {
                 "num": 4,
-                "name": "Temporada 3",
-                "cover": "https://www.dropbox.com/scl/fi/5jvz9rumus5ssebv0ctgp/drstones3.jpg?rlkey=47lenlu7dd0uln5ukecqbvv8v&st=ojax5r7q&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stonetemporada3.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -3145,12 +3156,12 @@ const data = {
                     {
                         "title": "Capítulo 22"
                     }
-                ]
+                ],
+                "name": "Temporada 3"
             },
             {
                 "num": 5,
-                "name": "Temporada 4",
-                "cover": "https://www.dropbox.com/scl/fi/0w1qy88i3p23dsj3y42uj/drstones4.jpg?rlkey=rghh4x56blbeq742f07ds93tp&st=lmk6gto8&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stone1.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -3187,44 +3198,62 @@ const data = {
                     },
                     {
                         "title": "Capítulo 12"
-                    },
-                    {
-                        "title": "Capítulo 13"
-                    },
-                    {
-                        "title": "Capítulo 14"
-                    },
-                    {
-                        "title": "Capítulo 15"
-                    },
-                    {
-                        "title": "Capítulo 16"
-                    },
-                    {
-                        "title": "Capítulo 17"
-                    },
-                    {
-                        "title": "Capítulo 18"
-                    },
-                    {
-                        "title": "Capítulo 19"
-                    },
-                    {
-                        "title": "Capítulo 20"
-                    },
-                    {
-                        "title": "Capítulo 21"
-                    },
-                    {
-                        "title": "Capítulo 22"
-                    },
-                    {
-                        "title": "Capítulo 23"
-                    },
-                    {
-                        "title": "Capítulo 24"
                     }
-                ]
+                ],
+                "name": "Temporada 4"
+            },
+            {
+                "num": 6,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stonetemporada4.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 4 Parte II"
+            },
+            {
+                "num": 7,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/stone4.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 4 Parte III - FInal"
             }
         ]
     },
@@ -3527,6 +3556,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
                     }
                 ],
                 "name": "Temporada 3"
@@ -4701,6 +4739,19 @@ const data = {
                     }
                 ],
                 "name": "My Dress-Up Darling"
+            },
+            {
+                "num": 16,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/reze.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    }
+                ],
+                "name": "Clases Con Reze"
             }
         ]
     },
@@ -6084,6 +6135,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
                     }
                 ],
                 "name": "Temporada 1"
@@ -6249,7 +6309,8 @@ const data = {
                     {
                         "title": "Capítulo 4"
                     }
-                ]
+                ],
+                "name": "Temporada 1"
             }
         ]
     },
@@ -7279,6 +7340,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
                     }
                 ],
                 "name": "Temporada 1"
@@ -7549,6 +7619,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
                     }
                 ],
                 "name": "Temporada 2"
@@ -8012,6 +8091,12 @@ const data = {
                     },
                     {
                         "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 1"
@@ -8057,6 +8142,9 @@ const data = {
                     },
                     {
                         "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
                     }
                 ],
                 "name": "Temporada 1"
@@ -8102,6 +8190,9 @@ const data = {
                     },
                     {
                         "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
                     }
                 ],
                 "name": "Temporada 1"
@@ -8652,6 +8743,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
                     }
                 ],
                 "name": "Temporada 3"
@@ -8748,6 +8848,12 @@ const data = {
                     },
                     {
                         "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
                     }
                 ],
                 "name": "Temporada 1"
@@ -8830,6 +8936,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 2"
@@ -9066,12 +9181,12 @@ const data = {
     "83": {
         "title": "Mairimashita! Iruma-kun",
         "desc": "Iruma Suzuki es un humano de 14 años que un día es arrastrado en contra de su voluntad al mundo de los demonios. Por si no tenía bastantes problemas con eso, su nuevo dueño y autodeclarado \"Abuelo\" es el demonio director de su nueva escuela. Para poder sobrevivir en este nuevo mundo y en esta escuela, Iruma tendrá que superar todo tipo de retos, como vencer en un duelo a un estudiante muy peligroso, una chica con ciertos problemillas de personalidad, ¡y todo tipo de seres terroríficos!",
-        "cover": "https://www.dropbox.com/scl/fi/1jwtfdr7fniisbyk86ufq/ImageToStl.com_Airbrush-IMAGE-ENHANCER-1769436697375-1769436697376-1.avif?rlkey=7ykuw4c34w1dkr6wlnt2hmx82&st=nbyyeq8a&raw=1",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma.avif",
         "uploader": "archinime12@gmail.com",
         "seasons": [
             {
                 "num": 1,
-                "cover": "https://www.dropbox.com/scl/fi/h4duafxrqto2ibfeb4ozh/iruma1.avif?rlkey=2t4afhydf7skq7rfzevvfq08m&st=o0voptcy&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma1.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -9147,7 +9262,7 @@ const data = {
             },
             {
                 "num": 2,
-                "cover": "https://www.dropbox.com/scl/fi/aeoy9d588siec1zwqts4z/iruma2.avif?rlkey=w8ftukvyby93woqg6tl3oxsog&st=j4x9rx6h&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma2.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -9217,7 +9332,7 @@ const data = {
             },
             {
                 "num": 3,
-                "cover": "https://www.dropbox.com/scl/fi/oqkpyyqku4fr3ghwhzcr0/iruma3.avif?rlkey=g4yh1imo1v86ubsaeb4k541nk&st=2yuirrws&raw=1",
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma3.avif",
                 "eps": [
                     {
                         "title": "Capítulo 1"
@@ -9284,6 +9399,16 @@ const data = {
                     }
                 ],
                 "name": "Temporada 3"
+            },
+            {
+                "num": 4,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/iruma4.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 4"
             }
         ]
     },
@@ -10677,6 +10802,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 2"
@@ -10713,6 +10847,15 @@ const data = {
                     },
                     {
                         "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
                     }
                 ],
                 "name": "Temporada 1"
@@ -10968,9 +11111,922 @@ const data = {
                     },
                     {
                         "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
                     }
                 ],
                 "name": "Temporada 3"
+            }
+        ]
+    },
+    "95": {
+        "title": "Rooster Fighter",
+        "desc": "La humanidad está al borde del colapso después de que el demoníaco Kiju descienda sin previo aviso, arrasando ciudades y aplastando a todos a su paso. La resistencia falla. La esperanza se desvanece. Las cosas se ven mal...hasta que un gallo solitario da un paso adelante. Con espuelas afiladas y un grito de batalla que divide el cielo, este improbable héroe lleva el destino del mundo en sus alas. Cuando las defensas caigan y la esperanza se desvanezca, un pájaro se levantará.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/pollo1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "96": {
+        "title": "Mato Seihei no Slave",
+        "desc": "Los monstruos amenazan el mundo desde otra dimensión, y solo las mujeres que consumen \"Peaches\" pueden obtener poderes para combatirlos. El protagonista, Yuuki Wakura, termina convirtiéndose en el \"esclavo\" de una capitana del escuadrón de defensa.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Seihei1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "97": {
+        "title": "Wind Breaker",
+        "desc": "El lugar donde las notas medias son las peores, pero las peleas son las mejores. El Instituto Furin es bien conocido por ser un instituto repleto de delincuentes. Haruka Sakura, estudiante de primero, llega como novato con ganas de abrirse paso luchando hasta lo más alto. Sin embargo, el Instituto Furin tiene ahora un grupo que protege las calles de la ciudad con el nombre de la “Wind Breaker”. ¡Este es el inicio de la leyenda de Sakura, el delincuente de instituto!",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winder.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winderbt1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/winderbt2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "98": {
+        "title": "Sonic",
+        "desc": "Sonic intenta navegar por las complejidades de la vida en la Tierra con su nuevo mejor amigo, un humano llamado Tom Wachowski. Pronto deben unir fuerzas para evitar que el malvado Dr. Robotnik capture a Sonic y use sus poderes para dominar el mundo.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic1.avif",
+                "eps": [
+                    {
+                        "title": "Película 1"
+                    }
+                ],
+                "name": "Película 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic2.avif",
+                "eps": [
+                    {
+                        "title": "Película 2"
+                    }
+                ],
+                "name": "Película 2"
+            },
+            {
+                "num": 3,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic3.avif",
+                "eps": [
+                    {
+                        "title": "Película 3"
+                    }
+                ],
+                "name": "Película 3"
+            },
+            {
+                "num": 4,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/sonic4.avif",
+                "eps": [
+                    {
+                        "title": "Trailer"
+                    }
+                ],
+                "name": "Película 4"
+            }
+        ]
+    },
+    "99": {
+        "title": "Super Mario Bros",
+        "desc": "Mario y Luigi, dos hermanos que viajan a un mundo oculto para rescatar a la Princesa Peach, capturada por el malvado Rey Bowser. Las cosas, sin embargo no serán sencillas. Mario y Luigi tendrán que enfrentarse a un ejército de setas animadas antes de luchar contra su oponente. Rutas de ladrillos y castillos con múltiples peligros serán algunos de los obstáculos que los hermanos tendrán que superar para conseguir su objetivo.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mariop.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario1.avif",
+                "eps": [
+                    {
+                        "title": "Película 1"
+                    }
+                ],
+                "name": "Película 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario2.avif",
+                "eps": [
+                    {
+                        "title": "Película 2 Subtítulos en línea"
+                    }
+                ],
+                "name": "Película 2"
+            }
+        ]
+    },
+    "100": {
+        "title": "Komi-san wa, Komyushō desu.",
+        "desc": "Komi-san es la chica hermosa y admirable de la que nadie puede es capaz de apartar la vista. Casi toda la escuela la ve como la belleza fría que está fuera de su alcance, pero Tadano Hitohito sabe la verdad: ella es realmente mala para comunicarse con los demás. Komi-san, que desea arreglar este mal hábito suyo, intenta mejorar con la ayuda de Tadano-kun.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/komisan2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "101": {
+        "title": "Boku no Kokoro no Yabai Yatsu",
+        "desc": "Kyotaro Ichikawa es un estudiante solitario y resentido que suele leer una enciclopedia sobre asesinatos y estudiar anatomía humana . Fantasea con asesinar a sus compañeros más populares, siendo Anna Yamada, la bella ídolo de la clase, su principal objetivo.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bokunokokoro2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "102": {
+        "title": "El incidente de Darwin",
+        "desc": "Charlie es único. Es el humancé, un híbrido entre humano y chimpancé con una inteligencia y fuerza impresionantes. Por eso, la Alianza de Liberación Animal, una organización terrorista, quiere reclutarlo. Y recurrirán a medidas extremas para lograrlo, pero Charlie está decidido a luchar para proteger a sus seres queridos.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/darwin1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "103": {
+        "title": "Horimiya",
+        "desc": "Kyouko Hori e Izumi Miyamura no podrían ser mas diferentes, ella es una estudiante brillante y extrovertida que siempre es el centro de atención, y el es alguien tímido y silencioso que pasa por las vidas de sus compañeros de clase casi como un fantasma. Pero un día el azar les lleva a encontrarse fuera del instituto y descubren con sorpresa que ninguno es exactamente lo que el otro creía, que esas imágenes que ambos han estado proyectando en el instituto no eran mas que fachadas que ocultaban quienes son realmente. Un conocimiento que hará que ambos se acerquen cada vez mas y se den cuenta de que ya no son capaces de estar sin el otro.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/horimiya2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "104": {
+        "title": "Dorohedoro",
+        "desc": "Bienvenido al caos. La cabeza de Caiman, un hombre amnésico, fue transformada en la de un lagarto por obra de la magia. Para recuperar su verdadero rostro y sus recuerdos, continúa buscando junto a su compañera Nikaido al hechicero que le lanzó el hechizo. Pero ¿quién es en realidad?",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    }
+                ],
+                "name": "Temporada 1"
+            },
+            {
+                "num": 2,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doroova.avif",
+                "eps": [
+                    {
+                        "title": "Anécdotas diabólicas"
+                    }
+                ],
+                "name": "OVA 1"
+            },
+            {
+                "num": 3,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/doro2.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    }
+                ],
+                "name": "Temporada 2"
+            }
+        ]
+    },
+    "105": {
+        "title": "Ganbare! Nakamura-kun!!",
+        "desc": "Nakamura es un chico tímido que se enamora a primera vista de uno de sus compañeros de clase: Hirose, su compañero de instituto, que le parece un sueño. Pero hay un problema: aún no se conocen. ¡Y Nakamura es un auténtico torpe que podría estropearlo todo antes incluso de que empiece!",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/gambarepor.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/ganbare1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "106": {
+        "title": "Rompiendo el hielo",
+        "desc": "A Koyuki le cuesta trabajo conectar con otros. Preferiría pasar sus años escolares sola…, hasta que aparece Minato, que decide derretir los muros de hielo a su alrededor.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rompiendoelhielo1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "107": {
+        "title": "Snowball Earth",
+        "desc": "Diez años después de salvar la Tierra con su amigo robot Yukio, Tetsuo regresa a un planeta de hielo y nieve sin fin.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/snowball1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "108": {
+        "title": "Rilakkuma",
+        "desc": "La vida cotidiana recibe un giro acogedor con el relajado Rilakkuma. Se desarrollan suaves momentos de amistad, cambios y pequeñas alegrías, convirtiendo momentos ordinarios en algo silenciosamente mágico, un día suave y reconfortante a la vez.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Rilakkuma1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "109": {
+        "title": "Daemons of the Shadow Realm",
+        "desc": "En un mundo donde ciertos humanos controlan poderosos dúos sobrenaturales llamados tsugai, gobernar sobre estas entidades es el derecho de nacimiento de \"los hijos que separan el día y la noche\": los gemelos Yoru y Asa. Separados desde pequeños y ajenos a la verdad sobre su origen, hermano y hermana deberán luchar para reencontrarse, reclamar lo que les pertenece y salvar el mundo…",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/dawmons1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "110": {
+        "title": "Nippon Sangoku: Las tres naciones del sol carmesí",
+        "desc": "Al final de la era Reiwa, Japón sufrió los efectos de una guerra nuclear mundial, lo que provocó una afluencia de refugiados, seguida de un virus mortal y un terremoto devastador. El país se encontraba mal administrado, con los poderosos imponiendo fuertes impuestos, lo que desencadenó una hambruna. Finalmente, el pueblo inició una revuelta que derrocó al gobierno nacional. Si bien la población se redujo a una décima parte de su tamaño anterior a la guerra, la tecnología se redujo a la de la era Meiji y el país quedó dividido en tres reinos: Yamato, Takeo y Seii. Cien años después, un hombre llamado Aoteru Misumi lideró un movimiento para reunificar el país.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Nippon1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "111": {
+        "title": "Witch Hat Atelier",
+        "desc": "En un mundo donde sólo las brujas pueden lanzar magia, deben evitar ser vistas por la gente común mientras lanzan. Mientras Coco hace sus tareas, sueña despierta con convertirse en bruja. Cuando una joven bruja llamada Qifrey visita su aldea, Coco descubre el secreto absoluto de “, se convierte en aprendiz de Qifrey y comienza sus estudios. Esta es la historia de niños que se encuentran con la desesperación y, sin embargo, se acercan a la esperanza.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Atelier%20of%20Witch%20Hat.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/Atelier%20of%20Witch%20Hat1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    }
+                ],
+                "name": "Temporada 1"
+            }
+        ]
+    },
+    "112": {
+        "title": "Scarlet",
+        "desc": "Una princesa medieval experta en el manejo de la espada se embarca en una peligrosa misión para vengar la muerte de su padre. Tras fracasar en su misión y encontrarse gravemente herida en un 'Otromundo', conoce a un joven idealista de nuestro presente que no solo la ayuda a curarse, sino que le muestra la posibilidad de un futuro libre de amargura y rabia. Cuando se enfrenta de nuevo al asesino de su padre, Scarlet se enfrenta a su batalla más difícil: ¿podrá romper el ciclo del odio y encontrar un sentido a la vida más allá de la venganza?",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/scarlet.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/scarlet1.avif",
+                "eps": [
+                    {
+                        "title": "Película 1"
+                    }
+                ],
+                "name": "Película 1"
+            }
+        ]
+    },
+    "113": {
+        "title": "Blue Box",
+        "desc": "Taiki, estudiante de 3º, se une al club de bádminton. Pese a madrugar, Chinatsu, estrella de baloncesto y su amor platónico, llega antes. Viviendo juntos inesperadamente, Taiki aspira a los Nacionales para impresionar a Chinatsu.",
+        "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bluebox.avif",
+        "uploader": "archinime12@gmail.com",
+        "seasons": [
+            {
+                "num": 1,
+                "cover": "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/bluebox1.avif",
+                "eps": [
+                    {
+                        "title": "Capítulo 1"
+                    },
+                    {
+                        "title": "Capítulo 2"
+                    },
+                    {
+                        "title": "Capítulo 3"
+                    },
+                    {
+                        "title": "Capítulo 4"
+                    },
+                    {
+                        "title": "Capítulo 5"
+                    },
+                    {
+                        "title": "Capítulo 6"
+                    },
+                    {
+                        "title": "Capítulo 7"
+                    },
+                    {
+                        "title": "Capítulo 8"
+                    },
+                    {
+                        "title": "Capítulo 9"
+                    },
+                    {
+                        "title": "Capítulo 10"
+                    },
+                    {
+                        "title": "Capítulo 11"
+                    },
+                    {
+                        "title": "Capítulo 12"
+                    },
+                    {
+                        "title": "Capítulo 13"
+                    },
+                    {
+                        "title": "Capítulo 14"
+                    },
+                    {
+                        "title": "Capítulo 15"
+                    },
+                    {
+                        "title": "Capítulo 16"
+                    },
+                    {
+                        "title": "Capítulo 17"
+                    },
+                    {
+                        "title": "Capítulo 18"
+                    },
+                    {
+                        "title": "Capítulo 19"
+                    },
+                    {
+                        "title": "Capítulo 20"
+                    },
+                    {
+                        "title": "Capítulo 21"
+                    },
+                    {
+                        "title": "Capítulo 22"
+                    },
+                    {
+                        "title": "Capítulo 23"
+                    },
+                    {
+                        "title": "Capítulo 24"
+                    },
+                    {
+                        "title": "Capítulo 25"
+                    }
+                ],
+                "name": "Temporada 1"
             }
         ]
     }
