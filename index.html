@@ -27,7 +27,7 @@
   </script>
 
   <script>
-    /* OPTIMIZADO: Uso de requestAnimationFrame en lugar de setInterval para cero lag */
+    /* OPTIMIZADO: Uso de requestAnimationFrame para cero lag en la animación de colores */
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
@@ -150,7 +150,7 @@
     font-family: 'Orbitron', sans-serif; font-size: 3.5rem; color: white;
     font-weight: 900; letter-spacing: 8px; text-transform: uppercase; position: relative;
     text-shadow: 0 0 20px var(--neon-cyan);
-    will-change: transform, clip-path; /* OPTIMIZADO */
+    will-change: transform, clip-path;
   }
   .loader-glitch::before, .loader-glitch::after { content: 'Archinime'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
   .loader-glitch::before { left: 4px; text-shadow: -3px 0 var(--neon-pink); clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%); animation: trueGlitch 2s infinite linear alternate-reverse; }
@@ -165,12 +165,10 @@
     transition: opacity 1.2s ease;
     background: url('galaxia-morado1.avif') no-repeat center center / cover; 
     will-change: opacity;
-    /* OPTIMIZADO: Filtro removido para evitar lag en móviles */
   }
   #bg-video.loaded { opacity: 1; }
   #overlay { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    /* OPTIMIZADO: Fondo oscurecido para compensar la falta de filtro en el video */
     background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.15) 0%, rgba(0,0,0,0.95) 90%);
     z-index: -4; pointer-events: none; transition: opacity 0.8s ease; 
   }
@@ -452,7 +450,7 @@
     </div>
   </div>
 
-  <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
+  <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="metadata">
     <source src="galaxia.mp4" type="video/mp4">
   </video>
   <div id="overlay" aria-hidden="true"></div>
@@ -1179,7 +1177,6 @@
                 document.removeEventListener('scroll', closeDropdown);
               }
             };
-            /* OPTIMIZADO: passive: true para que el scroll no se laguee cuando el menú está abierto en PC */
             setTimeout(() => {
               document.addEventListener('click', closeDropdown);
               document.addEventListener('scroll', closeDropdown, { passive: true });
@@ -1328,29 +1325,43 @@
     
     auth.onAuthStateChanged(user => { updateUserUI(user); });
     
-    window.addEventListener('load', () => { 
-      const loader = document.getElementById('page-loader'); 
-      const bgVideo = document.getElementById('bg-video'); 
-      const forcePlayVideo = () => { 
-        bgVideo.muted = true; 
-        bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { 
-          document.body.addEventListener('click', () => bgVideo.play(), { once: true }); 
-        }); 
-      }; 
-      forcePlayVideo(); 
+    /* OPTIMIZADO Y CORREGIDO: Loader antibloqueos */
+    function removeLoader() {
+      const loader = document.getElementById('page-loader');
+      if (!loader || loader.style.display === 'none') return;
+      
       const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); 
       const delay = isFirstVisit ? 1400 : 50; 
+      
       setTimeout(() => { 
         loader.style.opacity = '0'; 
         setTimeout(() => { 
           loader.style.visibility = 'hidden'; 
+          loader.style.display = 'none'; // Nos aseguramos de que no exista visualmente
           sessionStorage.setItem('archinime_loaded', 'true'); 
           if (window.startNotificationSequence) window.startNotificationSequence(); 
-        }, 400); 
-      }, delay); 
+        }, 600); 
+      }, delay);
+    }
+
+    // Usamos DOMContentLoaded para que no espere a la descarga total de los recursos (como el video de fondo)
+    document.addEventListener('DOMContentLoaded', () => { 
+      const bgVideo = document.getElementById('bg-video'); 
+      if (bgVideo) {
+          bgVideo.muted = true; 
+          bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { 
+            document.body.addEventListener('click', () => bgVideo.play(), { once: true }); 
+          }); 
+      }
+      removeLoader(); // Quita el loader en cuanto el DOM está listo
     });
 
-    /* OPTIMIZADO: Efecto 3D deshabilitado en móviles para no reventar el procesador, solo activo en PC */
+    // Respaldos de seguridad: Por si falla DOMContentLoaded
+    window.addEventListener('load', removeLoader);
+    
+    // Respaldo de seguridad absoluto: Si todo falla, el loader se destruye a los 5 segundos sí o sí
+    setTimeout(removeLoader, 5000);
+
     const gridObserver = new MutationObserver(() => { 
       if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
       
