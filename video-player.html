@@ -594,7 +594,7 @@
       </div>
     </div>
 
-    <!-- Sección comentarios completamente funcional -->
+    <!-- Sección comentarios -->
     <div class="comentarios-section">
       <div class="comentarios-header">
         <i class="fas fa-comments"></i>
@@ -657,8 +657,8 @@
     </div>
   </div>
 
+  <!-- Firebase config (ya inicializado arriba) -->
   <script>
-    // Firebase config (ya inicializado arriba)
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -670,6 +670,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     const providerGitHub = new firebase.auth.GithubAuthProvider();
 
@@ -806,87 +807,105 @@
     };
     document.getElementById('stickerBtn').onclick = () => alert('Función de stickers próximamente en esta versión mejorada');
 
-    // --- Lógica del reproductor (sin cambios importantes, manteniendo funcionalidad original) ---
-    const DB = (typeof players !== 'undefined') ? players : {};
-    const epData = DB[currentAnimeId]?.[currentSeason]?.[currentEpisode];
-    const backLink = document.getElementById('backLink');
-    if (backLink && currentAnimeId) backLink.href = `anime-detail.html?id=${currentAnimeId}`;
-
-    function isMobileDevice() { return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase()); }
-    function generateDirectDownloadLink(url) {
-      if (!url) return "#";
-      if (url.includes("drive.google.com")) { const match = url.match(/\/d\/(.+?)\//); if (match) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download`; }
-      if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
-      return url;
-    }
-    function updateDownloadButton(url) { const dlBtn = document.getElementById('downloadBtn'); dlBtn.href = generateDirectDownloadLink(url); if (isMobileDevice()) dlBtn.setAttribute("target", "_blank"); }
-    function createOptionBtn(label, url, isActive) {
-      const container = document.getElementById('serverOptions');
-      const btn = document.createElement('button');
-      btn.className = 'opt-btn' + (isActive ? ' active' : '');
-      btn.innerText = label;
-      btn.onclick = () => { document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateDownloadButton(url); loadVideo(url); };
-      container.appendChild(btn);
-    }
-    function loadVideo(url) {
-      const container = document.getElementById('mediaContainer');
-      container.innerHTML = '';
-      if (!url) return;
-      const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-      if (isVideoFile && !url.includes('drive.google.com')) {
-        const video = document.createElement('video'); video.src = url; video.controls = true; video.style.width = '100%'; video.style.height = '100%';
-        container.appendChild(video);
-      } else {
-        const iframe = document.createElement('iframe'); iframe.src = url; iframe.allow = "autoplay; fullscreen"; iframe.allowFullscreen = true;
-        iframe.style.width = '100%'; iframe.style.height = '100%';
-        container.appendChild(iframe);
-      }
-    }
-    function setupNavigation() {
-      if (!DB[currentAnimeId]) return;
-      let flatList = [];
-      Object.keys(DB[currentAnimeId]).sort((a,b)=>Number(a)-Number(b)).forEach(sKey => {
-        Object.keys(DB[currentAnimeId][sKey]).sort((a,b)=>Number(a)-Number(b)).forEach(eKey => { flatList.push({ s: sKey, e: eKey }); });
-      });
-      const idx = flatList.findIndex(i => String(i.s) === String(currentSeason) && String(i.e) === String(currentEpisode));
-      const prevBtn = document.getElementById('prevBtn'); const nextBtn = document.getElementById('nextBtn');
-      if (idx > 0) { prevBtn.classList.remove('btn-hidden'); prevBtn.href = `?anime=${currentAnimeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`; }
-      if (idx < flatList.length - 1) { nextBtn.classList.remove('btn-hidden'); nextBtn.href = `?anime=${currentAnimeId}&s=${flatList[idx+1].s}&e=${flatList[idx+1].e}`; }
-    }
-    const autoMarkEpisodeWatched = () => {
-      auth.onAuthStateChanged(async (user) => {
-        if (user && currentAnimeId && currentSeason && currentEpisode) {
-          try {
-            const docRef = db.collection('watchHistory').doc(user.uid);
-            const doc = await docRef.get();
-            let data = doc.exists ? doc.data() : {};
-            let animeData = data[currentAnimeId] || {};
-            let seasonData = animeData[currentSeason] || [];
-            if (!seasonData.includes(parseInt(currentEpisode))) {
-              seasonData.push(parseInt(currentEpisode));
-              animeData[currentSeason] = seasonData;
-              data[currentAnimeId] = animeData;
-              await docRef.set(data, { merge: true });
-            }
-          } catch(e) { console.error(e); }
-        } else if (currentAnimeId && currentSeason && currentEpisode) {
-          localStorage.setItem(`watched_${currentAnimeId}_${currentSeason}_${currentEpisode}`, 'true');
-        }
-      });
+    // --- Lógica del reproductor (original funcional) ---
+    // Cargar video-player-data.js que define la variable 'players'
+    const scriptData = document.createElement('script');
+    scriptData.src = `video-player-data.js?v=${Date.now()}`;
+    document.head.appendChild(scriptData);
+    
+    let players = {};
+    scriptData.onload = () => {
+      players = window.players || {};
+      initPlayer();
+    };
+    scriptData.onerror = () => {
+      console.error('No se pudo cargar video-player-data.js');
+      document.getElementById('epTitle').innerText = "Error al cargar datos del reproductor";
     };
 
-    if (epData) {
-      document.title = `${epData.title} - Archinime Cyberpunk`;
-      document.getElementById('epTitle').innerText = epData.title;
-      const initialLink = epData.link || epData.link2;
-      updateDownloadButton(initialLink);
-      loadVideo(initialLink);
-      if(epData.link) createOptionBtn("Latino", epData.link, true);
-      if(epData.link2) createOptionBtn("Opción 2", epData.link2, !epData.link);
-      setupNavigation();
-      autoMarkEpisodeWatched();
-    } else {
-      document.getElementById('epTitle').innerText = "Episodio no encontrado";
+    function initPlayer() {
+      const DB = players;
+      const epData = DB[currentAnimeId]?.[currentSeason]?.[currentEpisode];
+      const backLink = document.getElementById('backLink');
+      if (backLink && currentAnimeId) backLink.href = `anime-detail.html?id=${currentAnimeId}`;
+
+      function isMobileDevice() { return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase()); }
+      function generateDirectDownloadLink(url) {
+        if (!url) return "#";
+        if (url.includes("drive.google.com")) { const match = url.match(/\/d\/(.+?)\//); if (match) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download`; }
+        if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
+        return url;
+      }
+      function updateDownloadButton(url) { const dlBtn = document.getElementById('downloadBtn'); dlBtn.href = generateDirectDownloadLink(url); if (isMobileDevice()) dlBtn.setAttribute("target", "_blank"); }
+      function createOptionBtn(label, url, isActive) {
+        const container = document.getElementById('serverOptions');
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn' + (isActive ? ' active' : '');
+        btn.innerText = label;
+        btn.onclick = () => { document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateDownloadButton(url); loadVideo(url); };
+        container.appendChild(btn);
+      }
+      function loadVideo(url) {
+        const container = document.getElementById('mediaContainer');
+        container.innerHTML = '';
+        if (!url) return;
+        const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+        if (isVideoFile && !url.includes('drive.google.com')) {
+          const video = document.createElement('video'); video.src = url; video.controls = true; video.style.width = '100%'; video.style.height = '100%';
+          container.appendChild(video);
+        } else {
+          const iframe = document.createElement('iframe'); iframe.src = url; iframe.allow = "autoplay; fullscreen"; iframe.allowFullscreen = true;
+          iframe.style.width = '100%'; iframe.style.height = '100%';
+          container.appendChild(iframe);
+        }
+      }
+      function setupNavigation() {
+        if (!DB[currentAnimeId]) return;
+        let flatList = [];
+        Object.keys(DB[currentAnimeId]).sort((a,b)=>Number(a)-Number(b)).forEach(sKey => {
+          Object.keys(DB[currentAnimeId][sKey]).sort((a,b)=>Number(a)-Number(b)).forEach(eKey => { flatList.push({ s: sKey, e: eKey }); });
+        });
+        const idx = flatList.findIndex(i => String(i.s) === String(currentSeason) && String(i.e) === String(currentEpisode));
+        const prevBtn = document.getElementById('prevBtn'); const nextBtn = document.getElementById('nextBtn');
+        if (idx > 0) { prevBtn.classList.remove('btn-hidden'); prevBtn.href = `?anime=${currentAnimeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`; }
+        if (idx < flatList.length - 1) { nextBtn.classList.remove('btn-hidden'); nextBtn.href = `?anime=${currentAnimeId}&s=${flatList[idx+1].s}&e=${flatList[idx+1].e}`; }
+      }
+      const autoMarkEpisodeWatched = () => {
+        auth.onAuthStateChanged(async (user) => {
+          if (user && currentAnimeId && currentSeason && currentEpisode) {
+            try {
+              const docRef = db.collection('watchHistory').doc(user.uid);
+              const doc = await docRef.get();
+              let data = doc.exists ? doc.data() : {};
+              let animeData = data[currentAnimeId] || {};
+              let seasonData = animeData[currentSeason] || [];
+              if (!seasonData.includes(parseInt(currentEpisode))) {
+                seasonData.push(parseInt(currentEpisode));
+                animeData[currentSeason] = seasonData;
+                data[currentAnimeId] = animeData;
+                await docRef.set(data, { merge: true });
+              }
+            } catch(e) { console.error(e); }
+          } else if (currentAnimeId && currentSeason && currentEpisode) {
+            localStorage.setItem(`watched_${currentAnimeId}_${currentSeason}_${currentEpisode}`, 'true');
+          }
+        });
+      };
+
+      if (epData) {
+        document.title = `${epData.title} - Archinime Cyberpunk`;
+        document.getElementById('epTitle').innerText = epData.title;
+        const initialLink = epData.link || epData.link2;
+        updateDownloadButton(initialLink);
+        loadVideo(initialLink);
+        document.getElementById('serverOptions').innerHTML = '';
+        if(epData.link) createOptionBtn("Latino", epData.link, true);
+        if(epData.link2) createOptionBtn("Opción 2", epData.link2, !epData.link);
+        setupNavigation();
+        autoMarkEpisodeWatched();
+      } else {
+        document.getElementById('epTitle').innerText = "Episodio no encontrado";
+      }
     }
 
     // Compartir episodio
@@ -916,6 +935,9 @@
     // Forzar reproducción del video de fondo
     const bgVideo = document.getElementById('bg-video');
     bgVideo.play().catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); });
+    
+    // Botón enviar comentario
+    document.getElementById('enviarComentarioBtn').onclick = enviarComentarioTexto;
   </script>
 </body>
 </html>
