@@ -95,14 +95,12 @@
       object-fit: cover;
       z-index: -2;
       background: url('galaxia-morado1.avif') center/cover no-repeat;
-      opacity: 0.9;
+      opacity: 1;
       transition: opacity 1.2s ease;
       pointer-events: none;
       filter: contrast(1.2) brightness(0.7) saturate(1.1);
     }
     #bg-video.loaded { opacity: 1; }
-
-    /* Overlay radial (como index) */
     #overlay {
       position: fixed;
       top: 0;
@@ -112,10 +110,7 @@
       background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
       z-index: -1;
       pointer-events: none;
-      transition: opacity 0.8s ease;
     }
-
-    /* Scanlines (efecto retro) */
     #scanlines {
       position: fixed;
       top: 0;
@@ -128,53 +123,28 @@
       opacity: 0.25;
     }
 
-    /* Pantalla de carga mejorada (estilo index) */
+    /* Pantalla de carga */
     #loading-screen {
       position: fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
+      top:0; left:0;
+      width:100%; height:100%;
+      background: #000;
       z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
-      backdrop-filter: blur(8px);
+      transition: opacity 0.5s;
+      backdrop-filter: blur(10px);
     }
     .loader-glitch {
       font-family: 'Orbitron', sans-serif;
-      font-size: 3.5rem;
+      font-size: 3rem;
       font-weight: 900;
       letter-spacing: 8px;
       color: white;
       text-shadow: 0 0 20px var(--neon-cyan);
-      position: relative;
-      animation: pulseGlow 1.2s infinite alternate;
-    }
-    .loader-glitch::before,
-    .loader-glitch::after {
-      content: 'ARCHINIME';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-    }
-    .loader-glitch::before {
-      left: 4px;
-      text-shadow: -3px 0 var(--neon-pink);
-      clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
-      animation: glitchShift 2s infinite linear alternate-reverse;
-    }
-    .loader-glitch::after {
-      left: -4px;
-      text-shadow: 2px 0 var(--neon-cyan);
-      clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
-      animation: glitchShift2 2.5s infinite linear alternate-reverse;
+      animation: pulseText 1.2s infinite;
     }
     .loader-sub {
       font-family: 'Orbitron', sans-serif;
@@ -182,26 +152,13 @@
       color: var(--neon-purple);
       letter-spacing: 4px;
       margin-top: 20px;
-      animation: pulseText 1.2s infinite;
-    }
-    @keyframes pulseGlow {
-      0% { text-shadow: 0 0 10px var(--neon-cyan); opacity: 0.9; }
-      100% { text-shadow: 0 0 30px var(--neon-cyan), 0 0 10px var(--neon-purple); opacity: 1; }
-    }
-    @keyframes glitchShift {
-      0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
-      100% { clip-path: polygon(0 25%, 100% 25%, 100% 35%, 0 35%); transform: translate(2px, -1px); }
-    }
-    @keyframes glitchShift2 {
-      0% { clip-path: polygon(0 65%, 100% 65%, 100% 70%, 0 70%); transform: translate(2px, -1px); }
-      100% { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); transform: translate(-2px, 1px); }
     }
     @keyframes pulseText {
-      0%,100% { opacity: 0.8; }
-      50% { opacity: 0.4; }
+      0%,100% { opacity: 0.8; text-shadow: 0 0 20px var(--neon-cyan); }
+      50% { opacity: 0.4; text-shadow: 0 0 5px var(--neon-purple); }
     }
 
-    /* --- CONTENEDOR PRINCIPAL (GLASSMORPHISM + NEÓN) --- */
+    /* --- CONTENEDOR PRINCIPAL (GLASSMORPHISM) --- */
     .container {
       position: relative;
       z-index: 1;
@@ -221,7 +178,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* --- TOP BUTTONS (CYBER) --- */
+    /* --- TOP BUTTONS --- */
     .top-buttons {
       display: flex;
       justify-content: space-between;
@@ -256,10 +213,13 @@
       transform: translateY(-2px);
       border-color: var(--neon-cyan);
     }
+
+    /* --- BÚSQUEDA RÁPIDA MEJORADA --- */
     .search-container {
       position: relative;
       flex: 1;
       max-width: 350px;
+      z-index: 2000;
     }
     .search-container input {
       width: 100%;
@@ -279,7 +239,7 @@
     }
     .search-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 5px);
       left: 0;
       right: 0;
       background: #0f0f13;
@@ -287,9 +247,10 @@
       border-radius: 16px;
       max-height: 300px;
       overflow-y: auto;
-      z-index: 1000;
+      z-index: 2001;
       display: none;
       backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
     .search-item {
       display: flex;
@@ -305,7 +266,7 @@
     /* --- PORTADA MEJORADA --- */
     .anime-cover {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       position: relative;
     }
     .anime-cover img {
@@ -320,6 +281,7 @@
       transform: scale(1.02);
       box-shadow: 0 25px 40px rgba(0,0,0,0.8), 0 0 0 3px var(--neon-cyan);
     }
+    /* Título con más espacio */
     h1 {
       text-align: center;
       font-size: 2.2rem;
@@ -331,15 +293,15 @@
       background-clip: text;
       color: transparent;
       text-shadow: 0 0 10px rgba(0,243,255,0.3);
-      margin: 15px 0 10px;
+      margin: 25px 0 20px;
     }
-    /* Géneros */
+    /* Géneros separados */
     .genres-wrap {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
     .genre-chip {
       background: rgba(0, 243, 255, 0.1);
@@ -351,11 +313,6 @@
       color: var(--neon-cyan);
       letter-spacing: 0.5px;
       backdrop-filter: blur(4px);
-      transition: all 0.2s;
-    }
-    .genre-chip:hover {
-      background: rgba(0, 243, 255, 0.2);
-      box-shadow: 0 0 8px var(--neon-cyan);
     }
     /* Sinopsis */
     .desc {
@@ -376,11 +333,6 @@
       padding: 20px;
       margin: 20px 0;
       backdrop-filter: blur(8px);
-      transition: all 0.3s;
-    }
-    .rating-section:hover {
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(0,243,255,0.2);
     }
     .rating-stats {
       display: flex;
@@ -449,7 +401,6 @@
       justify-content: space-between;
       align-items: center;
       background: rgba(0,0,0,0.3);
-      transition: 0.2s;
     }
     summary::-webkit-details-marker { display: none; }
     summary::after {
@@ -516,7 +467,7 @@
       transition: 0.2s;
     }
     .ep-btn:hover .ep-action-btn { opacity: 1; }
-    /* Recomendaciones */
+    /* Recomendaciones - 6 por fila en PC */
     .recommendations {
       margin-top: 40px;
       padding-top: 20px;
@@ -533,8 +484,22 @@
     }
     .rec-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 15px;
+    }
+    /* PC: 6 columnas */
+    @media (min-width: 1200px) {
+      .rec-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+    /* Tablet: 4 columnas */
+    @media (min-width: 768px) and (max-width: 1199px) {
+      .rec-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    /* Móvil: 2 columnas */
+    @media (max-width: 767px) {
+      .rec-grid { grid-template-columns: repeat(2, 1fr); }
+      .video-list { grid-template-columns: repeat(2, 1fr); }
+      h1 { font-size: 1.6rem; margin: 15px 0 10px; }
+      .star { font-size: 1.5rem; }
     }
     .rec-card {
       background: rgba(0,0,0,0.5);
@@ -578,19 +543,11 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 0 20px rgba(0,243,255,0.3);
     }
-    /* Responsive */
+    /* Ajustes adicionales */
     @media (max-width: 768px) {
       .container { margin: 70px 15px 30px; padding: 15px; }
       .top-buttons { margin: -15px -15px 20px -15px; padding: 12px 15px; }
-      h1 { font-size: 1.6rem; }
-      .video-list { grid-template-columns: repeat(2, 1fr); }
-      .rec-grid { grid-template-columns: repeat(3, 1fr); }
-      .star { font-size: 1.5rem; }
-      .loader-glitch { font-size: 2rem; letter-spacing: 4px; }
-      .loader-sub { font-size: 0.6rem; }
-    }
-    @media (max-width: 480px) {
-      .rec-grid { grid-template-columns: repeat(2, 1fr); }
+      .search-container { max-width: 100%; }
     }
   </style>
 </head>
@@ -599,13 +556,7 @@
 <div id="loading-screen">
   <div class="loader-glitch">ARCHINIME</div>
   <div class="loader-sub">CARGANDO SISTEMA...</div>
-  <div style="width: 280px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; border-radius: 2px;">
-    <div style="width: 0; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); border-radius: 2px; animation: loadLine 1.2s forwards;"></div>
-  </div>
 </div>
-<style>
-  @keyframes loadLine { to { width: 280px; } }
-</style>
 
 <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
   <source src="galaxia.mp4" type="video/mp4">
@@ -695,7 +646,6 @@
     setTimeout(() => screen.style.display = 'none', 500);
     const bgVideo = document.getElementById('bg-video');
     bgVideo.play().catch(()=>{});
-    bgVideo.classList.add('loaded');
   });
 
   // ---------- MÚSICA DE FONDO ----------
@@ -803,10 +753,15 @@
     if (anime) {
       document.title = `${anime.title} - Archinime OS`;
       let genreHtml = '';
+      let initialRating = 0;
       if (typeof animes !== 'undefined') {
         const info = animes.find(a => String(a.id) === String(id));
         if (info?.genres) genreHtml = info.genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
+        if (info?.rating) initialRating = info.rating;
       }
+      // Mostrar rating inicial desde index-data mientras carga Firestore
+      let ratingDisplay = initialRating ? initialRating.toFixed(1) : '--';
+      let voteCountDisplay = '(0 votos)';
       let html = `
         <div class="anime-cover"><img src="${anime.cover}" alt="cover" loading="lazy"></div>
         <h1>${anime.title}</h1>
@@ -816,8 +771,8 @@
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
             <div class="rating-stats">
               <span>Valoración media:</span>
-              <span id="averageRatingDisplay">--</span>
-              <span id="voteCountDisplay">(0 votos)</span>
+              <span id="averageRatingDisplay">${ratingDisplay}</span>
+              <span id="voteCountDisplay">${voteCountDisplay}</span>
             </div>
             <div id="starRatingWidget" style="display:flex; gap:8px;"></div>
           </div>
@@ -840,6 +795,13 @@
       }
       container.innerHTML = html;
       renderRecommendations(id);
+      // Cargar rating real desde Firestore y actualizar si es diferente
+      (async () => {
+        await loadAnimeRating(id);
+        if (currentUserId) await loadUserRating(id, currentUserId);
+        // Si el rating de Firestore es diferente al inicial, actualizar display
+        if (animeRatingData.avg !== initialRating) updateRatingDisplay();
+      })();
     } else {
       container.innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
     }
@@ -932,7 +894,7 @@
   }
   function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ---------- BÚSQUEDA RÁPIDA ----------
+  // ---------- BÚSQUEDA RÁPIDA (con z-index alto) ----------
   if (typeof data !== 'undefined') {
     const searchInput = document.getElementById('quick-search');
     const resultsDiv = document.getElementById('quick-search-results');
@@ -957,7 +919,7 @@
     document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) resultsDiv.style.display = 'none'; });
   }
 
-  // ---------- AUTENTICACIÓN Y RECARGA DE TEMPORADAS ----------
+  // ---------- AUTENTICACIÓN Y RECARGA ----------
   auth.onAuthStateChanged(async (user) => {
     currentUserId = user ? user.uid : null;
     authReady = true;
@@ -989,7 +951,7 @@
     }
   });
 
-  // ---------- SISTEMA DE VOTACIÓN ----------
+  // ---------- SISTEMA DE VOTACIÓN (con fallback a index-data) ----------
   let currentUserRating = null;
   let animeRatingData = { avg: 0, count: 0 };
   async function loadAnimeRating(animeId) {
@@ -997,10 +959,12 @@
     if (doc.exists) {
       animeRatingData = doc.data();
     } else {
+      // Si no existe en Firestore, usar rating de index-data.js
       if (typeof animes !== 'undefined') {
         const info = animes.find(a => String(a.id) === String(animeId));
         if (info?.rating) {
           animeRatingData = { avg: info.rating, count: 1 };
+          // Opcional: crear documento en Firestore para futuros votos
           await db.collection('animeRatings').doc(String(animeId)).set({ avg: info.rating, count: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
         }
       }
@@ -1069,12 +1033,6 @@
     const doc = await db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId).get();
     currentUserRating = doc.exists ? doc.data().value : null;
     renderStars(currentUserRating || 0);
-  }
-  if (currentAnimeId) {
-    (async () => {
-      await loadAnimeRating(currentAnimeId);
-      if (currentUserId) await loadUserRating(currentAnimeId, currentUserId);
-    })();
   }
 </script>
 </body>
