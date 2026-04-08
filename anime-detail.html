@@ -214,12 +214,12 @@
       border-color: var(--neon-cyan);
     }
 
-    /* --- BÚSQUEDA RÁPIDA MEJORADA --- */
+    /* --- BÚSQUEDA RÁPIDA MEJORADA (z-index alto) --- */
     .search-container {
       position: relative;
       flex: 1;
       max-width: 350px;
-      z-index: 2000;
+      z-index: 1000;
     }
     .search-container input {
       width: 100%;
@@ -247,7 +247,7 @@
       border-radius: 16px;
       max-height: 300px;
       overflow-y: auto;
-      z-index: 2001;
+      z-index: 10000;  /* MUY ALTO para que esté por encima de la imagen */
       display: none;
       backdrop-filter: blur(12px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
@@ -263,11 +263,12 @@
     .search-item:hover { background: rgba(0,243,255,0.1); }
     .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
 
-    /* --- PORTADA MEJORADA --- */
+    /* --- PORTADA (sin z-index conflictivo) --- */
     .anime-cover {
       text-align: center;
       margin-bottom: 20px;
       position: relative;
+      z-index: 1; /* valor bajo para no tapar el dropdown */
     }
     .anime-cover img {
       max-height: 420px;
@@ -951,7 +952,7 @@
     }
   });
 
-  // ---------- SISTEMA DE VOTACIÓN (con fallback a index-data) ----------
+  // ---------- SISTEMA DE VOTACIÓN CON TOGGLE (quitar voto) ----------
   let currentUserRating = null;
   let animeRatingData = { avg: 0, count: 0 };
   async function loadAnimeRating(animeId) {
@@ -959,12 +960,10 @@
     if (doc.exists) {
       animeRatingData = doc.data();
     } else {
-      // Si no existe en Firestore, usar rating de index-data.js
       if (typeof animes !== 'undefined') {
         const info = animes.find(a => String(a.id) === String(animeId));
         if (info?.rating) {
           animeRatingData = { avg: info.rating, count: 1 };
-          // Opcional: crear documento en Firestore para futuros votos
           await db.collection('animeRatings').doc(String(animeId)).set({ avg: info.rating, count: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
         }
       }
@@ -1005,28 +1004,76 @@
     });
   }
   async function voteAnime(newVal) {
-    if (!currentUserId) { document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.'; return; }
+    if (!currentUserId) {
+      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
+      return;
+    }
     const animeId = currentAnimeId;
     const ratingRef = db.collection('animeRatings').doc(String(animeId));
     const userRef = ratingRef.collection('userRatings').doc(currentUserId);
+    
     try {
       await db.runTransaction(async (t) => {
         const ratingDoc = await t.get(ratingRef);
         const userDoc = await t.get(userRef);
-        let old = userDoc.exists ? userDoc.data().value : null;
-        let newAvg = animeRatingData.avg, newCount = animeRatingData.count;
-        if (old !== null) newAvg = (newAvg * newCount - old + newVal) / newCount;
-        else newAvg = (newAvg * newCount + newVal) / (newCount + 1), newCount++;
-        t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-        animeRatingData = { avg: newAvg, count: newCount };
-        currentUserRating = newVal;
+        let oldValue = userDoc.exists ? userDoc.data().value : null;
+        let newAvg = animeRatingData.avg;
+        let newCount = animeRatingData.count;
+        
+        // Si el usuario ya votó y el nuevo valor es el mismo que el actual -> ELIMINAR VOTO
+        if (oldValue !== null && oldValue === newVal) {
+          // Eliminar voto: disminuir contador y recalcular promedio
+          if (newCount > 1) {
+            newAvg = (newAvg * newCount - oldValue) / (newCount - 1);
+            newCount--;
+          } else {
+            // Era el único voto, el promedio queda 0
+            newAvg = 0;
+            newCount = 0;
+          }
+          // Eliminar documento de usuario
+          t.delete(userRef);
+          // Actualizar documento principal
+          if (newCount === 0) {
+            t.delete(ratingRef);
+            animeRatingData = { avg: 0, count: 0 };
+            currentUserRating = null;
+          } else {
+            t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+            animeRatingData = { avg: newAvg, count: newCount };
+            currentUserRating = null;
+          }
+          document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
+        } 
+        else {
+          // Actualizar o crear nuevo voto
+          if (oldValue !== null) {
+            // Actualizar voto existente
+            newAvg = (newAvg * newCount - oldValue + newVal) / newCount;
+          } else {
+            // Nuevo voto
+            newAvg = (newAvg * newCount + newVal) / (newCount + 1);
+            newCount++;
+          }
+          t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+          t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+          animeRatingData = { avg: newAvg, count: newCount };
+          currentUserRating = newVal;
+          document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
+        }
       });
       updateRatingDisplay();
-      renderStars(currentUserRating);
-      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
-      setTimeout(() => document.getElementById('ratingMessage').innerHTML = '', 3000);
-    } catch(e) { console.error(e); document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al votar.'; }
+      renderStars(currentUserRating || 0);
+      setTimeout(() => {
+        if (document.getElementById('ratingMessage').innerHTML.includes('Gracias') || 
+            document.getElementById('ratingMessage').innerHTML.includes('eliminado')) {
+          document.getElementById('ratingMessage').innerHTML = '';
+        }
+      }, 3000);
+    } catch(e) { 
+      console.error(e); 
+      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al procesar el voto.'; 
+    }
   }
   async function loadUserRating(animeId, userId) {
     if (!userId) return;
