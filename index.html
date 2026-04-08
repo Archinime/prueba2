@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.5"; // versión actualizada para forzar recarga limpia
+      const APP_VERSION = "2025-04-06-v3.6"; // versión actualizada
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -91,8 +91,35 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- SCRIPTS CRÍTICOS: index-data.js debe cargarse ANTES de que se ejecute el resto de la lógica -->
+  <!-- CARGA OBLIGATORIA de index-data.js con verificación -->
   <script src="index-data.js?v=20250406"></script>
+  <script>
+    // Verificar que animes se haya cargado correctamente
+    window.addEventListener('load', function() {
+      if (typeof animes === 'undefined' || !animes || animes.length === 0) {
+        console.error("ERROR CRÍTICO: animes no está definido o está vacío. Revisa index-data.js");
+        // Intentar cargar de nuevo mediante fetch como fallback
+        fetch('index-data.js?v=' + Date.now())
+          .then(response => response.text())
+          .then(text => {
+            // Ejecutar el script manualmente
+            eval(text);
+            if (typeof animes !== 'undefined' && animes.length) {
+              console.log("Fallback exitoso: animes cargado vía fetch");
+              // Forzar re-renderizado si existe la función global de render
+              if (typeof window.renderAnimesGrid === 'function') window.renderAnimesGrid();
+              else if (typeof window.initGrid === 'function') window.initGrid();
+              else location.reload(); // recarga como último recurso
+            } else {
+              document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px; color:var(--neon-pink)">⚠️ Error: No se pudieron cargar los datos de animes. Verifica la consola.</div>';
+            }
+          })
+          .catch(err => {
+            document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px; color:var(--neon-pink)">❌ No se encontró el archivo index-data.js. Asegúrate de que exista en el servidor.</div>';
+          });
+      }
+    });
+  </script>
 
 <style>
   :root {
@@ -277,7 +304,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones - móvil: sin desborde horizontal y con scroll vertical usable */
+  /* Notificaciones */
   .notif-wrapper { position: relative; display: flex; align-items: center; }
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
@@ -303,7 +330,6 @@
     display: flex;
     flex-direction: column;
   }
-  /* Móvil: centrado, sin desborde, con scroll vertical */
   @media (max-width: 768px) {
     .notif-dropdown {
       position: fixed;
@@ -318,14 +344,8 @@
       box-shadow: 0 25px 45px rgba(0,0,0,0.9);
       overflow-x: hidden;
     }
-    .notif-dropdown.active {
-      transform: translateY(0);
-    }
-    .notif-list {
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
+    .notif-dropdown.active { transform: translateY(0); }
+    .notif-list { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
   }
   .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
   .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
@@ -345,7 +365,7 @@
   .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
 
-  /* Selects personalizados unificados */
+  /* Selects personalizados */
   .controls-container {
     padding: 20px 3%;
     display: flex;
@@ -536,7 +556,7 @@
     transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; }
   .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
 
-  /* Event Modal (popup de estrenos) */
+  /* Event Modal */
   #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92);
     backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none; transition: 0.4s; padding: 20px; }
@@ -729,18 +749,12 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
-  <!-- INICIO: notification-system.js integrado y modificado (sin cambios en lógica, solo se mantiene) -->
+  <!-- NOTIFICATION SYSTEM (integrado, igual que antes pero con espera a animes) -->
   <script>
-    // notification-system.js (modificado)
-    // - Colores de badges en popups: NUEVO -> morado, ESTRENO -> rojo, PRÓXIMAMENTE -> amarillo
-    // - Menú de notificaciones NO bloquea el scroll (evita salto)
-    // - Móvil: ancho 90% centrado sin desborde horizontal
-    
     let notificationQueue = [];
     let notificationsHistory = [];
     let isMenuOpen = false;
     let repliesUnsubscribe = null;
-    let isFirstTimeSetup = false;
 
     if (typeof disableBodyScroll !== 'function') {
       window.disableBodyScroll = function() {
@@ -753,7 +767,6 @@
       };
     }
 
-    // Inicialización diferida: esperamos a que animes esté definido
     function initNotificationsWhenReady() {
       if (typeof animes !== 'undefined' && animes) {
         loadHistoryFromStorage();
@@ -797,7 +810,7 @@
             db.collection('users').doc(auth.currentUser.uid).set({
                 notifHistory: notificationsHistory,
                 seenNotifIds: seenNotifIds
-            }, { merge: true }).catch(e => console.error("Error guardando notifs en la nube", e));
+            }, { merge: true }).catch(e => console.error("Error guardando notifs", e));
         }
     }
 
@@ -897,7 +910,6 @@
         if (typeof animes === 'undefined') return;
         const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
         updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
         let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
         let hasChanges = false;
         const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
@@ -907,7 +919,6 @@
             const popupsToQueue = [];
             const latestFive = updatedAnimes.slice(0, 5);
             const rest = updatedAnimes.slice(5);
-            
             latestFive.forEach(anime => {
                 const notifId = `${anime.id}_${anime.lastUpdate}`;
                 if (!seenNotifIds.includes(notifId)) {
@@ -994,7 +1005,6 @@
                 saveHistoryToStorage();
             }
         }
-        
         if (hasChanges) {
             if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
             localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
@@ -1002,7 +1012,7 @@
     }
 
     window.startNotificationSequence = function() {
-        showNextPopup();
+        if (notificationQueue.length) showNextPopup();
     };
     function showNextPopup() {
         if (notificationQueue.length === 0) return;
@@ -1013,7 +1023,6 @@
     function createPopupHTML(notif) {
         const existing = document.getElementById('eventModal');
         if (existing) existing.remove();
-
         const modal = document.createElement('div');
         modal.id = 'eventModal';
         const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
@@ -1027,40 +1036,27 @@
         } else if (infoString === "") {
             infoString = "Nuevo Contenido";
         }
-
-        let badgeColor = "#bc13fe"; // morado por defecto (NUEVO)
-        if (notif.type.includes("ESTRENO")) {
-            badgeColor = "#ff0055"; // rojo
-        } else if (notif.type.includes("PRÓXIMAMENTE")) {
-            badgeColor = "#f1c40f"; // amarillo
-        }
-        
-        let finalImgHTML = '';
-        if (notif.isFinal) {
-            finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
-        }
-
+        let badgeColor = "#bc13fe";
+        if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
+        else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
+        let finalImgHTML = notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : '';
         modal.innerHTML = `
             <div class="event-card">
-                <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="event-close" onclick="closePopup()"><i class="fas fa-times"></i></button>
                 <div class="event-visuals">
                     <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
                     <div class="covers-container">
-                        <img src="${notif.img}" class="cover-back" alt="Poster">
-                        <img src="${notif.seasonCover}" class="cover-front" alt="Season">
+                        <img src="${notif.img}" class="cover-back">
+                        <img src="${notif.seasonCover}" class="cover-front">
                     </div>
-                    <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>
+                    <div class="event-type-badge" style="background: ${badgeColor};">${notif.type}</div>
                     ${finalImgHTML}
                 </div>
                 <div class="event-info">
                     <h2 class="event-title">${notif.title}</h2>
                     <div class="event-meta">${infoString}</div>
                     <p class="event-desc">${indieMessage}</p>
-                    <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
-                        <i class="fas fa-play"></i> VER AHORA
-                    </button>
+                    <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
                 </div>
             </div>
         `;
@@ -1076,9 +1072,7 @@
             setTimeout(() => {
                 modal.remove();
                 const processed = notificationQueue.shift();
-                if (processed && !processed.seen) {
-                    markAsRead(processed.notifId);
-                }
+                if (processed && !processed.seen) markAsRead(processed.notifId);
                 if (typeof enableBodyScroll === 'function') enableBodyScroll();
                 showNextPopup();
             }, 300);
@@ -1086,9 +1080,7 @@
     }
 
     function goToAnimeFromPopup(animeId, notifId) {
-        if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) {
-            markAsRead(notifId);
-        }
+        if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) markAsRead(notifId);
         notificationQueue = [];
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
         window.location.href = `anime-detail.html?id=${animeId}`;
@@ -1117,82 +1109,55 @@
     function renderNotificationList() {
         const listContainer = document.getElementById('notifList');
         if (!listContainer) return;
-        
         requestAnimationFrame(() => {
             if (notificationsHistory.length === 0) {
                 listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
                 return;
             }
-
             const visibleCount = Math.min(notificationsHistory.length, 30);
             const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date).slice(0, visibleCount);
             const fragment = document.createDocumentFragment();
-            
             sortedHistory.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'notif-item';
-                
                 let imgBoxClass = 'notif-img-box';
-                if (item.type === 'RESPUESTA') {
-                    imgBoxClass += ' rounded-avatar';
-                }
-          
+                if (item.type === 'RESPUESTA') imgBoxClass += ' rounded-avatar';
                 let infoString = "";
-                if (item.blockName && item.blockName !== "Novedad") {
-                    infoString += `<span class="n-block">${item.blockName}</span>`;
-                }
+                if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
                 if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
                     if (infoString !== "") infoString += " ";
                     infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
-                } else if (infoString === "") {
-                    infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
-                }
-
+                } else if (infoString === "") infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
                 let typeColor = "var(--neon-purple)";
                 if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
                 else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
                 else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
-
                 let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
-                const unreadDot = !item.seen ?
-                    '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
-                
+                const unreadDot = !item.seen ? '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
                 div.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         ${unreadDot}
-                        <div class="${imgBoxClass}">
-                            <img src="${item.seasonCover}" alt="cover" loading="lazy">
-                        </div>
+                        <div class="${imgBoxClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div>
                     </div>
                     <div class="notif-content">
-                        <div class="notif-header-line">
-                             <span class="n-title">${item.title}</span>
-                        </div>
+                        <div class="notif-header-line"><span class="n-title">${item.title}</span></div>
                         <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
                         <div class="n-meta">${infoString}</div>
                     </div>
                 `;
-                
-                div.addEventListener('click', (e) => {
+                div.addEventListener('click', () => {
                     if (!item.seen) {
                         markAsRead(item.notifId);
                         item.seen = true;
                         updateBellBadge();
-                        const dot = div.querySelector('.unread-dot');
-                        if (dot) dot.remove();
                     }
-                    if (item.url) {
-                        window.location.href = item.url;
-                    } else {
-                        window.location.href = `anime-detail.html?id=${item.animeId}`;
-                    }
+                    if (item.url) location.href = item.url;
+                    else location.href = `anime-detail.html?id=${item.animeId}`;
                 });
                 fragment.appendChild(div);
             });
-            
             listContainer.innerHTML = '';
             listContainer.appendChild(fragment);
-            
             if (notificationsHistory.length > 30) {
                 const moreDiv = document.createElement('div');
                 moreDiv.className = 'notif-item';
@@ -1231,54 +1196,49 @@
     window.closePopup = closePopup;
     window.goToAnimeFromPopup = goToAnimeFromPopup;
   </script>
-  <!-- FIN: notification-system.js modificado -->
 
-  <!-- Scripts no críticos: se cargan después de que la página esté visible -->
+  <!-- CARGA DE SCRIPTS EXTERNOS (animaciones, música, index principal) -->
   <script>
     (function() {
-      const scripts = [
-        { src: "animaciones.js", defer: true },
-        { src: "musica_fondo.js", defer: true },
-        { src: "script-index.js", defer: true }  // este script contiene la lógica del grid y filtros
-      ];
-      scripts.forEach(scriptInfo => {
-        const script = document.createElement('script');
-        script.src = scriptInfo.src + "?v=" + Date.now();
-        if (scriptInfo.defer) script.defer = true;
-        document.body.appendChild(script);
+      // Cargamos script-index.js que contiene la lógica del grid y filtros
+      const mainScript = document.createElement('script');
+      mainScript.src = "script-index.js?v=" + Date.now();
+      mainScript.defer = true;
+      mainScript.onerror = () => {
+        console.error("No se pudo cargar script-index.js");
+        document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px; color:var(--neon-pink)">Error: No se encontró el archivo script-index.js. La página no puede mostrar los animes.</div>';
+      };
+      document.body.appendChild(mainScript);
+      
+      // Otros scripts secundarios
+      const extraScripts = ["animaciones.js", "musica_fondo.js"];
+      extraScripts.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src + "?v=" + Date.now();
+        s.defer = true;
+        document.body.appendChild(s);
       });
     })();
   </script>
 
-  <!-- Script para selects personalizados unificados (PC + móvil) -->
+  <!-- Script para selects personalizados -->
   <script>
-    function disableBodyScroll() {
-      document.body.classList.add('modal-open');
-      document.documentElement.classList.add('modal-open');
-    }
-    function enableBodyScroll() {
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-    }
-
+    function disableBodyScroll() { document.body.classList.add('modal-open'); document.documentElement.classList.add('modal-open'); }
+    function enableBodyScroll() { document.body.classList.remove('modal-open'); document.documentElement.classList.remove('modal-open'); }
     (function() {
       const selects = ['genre-select', 'demographic-select', 'rating-select'];
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
       function updateTriggerText(trigger, selectEl) {
         const selected = selectEl.options[selectEl.selectedIndex];
         trigger.textContent = selected ? selected.textContent : selectEl.options[0].textContent;
       }
-
       selects.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
-
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
         updateTriggerText(trigger, select);
         select.parentNode.insertBefore(trigger, select);
-        
         const openSelector = () => {
           if (isMobile) {
             const overlay = document.createElement('div');
@@ -1356,18 +1316,12 @@
     })();
   </script>
 
+  <!-- Autenticación y lógica de usuario -->
   <script>
     let currentUser = null;
     function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } location.href = 'opciones.html'; }
-    function showAuthModal() { 
-      document.getElementById('authModal').classList.add('show');
-      disableBodyScroll();
-    }
-    function closeAuthModal() { 
-      document.getElementById('authModal').classList.remove('show');
-      enableBodyScroll();
-      document.getElementById('authError').innerText = '';
-    }
+    function showAuthModal() { document.getElementById('authModal').classList.add('show'); disableBodyScroll(); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); enableBodyScroll(); document.getElementById('authError').innerText = ''; }
     document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
     async function loginWithEmail() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
     async function registerWithEmail() { const email = document.getElementById('registerEmail').value; const pass = document.getElementById('registerPassword').value; const confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); updateUserUI(auth.currentUser); } catch (err) { document.getElementById('authError').innerText = err.message; } }
@@ -1416,8 +1370,10 @@
     userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); 
     document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     auth.onAuthStateChanged(user => { updateUserUI(user); });
-    
-    // Loader robusto: espera a que window load + que animes esté definido
+  </script>
+
+  <!-- Loader: se oculta cuando los datos están listos -->
+  <script>
     function hideLoader() {
       const loader = document.getElementById('page-loader');
       if (!loader) return;
@@ -1432,27 +1388,23 @@
       if (typeof animes !== 'undefined' && animes && animes.length > 0) {
         hideLoader();
       } else {
-        // esperar un poco más a que index-data.js termine
         let attempts = 0;
-        const checkAnimes = setInterval(() => {
+        const checkData = setInterval(() => {
           if (typeof animes !== 'undefined' && animes && animes.length > 0) {
-            clearInterval(checkAnimes);
+            clearInterval(checkData);
             hideLoader();
-          } else if (attempts >= 30) { // 3 segundos máximo
-            clearInterval(checkAnimes);
-            console.warn("animes no definido después de esperar, ocultando loader igualmente");
-            hideLoader();
+          } else if (attempts >= 30) {
+            clearInterval(checkData);
+            console.warn("animes no definido tras esperar, mostrando error en grid");
+            document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px; color:var(--neon-pink)">⚠️ No se pudieron cargar los datos. Asegúrate de que el archivo index-data.js existe y tiene el formato correcto.</div>';
+            hideLoader(); // ocultar igualmente
           }
           attempts++;
         }, 100);
       }
     });
-    // Fallback extremo: a los 4 segundos ocultar siempre
-    setTimeout(() => {
-      const loader = document.getElementById('page-loader');
-      if (loader && loader.style.display !== 'none') hideLoader();
-    }, 4000);
-    
+    setTimeout(() => { hideLoader(); }, 5000); // fallback extremo
+
     // Video background
     const bgVideo = document.getElementById('bg-video');
     if (bgVideo) {
@@ -1461,8 +1413,8 @@
         document.body.addEventListener('click', () => bgVideo.play(), { once: true });
       });
     }
-    
-    // Efecto tilt en cards (se ejecutará cuando grid tenga contenido)
+
+    // Efecto tilt en cards (se ejecutará cuando script-index.js agregue las cards)
     const gridObserver = new MutationObserver(() => { 
       document.querySelectorAll('.card').forEach(card => { 
         if (card.dataset.tiltInit) return; 
@@ -1488,49 +1440,42 @@
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
 
-  <!-- Script para sobrescribir los ratings con los valores de Firestore -->
+  <!-- Sobrescritura de ratings desde Firestore -->
   <script>
     (async function updateRatingsFromFirestore() {
-        // Esperar a que animes exista
-        const waitForAnimes = setInterval(() => {
-          if (typeof animes !== 'undefined') {
-            clearInterval(waitForAnimes);
-            doUpdate();
-          }
-        }, 100);
-        async function doUpdate() {
-          if (!db) return;
-          const snapshot = await db.collection('animeRatings').get();
-          const ratingsMap = new Map();
-          snapshot.forEach(doc => {
-              const data = doc.data();
-              ratingsMap.set(parseInt(doc.id), {
-                  avg: data.avg,
-                  count: data.count
-              });
-          });
-          function updateCards() {
-              const cards = document.querySelectorAll('.card');
-              cards.forEach(card => {
-                  const animeId = card.dataset.id;
-                  if (animeId && ratingsMap.has(parseInt(animeId))) {
-                      const ratingObj = ratingsMap.get(parseInt(animeId));
-                      const ratingSpan = card.querySelector('.rating-value');
-                      if (ratingSpan) {
-                          ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
-                      }
-                  }
-              });
-          }
-          const observer = new MutationObserver(() => {
-              if (document.querySelector('.card')) {
-                  updateCards();
-                  observer.disconnect();
-              }
-          });
-          observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
-          setTimeout(updateCards, 500);
+      const waitForAnimes = setInterval(() => {
+        if (typeof animes !== 'undefined') {
+          clearInterval(waitForAnimes);
+          doUpdate();
         }
+      }, 100);
+      async function doUpdate() {
+        if (!db) return;
+        const snapshot = await db.collection('animeRatings').get();
+        const ratingsMap = new Map();
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          ratingsMap.set(parseInt(doc.id), { avg: data.avg, count: data.count });
+        });
+        function updateCards() {
+          document.querySelectorAll('.card').forEach(card => {
+            const animeId = card.dataset.id;
+            if (animeId && ratingsMap.has(parseInt(animeId))) {
+              const ratingObj = ratingsMap.get(parseInt(animeId));
+              const ratingSpan = card.querySelector('.rating-value');
+              if (ratingSpan) ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
+            }
+          });
+        }
+        const observer = new MutationObserver(() => {
+          if (document.querySelector('.card')) {
+            updateCards();
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
+        setTimeout(updateCards, 500);
+      }
     })();
   </script>
 
