@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.3";
+      const APP_VERSION = "2025-04-06-v4.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -103,6 +103,8 @@
     --header-height: 72px;
     --glow-intensity: 0.6;
     --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --star-empty: #444;
+    --star-hover: #ffaa00;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { 
@@ -274,7 +276,7 @@
     gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; }
   .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
 
-  /* Notificaciones - móvil: sin desborde horizontal y con scroll vertical usable */
+  /* Notificaciones - móvil: sin desborde horizontal */
   .notif-wrapper { position: relative; display: flex; align-items: center; }
   .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
     padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
@@ -300,7 +302,6 @@
     display: flex;
     flex-direction: column;
   }
-  /* Móvil: centrado, sin desborde, con scroll vertical */
   @media (max-width: 768px) {
     .notif-dropdown {
       position: fixed;
@@ -479,7 +480,7 @@
     to { opacity: 1; transform: scaleY(1); }
   }
 
-  /* Grid y Cards */
+  /* Grid y Cards con sistema de rating profesional */
   .container { max-width: 1600px; margin: 0 auto; padding: 10px 20px 80px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px; }
   .card { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 2/3; cursor: pointer;
@@ -499,9 +500,55 @@
     padding: 70px 15px 18px; display: flex; flex-direction: column; gap: 6px;
     transform: translateY(8px); opacity: 0.95; transition: 0.3s; }
   .card:hover .info { transform: translateY(0); opacity: 1; }
-  .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
-  .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
-    letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+  .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; margin-bottom: 4px; }
+  
+  /* Estrellas de rating */
+  .rating-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .stars {
+    display: flex;
+    gap: 3px;
+    direction: ltr;
+  }
+  .star {
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #555;
+    text-shadow: none;
+  }
+  .star.active {
+    color: #ffcc00;
+    text-shadow: 0 0 6px #ffaa00;
+  }
+  .star.hover {
+    color: #ffdd55;
+    transform: scale(1.1);
+  }
+  .rating-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 8px;
+    border-radius: 20px;
+    color: var(--neon-cyan);
+    letter-spacing: 0.5px;
+  }
+  .vote-count {
+    font-size: 0.65rem;
+    color: #aaa;
+  }
+  @media (max-width: 768px) {
+    .star { font-size: 0.7rem; }
+    .rating-value { font-size: 0.65rem; }
+    .vote-count { font-size: 0.55rem; }
+  }
 
   /* Modal de autenticación */
   .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
@@ -564,7 +611,6 @@
     .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .card .info { padding: 40px 8px 8px; }
     .card .info strong { font-size: 0.8rem; }
-    .card .info span { font-size: 0.6rem; }
     .loader-glitch { font-size: 2rem; letter-spacing: 4px; }
     .loader-sub { font-size: 0.6rem; }
   }
@@ -624,7 +670,6 @@
       <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App">
         <i class="fas fa-download"></i>
       </button>
-      <!-- Botón de administrador eliminado -->
       <div class="notif-wrapper">
         <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control">
           <i class="fas fa-bell"></i>
@@ -727,13 +772,9 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
-  <!-- INICIO: notification-system.js integrado y modificado -->
+  <!-- INICIO: notification-system.js integrado y modificado (sin scroll locking) -->
   <script>
-    // notification-system.js (modificado)
-    // - Colores de badges en popups: NUEVO -> morado, ESTRENO -> rojo, PRÓXIMAMENTE -> amarillo
-    // - Menú de notificaciones NO bloquea el scroll (evita salto)
-    // - Móvil: ancho 90% centrado sin desborde horizontal
-    
+    // notification-system.js (modificado) - mismo que antes pero manteniendo funcionalidad
     let notificationQueue = [];
     let notificationsHistory = [];
     let isMenuOpen = false;
@@ -1228,12 +1269,199 @@
   </script>
   <!-- FIN: notification-system.js modificado -->
 
+  <!-- SCRIPT PRINCIPAL CON RATINGS DINÁMICOS -->
   <script>
     const version = Date.now();
     document.write('<script src="index-data.js?v=' + version + '"><\/script>');
     document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
     document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+  </script>
+
+  <script>
+    // Sistema de calificaciones profesional con Firestore
+    let currentRatings = {}; // { animeId: { average, totalVotes, userRating } }
+    let ratingsUnsubscribe = null;
+    let currentUserForRatings = null;
+
+    async function loadRatingsForAnimes(animeIds) {
+      if (!db) return;
+      // Escuchar cambios en tiempo real en todos los animes visibles
+      if (ratingsUnsubscribe) ratingsUnsubscribe();
+      // Crear consulta con "in" (limitado a 30 animes por consulta, pero podemos hacer varias)
+      const batchSize = 30;
+      let allListeners = [];
+      for (let i = 0; i < animeIds.length; i += batchSize) {
+        const batch = animeIds.slice(i, i + batchSize);
+        const q = db.collection('ratings').where('__name__', 'in', batch);
+        const unsubscribe = q.onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(change => {
+            const data = change.doc.data();
+            const animeId = change.doc.id;
+            if (!currentRatings[animeId]) currentRatings[animeId] = {};
+            currentRatings[animeId].average = data.average || 0;
+            currentRatings[animeId].totalVotes = data.totalVotes || 0;
+            // Obtener voto del usuario actual si existe
+            if (currentUserForRatings && data.votes && data.votes[currentUserForRatings.uid] !== undefined) {
+              currentRatings[animeId].userRating = data.votes[currentUserForRatings.uid];
+            } else {
+              currentRatings[animeId].userRating = null;
+            }
+          });
+          // Actualizar UI
+          updateAllRatingsUI();
+        }, error => console.warn("Error en snapshot ratings:", error));
+        allListeners.push(unsubscribe);
+      }
+      ratingsUnsubscribe = () => allListeners.forEach(fn => fn());
+    }
+
+    function updateAllRatingsUI() {
+      document.querySelectorAll('.card').forEach(card => {
+        const animeId = card.getAttribute('data-anime-id');
+        if (animeId && currentRatings[animeId]) {
+          const rating = currentRatings[animeId];
+          const ratingValueSpan = card.querySelector('.rating-value');
+          const starsContainer = card.querySelector('.stars');
+          const voteCountSpan = card.querySelector('.vote-count');
+          if (ratingValueSpan) {
+            ratingValueSpan.textContent = rating.average ? rating.average.toFixed(1) : '—';
+          }
+          if (voteCountSpan) {
+            voteCountSpan.textContent = rating.totalVotes ? `(${rating.totalVotes} votos)` : '';
+          }
+          if (starsContainer) {
+            const userRating = rating.userRating || 0;
+            const stars = starsContainer.querySelectorAll('.star');
+            stars.forEach((star, idx) => {
+              const value = idx + 1;
+              if (value <= userRating) {
+                star.classList.add('active');
+              } else {
+                star.classList.remove('active');
+              }
+            });
+          }
+        } else if (animeId && !currentRatings[animeId]) {
+          // Si no existe rating en Firestore, mostrar valores por defecto (0)
+          const ratingValueSpan = card.querySelector('.rating-value');
+          const voteCountSpan = card.querySelector('.vote-count');
+          if (ratingValueSpan) ratingValueSpan.textContent = '—';
+          if (voteCountSpan) voteCountSpan.textContent = '';
+          const starsContainer = card.querySelector('.stars');
+          if (starsContainer) {
+            starsContainer.querySelectorAll('.star').forEach(star => star.classList.remove('active'));
+          }
+        }
+      });
+    }
+
+    async function submitRating(animeId, ratingValue, event) {
+      event.stopPropagation(); // Evitar que se abra el detalle del anime
+      if (!currentUserForRatings) {
+        showAuthModal();
+        document.getElementById('authError').innerText = "Inicia sesión para calificar animes.";
+        return;
+      }
+      const ratingRef = db.collection('ratings').doc(animeId);
+      await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(ratingRef);
+        let data = doc.exists ? doc.data() : { votes: {}, totalVotes: 0, average: 0 };
+        let previousRating = data.votes[currentUserForRatings.uid] || null;
+        let newTotalVotes = data.totalVotes;
+        let newSum = data.average * data.totalVotes;
+        if (previousRating !== null) {
+          newSum -= previousRating;
+        } else {
+          newTotalVotes++;
+        }
+        newSum += ratingValue;
+        const newAverage = newTotalVotes > 0 ? newSum / newTotalVotes : 0;
+        data.votes[currentUserForRatings.uid] = ratingValue;
+        transaction.set(ratingRef, {
+          votes: data.votes,
+          totalVotes: newTotalVotes,
+          average: newAverage
+        }, { merge: true });
+      });
+      // Mostrar notificación sutil
+      showToastRating(`¡Gracias por tu voto (${ratingValue}★)!`);
+    }
+
+    function showToastRating(msg) {
+      let toast = document.getElementById('ratingToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'ratingToast';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);color:var(--neon-cyan);padding:10px 20px;border-radius:30px;z-index:10002;font-weight:bold;border:1px solid var(--neon-cyan);box-shadow:0 0 20px rgba(0,255,247,0.3);font-family:"Poppins";font-size:0.9rem;white-space:nowrap;';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 2500);
+    }
+
+    // Integración con el renderizado de grid (sobrescribir render para incluir ratings)
+    const originalRender = window.render;
+    if (originalRender) {
+      window.render = function(list) {
+        originalRender(list);
+        // Después de renderizar, agregar eventos de rating y data-anime-id
+        document.querySelectorAll('.card').forEach(card => {
+          const animeId = card.getAttribute('data-anime-id');
+          if (!animeId) return;
+          // Añadir contenedor de rating si no existe
+          const infoDiv = card.querySelector('.info');
+          if (infoDiv && !infoDiv.querySelector('.rating-container')) {
+            const ratingContainer = document.createElement('div');
+            ratingContainer.className = 'rating-container';
+            const starsDiv = document.createElement('div');
+            starsDiv.className = 'stars';
+            for (let i = 1; i <= 5; i++) {
+              const star = document.createElement('i');
+              star.className = 'fas fa-star star';
+              star.setAttribute('data-value', i);
+              star.addEventListener('click', (e) => {
+                e.stopPropagation();
+                submitRating(animeId, i, e);
+              });
+              star.addEventListener('mouseenter', (e) => {
+                const val = parseInt(e.target.getAttribute('data-value'));
+                starsDiv.querySelectorAll('.star').forEach((s, idx) => {
+                  if (idx < val) s.classList.add('hover');
+                  else s.classList.remove('hover');
+                });
+              });
+              star.addEventListener('mouseleave', () => {
+                starsDiv.querySelectorAll('.star').forEach(s => s.classList.remove('hover'));
+              });
+              starsDiv.appendChild(star);
+            }
+            const ratingValueSpan = document.createElement('span');
+            ratingValueSpan.className = 'rating-value';
+            ratingValueSpan.textContent = '—';
+            const voteCountSpan = document.createElement('span');
+            voteCountSpan.className = 'vote-count';
+            ratingContainer.appendChild(starsDiv);
+            ratingContainer.appendChild(ratingValueSpan);
+            ratingContainer.appendChild(voteCountSpan);
+            infoDiv.appendChild(ratingContainer);
+          }
+          card.setAttribute('data-anime-id', animeId);
+        });
+        // Cargar ratings para los animes visibles
+        const visibleIds = [...document.querySelectorAll('.card')].map(c => c.getAttribute('data-anime-id')).filter(id => id);
+        if (visibleIds.length) loadRatingsForAnimes(visibleIds);
+      };
+    }
+
+    // Escuchar cambios de usuario
+    auth.onAuthStateChanged(user => {
+      currentUserForRatings = user;
+      if (ratingsUnsubscribe) ratingsUnsubscribe();
+      // Recargar ratings para los animes actuales
+      const visibleIds = [...document.querySelectorAll('.card')].map(c => c.getAttribute('data-anime-id')).filter(id => id);
+      if (visibleIds.length) loadRatingsForAnimes(visibleIds);
+    });
   </script>
 
   <!-- Script para selects personalizados unificados (PC + móvil) -->
@@ -1363,6 +1591,7 @@
     function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
     function updateUserUI(user) { 
       currentUser = user; 
+      currentUserForRatings = user;
       const avatarBtn = document.getElementById('userAvatarBtn'); 
       const dropdownAvatar = document.getElementById('dropdownAvatar'); 
       const dropdownName = document.getElementById('dropdownName'); 
@@ -1396,6 +1625,9 @@
         dropdownName.style.color = 'var(--neon-cyan)'; 
         dropdownName.style.textShadow = 'none'; 
       } 
+      // Recargar ratings si ya hay grid
+      const visibleIds = [...document.querySelectorAll('.card')].map(c => c.getAttribute('data-anime-id')).filter(id => id);
+      if (visibleIds.length) loadRatingsForAnimes(visibleIds);
     }
     const userAvatarBtn = document.getElementById('userAvatarBtn'); 
     const userDropdown = document.getElementById('userDropdown'); 
@@ -1405,100 +1637,29 @@
     
     window.addEventListener('load', () => { const loader = document.getElementById('page-loader'); const bgVideo = document.getElementById('bg-video'); const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; forcePlayVideo(); const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); const delay = isFirstVisit ? 1400 : 50; setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay); });
     
-    const gridObserver = new MutationObserver(() => { document.querySelectorAll('.card').forEach(card => { if (card.dataset.tiltInit) return; card.dataset.tiltInit = 'true'; card.addEventListener('mousemove', (e) => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.tiltRAF = requestAnimationFrame(() => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const rotateX = ((y - rect.height/2) / rect.height/2) * -6; const rotateY = ((x - rect.width/2) / rect.width/2) * 6; card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; }); }); card.addEventListener('mouseleave', () => { if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); card.style.transform = ''; }); }); });
-    const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
-  </script>
-
-  <!-- ===== SISTEMA DE RATINGS COMBINADOS ===== -->
-  <script>
-    // Función para cargar las calificaciones combinadas desde Firestore
-    async function loadCombinedRatings(animesList) {
-      if (!firebase.apps.length) return animesList;
-      try {
-        const ratingsSnap = await db.collection('animeRatings').get();
-        const ratingsMap = new Map();
-        ratingsSnap.forEach(doc => {
-          ratingsMap.set(doc.id, doc.data());
-        });
-        return animesList.map(anime => {
-          const idStr = String(anime.id);
-          const ratingData = ratingsMap.get(idStr);
-          if (ratingData) {
-            const creatorRating = ratingData.creatorRating !== undefined ? ratingData.creatorRating : anime.rating;
-            const totalUserVotes = ratingData.totalUserVotes || 0;
-            const sumUserRatings = ratingData.sumUserRatings || 0;
-            const combinedSum = creatorRating + sumUserRatings;
-            const combinedCount = 1 + totalUserVotes;
-            const combinedAvg = combinedSum / combinedCount;
-            anime.combinedRating = combinedAvg;
-            anime.userVotesCount = totalUserVotes;
-          } else {
-            anime.combinedRating = anime.rating;
-            anime.userVotesCount = 0;
-          }
-          return anime;
-        });
-      } catch (err) {
-        console.warn("Error cargando ratings combinados:", err);
-        return animesList;
-      }
-    }
-
-    // Esperar a que la variable global "animes" esté disponible (cargada desde index-data.js)
-    let originalRenderGrid = null;
-    const waitForAnimes = setInterval(() => {
-      if (typeof animes !== 'undefined' && animes && animes.length > 0) {
-        clearInterval(waitForAnimes);
-        // Modificar la función que pinta el grid (asumiendo que existe una función global renderGrid)
-        // Si no existe, inyectamos un MutationObserver para reemplazar las calificaciones en el DOM ya pintado.
-        // Como no sabemos exactamente cómo se pinta el grid (puede ser en script-index.js), usamos un enfoque defensivo:
-        // Observamos el contenedor grid y cuando se agreguen cards, actualizamos el texto de rating con el valor combinado.
-        const observerRatings = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.addedNodes.length) {
-              mutation.addedNodes.forEach(node => {
-                if (node.nodeType === 1 && node.classList && node.classList.contains('card')) {
-                  const animeId = node.getAttribute('data-id');
-                  if (animeId) {
-                    const animeData = animes.find(a => String(a.id) === animeId);
-                    if (animeData && animeData.combinedRating) {
-                      const ratingSpan = node.querySelector('.info span');
-                      if (ratingSpan) {
-                        ratingSpan.innerHTML = `⭐ ${animeData.combinedRating.toFixed(1)}`;
-                        // Opcional: añadir tooltip con número de votos
-                        ratingSpan.title = `${animeData.userVotesCount} votos de usuarios`;
-                      }
-                    }
-                  }
-                }
-              });
-            }
-          });
-        });
-        if (gridEl) observerRatings.observe(gridEl, { childList: true, subtree: false });
-        
-        // También cargamos los ratings combinados y actualizamos las tarjetas existentes
-        (async () => {
-          const updatedAnimes = await loadCombinedRatings(animes);
-          // Reemplazar el array original (por si se usa después)
-          window.animes = updatedAnimes;
-          // Buscar todas las tarjetas ya presentes y actualizar
-          document.querySelectorAll('.card').forEach(card => {
-            const animeId = card.getAttribute('data-id');
-            if (animeId) {
-              const anime = updatedAnimes.find(a => String(a.id) === animeId);
-              if (anime && anime.combinedRating) {
-                const ratingSpan = card.querySelector('.info span');
-                if (ratingSpan) {
-                  ratingSpan.innerHTML = `⭐ ${anime.combinedRating.toFixed(1)}`;
-                  ratingSpan.title = `${anime.userVotesCount} votos de usuarios`;
-                }
-              }
-            }
-          });
-        })();
-      }
-    }, 100);
+    const gridObserver = new MutationObserver(() => { 
+      document.querySelectorAll('.card').forEach(card => { 
+        if (card.dataset.tiltInit) return; 
+        card.dataset.tiltInit = 'true'; 
+        card.addEventListener('mousemove', (e) => { 
+          if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); 
+          card.tiltRAF = requestAnimationFrame(() => { 
+            const rect = card.getBoundingClientRect(); 
+            const x = e.clientX - rect.left; 
+            const y = e.clientY - rect.top; 
+            const rotateX = ((y - rect.height/2) / rect.height/2) * -6; 
+            const rotateY = ((x - rect.width/2) / rect.width/2) * 6; 
+            card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; 
+          }); 
+        }); 
+        card.addEventListener('mouseleave', () => { 
+          if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); 
+          card.style.transform = ''; 
+        }); 
+      }); 
+    });
+    const gridEl = document.getElementById('grid'); 
+    if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
 </body>
 </html>
