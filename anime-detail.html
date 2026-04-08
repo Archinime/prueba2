@@ -6,7 +6,7 @@
   <title>Cargando Anime... - Archinime OS</title>
   <meta name="description" content="Sumérgete en la experiencia definitiva de anime. Interfaz Cyberpunk, sonido envolvente y la mejor calidad.">
 
-  <!-- Theme color dinámico -->
+  <!-- Theme color dinámico (igual que index) -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -85,59 +85,96 @@
       scroll-behavior: smooth;
     }
 
-    /* Fondo vídeo con overlay mejorado */
+    /* Fondo vídeo (mismo estilo que index) */
     #bg-video {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       z-index: -2;
       background: url('galaxia-morado1.avif') center/cover no-repeat;
-      opacity: 0.85;
-      transition: opacity 0.8s ease;
+      opacity: 0.9;
+      transition: opacity 1.2s ease;
       pointer-events: none;
+      filter: contrast(1.2) brightness(0.7) saturate(1.1);
     }
     #bg-video.loaded { opacity: 1; }
+
+    /* Overlay radial (como index) */
     #overlay {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.15) 0%, rgba(0,0,0,0.85) 90%);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
       z-index: -1;
       pointer-events: none;
+      transition: opacity 0.8s ease;
     }
+
+    /* Scanlines (efecto retro) */
     #scanlines {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
       z-index: -1;
       pointer-events: none;
-      opacity: 0.3;
+      opacity: 0.25;
     }
 
-    /* Pantalla de carga mejorada */
+    /* Pantalla de carga mejorada (estilo index) */
     #loading-screen {
       position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: #000;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
       z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      transition: opacity 0.5s;
-      backdrop-filter: blur(10px);
+      transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
+      backdrop-filter: blur(8px);
     }
     .loader-glitch {
       font-family: 'Orbitron', sans-serif;
-      font-size: 3rem;
+      font-size: 3.5rem;
       font-weight: 900;
       letter-spacing: 8px;
       color: white;
       text-shadow: 0 0 20px var(--neon-cyan);
-      animation: pulseText 1.2s infinite;
+      position: relative;
+      animation: pulseGlow 1.2s infinite alternate;
+    }
+    .loader-glitch::before,
+    .loader-glitch::after {
+      content: 'ARCHINIME';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+    .loader-glitch::before {
+      left: 4px;
+      text-shadow: -3px 0 var(--neon-pink);
+      clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+      animation: glitchShift 2s infinite linear alternate-reverse;
+    }
+    .loader-glitch::after {
+      left: -4px;
+      text-shadow: 2px 0 var(--neon-cyan);
+      clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+      animation: glitchShift2 2.5s infinite linear alternate-reverse;
     }
     .loader-sub {
       font-family: 'Orbitron', sans-serif;
@@ -145,13 +182,26 @@
       color: var(--neon-purple);
       letter-spacing: 4px;
       margin-top: 20px;
+      animation: pulseText 1.2s infinite;
+    }
+    @keyframes pulseGlow {
+      0% { text-shadow: 0 0 10px var(--neon-cyan); opacity: 0.9; }
+      100% { text-shadow: 0 0 30px var(--neon-cyan), 0 0 10px var(--neon-purple); opacity: 1; }
+    }
+    @keyframes glitchShift {
+      0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px, 1px); }
+      100% { clip-path: polygon(0 25%, 100% 25%, 100% 35%, 0 35%); transform: translate(2px, -1px); }
+    }
+    @keyframes glitchShift2 {
+      0% { clip-path: polygon(0 65%, 100% 65%, 100% 70%, 0 70%); transform: translate(2px, -1px); }
+      100% { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); transform: translate(-2px, 1px); }
     }
     @keyframes pulseText {
-      0%,100% { opacity: 0.8; text-shadow: 0 0 20px var(--neon-cyan); }
-      50% { opacity: 0.4; text-shadow: 0 0 5px var(--neon-purple); }
+      0%,100% { opacity: 0.8; }
+      50% { opacity: 0.4; }
     }
 
-    /* --- CONTENEDOR PRINCIPAL (GLASSMORPHISM) --- */
+    /* --- CONTENEDOR PRINCIPAL (GLASSMORPHISM + NEÓN) --- */
     .container {
       position: relative;
       z-index: 1;
@@ -264,7 +314,7 @@
       max-width: 90%;
       border-radius: 20px;
       box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 2px rgba(0, 243, 255, 0.3);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .anime-cover img:hover {
       transform: scale(1.02);
@@ -301,6 +351,11 @@
       color: var(--neon-cyan);
       letter-spacing: 0.5px;
       backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+    .genre-chip:hover {
+      background: rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 8px var(--neon-cyan);
     }
     /* Sinopsis */
     .desc {
@@ -321,6 +376,11 @@
       padding: 20px;
       margin: 20px 0;
       backdrop-filter: blur(8px);
+      transition: all 0.3s;
+    }
+    .rating-section:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0,243,255,0.2);
     }
     .rating-stats {
       display: flex;
@@ -389,6 +449,7 @@
       justify-content: space-between;
       align-items: center;
       background: rgba(0,0,0,0.3);
+      transition: 0.2s;
     }
     summary::-webkit-details-marker { display: none; }
     summary::after {
@@ -525,6 +586,11 @@
       .video-list { grid-template-columns: repeat(2, 1fr); }
       .rec-grid { grid-template-columns: repeat(3, 1fr); }
       .star { font-size: 1.5rem; }
+      .loader-glitch { font-size: 2rem; letter-spacing: 4px; }
+      .loader-sub { font-size: 0.6rem; }
+    }
+    @media (max-width: 480px) {
+      .rec-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -533,7 +599,13 @@
 <div id="loading-screen">
   <div class="loader-glitch">ARCHINIME</div>
   <div class="loader-sub">CARGANDO SISTEMA...</div>
+  <div style="width: 280px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; border-radius: 2px;">
+    <div style="width: 0; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); border-radius: 2px; animation: loadLine 1.2s forwards;"></div>
+  </div>
 </div>
+<style>
+  @keyframes loadLine { to { width: 280px; } }
+</style>
 
 <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
   <source src="galaxia.mp4" type="video/mp4">
@@ -623,6 +695,7 @@
     setTimeout(() => screen.style.display = 'none', 500);
     const bgVideo = document.getElementById('bg-video');
     bgVideo.play().catch(()=>{});
+    bgVideo.classList.add('loaded');
   });
 
   // ---------- MÚSICA DE FONDO ----------
