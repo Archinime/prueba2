@@ -214,12 +214,11 @@
       border-color: var(--neon-cyan);
     }
 
-    /* --- BÚSQUEDA RÁPIDA CON Z-INDEX EXTREMO --- */
+    /* --- BÚSQUEDA RÁPIDA (el dropdown se moverá al body con JS) --- */
     .search-container {
       position: relative;
       flex: 1;
       max-width: 350px;
-      z-index: 10000; /* Aseguramos que el contenedor tenga prioridad */
     }
     .search-container input {
       width: 100%;
@@ -231,78 +230,41 @@
       font-size: 0.9rem;
       outline: none;
       transition: 0.2s;
-      position: relative;
-      z-index: 10001;
     }
     .search-container input:focus {
       border-color: var(--neon-cyan);
       box-shadow: 0 0 15px rgba(0,243,255,0.3);
       background: rgba(0,0,0,0.8);
     }
-    .search-dropdown {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
+    /* El dropdown flotante se creará dinámicamente con posición fixed */
+    .floating-dropdown {
+      position: fixed;
       background: #0f0f13;
       border: 1px solid var(--neon-purple);
       border-radius: 16px;
       max-height: 300px;
       overflow-y: auto;
-      z-index: 100000; /* Z-index extremadamente alto */
-      display: none;
+      z-index: 99999;
       backdrop-filter: blur(12px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,243,255,0.2);
-    }
-    .search-dropdown::-webkit-scrollbar {
-      width: 6px;
-    }
-    .search-dropdown::-webkit-scrollbar-track {
-      background: #1a1a1a;
-      border-radius: 8px;
-    }
-    .search-dropdown::-webkit-scrollbar-thumb {
-      background: var(--neon-cyan);
-      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      width: 350px;
     }
     .search-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 15px;
+      padding: 10px;
       cursor: pointer;
       border-bottom: 1px solid rgba(255,255,255,0.1);
-      transition: background 0.2s;
     }
-    .search-item:last-child {
-      border-bottom: none;
-    }
-    .search-item:hover { 
-      background: rgba(0,243,255,0.15);
-    }
-    .search-item img { 
-      width: 40px; 
-      height: 55px; 
-      object-fit: cover; 
-      border-radius: 6px;
-      border: 1px solid rgba(0,243,255,0.3);
-    }
-    .search-item-title {
-      font-weight: 600;
-      color: #fff;
-    }
-    .search-no-results {
-      padding: 15px;
-      text-align: center;
-      color: #aaa;
-    }
+    .search-item:hover { background: rgba(0,243,255,0.1); }
+    .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
 
     /* --- PORTADA (sin z-index conflictivo) --- */
     .anime-cover {
       text-align: center;
       margin-bottom: 20px;
       position: relative;
-      z-index: 1; /* valor bajo para no tapar el dropdown */
     }
     .anime-cover img {
       max-height: 420px;
@@ -535,15 +497,7 @@
       .video-list { grid-template-columns: repeat(2, 1fr); }
       h1 { font-size: 1.6rem; margin: 15px 0 10px; }
       .star { font-size: 1.5rem; }
-      .search-container { max-width: 100%; }
-      .search-dropdown { 
-        position: fixed; 
-        top: auto; 
-        left: 5%; 
-        right: 5%; 
-        width: 90%;
-        max-height: 60vh;
-      }
+      .floating-dropdown { width: 90%; left: 5% !important; }
     }
     .rec-card {
       background: rgba(0,0,0,0.5);
@@ -591,6 +545,7 @@
     @media (max-width: 768px) {
       .container { margin: 70px 15px 30px; padding: 15px; }
       .top-buttons { margin: -15px -15px 20px -15px; padding: 12px 15px; }
+      .search-container { max-width: 100%; }
     }
   </style>
 </head>
@@ -612,7 +567,6 @@
     <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Volver</a>
     <div class="search-container">
       <input type="text" id="quick-search" placeholder="🔍 Buscar anime..." autocomplete="off">
-      <div id="quick-search-results" class="search-dropdown"></div>
     </div>
     <span id="share-detail" class="share-detail"><i class="fas fa-share-alt"></i> Compartir</span>
   </div>
@@ -842,7 +796,6 @@
       (async () => {
         await loadAnimeRating(id);
         if (currentUserId) await loadUserRating(id, currentUserId);
-        // Si el rating de Firestore es diferente al inicial, actualizar display
         if (animeRatingData.avg !== initialRating) updateRatingDisplay();
       })();
     } else {
@@ -937,38 +890,78 @@
   }
   function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ---------- BÚSQUEDA RÁPIDA (con z-index extremadamente alto) ----------
+  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (siempre encima) ----------
   if (typeof data !== 'undefined') {
     const searchInput = document.getElementById('quick-search');
-    const resultsDiv = document.getElementById('quick-search-results');
+    let floatingDropdown = null;
+
+    function createFloatingDropdown() {
+      if (floatingDropdown) floatingDropdown.remove();
+      floatingDropdown = document.createElement('div');
+      floatingDropdown.className = 'floating-dropdown';
+      document.body.appendChild(floatingDropdown);
+      return floatingDropdown;
+    }
+
+    function updateDropdownPosition() {
+      if (!floatingDropdown || floatingDropdown.style.display === 'none') return;
+      const rect = searchInput.getBoundingClientRect();
+      floatingDropdown.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+      floatingDropdown.style.left = (rect.left + window.scrollX) + 'px';
+      floatingDropdown.style.width = rect.width + 'px';
+    }
+
+    function showDropdown(results) {
+      if (!floatingDropdown) createFloatingDropdown();
+      if (!results.length) {
+        floatingDropdown.style.display = 'none';
+        return;
+      }
+      floatingDropdown.innerHTML = results.map(item => `
+        <div class="search-item" data-id="${item.id}">
+          <img src="${item.cover}" loading="lazy">
+          <div class="search-item-info">
+            <span class="search-item-title">${item.title}</span>
+          </div>
+        </div>
+      `).join('');
+      floatingDropdown.querySelectorAll('.search-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.dataset.id;
+          window.location.href = `anime-detail.html?id=${id}`;
+        });
+        el.addEventListener('mouseenter', () => playUISound('hover'));
+      });
+      updateDropdownPosition();
+      floatingDropdown.style.display = 'block';
+    }
+
+    function hideDropdown() {
+      if (floatingDropdown) floatingDropdown.style.display = 'none';
+    }
+
     searchInput.addEventListener('input', function() {
       const q = this.value.toLowerCase().trim();
-      resultsDiv.innerHTML = '';
-      if (!q) { resultsDiv.style.display = 'none'; return; }
+      if (!q) {
+        hideDropdown();
+        return;
+      }
       const currentId = new URLSearchParams(location.search).get('id');
-      const matches = Object.entries(data).filter(([id, a]) => a.title.toLowerCase().startsWith(q) && id !== currentId);
-      if (matches.length) {
-        resultsDiv.innerHTML = matches.map(([id, a]) => `
-          <a href="anime-detail.html?id=${id}" class="search-item" onmouseenter="playUISound('hover')" onclick="playUISound('click')">
-            <img src="${a.cover}" loading="lazy"><div class="search-item-info"><span class="search-item-title">${a.title}</span></div>
-          </a>
-        `).join('');
-        resultsDiv.style.display = 'block';
-      } else {
-        resultsDiv.innerHTML = '<div class="search-no-results">No se encontró nada</div>';
-        resultsDiv.style.display = 'block';
+      const matches = Object.entries(data)
+        .filter(([id, a]) => a.title.toLowerCase().startsWith(q) && id !== currentId)
+        .map(([id, a]) => ({ id, title: a.title, cover: a.cover }));
+      showDropdown(matches);
+    });
+
+    window.addEventListener('resize', () => updateDropdownPosition());
+    window.addEventListener('scroll', () => updateDropdownPosition());
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !floatingDropdown?.contains(e.target)) {
+        hideDropdown();
       }
     });
-    document.addEventListener('click', (e) => { 
-      if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-        resultsDiv.style.display = 'none';
-      }
-    });
-    // También cerrar al hacer scroll para mantener limpia la interfaz
-    window.addEventListener('scroll', () => {
-      if (resultsDiv.style.display === 'block') {
-        resultsDiv.style.display = 'none';
-      }
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input'));
     });
   }
 
@@ -1072,20 +1065,16 @@
         let newAvg = animeRatingData.avg;
         let newCount = animeRatingData.count;
         
-        // Si el usuario ya votó y el nuevo valor es el mismo que el actual -> ELIMINAR VOTO
         if (oldValue !== null && oldValue === newVal) {
-          // Eliminar voto: disminuir contador y recalcular promedio
+          // Eliminar voto
           if (newCount > 1) {
             newAvg = (newAvg * newCount - oldValue) / (newCount - 1);
             newCount--;
           } else {
-            // Era el único voto, el promedio queda 0
             newAvg = 0;
             newCount = 0;
           }
-          // Eliminar documento de usuario
           t.delete(userRef);
-          // Actualizar documento principal
           if (newCount === 0) {
             t.delete(ratingRef);
             animeRatingData = { avg: 0, count: 0 };
@@ -1098,12 +1087,9 @@
           document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
         } 
         else {
-          // Actualizar o crear nuevo voto
           if (oldValue !== null) {
-            // Actualizar voto existente
             newAvg = (newAvg * newCount - oldValue + newVal) / newCount;
           } else {
-            // Nuevo voto
             newAvg = (newAvg * newCount + newVal) / (newCount + 1);
             newCount++;
           }
@@ -1117,9 +1103,9 @@
       updateRatingDisplay();
       renderStars(currentUserRating || 0);
       setTimeout(() => {
-        if (document.getElementById('ratingMessage').innerHTML.includes('Gracias') || 
-            document.getElementById('ratingMessage').innerHTML.includes('eliminado')) {
-          document.getElementById('ratingMessage').innerHTML = '';
+        const msg = document.getElementById('ratingMessage');
+        if (msg.innerHTML.includes('Gracias') || msg.innerHTML.includes('eliminado')) {
+          msg.innerHTML = '';
         }
       }, 3000);
     } catch(e) { 
