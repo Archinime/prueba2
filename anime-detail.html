@@ -318,37 +318,57 @@
         letter-spacing: 0.5px;
     }
 
-    /* --- SISTEMA DE ESTRELLAS Y RATING --- */
+    /* --- SISTEMA DE ESTRELLAS Y RATING PROFESIONAL --- */
     .rating-section {
         text-align: center;
         margin: 20px 0;
-        padding: 15px;
-        background: rgba(0,0,0,0.4);
-        border-radius: 20px;
-        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 20px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 24px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        transition: all 0.3s;
     }
     .rating-display {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
         color: #ffc107;
+        text-shadow: 0 0 5px rgba(0,0,0,0.5);
     }
     .star-rating i {
-        font-size: 2rem;
+        font-size: 2.2rem;
         cursor: pointer;
         color: #ffc107;
-        margin: 0 4px;
-        transition: transform 0.1s;
+        margin: 0 6px;
+        transition: transform 0.15s, text-shadow 0.2s;
     }
     .star-rating i:hover {
-        transform: scale(1.2);
+        transform: scale(1.25);
+        text-shadow: 0 0 10px #ffc107;
     }
     .star-rating i.active {
         font-weight: 900;
+        text-shadow: 0 0 8px rgba(255,193,7,0.8);
     }
     .vote-message {
         font-size: 0.8rem;
         color: #aaa;
-        margin-top: 8px;
+        margin-top: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+    .vote-message i {
+        font-size: 0.9rem;
+    }
+    .vote-tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        border-bottom: 1px dashed #aaa;
     }
 
     /* --- TEMPORADAS --- */
@@ -509,7 +529,8 @@
         .video-list { grid-template-columns: repeat(2, 1fr); gap: 6px; }
         h1 { font-size:1.4rem; }
         .rec-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .star-rating i { font-size: 1.5rem; }
+        .star-rating i { font-size: 1.6rem; margin: 0 3px; }
+        .rating-display { font-size: 1rem; }
     }
   </style>
 </head>
@@ -1106,6 +1127,10 @@
                 }
             }
         }
+        // Actualizar el widget de rating cuando cambia el usuario (para mostrar su voto)
+        if (currentAnimeId) {
+            updateRatingDisplay();
+        }
     });
 
     // Refrescar cuando se vuelve a la página (desde video-player)
@@ -1128,11 +1153,12 @@
     });
 
     /* ====================================================
-       SISTEMA DE RATINGS COMBINADOS (VOTACIÓN DE USUARIOS)
+       SISTEMA DE RATINGS PROFESIONAL (VOTACIÓN + ACTUALIZACIÓN EN TIEMPO REAL)
        ==================================================== */
     let currentBaseRating = 0;
     let currentCombinedRating = 0;
-    let currentUserVote = 0; // Guardar voto del usuario actual
+    let currentUserVote = 0;
+    let ratingUnsubscribe = null;
 
     async function loadAnimeRatings(animeId, baseRatingFromData) {
         const docRef = db.collection('animeRatings').doc(String(animeId));
@@ -1167,16 +1193,14 @@
 
     async function updateRatingDisplay() {
         if (!currentAnimeId) return;
-        // Obtener la calificación base desde el objeto data (estático)
         const baseRating = parseFloat(data[currentAnimeId]?.rating) || 0;
         currentBaseRating = baseRating;
         const { combinedAvg, totalUserVotes } = await loadAnimeRatings(currentAnimeId, baseRating);
         currentCombinedRating = combinedAvg;
         const ratingSpan = document.getElementById('anime-rating-display');
         if (ratingSpan) {
-            ratingSpan.innerHTML = `⭐ ${combinedAvg.toFixed(1)} (${totalUserVotes} votos de usuarios + creador)`;
+            ratingSpan.innerHTML = `⭐ ${combinedAvg.toFixed(1)} <span style="font-size:0.8rem;">(${totalUserVotes} votos de usuarios + creador)</span>`;
         }
-        // Si el usuario está logueado, obtener su voto actual para resaltar estrellas
         if (auth.currentUser) {
             currentUserVote = await getUserVote(currentAnimeId, auth.currentUser.uid);
             highlightStars(currentUserVote);
@@ -1254,7 +1278,6 @@
     function injectRatingBlock() {
         const container = document.getElementById('contenido');
         if (!container) return;
-        // Buscar el elemento de descripción para insertar después
         const descElement = container.querySelector('.desc');
         if (!descElement) return;
         const ratingHtml = `
@@ -1267,7 +1290,10 @@
                     <i class="far fa-star" data-value="4"></i>
                     <i class="far fa-star" data-value="5"></i>
                 </div>
-                <div class="vote-message" id="vote-message">Tu voto ayuda a la comunidad</div>
+                <div class="vote-message">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="vote-tooltip" title="Tu voto ayuda a la comunidad y se refleja en la página principal">Tu calificación es importante</span>
+                </div>
             </div>
         `;
         descElement.insertAdjacentHTML('afterend', ratingHtml);
