@@ -214,7 +214,7 @@
       border-color: var(--neon-cyan);
     }
 
-    /* --- BÚSQUEDA RÁPIDA (el dropdown se moverá al body con JS) --- */
+    /* --- BÚSQUEDA RÁPIDA (dropdown flotante mejorado para móvil) --- */
     .search-container {
       position: relative;
       flex: 1;
@@ -236,18 +236,41 @@
       box-shadow: 0 0 15px rgba(0,243,255,0.3);
       background: rgba(0,0,0,0.8);
     }
-    /* El dropdown flotante se creará dinámicamente con posición fixed */
+    /* Dropdown flotante optimizado para móvil y escritorio */
     .floating-dropdown {
       position: fixed;
       background: #0f0f13;
       border: 1px solid var(--neon-purple);
       border-radius: 16px;
-      max-height: 300px;
+      max-height: 60vh;
       overflow-y: auto;
       z-index: 99999;
       backdrop-filter: blur(12px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      width: 350px;
+      width: auto;
+      min-width: 200px;
+      transition: none;
+    }
+    /* Ajuste para que en móvil no se salga de la pantalla */
+    @media (max-width: 768px) {
+      .floating-dropdown {
+        left: 5% !important;
+        width: 90% !important;
+        max-width: 90vw;
+        right: 5%;
+        transform: translateX(0);
+      }
+      .search-container {
+        max-width: 100%;
+        flex: auto;
+      }
+      .top-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .back, .share-detail {
+        justify-content: center;
+      }
     }
     .search-item {
       display: flex;
@@ -259,8 +282,12 @@
     }
     .search-item:hover { background: rgba(0,243,255,0.1); }
     .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
+    .search-item-title {
+      font-weight: 500;
+      color: white;
+    }
 
-    /* --- PORTADA (sin z-index conflictivo) --- */
+    /* --- PORTADA --- */
     .anime-cover {
       text-align: center;
       margin-bottom: 20px;
@@ -278,7 +305,6 @@
       transform: scale(1.02);
       box-shadow: 0 25px 40px rgba(0,0,0,0.8), 0 0 0 3px var(--neon-cyan);
     }
-    /* Título con más espacio */
     h1 {
       text-align: center;
       font-size: 2.2rem;
@@ -292,7 +318,6 @@
       text-shadow: 0 0 10px rgba(0,243,255,0.3);
       margin: 25px 0 20px;
     }
-    /* Géneros separados */
     .genres-wrap {
       display: flex;
       flex-wrap: wrap;
@@ -311,7 +336,6 @@
       letter-spacing: 0.5px;
       backdrop-filter: blur(4px);
     }
-    /* Sinopsis */
     .desc {
       background: rgba(0,0,0,0.5);
       border-left: 4px solid var(--neon-pink);
@@ -322,7 +346,6 @@
       color: #e0e0e0;
       font-size: 0.95rem;
     }
-    /* Sección de rating rediseñada */
     .rating-section {
       background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(188,19,254,0.1));
       border: 1px solid rgba(0, 243, 255, 0.4);
@@ -497,7 +520,6 @@
       .video-list { grid-template-columns: repeat(2, 1fr); }
       h1 { font-size: 1.6rem; margin: 15px 0 10px; }
       .star { font-size: 1.5rem; }
-      .floating-dropdown { width: 90%; left: 5% !important; }
     }
     .rec-card {
       background: rgba(0,0,0,0.5);
@@ -756,7 +778,6 @@
         if (info?.genres) genreHtml = info.genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
         if (info?.rating) initialRating = info.rating;
       }
-      // Mostrar rating inicial desde index-data mientras carga Firestore
       let ratingDisplay = initialRating ? initialRating.toFixed(1) : '--';
       let voteCountDisplay = '(0 votos)';
       let html = `
@@ -792,7 +813,6 @@
       }
       container.innerHTML = html;
       renderRecommendations(id);
-      // Cargar rating real desde Firestore y actualizar si es diferente
       (async () => {
         await loadAnimeRating(id);
         if (currentUserId) await loadUserRating(id, currentUserId);
@@ -890,7 +910,7 @@
   }
   function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (siempre encima) ----------
+  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (FIX MÓVIL) ----------
   if (typeof data !== 'undefined') {
     const searchInput = document.getElementById('quick-search');
     let floatingDropdown = null;
@@ -906,9 +926,25 @@
     function updateDropdownPosition() {
       if (!floatingDropdown || floatingDropdown.style.display === 'none') return;
       const rect = searchInput.getBoundingClientRect();
-      floatingDropdown.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-      floatingDropdown.style.left = (rect.left + window.scrollX) + 'px';
-      floatingDropdown.style.width = rect.width + 'px';
+      let top = rect.bottom + window.scrollY + 5;
+      let left = rect.left + window.scrollX;
+      // Evitar que se salga por la derecha en escritorio
+      const dropdownWidth = floatingDropdown.offsetWidth;
+      const viewportWidth = window.innerWidth;
+      if (left + dropdownWidth > viewportWidth - 10) {
+        left = viewportWidth - dropdownWidth - 10;
+      }
+      if (left < 10) left = 10;
+      floatingDropdown.style.top = top + 'px';
+      floatingDropdown.style.left = left + 'px';
+      // En móvil, ya tenemos un override por CSS, pero igual ajustamos ancho
+      if (window.innerWidth <= 768) {
+        floatingDropdown.style.width = '90%';
+        floatingDropdown.style.left = '5%';
+        floatingDropdown.style.right = '5%';
+      } else {
+        floatingDropdown.style.width = rect.width + 'px';
+      }
     }
 
     function showDropdown(results) {
@@ -1066,7 +1102,6 @@
         let newCount = animeRatingData.count;
         
         if (oldValue !== null && oldValue === newVal) {
-          // Eliminar voto
           if (newCount > 1) {
             newAvg = (newAvg * newCount - oldValue) / (newCount - 1);
             newCount--;
