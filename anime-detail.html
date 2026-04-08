@@ -318,6 +318,39 @@
         letter-spacing: 0.5px;
     }
 
+    /* --- SISTEMA DE ESTRELLAS Y RATING --- */
+    .rating-section {
+        text-align: center;
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(0,0,0,0.4);
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+    .rating-display {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: #ffc107;
+    }
+    .star-rating i {
+        font-size: 2rem;
+        cursor: pointer;
+        color: #ffc107;
+        margin: 0 4px;
+        transition: transform 0.1s;
+    }
+    .star-rating i:hover {
+        transform: scale(1.2);
+    }
+    .star-rating i.active {
+        font-weight: 900;
+    }
+    .vote-message {
+        font-size: 0.8rem;
+        color: #aaa;
+        margin-top: 8px;
+    }
+
     /* --- TEMPORADAS --- */
     details {
       margin-bottom:12px;
@@ -476,6 +509,7 @@
         .video-list { grid-template-columns: repeat(2, 1fr); gap: 6px; }
         h1 { font-size:1.4rem; }
         .rec-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .star-rating i { font-size: 1.5rem; }
     }
   </style>
 </head>
@@ -1092,6 +1126,162 @@
             }
         }
     });
+
+    /* ====================================================
+       SISTEMA DE RATINGS COMBINADOS (VOTACIÓN DE USUARIOS)
+       ==================================================== */
+    let currentBaseRating = 0;
+    let currentCombinedRating = 0;
+    let currentUserVote = 0; // Guardar voto del usuario actual
+
+    async function loadAnimeRatings(animeId, baseRatingFromData) {
+        const docRef = db.collection('animeRatings').doc(String(animeId));
+        const doc = await docRef.get();
+        let creatorRating = baseRatingFromData;
+        let totalUserVotes = 0;
+        let sumUserRatings = 0;
+        if (doc.exists) {
+            const dataDoc = doc.data();
+            creatorRating = dataDoc.creatorRating !== undefined ? dataDoc.creatorRating : baseRatingFromData;
+            totalUserVotes = dataDoc.totalUserVotes || 0;
+            sumUserRatings = dataDoc.sumUserRatings || 0;
+        } else {
+            // Crear documento con la calificación base del creador
+            await docRef.set({
+                creatorRating: creatorRating,
+                totalUserVotes: 0,
+                sumUserRatings: 0
+            });
+        }
+        const combinedSum = creatorRating + sumUserRatings;
+        const combinedCount = 1 + totalUserVotes;
+        const combinedAvg = combinedSum / combinedCount;
+        return { combinedAvg, totalUserVotes, creatorRating, sumUserRatings };
+    }
+
+    async function getUserVote(animeId, userId) {
+        if (!userId) return 0;
+        const voteDoc = await db.collection('animeRatings').doc(String(animeId)).collection('votes').doc(userId).get();
+        return voteDoc.exists ? voteDoc.data().rating : 0;
+    }
+
+    async function updateRatingDisplay() {
+        if (!currentAnimeId) return;
+        // Obtener la calificación base desde el objeto data (estático)
+        const baseRating = parseFloat(data[currentAnimeId]?.rating) || 0;
+        currentBaseRating = baseRating;
+        const { combinedAvg, totalUserVotes } = await loadAnimeRatings(currentAnimeId, baseRating);
+        currentCombinedRating = combinedAvg;
+        const ratingSpan = document.getElementById('anime-rating-display');
+        if (ratingSpan) {
+            ratingSpan.innerHTML = `⭐ ${combinedAvg.toFixed(1)} (${totalUserVotes} votos de usuarios + creador)`;
+        }
+        // Si el usuario está logueado, obtener su voto actual para resaltar estrellas
+        if (auth.currentUser) {
+            currentUserVote = await getUserVote(currentAnimeId, auth.currentUser.uid);
+            highlightStars(currentUserVote);
+        }
+    }
+
+    async function voteAnime(ratingValue) {
+        const user = auth.currentUser;
+        if (!user) {
+            showToast('Inicia sesión para votar', true);
+            return false;
+        }
+        if (ratingValue < 1 || ratingValue > 5) return false;
+        const animeIdStr = String(currentAnimeId);
+        const ratingRef = db.collection('animeRatings').doc(animeIdStr);
+        const userVoteRef = ratingRef.collection('votes').doc(user.uid);
+        
+        await db.runTransaction(async (transaction) => {
+            const ratingDoc = await transaction.get(ratingRef);
+            const userVoteDoc = await transaction.get(userVoteRef);
+            let previousRating = 0;
+            if (userVoteDoc.exists) previousRating = userVoteDoc.data().rating;
+            
+            let newTotalUserVotes = ratingDoc.data()?.totalUserVotes || 0;
+            let newSumUserRatings = ratingDoc.data()?.sumUserRatings || 0;
+            
+            if (previousRating > 0) {
+                newSumUserRatings = newSumUserRatings - previousRating + ratingValue;
+            } else {
+                newTotalUserVotes += 1;
+                newSumUserRatings += ratingValue;
+            }
+            
+            transaction.set(ratingRef, {
+                creatorRating: ratingDoc.data()?.creatorRating || currentBaseRating,
+                totalUserVotes: newTotalUserVotes,
+                sumUserRatings: newSumUserRatings
+            }, { merge: true });
+            
+            transaction.set(userVoteRef, {
+                rating: ratingValue,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+        await updateRatingDisplay();
+        showToast('¡Gracias por tu voto!', false);
+        return true;
+    }
+
+    function initStarRating() {
+        const stars = document.querySelectorAll('#star-rating-widget i');
+        stars.forEach(star => {
+            star.addEventListener('click', async () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                await voteAnime(value);
+                highlightStars(value);
+            });
+        });
+    }
+
+    function highlightStars(rating) {
+        const stars = document.querySelectorAll('#star-rating-widget i');
+        stars.forEach((star, idx) => {
+            if (idx < rating) {
+                star.classList.add('fas', 'active');
+                star.classList.remove('far');
+            } else {
+                star.classList.add('far');
+                star.classList.remove('fas', 'active');
+            }
+        });
+    }
+
+    // Inyectar el bloque de rating después de cargar los datos del anime
+    function injectRatingBlock() {
+        const container = document.getElementById('contenido');
+        if (!container) return;
+        // Buscar el elemento de descripción para insertar después
+        const descElement = container.querySelector('.desc');
+        if (!descElement) return;
+        const ratingHtml = `
+            <div class="rating-section">
+                <div class="rating-display" id="anime-rating-display">⭐ --.-- (-- votos)</div>
+                <div class="star-rating" id="star-rating-widget">
+                    <i class="far fa-star" data-value="1"></i>
+                    <i class="far fa-star" data-value="2"></i>
+                    <i class="far fa-star" data-value="3"></i>
+                    <i class="far fa-star" data-value="4"></i>
+                    <i class="far fa-star" data-value="5"></i>
+                </div>
+                <div class="vote-message" id="vote-message">Tu voto ayuda a la comunidad</div>
+            </div>
+        `;
+        descElement.insertAdjacentHTML('afterend', ratingHtml);
+        initStarRating();
+        updateRatingDisplay();
+    }
+
+    // Esperar a que el contenido se haya cargado y luego inyectar el rating
+    const waitForContent = setInterval(() => {
+        if (document.getElementById('contenido') && data && data[currentAnimeId]) {
+            clearInterval(waitForContent);
+            injectRatingBlock();
+        }
+    }, 100);
   </script>
 </body>
 </html>
