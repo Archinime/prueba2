@@ -1409,58 +1409,57 @@
     const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
 
-  <!-- ==================== SISTEMA DE RATINGS PROFESIONAL (ÍNDICE) ==================== -->
+  <!-- ==================== SISTEMA DE RATINGS COMBINADOS EN TIEMPO REAL ==================== -->
   <script>
-    // Función que calcula la calificación combinada a partir de los datos de Firestore
-    function getCombinedRating(animeRatingData, baseRating) {
-      if (!animeRatingData) return baseRating;
-      const creatorRating = animeRatingData.creatorRating !== undefined ? animeRatingData.creatorRating : baseRating;
-      const totalUserVotes = animeRatingData.totalUserVotes || 0;
-      const sumUserRatings = animeRatingData.sumUserRatings || 0;
+    // Función que calcula el promedio combinado (creador + usuarios)
+    function getCombinedRating(ratingData, baseRating) {
+      if (!ratingData) return baseRating;
+      const creatorRating = (ratingData.creatorRating !== undefined) ? ratingData.creatorRating : baseRating;
+      const totalUserVotes = ratingData.totalUserVotes || 0;
+      const sumUserRatings = ratingData.sumUserRatings || 0;
       const combinedSum = creatorRating + sumUserRatings;
       const combinedCount = 1 + totalUserVotes;
       return combinedSum / combinedCount;
     }
 
-    // Esperar a que los animes estén disponibles y a que el grid se haya renderizado
-    let ratingUnsubscribe = null;
-    let currentAnimesMap = new Map(); // id -> anime object
+    // Esperar a que el grid esté poblado y los animes cargados
+    let ratingsUnsubscribe = null;
+    let animeMap = new Map(); // id -> anime object
 
-    function initRatingsSystem() {
+    function initRatingUpdates() {
       if (typeof animes === 'undefined' || !animes.length) {
-        setTimeout(initRatingsSystem, 500);
+        setTimeout(initRatingUpdates, 500);
         return;
       }
       // Guardar referencia de animes
-      animes.forEach(anime => currentAnimesMap.set(String(anime.id), anime));
-      
+      animes.forEach(anime => animeMap.set(String(anime.id), anime));
+
       // Escuchar cambios en la colección animeRatings
-      if (ratingUnsubscribe) ratingUnsubscribe();
-      ratingUnsubscribe = db.collection('animeRatings').onSnapshot(snapshot => {
+      if (ratingsUnsubscribe) ratingsUnsubscribe();
+      ratingsUnsubscribe = db.collection('animeRatings').onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
           const animeId = change.doc.id;
           const ratingData = change.doc.data();
-          const anime = currentAnimesMap.get(animeId);
+          const anime = animeMap.get(animeId);
           if (!anime) return;
-          
           const combined = getCombinedRating(ratingData, anime.rating);
-          // Buscar la tarjeta correspondiente en el DOM
+          // Buscar la tarjeta correspondiente
           const card = document.querySelector(`.card[data-id="${animeId}"]`);
           if (card) {
             const ratingSpan = card.querySelector('.info span');
             if (ratingSpan) {
               ratingSpan.innerHTML = `⭐ ${combined.toFixed(1)}`;
-              const voteCount = ratingData.totalUserVotes || 0;
+              const voteCount = ratingData?.totalUserVotes || 0;
               ratingSpan.title = `${voteCount} votos de usuarios + creador`;
             }
           }
         });
-        // También procesar el caso de carga inicial (todos los documentos)
+        // También actualizar en caso de carga inicial (cuando snapshot tiene muchos docs)
         if (snapshot.docChanges().length === 0 && snapshot.docs.length) {
           snapshot.docs.forEach(doc => {
             const animeId = doc.id;
             const ratingData = doc.data();
-            const anime = currentAnimesMap.get(animeId);
+            const anime = animeMap.get(animeId);
             if (!anime) return;
             const combined = getCombinedRating(ratingData, anime.rating);
             const card = document.querySelector(`.card[data-id="${animeId}"]`);
@@ -1476,11 +1475,17 @@
       }, error => console.warn("Error en snapshot de ratings:", error));
     }
 
-    // Esperar a que el grid esté poblado (MutationObserver ya existe, pero podemos asegurar)
-    const waitForGridCards = setInterval(() => {
-      if (document.querySelectorAll('.card').length > 0 && typeof animes !== 'undefined' && animes.length) {
-        clearInterval(waitForGridCards);
-        initRatingsSystem();
+    // Asegurar que cada tarjeta tenga un data-id (se ejecuta después de que se pinte el grid)
+    const waitForCards = setInterval(() => {
+      const cards = document.querySelectorAll('.card');
+      if (cards.length > 0 && typeof animes !== 'undefined' && animes.length) {
+        clearInterval(waitForCards);
+        cards.forEach((card, index) => {
+          if (!card.getAttribute('data-id') && animes[index]) {
+            card.setAttribute('data-id', animes[index].id);
+          }
+        });
+        initRatingUpdates();
       }
     }, 500);
   </script>
