@@ -6,7 +6,7 @@
   <title>Cargando Anime... - Archinime OS</title>
   <meta name="description" content="Sumérgete en la experiencia definitiva de anime. Interfaz Cyberpunk, sonido envolvente y la mejor calidad.">
 
-  <!-- Theme color dinámico (igual que index) -->
+  <!-- Theme color dinámico -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -85,7 +85,7 @@
       scroll-behavior: smooth;
     }
 
-    /* Fondo vídeo (mismo estilo que index) */
+    /* Fondo vídeo */
     #bg-video {
       position: fixed;
       top: 0;
@@ -158,7 +158,7 @@
       50% { opacity: 0.4; text-shadow: 0 0 5px var(--neon-purple); }
     }
 
-    /* --- CONTENEDOR PRINCIPAL (GLASSMORPHISM) --- */
+    /* --- CONTENEDOR PRINCIPAL --- */
     .container {
       position: relative;
       z-index: 1;
@@ -178,7 +178,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* --- TOP BUTTONS --- */
+    /* --- TOP BUTTONS (mejorado para móvil) --- */
     .top-buttons {
       display: flex;
       justify-content: space-between;
@@ -206,6 +206,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       text-decoration: none;
+      white-space: nowrap;
     }
     .back:hover, .share-detail:hover {
       background: rgba(0, 243, 255, 0.2);
@@ -213,8 +214,6 @@
       transform: translateY(-2px);
       border-color: var(--neon-cyan);
     }
-
-    /* --- BÚSQUEDA RÁPIDA (dropdown flotante mejorado para móvil) --- */
     .search-container {
       position: relative;
       flex: 1;
@@ -225,9 +224,9 @@
       background: rgba(0,0,0,0.6);
       border: 1px solid rgba(0, 243, 255, 0.4);
       border-radius: 40px;
-      padding: 10px 20px;
+      padding: 8px 16px;
       color: white;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       outline: none;
       transition: 0.2s;
     }
@@ -236,7 +235,40 @@
       box-shadow: 0 0 15px rgba(0,243,255,0.3);
       background: rgba(0,0,0,0.8);
     }
-    /* Dropdown flotante optimizado para móvil y escritorio */
+
+    /* MÓVIL: reorganizar en grid más compacto */
+    @media (max-width: 768px) {
+      .container {
+        margin: 70px 12px 30px;
+        padding: 15px;
+      }
+      .top-buttons {
+        margin: -15px -15px 20px -15px;
+        padding: 10px 15px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .back, .share-detail {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        gap: 4px;
+      }
+      .search-container {
+        max-width: none;
+        width: 100%;
+      }
+      .search-container input {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+      .back i, .share-detail i {
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Dropdown flotante optimizado para móvil */
     .floating-dropdown {
       position: fixed;
       background: #0f0f13;
@@ -249,27 +281,13 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       width: auto;
       min-width: 200px;
-      transition: none;
     }
-    /* Ajuste para que en móvil no se salga de la pantalla */
     @media (max-width: 768px) {
       .floating-dropdown {
         left: 5% !important;
         width: 90% !important;
         max-width: 90vw;
         right: 5%;
-        transform: translateX(0);
-      }
-      .search-container {
-        max-width: 100%;
-        flex: auto;
-      }
-      .top-buttons {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .back, .share-detail {
-        justify-content: center;
       }
     }
     .search-item {
@@ -291,7 +309,6 @@
     .anime-cover {
       text-align: center;
       margin-bottom: 20px;
-      position: relative;
     }
     .anime-cover img {
       max-height: 420px;
@@ -333,7 +350,6 @@
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--neon-cyan);
-      letter-spacing: 0.5px;
       backdrop-filter: blur(4px);
     }
     .desc {
@@ -346,6 +362,7 @@
       color: #e0e0e0;
       font-size: 0.95rem;
     }
+    /* Rating section */
     .rating-section {
       background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(188,19,254,0.1));
       border: 1px solid rgba(0, 243, 255, 0.4);
@@ -364,6 +381,7 @@
       font-size: 1rem;
       font-weight: 600;
       color: #ccc;
+      transition: color 0.2s;
     }
     #averageRatingDisplay {
       font-size: 2.5rem;
@@ -487,7 +505,7 @@
       transition: 0.2s;
     }
     .ep-btn:hover .ep-action-btn { opacity: 1; }
-    /* Recomendaciones - 6 por fila en PC */
+    /* Recomendaciones */
     .recommendations {
       margin-top: 40px;
       padding-top: 20px;
@@ -506,15 +524,12 @@
       display: grid;
       gap: 15px;
     }
-    /* PC: 6 columnas */
     @media (min-width: 1200px) {
       .rec-grid { grid-template-columns: repeat(6, 1fr); }
     }
-    /* Tablet: 4 columnas */
     @media (min-width: 768px) and (max-width: 1199px) {
       .rec-grid { grid-template-columns: repeat(4, 1fr); }
     }
-    /* Móvil: 2 columnas */
     @media (max-width: 767px) {
       .rec-grid { grid-template-columns: repeat(2, 1fr); }
       .video-list { grid-template-columns: repeat(2, 1fr); }
@@ -562,12 +577,6 @@
       z-index: 9999;
       backdrop-filter: blur(10px);
       box-shadow: 0 0 20px rgba(0,243,255,0.3);
-    }
-    /* Ajustes adicionales */
-    @media (max-width: 768px) {
-      .container { margin: 70px 15px 30px; padding: 15px; }
-      .top-buttons { margin: -15px -15px 20px -15px; padding: 12px 15px; }
-      .search-container { max-width: 100%; }
     }
   </style>
 </head>
@@ -788,7 +797,7 @@
         <div class="rating-section">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
             <div class="rating-stats">
-              <span>Valoración media:</span>
+              <span id="ratingLabel">Valoración media:</span>
               <span id="averageRatingDisplay">${ratingDisplay}</span>
               <span id="voteCountDisplay">${voteCountDisplay}</span>
             </div>
@@ -821,6 +830,26 @@
     } else {
       container.innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
     }
+  }
+
+  // Función para actualizar el texto de valoración según el promedio
+  function updateRatingLabel(avg) {
+    const labelSpan = document.getElementById('ratingLabel');
+    if (!labelSpan) return;
+    let text = 'Valoración media:';
+    let color = '#ccc';
+    if (avg >= 1 && avg <= 2.9) {
+      text = '⭐ Valoración baja';
+      color = '#ff8888';
+    } else if (avg >= 3 && avg <= 4.0) {
+      text = '👍 Valoración media';
+      color = '#ffcc88';
+    } else if (avg >= 4.1 && avg <= 5) {
+      text = '🔥 Valoración alta';
+      color = '#ffaa44';
+    }
+    labelSpan.innerHTML = text;
+    labelSpan.style.color = color;
   }
 
   window.toggleSeason = async function(details, animeId, seasonIdx) {
@@ -928,7 +957,6 @@
       const rect = searchInput.getBoundingClientRect();
       let top = rect.bottom + window.scrollY + 5;
       let left = rect.left + window.scrollX;
-      // Evitar que se salga por la derecha en escritorio
       const dropdownWidth = floatingDropdown.offsetWidth;
       const viewportWidth = window.innerWidth;
       if (left + dropdownWidth > viewportWidth - 10) {
@@ -937,7 +965,6 @@
       if (left < 10) left = 10;
       floatingDropdown.style.top = top + 'px';
       floatingDropdown.style.left = left + 'px';
-      // En móvil, ya tenemos un override por CSS, pero igual ajustamos ancho
       if (window.innerWidth <= 768) {
         floatingDropdown.style.width = '90%';
         floatingDropdown.style.left = '5%';
@@ -1033,7 +1060,7 @@
     }
   });
 
-  // ---------- SISTEMA DE VOTACIÓN CON TOGGLE (quitar voto) ----------
+  // ---------- SISTEMA DE VOTACIÓN CON TOGGLE Y VALORACIÓN DINÁMICA ----------
   let currentUserRating = null;
   let animeRatingData = { avg: 0, count: 0 };
   async function loadAnimeRating(animeId) {
@@ -1050,12 +1077,14 @@
       }
     }
     updateRatingDisplay();
+    updateRatingLabel(animeRatingData.avg);
   }
   function updateRatingDisplay() {
     const avgSpan = document.getElementById('averageRatingDisplay');
     const countSpan = document.getElementById('voteCountDisplay');
     if (avgSpan) avgSpan.textContent = animeRatingData.avg.toFixed(1);
     if (countSpan) countSpan.textContent = `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
+    updateRatingLabel(animeRatingData.avg);
   }
   function renderStars(currentValue = 0) {
     const container = document.getElementById('starRatingWidget');
