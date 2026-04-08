@@ -455,6 +455,29 @@
     .rec-card img { width:100%; aspect-ratio:2/3; object-fit:cover; display:block; }
     .rec-card p { padding:6px; font-size:0.8rem; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#ccc; margin:0; }
 
+    /* --- ESTILOS PARA EL SISTEMA DE VOTACIÓN (ESTRELLAS) --- */
+    .star {
+        font-size: 2rem;
+        cursor: pointer;
+        color: #444;
+        transition: color 0.2s;
+    }
+    .star.hover,
+    .star.selected {
+        color: #facc15;
+        text-shadow: 0 0 8px #ffaa00;
+    }
+    .star.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    .rating-section {
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(0,0,0,0.4);
+        border-radius: 12px;
+    }
+
     /* --- TOAST --- */
     .toast {
       position:fixed;
@@ -476,6 +499,7 @@
         .video-list { grid-template-columns: repeat(2, 1fr); gap: 6px; }
         h1 { font-size:1.4rem; }
         .rec-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .star { font-size: 1.5rem; }
     }
   </style>
 </head>
@@ -702,22 +726,18 @@
                 if (doc.exists) {
                     let data = doc.data();
                     if (data[animeId] && data[animeId][seasonNum]) {
-                        // Filtrar el episodio a eliminar
                         const newSeasonData = data[animeId][seasonNum].filter(n => n !== epNum);
                         if (newSeasonData.length === 0) {
                             delete data[animeId][seasonNum];
                         } else {
                             data[animeId][seasonNum] = newSeasonData;
                         }
-                        // Si la temporada quedó vacía, eliminar la clave del anime
                         if (Object.keys(data[animeId]).length === 0) {
                             delete data[animeId];
                         }
-                        // Usar set sin merge para sobreescribir completamente
                         await docRef.set(data);
                         console.log('Eliminado de Firestore, nuevo estado:', data);
                         showToast('Episodio eliminado del historial');
-                        // Esperar medio segundo para que Firestore actualice su caché
                         await new Promise(resolve => setTimeout(resolve, 500));
                     } else {
                         console.log('No existía en Firestore');
@@ -737,7 +757,6 @@
         if (currentUserId) {
             try {
                 const docRef = db.collection('watchHistory').doc(currentUserId);
-                // Forzar lectura desde el servidor para evitar caché local
                 const doc = await docRef.get({ source: 'server' });
                 if (doc.exists) {
                     const data = doc.data();
@@ -769,15 +788,12 @@
         }
     }
 
-    // Recargar una temporada específica
     async function reloadSeason(detailsElement, animeId, seasonIndex) {
         if (!detailsElement) return;
         const listContainer = detailsElement.querySelector('.video-list');
         if (listContainer) {
             const wasOpen = detailsElement.open;
-            // Vaciar completamente
             listContainer.innerHTML = '';
-            // Si estaba abierta, recargar después de un pequeño retraso
             if (wasOpen) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 await toggleSeason(detailsElement, animeId, seasonIndex);
@@ -832,6 +848,24 @@
                 <p class="desc">${anime.desc}</p>
                 <div class="uploader-container"></div>
             `;
+            
+            // Sección de votación (añadida después de la descripción)
+            html += `
+                <div class="rating-section">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <span style="font-size: 1.2rem; font-weight: bold;">Valoración media:</span>
+                            <span id="averageRatingDisplay" style="font-size: 1.8rem; font-weight: 800; color: #facc15;">--</span>
+                            <span id="voteCountDisplay" style="font-size: 0.9rem; color: #aaa;">(0 votos)</span>
+                        </div>
+                        <div id="starRatingWidget" style="display: flex; gap: 8px; direction: ltr;">
+                            <!-- Las estrellas se generarán con JS -->
+                        </div>
+                    </div>
+                    <div id="ratingMessage" style="margin-top: 10px; font-size: 0.8rem; color: #0ff;"></div>
+                </div>
+            `;
+            
             if(anime.seasons){
                 anime.seasons.forEach((s, index) => {
                     html += `
@@ -915,7 +949,6 @@
                         } else {
                             await markEpisodeWatched(animeId, seasonNum, epNum);
                         }
-                        // Recargar la temporada actual después de la operación
                         await reloadSeason(details, animeId, seasonIndex);
                     } catch (err) {
                         console.error(err);
@@ -1071,6 +1104,11 @@
                     }
                 }
             }
+            // Cargar datos de rating después de que el usuario esté autenticado
+            if (typeof loadUserRating === 'function') {
+                await loadUserRating(currentAnimeId, currentUserId);
+                if (typeof renderStars === 'function') renderStars(currentUserRating || 0);
+            }
         }
     });
 
@@ -1092,6 +1130,165 @@
             }
         }
     });
+
+    /* ----------------------------------------------------
+       7. SISTEMA DE VOTACIÓN (ESTRELLAS)
+       ---------------------------------------------------- */
+    let currentUserRating = null; // valor que el usuario ya votó (si existe)
+    let animeRatingData = { avg: 0, count: 0 };
+
+    // Función para cargar el rating actual del anime desde Firestore
+    async function loadAnimeRating(animeId) {
+        const db = firebase.firestore();
+        const docRef = db.collection('animeRatings').doc(String(animeId));
+        const doc = await docRef.get();
+        if (doc.exists) {
+            animeRatingData = doc.data();
+        } else {
+            // Si no existe, usar el rating de index-data.js como inicial
+            if (typeof animes !== 'undefined') {
+                const animeInfo = animes.find(a => String(a.id) === String(animeId));
+                if (animeInfo && animeInfo.rating) {
+                    animeRatingData = { avg: animeInfo.rating, count: 1 };
+                    // Opcional: crear el documento en Firestore con este rating base
+                    await db.collection('animeRatings').doc(String(animeId)).set({
+                        avg: animeInfo.rating,
+                        count: 1,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+            }
+        }
+        updateRatingDisplay();
+    }
+
+    function updateRatingDisplay() {
+        const avgSpan = document.getElementById('averageRatingDisplay');
+        const countSpan = document.getElementById('voteCountDisplay');
+        if (avgSpan) avgSpan.textContent = animeRatingData.avg.toFixed(1);
+        if (countSpan) countSpan.textContent = `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
+    }
+
+    // Generar estrellas interactivas
+    function renderStars(currentValue = 0) {
+        const container = document.getElementById('starRatingWidget');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            star.classList.add('fas', 'fa-star', 'star');
+            if (currentValue >= i) star.classList.add('selected');
+            star.setAttribute('data-value', i);
+            
+            // Solo habilitar si el usuario está logueado
+            if (!currentUserId) {
+                star.classList.add('disabled');
+            } else {
+                star.addEventListener('mouseenter', () => highlightStars(i));
+                star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
+                star.addEventListener('click', () => voteAnime(i));
+            }
+            container.appendChild(star);
+        }
+    }
+
+    function highlightStars(value) {
+        const stars = document.querySelectorAll('#starRatingWidget .star');
+        stars.forEach((star, idx) => {
+            if (idx < value) star.classList.add('hover');
+            else star.classList.remove('hover');
+        });
+    }
+
+    function resetStars(value) {
+        const stars = document.querySelectorAll('#starRatingWidget .star');
+        stars.forEach((star, idx) => {
+            star.classList.remove('hover');
+            if (idx < value) star.classList.add('selected');
+            else star.classList.remove('selected');
+        });
+    }
+
+    async function voteAnime(newValue) {
+        if (!currentUserId) {
+            document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
+            return;
+        }
+        const animeId = currentAnimeId;
+        const db = firebase.firestore();
+        const ratingDocRef = db.collection('animeRatings').doc(String(animeId));
+        const userVoteRef = ratingDocRef.collection('userRatings').doc(currentUserId);
+        
+        try {
+            // Usar transacción para evitar condiciones de carrera
+            await db.runTransaction(async (transaction) => {
+                const ratingDoc = await transaction.get(ratingDocRef);
+                const userVoteDoc = await transaction.get(userVoteRef);
+                let oldValue = null;
+                if (userVoteDoc.exists) oldValue = userVoteDoc.data().value;
+                
+                let newAvg = animeRatingData.avg;
+                let newCount = animeRatingData.count;
+                
+                if (oldValue !== null) {
+                    // Actualizar voto existente
+                    newAvg = (newAvg * newCount - oldValue + newValue) / newCount;
+                } else {
+                    // Nuevo voto
+                    newAvg = (newAvg * newCount + newValue) / (newCount + 1);
+                    newCount++;
+                }
+                
+                // Actualizar documento principal
+                transaction.set(ratingDocRef, {
+                    avg: newAvg,
+                    count: newCount,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                // Guardar voto del usuario
+                transaction.set(userVoteRef, {
+                    value: newValue,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Actualizar variables locales
+                animeRatingData = { avg: newAvg, count: newCount };
+                currentUserRating = newValue;
+            });
+            
+            updateRatingDisplay();
+            renderStars(currentUserRating);
+            document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
+            setTimeout(() => {
+                document.getElementById('ratingMessage').innerHTML = '';
+            }, 3000);
+        } catch (error) {
+            console.error('Error al votar:', error);
+            document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al guardar el voto. Inténtalo de nuevo.';
+        }
+    }
+
+    // Cargar el voto del usuario actual (si existe)
+    async function loadUserRating(animeId, userId) {
+        if (!userId) return;
+        const db = firebase.firestore();
+        const userVoteRef = db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId);
+        const doc = await userVoteRef.get();
+        if (doc.exists) {
+            currentUserRating = doc.data().value;
+        } else {
+            currentUserRating = null;
+        }
+        renderStars(currentUserRating || 0);
+    }
+
+    // Inicializar el rating cuando el anime está cargado
+    if (typeof currentAnimeId !== 'undefined' && currentAnimeId) {
+        (async () => {
+            await loadAnimeRating(currentAnimeId);
+            if (currentUserId) await loadUserRating(currentAnimeId, currentUserId);
+        })();
+    }
   </script>
 </body>
 </html>

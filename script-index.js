@@ -48,9 +48,9 @@ function render(list) {
     }
 
     grid.innerHTML = list.map(a => `
-    <div class="card" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0">
+    <div class="card" data-id="${a.id}" onclick="location='anime-detail.html?id=${a.id}'" role="link" tabindex="0">
         <img src="${a.img}" alt="${a.title}">
-        <div class="info"><strong>${a.title}</strong><span>⭐ ${a.rating ? (a.rating.toFixed? a.rating.toFixed(1): a.rating) : '—'}</span></div>
+        <div class="info"><strong>${a.title}</strong><span class="rating-value">⭐ ${a.rating ? (a.rating.toFixed? a.rating.toFixed(1): a.rating) : '—'}</span></div>
     </div>
     `).join('');
 }
@@ -652,4 +652,4 @@ function init(){
 }
 
 init();
-window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){}; });
+window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){} });
