@@ -12,11 +12,14 @@
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
   
   <script>
+    // SISTEMA DE CACHÉ INTELIGENTE
+    // CAMBIA ESTA VERSIÓN CADA VEZ QUE SUBAS NUEVOS ANIMES O CAMBIES TUS JS.
+    window.APP_VERSION = "2025-04-06-v3.4"; 
+    
     (function() {
-      const APP_VERSION = "2025-04-06-v3.3";
       const stored = localStorage.getItem('archinime_app_version');
-      if (stored !== APP_VERSION) {
-        localStorage.setItem('archinime_app_version', APP_VERSION);
+      if (stored !== window.APP_VERSION) {
+        localStorage.setItem('archinime_app_version', window.APP_VERSION);
         if ('caches' in window) {
           caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
         }
@@ -55,7 +58,6 @@
 
       let startTimestamp = null;
       let lastUpdate = 0;
-
       function step(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
@@ -148,7 +150,8 @@
 
   /* Loader */
   #page-loader {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; top: 0; left: 0; width: 100%;
+    height: 100%;
     background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
     z-index: 99999;
     display: flex; justify-content: center; align-items: center; flex-direction: column;
@@ -170,15 +173,12 @@
 
   /* Fondo y overlay - Aceleración GPU */
   #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
-    filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
-    background: url('galaxia-morado1.avif') no-repeat center center / cover; 
+    filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease; background: url('galaxia-morado1.avif') no-repeat center center / cover; 
     transform: translateZ(0); will-change: opacity; }
   #bg-video.loaded { opacity: 1; }
-  #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
+  #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
     z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); }
-  #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
+  #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
     z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); }
 
   /* ===== NAVBAR ===== */
@@ -222,8 +222,7 @@
     border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
     transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem; 
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); will-change: transform, box-shadow; }
-  .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
+  .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
   .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
 
   .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
@@ -248,7 +247,7 @@
   }
   .user-dropdown { position: absolute; top: 60px; right: 0; width: 280px; background: rgba(15, 15, 20, 0.98);
     border: 1px solid var(--neon-purple); border-radius: 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; 
+    box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none;
     transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth); z-index: 2000; will-change: transform, opacity; }
   .user-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) translateZ(0); }
   .user-dropdown-header { padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 14px;
@@ -267,14 +266,16 @@
   .notif-dropdown {
     position: absolute; top: 60px; right: 0; width: 380px; max-width: 90vw;
     background: rgba(15, 15, 20, 0.98); border: 1px solid var(--neon-purple); border-radius: 20px;
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 35px rgba(0,0,0,0.8);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 35px rgba(0,0,0,0.8);
     opacity: 0; pointer-events: none; transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth);
     z-index: 2000; overflow: hidden; max-height: 70vh; display: flex; flex-direction: column; will-change: transform, opacity;
   }
   @media (max-width: 768px) {
     .notif-dropdown {
       position: fixed; top: 85px; left: 5% !important; right: 5% !important; width: 90% !important; max-width: none;
-      transform: translateY(-15px) translateZ(0); max-height: 70vh; border-radius: 24px; box-shadow: 0 25px 45px rgba(0,0,0,0.9); overflow-x: hidden;
+      transform: translateY(-15px) translateZ(0); max-height: 70vh; border-radius: 24px;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.9); overflow-x: hidden;
     }
     .notif-dropdown.active { transform: translateY(0) translateZ(0); }
     .notif-list { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
@@ -304,12 +305,14 @@
     color: #e0e0e0; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; padding: 12px 32px 12px 20px;
     min-width: 0; flex: 1; text-align: center; border: 1px solid rgba(188, 19, 254, 0.5); border-radius: 40px;
     cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; transform: translateZ(0); }
-  .custom-select-trigger::after { content: '\f0d7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--neon-purple); transition: transform 0.2s; }
+  .custom-select-trigger::after { content: '\f0d7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%); font-size: 0.8rem; color: var(--neon-purple); transition: transform 0.2s; }
   .custom-select-trigger:hover { border-color: var(--neon-cyan); background: rgba(0,0,0,0.8); color: white; }
   .custom-select-dropdown { position: absolute; background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 10001; max-height: 300px; overflow-y: auto; min-width: 180px;
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transform-origin: top center; animation: dropdownFade 0.2s ease; will-change: transform, opacity; }
-  .custom-select-option { padding: 12px 20px; color: #ddd; font-size: 0.85rem; font-family: 'Poppins', sans-serif; cursor: pointer; transition: 0.15s; white-space: nowrap; transform: translateZ(0); }
+  .custom-select-option { padding: 12px 20px; color: #ddd; font-size: 0.85rem; font-family: 'Poppins', sans-serif; cursor: pointer;
+    transition: 0.15s; white-space: nowrap; transform: translateZ(0); }
   .custom-select-option:hover { background: rgba(0, 243, 255, 0.15); color: var(--neon-cyan); }
   .select-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10001; display: flex; align-items: center; justify-content: center;
@@ -319,7 +322,8 @@
     max-height: 70vh; overflow-y: auto; box-shadow: 0 0 30px rgba(188, 19, 254, 0.3); transform: scale(0.9) translateZ(0); transition: transform 0.2s; will-change: transform; }
   .select-popup-overlay.active .select-popup { transform: scale(1) translateZ(0); }
   .select-popup-header { padding: 15px; text-align: center; font-family: 'Orbitron', sans-serif; font-weight: 800; color: var(--neon-cyan); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1rem; }
-  .select-popup-option { padding: 14px 20px; color: #ddd; font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); transform: translateZ(0); }
+  .select-popup-option { padding: 14px 20px; color: #ddd; font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05); transform: translateZ(0); }
   .select-popup-option:last-child { border-bottom: none; }
   .select-popup-option:hover, .select-popup-option.selected { background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan); }
   @keyframes dropdownFade { from { opacity: 0; transform: scaleY(0.9); } to { opacity: 1; transform: scaleY(1); } }
@@ -339,8 +343,10 @@
   .card:hover::before { opacity: 1; }
   .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; will-change: transform; }
   .card:hover img { transform: scale(1.08) translateZ(0); }
-  .card .info { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
-    padding: 70px 15px 18px; display: flex; flex-direction: column; gap: 6px; transform: translateY(8px) translateZ(0); opacity: 0.95; transition: 0.3s; will-change: transform, opacity; }
+  .card .info { position: absolute; bottom: 0; left: 0; width: 100%;
+    background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
+    padding: 70px 15px 18px; display: flex; flex-direction: column; gap: 6px;
+    transform: translateY(8px) translateZ(0); opacity: 0.95; transition: 0.3s; will-change: transform, opacity; }
   .card:hover .info { transform: translateY(0) translateZ(0); opacity: 1; }
   .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
   .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
@@ -348,8 +354,8 @@
 
   /* Modal de autenticación */
   .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center;
+    align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
   .auth-modal.show { opacity: 1; pointer-events: auto; }
   .auth-card { background: rgba(15, 15, 19, 0.95); border: 1px solid var(--neon-purple); border-radius: 28px; width: 100%; max-width: 440px;
     padding: 35px; position: relative; transform: scale(0.96) translateZ(0); transition: transform 0.3s; box-shadow: 0 25px 45px rgba(0,0,0,0.9); display: flex; flex-direction: column; will-change: transform; }
@@ -363,10 +369,12 @@
   .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
   .auth-form input { width: 100%; box-sizing: border-box; background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 16px; color: white; font-size: 1rem; transition: 0.2s; will-change: border-color, box-shadow; }
   .auth-form input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 12px rgba(0,243,255,0.2); }
-  .auth-form button { width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none; padding: 14px; border-radius: 40px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; will-change: transform, box-shadow; }
+  .auth-form button { width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none; padding: 14px; border-radius: 40px;
+    font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; will-change: transform, box-shadow; }
   .auth-form button:hover { background: var(--neon-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,243,255,0.3); }
   .auth-providers { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; width: 100%; }
-  .provider-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; will-change: transform; }
+  .provider-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 40px; display: flex; align-items: center;
+    justify-content: center; gap: 12px; cursor: pointer; transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; will-change: transform; }
   .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
 
   /* Event Modal (popup de estrenos) */
@@ -378,7 +386,8 @@
     border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
     transform: scale(0.9) translateY(30px) translateZ(0); transition: transform 0.4s var(--transition-smooth); position: relative; will-change: transform; }
   #eventModal.show .event-card { transform: scale(1) translateY(0) translateZ(0); }
-  .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem; will-change: transform;}
+  .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem; will-change: transform;}
   .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
   .event-visuals { position: relative; height: 280px; background: #000; }
   .visual-bg { position: absolute; inset: 0; background-size: cover; filter: blur(20px) brightness(0.5); transform: scale(1.2) translateZ(0); will-change: transform; }
@@ -466,7 +475,7 @@
           <div class="user-dropdown-header" onclick="goToProfile()" title="Configurar cuenta">
             <img id="dropdownAvatar" src="invitado.avif" decoding="async">
             <div>
-               <div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div>
+              <div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div>
               <div style="font-size: 0.7rem; color: #aaa;"><i class="fas fa-cog"></i> Opciones</div>
             </div>
           </div>
@@ -556,7 +565,6 @@
     let isMenuOpen = false;
     let repliesUnsubscribe = null;
     let isFirstTimeSetup = false;
-
     if (typeof disableBodyScroll !== 'function') {
       window.disableBodyScroll = function() {
         document.body.classList.add('modal-open');
@@ -713,13 +721,13 @@
         let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
         let hasChanges = false;
         const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
-
+        
         if (isFirstVisit) {
             const newNotifsToAdd = [];
             const popupsToQueue = [];
             const latestFive = updatedAnimes.slice(0, 5);
             const rest = updatedAnimes.slice(5);
-
+            
             latestFive.forEach(anime => {
                 const notifId = `${anime.id}_${anime.lastUpdate}`;
                 if (!seenNotifIds.includes(notifId)) {
@@ -743,7 +751,7 @@
                     popupsToQueue.push(newNotif);
                 }
             });
-
+            
             rest.forEach(anime => {
                 const notifId = `${anime.id}_${anime.lastUpdate}`;
                 if (!seenNotifIds.includes(notifId)) {
@@ -766,7 +774,7 @@
                     newNotifsToAdd.push(newNotif);
                 }
             });
-
+            
             if (newNotifsToAdd.length > 0) {
                 notificationsHistory = [...newNotifsToAdd, ...notificationsHistory];
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
@@ -779,6 +787,7 @@
                 if (anime.updateType.includes("ACTUALIZACIÓN")) return;
                 if (anime.updateType === "Ninguna") return;
                 const notifId = `${anime.id}_${anime.lastUpdate}`;
+                
                 if (!seenNotifIds.includes(notifId)) {
                     seenNotifIds.push(notifId);
                     hasChanges = true;
@@ -803,7 +812,7 @@
                     }
                 }
             });
-
+            
             if (hasChanges) {
                 if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
                 saveHistoryToStorage();
@@ -934,6 +943,7 @@
     function renderNotificationList() {
         const listContainer = document.getElementById('notifList');
         if (!listContainer) return;
+        
         requestAnimationFrame(() => {
             if (notificationsHistory.length === 0) {
                 listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
@@ -947,12 +957,12 @@
             sortedHistory.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'notif-item';
-               
+                
                 let imgBoxClass = 'notif-img-box';
                 if (item.type === 'RESPUESTA') {
                     imgBoxClass += ' rounded-avatar';
                 }
-          
+            
                 let infoString = "";
                 if (item.blockName && item.blockName !== "Novedad") {
                     infoString += `<span class="n-block">${item.blockName}</span>`;
@@ -968,9 +978,11 @@
                 if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
                 else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
                 else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
+                
                 let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
                 const unreadDot = !item.seen ?
-                    '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
+                '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
+                
                 div.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         ${unreadDot}
@@ -986,6 +998,7 @@
                         <div class="n-meta">${infoString}</div>
                     </div>
                 `;
+                
                 div.addEventListener('click', (e) => {
                     if (!item.seen) {
                         markAsRead(item.notifId);
@@ -1044,12 +1057,15 @@
     window.closePopup = closePopup;
     window.goToAnimeFromPopup = goToAnimeFromPopup;
   </script>
+
   <script>
-    const version = Date.now();
-    document.write('<script src="index-data.js?v=' + version + '"><\/script>');
-    document.write('<script src="animaciones.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="musica_fondo.js?v=' + version + '" defer><\/script>');
-    document.write('<script src="script-index.js?v=' + version + '" defer><\/script>');
+    // En lugar de usar Date.now(), usamos la versión global que definiste al principio.
+    // De esta manera, el navegador guarda los archivos en caché. Solo se volverán
+    // a descargar si cambias la variable `window.APP_VERSION` en la línea 17.
+    document.write('<script src="index-data.js?v=' + window.APP_VERSION + '"><\/script>');
+    document.write('<script src="animaciones.js?v=' + window.APP_VERSION + '" defer><\/script>');
+    document.write('<script src="musica_fondo.js?v=' + window.APP_VERSION + '" defer><\/script>');
+    document.write('<script src="script-index.js?v=' + window.APP_VERSION + '" defer><\/script>');
   </script>
 
   <script>
@@ -1084,12 +1100,14 @@
           if (isMobile) {
             const overlay = document.createElement('div');
             overlay.className = 'select-popup-overlay';
+    
             const popup = document.createElement('div');
             popup.className = 'select-popup';
             const header = document.createElement('div');
             header.className = 'select-popup-header';
             header.textContent = select.getAttribute('aria-label') || 'Seleccionar';
             popup.appendChild(header);
+            
             Array.from(select.options).forEach(opt => {
               const optDiv = document.createElement('div');
               optDiv.className = 'select-popup-option';
@@ -1103,6 +1121,7 @@
               });
               popup.appendChild(optDiv);
             });
+            
             overlay.appendChild(popup);
             document.body.appendChild(overlay);
             function closePopup() {
@@ -1122,6 +1141,7 @@
             dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
             dropdown.style.left = (rect.left + window.scrollX) + 'px';
             dropdown.style.minWidth = rect.width + 'px';
+            
             Array.from(select.options).forEach(opt => {
               const optDiv = document.createElement('div');
               optDiv.className = 'custom-select-option';
@@ -1138,6 +1158,7 @@
               });
               dropdown.appendChild(optDiv);
             });
+            
             document.body.appendChild(dropdown);
             const closeDropdown = (e) => {
               if (!dropdown.contains(e.target) && e.target !== trigger) {
@@ -1146,6 +1167,7 @@
                 document.removeEventListener('scroll', closeDropdown);
               }
             };
+            
             setTimeout(() => {
               document.addEventListener('click', closeDropdown);
               // Optimizado usando { passive: true } para que el scroll no se trabe
@@ -1187,7 +1209,6 @@
       const dropdownAvatar = document.getElementById('dropdownAvatar'); 
       const dropdownName = document.getElementById('dropdownName'); 
       const loginItem = document.getElementById('loginBtnItem');
-      
       if (user) { 
         const photoURL = user.photoURL || 'invitado.avif'; 
         avatarBtn.src = photoURL;
@@ -1195,7 +1216,6 @@
         dropdownName.innerText = user.displayName || user.email.split('@')[0]; 
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; 
         loginItem.onclick = () => logoutUser();
-        
         db.collection('users').doc(user.uid).get().then(doc => { 
           let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); 
           avatarBtn.style.borderColor = color; 
@@ -1220,9 +1240,9 @@
       } 
     }
     
-    const userAvatarBtn = document.getElementById('userAvatarBtn'); 
+    const userAvatarBtn = document.getElementById('userAvatarBtn');
     const userDropdown = document.getElementById('userDropdown');
-    userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); 
+    userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
     document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
     
     auth.onAuthStateChanged(user => { updateUserUI(user); });
@@ -1237,6 +1257,7 @@
           document.body.addEventListener('click', () => bgVideo.play(), { once: true }); 
         }); 
       }; 
+
       forcePlayVideo(); 
       
       const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); 
@@ -1250,7 +1271,7 @@
         }, 400); 
       }, delay); 
     });
-
+    
     const gridObserver = new MutationObserver(() => { 
       document.querySelectorAll('.card').forEach(card => { 
         if (card.dataset.tiltInit) return; 
@@ -1270,7 +1291,7 @@
           if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); 
           card.style.transform = ''; 
         }); 
-      }); 
+      });
     });
     const gridEl = document.getElementById('grid'); if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
