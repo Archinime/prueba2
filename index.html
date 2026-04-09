@@ -27,7 +27,7 @@
   </script>
 
   <script>
-    /* OPTIMIZADO: Animación del theme-color movida a requestAnimationFrame para no bloquear la CPU */
+    /* OPTIMIZADO: Animación del theme-color en requestAnimationFrame */
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
@@ -56,7 +56,7 @@
       const lerp = (start, end, t) => start + (end - start) * t;
       
       let lastTime = 0;
-      const fpsInterval = 150; // Acelera el rendimiento limitando la actualización a ~6 fps
+      const fpsInterval = 150; 
       
       function updateThemeColor(timestamp) {
         if (!lastTime) lastTime = timestamp;
@@ -997,15 +997,22 @@
   </script>
 
   <script>
-    const version = Date.now();
-    const scriptsToLoad = ['index-data.js', 'animaciones.js', 'musica_fondo.js', 'script-index.js'];
-    
-    scriptsToLoad.forEach(src => {
-        const script = document.createElement('script');
-        script.src = `${src}?v=${version}`;
-        if (src !== 'index-data.js') script.defer = true; // index-data carga de inmediato, los demás esperan
-        document.body.appendChild(script);
-    });
+    (function() {
+        const version = Date.now();
+        const scriptsToLoad = [
+            'index-data.js', 
+            'animaciones.js', 
+            'musica_fondo.js', 
+            'script-index.js'
+        ];
+        
+        scriptsToLoad.forEach(src => {
+            const script = document.createElement('script');
+            script.src = `${src}?v=${version}`;
+            script.async = false; // ESTO ES LA MAGIA: Obliga al navegador a ejecutarlos en el orden exacto del array.
+            document.body.appendChild(script);
+        });
+    })();
   </script>
 
   <script>
@@ -1240,7 +1247,6 @@
   <script>
     (async function updateRatingsFromFirestore() {
         if (typeof animes === 'undefined') {
-            console.warn('animes no cargado aún');
             return;
         }
         const db = firebase.firestore();
@@ -1272,7 +1278,7 @@
         const observer = new MutationObserver((mutations, obs) => {
             if (document.querySelector('.card')) {
                 updateCards();
-                obs.disconnect(); // OPTIMIZADO: Detenemos el observador una vez que las cards están renderizadas
+                obs.disconnect();
             }
         });
         observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
