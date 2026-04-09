@@ -6,39 +6,59 @@
   <title>Cargando Anime... - Archinime OS</title>
   <meta name="description" content="Sumérgete en la experiencia definitiva de anime. Interfaz Cyberpunk, sonido envolvente y la mejor calidad.">
 
-  <!-- Theme color dinámico -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
-      const intervalTime = 20;
       const segments = colors.length - 1;
-      const step = (intervalTime / animationDuration) * segments;
-      let currentProgress = 0;
+      
       let metaTag = document.querySelector('meta[name="theme-color"]');
       if (!metaTag) {
         metaTag = document.createElement('meta');
         metaTag.name = "theme-color";
         document.head.appendChild(metaTag);
       }
+
       const hexToRgb = (hex) => {
         const bigint = parseInt(hex.slice(1), 16);
         return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
       };
+      
       const rgbToHex = (r, g, b) => "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2,'0')).join('');
       const lerp = (start, end, t) => start + (end - start) * t;
-      setInterval(() => {
-        currentProgress += step;
-        if (currentProgress >= segments) currentProgress %= segments;
-        const index = Math.floor(currentProgress);
-        const t = currentProgress - index;
-        const colorStart = hexToRgb(colors[index]);
-        const colorEnd = hexToRgb(colors[index + 1]);
-        const r = lerp(colorStart[0], colorEnd[0], t);
-        const g = lerp(colorStart[1], colorEnd[1], t);
-        const b = lerp(colorStart[2], colorEnd[2], t);
-        metaTag.setAttribute('content', rgbToHex(r, g, b));
-      }, intervalTime);
+
+      let startTimestamp = null;
+      let lastUpdate = 0;
+
+      function step(timestamp) {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = timestamp - startTimestamp;
+        
+        // Limitar la actualización del DOM (meta tag) a ~10 fps para evitar lag en dispositivos móviles
+        if (timestamp - lastUpdate > 100) {
+          let currentProgress = (progress / animationDuration) * segments;
+          currentProgress %= segments;
+          
+          const index = Math.floor(currentProgress);
+          const t = currentProgress - index;
+          const colorStart = hexToRgb(colors[index]);
+          const colorEnd = hexToRgb(colors[index + 1]);
+          
+          const r = lerp(colorStart[0], colorEnd[0], t);
+          const g = lerp(colorStart[1], colorEnd[1], t);
+          const b = lerp(colorStart[2], colorEnd[2], t);
+          
+          metaTag.setAttribute('content', rgbToHex(r, g, b));
+          lastUpdate = timestamp;
+        }
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
     })();
   </script>
 
@@ -85,7 +105,7 @@
       scroll-behavior: smooth;
     }
 
-    /* Fondo vídeo */
+    /* Fondo vídeo - Optimizado con Hardware Acceleration */
     #bg-video {
       position: fixed;
       top: 0;
@@ -99,8 +119,12 @@
       transition: opacity 1.2s ease;
       pointer-events: none;
       filter: contrast(1.2) brightness(0.7) saturate(1.1);
+      /* Forzar GPU */
+      transform: translateZ(0); 
+      will-change: opacity;
     }
     #bg-video.loaded { opacity: 1; }
+    
     #overlay {
       position: fixed;
       top: 0;
@@ -110,7 +134,9 @@
       background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
       z-index: -1;
       pointer-events: none;
+      transform: translateZ(0);
     }
+    
     #scanlines {
       position: fixed;
       top: 0;
@@ -121,6 +147,7 @@
       z-index: -1;
       pointer-events: none;
       opacity: 0.25;
+      transform: translateZ(0);
     }
 
     /* Pantalla de carga */
@@ -136,6 +163,8 @@
       flex-direction: column;
       transition: opacity 0.5s;
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      will-change: opacity;
     }
     .loader-glitch {
       font-family: 'Orbitron', sans-serif;
@@ -145,6 +174,7 @@
       color: white;
       text-shadow: 0 0 20px var(--neon-cyan);
       animation: pulseText 1.2s infinite;
+      transform: translateZ(0);
     }
     .loader-sub {
       font-family: 'Orbitron', sans-serif;
@@ -167,11 +197,13 @@
       padding: 25px 30px;
       background: rgba(5, 5, 10, 0.7);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-radius: 24px;
       border: 1px solid rgba(0, 243, 255, 0.3);
       box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 0 1px rgba(0, 243, 255, 0.1) inset;
       transition: all 0.3s ease;
       animation: fadeInUp 0.6s var(--transition-smooth);
+      transform: translateZ(0); /* Forzar aceleración GPU en móvil */
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -191,6 +223,7 @@
       border-bottom: 1px solid rgba(0, 243, 255, 0.4);
       border-radius: 24px 24px 0 0;
       backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     .back, .share-detail {
       display: inline-flex;
@@ -207,6 +240,7 @@
       transition: all 0.2s ease;
       text-decoration: none;
       white-space: nowrap;
+      will-change: transform;
     }
     .back:hover, .share-detail:hover {
       background: rgba(0, 243, 255, 0.2);
@@ -278,9 +312,12 @@
       overflow-y: auto;
       z-index: 99999;
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       width: auto;
       min-width: 200px;
+      transform: translateZ(0); /* Evitar tirones visuales al scrollear */
+      will-change: top, left, width;
     }
     @media (max-width: 768px) {
       .floating-dropdown {
@@ -297,6 +334,7 @@
       padding: 10px;
       cursor: pointer;
       border-bottom: 1px solid rgba(255,255,255,0.1);
+      transform: translateZ(0);
     }
     .search-item:hover { background: rgba(0,243,255,0.1); }
     .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
@@ -317,6 +355,7 @@
       border-radius: 20px;
       box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 2px rgba(0, 243, 255, 0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      will-change: transform;
     }
     .anime-cover img:hover {
       transform: scale(1.02);
@@ -370,6 +409,7 @@
       padding: 20px;
       margin: 20px 0;
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .rating-stats {
       display: flex;
@@ -404,6 +444,7 @@
       color: #facc15;
       text-shadow: 0 0 12px #ffaa00;
       transform: scale(1.1);
+      will-change: transform;
     }
     .star.disabled {
       cursor: not-allowed;
@@ -472,6 +513,7 @@
       flex-direction: column;
       align-items: center;
       gap: 5px;
+      will-change: transform;
     }
     .ep-btn:hover {
       background: rgba(0, 243, 255, 0.15);
@@ -543,6 +585,7 @@
       transition: 0.2s;
       cursor: pointer;
       border: 1px solid rgba(188,19,254,0.3);
+      will-change: transform;
     }
     .rec-card:hover {
       transform: translateY(-5px);
@@ -576,6 +619,7 @@
       display: none;
       z-index: 9999;
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 0 20px rgba(0,243,255,0.3);
     }
   </style>
@@ -610,7 +654,6 @@
 
 <div id="toast" class="toast">Enlace copiado</div>
 
-<!-- Firebase y Firestore -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -751,7 +794,8 @@
       return doc.exists ? (doc.data()[animeId] || {}) : {};
     } else {
       const watched = {};
-      for (let i=0; i<localStorage.length; i++) {
+      const len = localStorage.length;
+      for (let i=0; i<len; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith(`watched_${animeId}_`)) {
           const parts = key.split('_');
@@ -789,8 +833,9 @@
       }
       let ratingDisplay = initialRating ? initialRating.toFixed(1) : '--';
       let voteCountDisplay = '(0 votos)';
+      
       let html = `
-        <div class="anime-cover"><img src="${anime.cover}" alt="cover" loading="lazy"></div>
+        <div class="anime-cover"><img src="${anime.cover}" alt="cover" loading="lazy" decoding="async"></div>
         <h1>${anime.title}</h1>
         <div class="genres-wrap">${genreHtml || '<span class="genre-chip">Sin géneros</span>'}</div>
         <p class="desc">${anime.desc}</p>
@@ -812,7 +857,7 @@
             <details data-season-index="${idx}" data-anime-id="${id}">
               <summary>${s.name || 'Temporada ' + s.num}</summary>
               <div class="season-content">
-                ${s.cover ? `<img src="${s.cover}" style="width:100%; border-radius:12px; margin-bottom:15px;" loading="lazy">` : ''}
+                ${s.cover ? `<img src="${s.cover}" style="width:100%; border-radius:12px; margin-bottom:15px;" loading="lazy" decoding="async">` : ''}
                 <div class="video-list" id="list-${idx}"></div>
                 <div id="loading-${idx}" style="display:none; text-align:center; padding:10px;">Cargando...</div>
               </div>
@@ -865,6 +910,7 @@
     let watched = await loadWatchedEpisodes(animeId);
     let processed = 0;
     const CHUNK = 30;
+    
     function chunk() {
       const frag = document.createDocumentFragment();
       const end = Math.min(processed+CHUNK, total);
@@ -876,6 +922,7 @@
         btn.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
         btn.className = 'ep-btn' + (isWatched ? ' watched' : '');
         btn.onmouseenter = () => playUISound('hover');
+        
         const action = document.createElement('button');
         action.className = 'ep-action-btn';
         action.innerHTML = isWatched ? '<i class="fas fa-trash-alt"></i>' : '<i class="fas fa-check-circle"></i>';
@@ -887,6 +934,7 @@
           await reloadSeason(details, animeId, seasonIdx);
         };
         btn.appendChild(action);
+        
         const span = document.createElement('span');
         span.textContent = `▶ ${ep.title}`;
         btn.appendChild(span);
@@ -932,17 +980,18 @@
     if (!random.length) { grid.innerHTML = '<p style="color:#666;">Sin recomendaciones</p>'; return; }
     grid.innerHTML = random.map(k => `
       <div class="rec-card" onclick="playUISound('click'); location.href='anime-detail.html?id=${k}'" onmouseenter="playUISound('hover')">
-        <img src="${data[k].cover}" alt="${data[k].title}" loading="lazy">
+        <img src="${data[k].cover}" alt="${data[k].title}" loading="lazy" decoding="async">
         <p>${data[k].title}</p>
       </div>
     `).join('');
   }
   function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (FIX MÓVIL) ----------
+  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (FIX MÓVIL Y OPTIMIZADA) ----------
   if (typeof data !== 'undefined') {
     const searchInput = document.getElementById('quick-search');
     let floatingDropdown = null;
+    let isScrolling = false;
 
     function createFloatingDropdown() {
       if (floatingDropdown) floatingDropdown.remove();
@@ -957,14 +1006,18 @@
       const rect = searchInput.getBoundingClientRect();
       let top = rect.bottom + window.scrollY + 5;
       let left = rect.left + window.scrollX;
+      
       const dropdownWidth = floatingDropdown.offsetWidth;
       const viewportWidth = window.innerWidth;
+      
       if (left + dropdownWidth > viewportWidth - 10) {
         left = viewportWidth - dropdownWidth - 10;
       }
       if (left < 10) left = 10;
+      
       floatingDropdown.style.top = top + 'px';
       floatingDropdown.style.left = left + 'px';
+      
       if (window.innerWidth <= 768) {
         floatingDropdown.style.width = '90%';
         floatingDropdown.style.left = '5%';
@@ -982,12 +1035,13 @@
       }
       floatingDropdown.innerHTML = results.map(item => `
         <div class="search-item" data-id="${item.id}">
-          <img src="${item.cover}" loading="lazy">
+          <img src="${item.cover}" loading="lazy" decoding="async">
           <div class="search-item-info">
             <span class="search-item-title">${item.title}</span>
           </div>
         </div>
       `).join('');
+      
       floatingDropdown.querySelectorAll('.search-item').forEach(el => {
         el.addEventListener('click', () => {
           const id = el.dataset.id;
@@ -995,6 +1049,7 @@
         });
         el.addEventListener('mouseenter', () => playUISound('hover'));
       });
+      
       updateDropdownPosition();
       floatingDropdown.style.display = 'block';
     }
@@ -1016,13 +1071,26 @@
       showDropdown(matches);
     });
 
-    window.addEventListener('resize', () => updateDropdownPosition());
-    window.addEventListener('scroll', () => updateDropdownPosition());
+    // Eventos pasivos y debounced con requestAnimationFrame para evitar lag al scrollear
+    const scrollHandler = () => {
+      if (!isScrolling) {
+        window.requestAnimationFrame(() => {
+          updateDropdownPosition();
+          isScrolling = false;
+        });
+        isScrolling = true;
+      }
+    };
+
+    window.addEventListener('resize', scrollHandler, { passive: true });
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    
     document.addEventListener('click', (e) => {
       if (!searchInput.contains(e.target) && !floatingDropdown?.contains(e.target)) {
         hideDropdown();
       }
     });
+    
     searchInput.addEventListener('focus', () => {
       if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input'));
     });
@@ -1047,6 +1115,7 @@
       }
     }
   });
+
   window.addEventListener('pageshow', async () => {
     if (currentAnimeId && data[currentAnimeId]) {
       const details = document.querySelectorAll('details');
@@ -1063,6 +1132,7 @@
   // ---------- SISTEMA DE VOTACIÓN CON TOGGLE Y VALORACIÓN DINÁMICA ----------
   let currentUserRating = null;
   let animeRatingData = { avg: 0, count: 0 };
+  
   async function loadAnimeRating(animeId) {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
     if (doc.exists) {
@@ -1079,6 +1149,7 @@
     updateRatingDisplay();
     updateRatingLabel(animeRatingData.avg);
   }
+
   function updateRatingDisplay() {
     const avgSpan = document.getElementById('averageRatingDisplay');
     const countSpan = document.getElementById('voteCountDisplay');
@@ -1086,6 +1157,7 @@
     if (countSpan) countSpan.textContent = `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
     updateRatingLabel(animeRatingData.avg);
   }
+
   function renderStars(currentValue = 0) {
     const container = document.getElementById('starRatingWidget');
     if (!container) return;
@@ -1104,15 +1176,18 @@
       container.appendChild(star);
     }
   }
+
   function highlightStars(val) {
     document.querySelectorAll('#starRatingWidget .star').forEach((s, idx) => { if (idx < val) s.classList.add('hover'); else s.classList.remove('hover'); });
   }
+
   function resetStars(val) {
     document.querySelectorAll('#starRatingWidget .star').forEach((s, idx) => {
       s.classList.remove('hover');
       if (idx < val) s.classList.add('selected'); else s.classList.remove('selected');
     });
   }
+
   async function voteAnime(newVal) {
     if (!currentUserId) {
       document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
@@ -1174,9 +1249,10 @@
       }, 3000);
     } catch(e) { 
       console.error(e); 
-      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al procesar el voto.'; 
+      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al procesar el voto.';
     }
   }
+
   async function loadUserRating(animeId, userId) {
     if (!userId) return;
     const doc = await db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId).get();
