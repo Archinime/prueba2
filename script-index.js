@@ -1,4 +1,4 @@
-/* Archivo: script-index.js - Versión Firestore con paginación, filtros y correcciones */
+/* Archivo: script-index.js - Versión Firestore con paginación, filtros y demografía normalizada */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -117,9 +117,8 @@ async function cargarAnimes(reset = true) {
         if (currentFilters.genre) {
             query = query.where('genres', 'array-contains', currentFilters.genre);
         }
-        if (currentFilters.demographic) {
-            query = query.where('genres', 'array-contains', currentFilters.demographic);
-        }
+        // NOTA: La demografía NO se filtra en Firestore porque puede haber diferencias de acentos.
+        // Se aplicará en cliente más abajo.
         
         // Ordenar por título (requiere índice compuesto: genres Arrays + title Ascending)
         query = query.orderBy('title').limit(20);
@@ -140,7 +139,7 @@ async function cargarAnimes(reset = true) {
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Filtros adicionales en cliente (búsqueda y rating)
+        // Filtros adicionales en cliente (búsqueda, rating y demografía)
         if (currentFilters.search) {
             const searchTerm = normalizeText(currentFilters.search);
             animes = animes.filter(a => {
@@ -156,6 +155,17 @@ async function cargarAnimes(reset = true) {
                 if (currentFilters.rating === 'good') return rating >= 4.6 && rating < 4.8;
                 if (currentFilters.rating === 'regular') return rating < 4.6;
                 return true;
+            });
+        }
+
+        // FILTRO DE DEMOGRAFÍA NORMALIZADO (cliente)
+        if (currentFilters.demographic) {
+            const normalize = (s) => {
+                return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            };
+            const target = normalize(currentFilters.demographic);
+            animes = animes.filter(a => {
+                return (a.genres || []).some(g => normalize(g) === target);
             });
         }
         
