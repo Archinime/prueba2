@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Migrar enlaces de video a Firestore</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="video-player-data.js"></script>
+    <style>
+        body { background: #0a0a0f; color: #fff; font-family: monospace; padding: 20px; }
+        button { background: #00f3ff; color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #log { background: #111; padding: 20px; border-radius: 8px; height: 400px; overflow-y: auto; margin-top: 20px; }
+        .success { color: #00ff9d; }
+        .error { color: #ff4757; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Migrar enlaces de video a Firestore</h1>
+    <button onclick="iniciarMigracion()">Iniciar Migración</button>
+    <pre id="log"></pre>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+            authDomain: "login-admin-archinime.firebaseapp.com",
+            projectId: "login-admin-archinime",
+            storageBucket: "login-admin-archinime.firebasestorage.app",
+            messagingSenderId: "938164660242",
+            appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const logEl = document.getElementById('log');
+        function log(msg, tipo = 'info') {
+            const clase = tipo === 'error' ? 'error' : (tipo === 'success' ? 'success' : '');
+            logEl.innerHTML += `<span class="${clase}">${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function iniciarMigracion() {
+            log('=== INICIANDO MIGRACIÓN DE ENLACES ===');
+            
+            if (typeof players === 'undefined') {
+                log('❌ ERROR: No se encontró la variable "players" (video-player-data.js).', 'error');
+                return;
+            }
+
+            const ids = Object.keys(players);
+            log(`📦 Total de animes con enlaces: ${ids.length}`);
+
+            let procesados = 0;
+            let exitos = 0;
+            let errores = 0;
+
+            for (const id of ids) {
+                try {
+                    const animeData = players[id];
+                    const docRef = db.collection('catalogo').doc(id);
+                    const doc = await docRef.get();
+                    
+                    if (!doc.exists) {
+                        log(`⚠️ ID ${id}: No existe en catálogo, se omite.`);
+                        procesados++;
+                        continue;
+                    }
+
+                    const catalogoData = doc.data();
+                    const seasons = catalogoData.seasons || [];
+                    
+                    // Actualizar cada temporada con los enlaces
+                    for (const seasonNum in animeData) {
+                        const seasonIndex = seasons.findIndex(s => s.num === parseInt(seasonNum));
+                        if (seasonIndex === -1) {
+                            log(`⚠️ ID ${id} Temporada ${seasonNum}: No encontrada en catálogo.`);
+                            continue;
+                        }
+                        
+                        const seasonLinks = animeData[seasonNum];
+                        const eps = seasons[seasonIndex].eps || [];
+                        
+                        for (const epNum in seasonLinks) {
+                            const epIndex = parseInt(epNum) - 1;
+                            if (epIndex >= 0 && epIndex < eps.length) {
+                                eps[epIndex].link = seasonLinks[epNum].link || '';
+                                eps[epIndex].link2 = seasonLinks[epNum].link2 || '';
+                            }
+                        }
+                        
+                        seasons[seasonIndex].eps = eps;
+                    }
+                    
+                    await docRef.update({ seasons: seasons });
+                    exitos++;
+                    log(`✅ ID ${id}: Enlaces actualizados`, 'success');
+                    
+                } catch (e) {
+                    errores++;
+                    log(`❌ Error en ID ${id}: ${e.message}`, 'error');
+                }
+                procesados++;
+                if (procesados % 10 === 0) {
+                    log(`⏳ Procesados: ${procesados}/${ids.length}`);
+                }
+            }
+
+            log(`🎉 MIGRACIÓN COMPLETADA. Éxitos: ${exitos}, Errores: ${errores}`, 'success');
+            log('👉 Ya puedes cerrar esta página.');
+        }
+
+        window.iniciarMigracion = iniciarMigracion;
+    </script>
+</body>
+</html>

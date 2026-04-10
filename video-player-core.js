@@ -1,9 +1,8 @@
-// video-player-core.js
-// Lógica completa del reproductor optimizada
+// video-player-core.js - Versión Firestore
+// Obtiene los enlaces desde la colección 'catalogo'
 
 class VideoPlayer {
   constructor() {
-    this.DB = typeof players !== 'undefined' ? players : {};
     this.params = new URLSearchParams(location.search);
     this.animeId = this.params.get('anime');
     this.season = this.params.get('s');
@@ -13,15 +12,15 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.currentUser = null;
+    this.animeData = null; // Datos completos del anime desde Firestore
     
-    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','�71','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
+    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','�7','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
     this.initFirebase();
     this.initUI();
-    this.loadEpisodeData();
+    this.loadEpisodeData(); // Ahora carga desde Firestore
     this.setupAuthUI();
     
-    // Exponer la instancia globalmente
     window.videoPlayer = this;
   }
   
@@ -48,7 +47,6 @@ class VideoPlayer {
       this.currentUser = user;
       this.updateCommentFormVisibility();
       
-      // Inicializar sistemas externos cuando estén listos
       if (typeof initComentariosSystem === 'function') {
         initComentariosSystem(this.db, this.auth);
       }
@@ -59,13 +57,11 @@ class VideoPlayer {
   }
   
   initUI() {
-    // Back link
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) {
       backLink.href = `anime-detail.html?id=${this.animeId}`;
     }
     
-    // Panel de emojis
     const emojiPanel = document.getElementById('emojiPanel');
     if (emojiPanel) {
       emojiPanel.innerHTML = this.emojiList.map(e => 
@@ -73,7 +69,6 @@ class VideoPlayer {
       ).join('');
     }
     
-    // Enviar con Enter
     const textarea = document.getElementById('comentarioTexto');
     if (textarea) {
       textarea.addEventListener('keydown', (e) => {
@@ -85,45 +80,70 @@ class VideoPlayer {
       textarea.addEventListener('input', () => this.validateSendButton());
     }
     
-    // Tabs de stickers
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
     
-    // Upload de sticker
     const fileInput = document.getElementById('stickerFileInput');
     if (fileInput) {
       fileInput.addEventListener('change', (e) => this.uploadSticker(e.target.files[0]));
     }
     
-    // Configurar variables globales para comentarios
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
   }
   
-  loadEpisodeData() {
-    const epData = this.DB[this.animeId]?.[this.season]?.[this.episode];
-    if (!epData) {
-      document.getElementById('epTitle').innerText = 'Episodio no encontrado';
-      return;
+  async loadEpisodeData() {
+    try {
+      // Obtener el documento del catálogo
+      const docRef = this.db.collection('catalogo').doc(this.animeId);
+      const doc = await docRef.get();
+      
+      if (!doc.exists) {
+        document.getElementById('epTitle').innerText = 'Anime no encontrado';
+        return;
+      }
+      
+      this.animeData = doc.data();
+      const seasons = this.animeData.seasons || [];
+      
+      // Buscar la temporada
+      const season = seasons.find(s => s.num === parseInt(this.season));
+      if (!season) {
+        document.getElementById('epTitle').innerText = 'Temporada no encontrada';
+        return;
+      }
+      
+      // Buscar el episodio
+      const epIndex = parseInt(this.episode) - 1;
+      const episodeData = season.eps?.[epIndex];
+      if (!episodeData) {
+        document.getElementById('epTitle').innerText = 'Episodio no encontrado';
+        return;
+      }
+      
+      // Actualizar UI
+      document.title = `Ver ${episodeData.title || `Episodio ${this.episode}`} - Archinime`;
+      document.getElementById('epTitle').innerText = episodeData.title || `Episodio ${this.episode}`;
+      
+      const initialLink = episodeData.link || episodeData.link2;
+      this.updateDownloadButton(initialLink);
+      this.loadVideo(initialLink);
+      
+      // Servidores
+      const serverContainer = document.getElementById('serverOptions');
+      serverContainer.innerHTML = '';
+      if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
+      if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
+      
+      this.setupNavigation();
+      this.autoMarkAsWatched();
+      
+    } catch (error) {
+      console.error('Error cargando episodio:', error);
+      document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
     }
-    
-    document.title = `Ver ${epData.title} - Archinime`;
-    document.getElementById('epTitle').innerText = epData.title;
-    
-    const initialLink = epData.link || epData.link2;
-    this.updateDownloadButton(initialLink);
-    this.loadVideo(initialLink);
-    
-    // Servidores
-    const serverContainer = document.getElementById('serverOptions');
-    serverContainer.innerHTML = '';
-    if (epData.link) this.createServerButton('Latino', epData.link, true);
-    if (epData.link2) this.createServerButton('Opción 2', epData.link2, !epData.link);
-    
-    this.setupNavigation();
-    this.autoMarkAsWatched();
   }
   
   createServerButton(label, url, isActive) {
@@ -189,16 +209,19 @@ class VideoPlayer {
   }
   
   setupNavigation() {
-    if (!this.DB[this.animeId]) return;
+    if (!this.animeData?.seasons) return;
     
+    // Construir lista plana de episodios
     const flat = [];
-    Object.keys(this.DB[this.animeId]).sort((a,b) => Number(a)-Number(b)).forEach(sKey => {
-      Object.keys(this.DB[this.animeId][sKey]).sort((a,b) => Number(a)-Number(b)).forEach(eKey => {
-        flat.push({ s: sKey, e: eKey });
+    this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
+      season.eps?.forEach((ep, idx) => {
+        if (ep.link || ep.link2) {
+          flat.push({ s: season.num, e: idx + 1 });
+        }
       });
     });
     
-    const idx = flat.findIndex(i => i.s === this.season && i.e === this.episode);
+    const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     
@@ -239,7 +262,7 @@ class VideoPlayer {
     }
   }
   
-  // ===== UI DE AUTENTICACIÓN =====
+  // ===== MÉTODOS DE AUTENTICACIÓN (sin cambios) =====
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -252,63 +275,38 @@ class VideoPlayer {
     });
   }
   
-  openLoginModal() {
-    document.getElementById('authModal').classList.add('show');
-  }
-  
-  closeAuthModal() {
-    document.getElementById('authModal').classList.remove('show');
-    document.getElementById('authError').innerText = '';
-  }
+  openLoginModal() { document.getElementById('authModal').classList.add('show'); }
+  closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
   
   async loginWithEmail() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
-    try {
-      await this.auth.signInWithEmailAndPassword(email, pass);
-      this.closeAuthModal();
-    } catch (e) {
-      document.getElementById('authError').innerText = e.message;
-    }
+    try { await this.auth.signInWithEmailAndPassword(email, pass); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
   }
   
   async registerWithEmail() {
     const email = document.getElementById('registerEmail').value;
     const pass = document.getElementById('registerPassword').value;
     const confirm = document.getElementById('registerConfirm').value;
-    if (pass !== confirm) {
-      document.getElementById('authError').innerText = 'Las contraseñas no coinciden';
-      return;
-    }
-    try {
-      await this.auth.createUserWithEmailAndPassword(email, pass);
-      this.closeAuthModal();
-    } catch (e) {
-      document.getElementById('authError').innerText = e.message;
-    }
+    if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; }
+    try { await this.auth.createUserWithEmailAndPassword(email, pass); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
   }
   
   async loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-      await this.auth.signInWithPopup(provider);
-      this.closeAuthModal();
-    } catch (e) {
-      document.getElementById('authError').innerText = e.message;
-    }
+    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
   }
   
   async loginWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
-    try {
-      await this.auth.signInWithPopup(provider);
-      this.closeAuthModal();
-    } catch (e) {
-      document.getElementById('authError').innerText = e.message;
-    }
+    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
   }
   
-  // ===== COMENTARIOS =====
+  // ===== MÉTODOS DE COMENTARIOS (sin cambios) =====
   updateCommentFormVisibility() {
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const form = document.getElementById('comentarioFormContainer');
@@ -328,18 +326,13 @@ class VideoPlayer {
     }
   }
   
-  toggleEmojiPanel() {
-    const panel = document.getElementById('emojiPanel');
-    panel.classList.toggle('active');
+  toggleEmojiPanel() { document.getElementById('emojiPanel').classList.toggle('active'); }
+  insertEmoji(emoji) { 
+    const ta = document.getElementById('comentarioTexto'); 
+    ta.value += emoji; 
+    ta.focus(); 
+    this.validateSendButton(); 
   }
-  
-  insertEmoji(emoji) {
-    const textarea = document.getElementById('comentarioTexto');
-    textarea.value += emoji;
-    textarea.focus();
-    this.validateSendButton();
-  }
-  
   toggleStickerPanel() {
     const panel = document.getElementById('stickerPanelFull');
     panel.classList.toggle('active');
@@ -347,27 +340,20 @@ class VideoPlayer {
       cargarStickersUsuario();
     }
   }
-  
   switchStickerTab(tabId) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`.sticker-tab[onclick*="${tabId}"]`).classList.add('active');
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab').classList.add('active');
   }
-  
   async uploadSticker(file) {
     if (!file) return;
-    if (!this.currentUser) {
-      alert('Inicia sesión para subir stickers');
-      return;
-    }
+    if (!this.currentUser) { alert('Inicia sesión para subir stickers'); return; }
     if (typeof subirStickerDesdePC === 'function') {
-      // La función original espera el input, simulamos
       const fakeInput = { files: [file] };
       await subirStickerDesdePC(fakeInput);
     }
   }
-  
   validateSendButton() {
     const textarea = document.getElementById('comentarioTexto');
     const btn = document.getElementById('enviarComentarioBtn');
@@ -377,29 +363,18 @@ class VideoPlayer {
       btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
-  
-  enviarComentario() {
-    if (typeof enviarComentarioTexto === 'function') {
-      enviarComentarioTexto();
-    }
-  }
-  
-  quitarStickerPreview() {
-    if (typeof quitarStickerPreview === 'function') {
-      quitarStickerPreview();
-    }
-    this.validateSendButton();
-  }
+  enviarComentario() { if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto(); }
+  quitarStickerPreview() { if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } this.validateSendButton(); }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicialización
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Exponer funciones globales para mantener compatibilidad con los scripts existentes
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
