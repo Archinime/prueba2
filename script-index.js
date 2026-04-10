@@ -1,4 +1,4 @@
-/* Archivo: script-index.js - Versión Firestore con paginación, filtros cliente y sin orderBy */
+/* Archivo: script-index.js - Versión final corregida */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -16,7 +16,7 @@ let debounceTimer = null;
 const gridEl = document.getElementById('grid');
 
 // ============================================
-// FUNCIONES DE RENDERIZADO (adaptadas)
+// FUNCIONES DE RENDERIZADO
 // ============================================
 function render(list, append = false) {
     if (!append) gridEl.innerHTML = '';
@@ -96,7 +96,7 @@ function mostrarNoResultados() {
 }
 
 // ============================================
-// CARGA DE DATOS DESDE FIRESTORE (PAGINACIÓN)
+// CARGA DE DATOS DESDE FIRESTORE (SIN WHERE)
 // ============================================
 async function cargarAnimes(reset = true) {
     if (isLoading) return;
@@ -111,7 +111,7 @@ async function cargarAnimes(reset = true) {
     }
     
     try {
-        // Consulta base SIN orderBy (evita índices)
+        // Consulta base SIN FILTROS - obtiene los documentos en orden natural
         let query = db.collection('catalogo').limit(20);
         
         if (lastVisible) {
