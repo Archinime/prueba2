@@ -1,4 +1,4 @@
-// anime-detail-core.js - Versión Firestore
+// anime-detail-core.js - Versión Firestore (corregida estrellas)
 // Obtiene datos desde la colección 'catalogo'
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -71,7 +71,7 @@ document.addEventListener('click', () => {
 // ---------- ESTADO GLOBAL ----------
 let currentUserId = null;
 let currentAnimeId = null;
-let animeData = null;            // Datos completos del anime desde Firestore
+let animeData = null;
 let animeRatingData = { avg: 0, count: 0 };
 let currentUserRating = null;
 const params = new URLSearchParams(location.search);
@@ -251,8 +251,9 @@ function renderStars(currentValue = 0) {
     star.className = 'fas fa-star star';
     if (currentValue >= i) star.classList.add('selected');
     star.setAttribute('data-value', i);
-    if (!currentUserId) star.classList.add('disabled');
-    else {
+    if (!currentUserId) {
+      star.classList.add('disabled');
+    } else {
       star.addEventListener('mouseenter', () => highlightStars(i));
       star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
       star.addEventListener('click', () => voteAnime(i));
@@ -408,9 +409,16 @@ async function renderMainContent() {
   }
   container.innerHTML = html;
 
+  // Renderizar estrellas inmediatamente (deshabilitadas si no hay usuario)
+  renderStars(0);
+
   await renderRecommendations(animeId);
   await loadAnimeRating(animeId);
-  if (currentUserId) await loadUserRating(animeId, currentUserId);
+  
+  // Si hay usuario, cargar su voto y actualizar estrellas
+  if (currentUserId) {
+    await loadUserRating(animeId, currentUserId);
+  }
 
   document.querySelectorAll('details').forEach(d => {
     if (d.hasAttribute('data-listener')) return;
@@ -508,8 +516,20 @@ function initSearch() {
 
 // ---------- AUTENTICACIÓN ----------
 auth.onAuthStateChanged(async (user) => {
+  const previousUserId = currentUserId;
   currentUserId = user ? user.uid : null;
+  
   if (currentAnimeId && animeData) {
+    // Si el usuario acaba de iniciar sesión, recargar su voto y actualizar estrellas
+    if (currentUserId && !previousUserId) {
+      await loadUserRating(currentAnimeId, currentUserId);
+    }
+    // Si cerró sesión, volver a mostrar estrellas deshabilitadas
+    if (!currentUserId && previousUserId) {
+      currentUserRating = null;
+      renderStars(0);
+    }
+    
     const details = document.querySelectorAll('details');
     for (let d of details) {
       if (d.open) {
@@ -517,10 +537,6 @@ auth.onAuthStateChanged(async (user) => {
         const sidx = d.dataset.seasonIndex;
         if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
       }
-    }
-    if (currentUserId) {
-      await loadUserRating(currentAnimeId, currentUserId);
-      renderStars(currentUserRating || 0);
     }
   }
 });
@@ -538,7 +554,7 @@ auth.onAuthStateChanged(async (user) => {
       return;
     }
     animeData = { id: doc.id, ...doc.data() };
-    renderMainContent();
+    await renderMainContent();
     initSearch();
     document.getElementById('share-detail')?.addEventListener('click', () => {
       playUISound('click');
