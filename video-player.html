@@ -334,7 +334,7 @@
     <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
       <i class="fas fa-lock" style="font-size: 2rem; opacity: 0.7;"></i>
       <p>Inicia sesión para comentar y usar stickers</p>
-      <button class="login-link-btn" onclick="window.videoPlayer?.openLoginModal()">
+      <button class="login-link-btn" onclick="openLoginModalFromComent()">
         <i class="fas fa-sign-in-alt"></i> Iniciar sesión
       </button>
     </div>
@@ -347,15 +347,13 @@
       
       <div class="comentario-input-wrapper">
         <textarea id="comentarioTexto" placeholder="Escribe un comentario... (Enter para enviar)" maxlength="500"></textarea>
-        <button type="button" class="emoji-btn" onclick="window.videoPlayer?.toggleEmojiPanel()">😊</button>
-        <button type="button" class="sticker-btn" onclick="window.videoPlayer?.toggleStickerPanel()">
+        <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
+        <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
           <i class="fas fa-sticky-note"></i>
         </button>
       </div>
       
-      <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
-        <!-- Preview de sticker seleccionado -->
-      </div>
+      <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;"></div>
       
       <div id="emojiPanel" class="emoji-panel"></div>
       
@@ -378,7 +376,7 @@
         </div>
       </div>
       
-      <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="window.videoPlayer?.enviarComentario()">
+      <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
         <i class="fas fa-paper-plane"></i> Enviar
       </button>
     </div>
@@ -392,7 +390,7 @@
 <!-- Modal de autenticación -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
-    <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
+    <div class="auth-close" onclick="closeAuthModal()">&times;</div>
     <div class="auth-tabs">
       <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
       <div class="auth-tab" data-tab="register">Registrarse</div>
@@ -400,19 +398,19 @@
     <div id="authLoginForm" class="auth-form">
       <input type="email" id="loginEmail" placeholder="Correo electrónico">
       <input type="password" id="loginPassword" placeholder="Contraseña">
-      <button onclick="window.videoPlayer?.loginWithEmail()">Iniciar sesión</button>
+      <button onclick="loginWithEmail()">Iniciar sesión</button>
     </div>
     <div id="authRegisterForm" class="auth-form" style="display:none;">
       <input type="email" id="registerEmail" placeholder="Correo electrónico">
       <input type="password" id="registerPassword" placeholder="Contraseña">
       <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
-      <button onclick="window.videoPlayer?.registerWithEmail()">Registrarse</button>
+      <button onclick="registerWithEmail()">Registrarse</button>
     </div>
     <div class="auth-providers">
-      <div class="provider-btn" onclick="window.videoPlayer?.loginWithGoogle()">
+      <div class="provider-btn" onclick="loginWithGoogle()">
         <i class="fab fa-google"></i> Continuar con Google
       </div>
-      <div class="provider-btn" onclick="window.videoPlayer?.loginWithGitHub()">
+      <div class="provider-btn" onclick="loginWithGitHub()">
         <i class="fab fa-github"></i> Continuar con GitHub
       </div>
     </div>
@@ -420,13 +418,278 @@
   </div>
 </div>
 
-<!-- Carga de datos externos -->
+<!-- ==================== SCRIPTS ==================== -->
+
+<!-- 1. Firebase Init (inmediato) -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+    authDomain: "login-admin-archinime.firebaseapp.com",
+    projectId: "login-admin-archinime",
+    storageBucket: "login-admin-archinime.firebasestorage.app",
+    messagingSenderId: "938164660242",
+    appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+  };
+  firebase.initializeApp(firebaseConfig);
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+  const providerGoogle = new firebase.auth.GoogleAuthProvider();
+  const providerGitHub = new firebase.auth.GithubAuthProvider();
+</script>
+
+<!-- 2. Datos del reproductor (defer) -->
 <script defer src="video-player-data.js?v=20250406"></script>
+
+<!-- 3. Sistema de stickers y comentarios (defer) -->
 <script defer src="stickers-system.js?v=20250406"></script>
 <script defer src="reacciones.js?v=20250406"></script>
 <script defer src="comentarios.js?v=20250406"></script>
 
-<!-- Núcleo del reproductor (optimizado) -->
-<script defer src="video-player-core.js?v=20250406"></script>
+<!-- 4. Núcleo del reproductor (defer, depende de datos) -->
+<script>
+  // Este script se ejecuta después de que todos los defer hayan cargado
+  document.addEventListener('DOMContentLoaded', () => {
+    // Esperar a que los scripts externos estén disponibles
+    const checkDependencies = setInterval(() => {
+      if (typeof players !== 'undefined') {
+        clearInterval(checkDependencies);
+        initVideoPlayer();
+      }
+    }, 50);
+  });
+
+  function initVideoPlayer() {
+    const DB = players;
+    const params = new URLSearchParams(location.search);
+    const animeId = params.get('anime');
+    const season = params.get('s');
+    const episode = params.get('e');
+    
+    window.comentariosAnimeId = animeId;
+    window.comentariosSeason = season;
+    window.comentariosEpisode = episode;
+    
+    // Back link
+    const backLink = document.getElementById('backLink');
+    if (backLink && animeId) backLink.href = `anime-detail.html?id=${animeId}`;
+    
+    const epData = DB[animeId]?.[season]?.[episode];
+    
+    function isMobileDevice() {
+      return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
+    }
+    
+    function generateDirectDownloadLink(url) {
+      if (!url) return "#";
+      if (url.includes("drive.google.com")) {
+        const match = url.match(/\/d\/(.+?)\//);
+        if (match) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download`;
+      }
+      if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
+      return url;
+    }
+    
+    function updateDownloadButton(url) {
+      const dlBtn = document.getElementById('downloadBtn');
+      const directLink = generateDirectDownloadLink(url);
+      dlBtn.href = directLink;
+      if (isMobileDevice()) dlBtn.setAttribute("target", "_blank");
+    }
+    
+    function createOptionBtn(label, url, isActive) {
+      const container = document.getElementById('serverOptions');
+      const btn = document.createElement('button');
+      const isFirst = container.children.length === 0;
+      btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
+      btn.innerText = label;
+      btn.onclick = () => {
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateDownloadButton(url);
+        loadVideo(url);
+      };
+      container.appendChild(btn);
+    }
+    
+    function loadVideo(url) {
+      const container = document.getElementById('mediaContainer');
+      container.innerHTML = '';
+      if (!url) return;
+      const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+      if (isVideoFile && !url.includes('drive.google.com')) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        container.appendChild(video);
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.allow = "autoplay; fullscreen";
+        iframe.allowFullscreen = true;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        container.appendChild(iframe);
+      }
+    }
+    
+    function setupNavigation() {
+      if (!DB[animeId]) return;
+      let flatList = [];
+      Object.keys(DB[animeId]).sort((a,b)=>Number(a)-Number(b)).forEach(sKey => {
+        Object.keys(DB[animeId][sKey]).sort((a,b)=>Number(a)-Number(b)).forEach(eKey => {
+          flatList.push({ s: sKey, e: eKey });
+        });
+      });
+      const idx = flatList.findIndex(i => String(i.s) === String(season) && String(i.e) === String(episode));
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      if (idx > 0) {
+        prevBtn.classList.remove('btn-hidden');
+        prevBtn.href = `?anime=${animeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`;
+      }
+      if (idx < flatList.length - 1) {
+        nextBtn.classList.remove('btn-hidden');
+        nextBtn.href = `?anime=${animeId}&s=${flatList[idx+1].s}&e=${flatList[idx+1].e}`;
+      }
+    }
+    
+    const autoMarkEpisodeWatched = () => {
+      const aId = params.get('anime');
+      const sNum = parseInt(params.get('s'));
+      const eNum = parseInt(params.get('e'));
+      if (!aId || isNaN(sNum) || isNaN(eNum)) return;
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          try {
+            const docRef = db.collection('watchHistory').doc(user.uid);
+            const doc = await docRef.get();
+            let data = doc.exists ? doc.data() : {};
+            let animeData = data[aId] || {};
+            let seasonData = animeData[sNum] || [];
+            if (!seasonData.includes(eNum)) {
+              seasonData.push(eNum);
+              animeData[sNum] = seasonData;
+              data[aId] = animeData;
+              await docRef.set(data, { merge: true });
+            }
+          } catch (e) {
+            console.error("Error al auto-marcar episodio:", e);
+          }
+        } else {
+          localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
+        }
+      });
+    };
+
+    if (epData) {
+      document.title = `Ver ${epData.title} - Archinime`;
+      document.getElementById('epTitle').innerText = epData.title;
+      const initialLink = epData.link || epData.link2;
+      updateDownloadButton(initialLink);
+      loadVideo(initialLink);
+      document.getElementById('serverOptions').innerHTML = '';
+      if(epData.link) createOptionBtn("Latino", epData.link, true);
+      if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
+      setupNavigation();
+      autoMarkEpisodeWatched();
+      
+      // Inicializar sistemas de comentarios y stickers
+      if (typeof initStickersSystem === 'function') {
+        initStickersSystem(db, auth);
+      }
+      if (typeof initComentariosSystem === 'function') {
+        initComentariosSystem(db, auth);
+      }
+      
+      // Panel de emojis
+      const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
+      const emojiPanel = document.getElementById('emojiPanel');
+      if (emojiPanel) {
+        emojiPanel.innerHTML = emojisList.map(e => `<div class="emoji-option" onclick="agregarEmojiAlTexto('${e}')">${e}</div>`).join('');
+      }
+    } else {
+      document.getElementById('epTitle').innerText = "No encontrado";
+    }
+  }
+
+  // Funciones globales de autenticación
+  function closeAuthModal() {
+    document.getElementById('authModal').classList.remove('show');
+    document.getElementById('authError').innerText = '';
+  }
+  
+  function openLoginModalFromComent() {
+    document.getElementById('authModal').classList.add('show');
+  }
+  
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-tab');
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
+      document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
+      document.getElementById('authError').innerText = '';
+    });
+  });
+  
+  async function loginWithEmail() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPassword').value;
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+      closeAuthModal();
+    } catch (err) {
+      document.getElementById('authError').innerText = err.message;
+    }
+  }
+  
+  async function registerWithEmail() {
+    const email = document.getElementById('registerEmail').value;
+    const pass = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerConfirm').value;
+    if (pass !== confirm) {
+      document.getElementById('authError').innerText = 'Las contraseñas no coinciden';
+      return;
+    }
+    try {
+      await auth.createUserWithEmailAndPassword(email, pass);
+      closeAuthModal();
+    } catch (err) {
+      document.getElementById('authError').innerText = err.message;
+    }
+  }
+  
+  async function loginWithGoogle() {
+    try {
+      await auth.signInWithPopup(providerGoogle);
+      closeAuthModal();
+    } catch (err) {
+      document.getElementById('authError').innerText = err.message;
+    }
+  }
+
+  async function loginWithGitHub() {
+    try {
+      await auth.signInWithPopup(providerGitHub);
+      closeAuthModal();
+    } catch (err) {
+      document.getElementById('authError').innerText = err.message;
+    }
+  }
+
+  // Exponer funciones globales que usan los botones
+  window.closeAuthModal = closeAuthModal;
+  window.openLoginModalFromComent = openLoginModalFromComent;
+  window.loginWithEmail = loginWithEmail;
+  window.registerWithEmail = registerWithEmail;
+  window.loginWithGoogle = loginWithGoogle;
+  window.loginWithGitHub = loginWithGitHub;
+</script>
+
 </body>
 </html>
