@@ -686,7 +686,7 @@
     });
   </script>
 
-  <!-- ===== PAGINACIÓN FIRESTORE + RATINGS CORREGIDOS (SCROLL ARREGLADO) ===== -->
+  <!-- ===== PAGINACIÓN FIRESTORE + RATINGS CORREGIDOS (SCROLL Y RATINGS ARREGLADOS) ===== -->
   <script>
     // Variables de paginación
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -721,11 +721,12 @@
       }
     }
 
-    // Obtener el rating a mostrar para un anime
+    // Obtener el rating a mostrar para un anime (NUNCA retorna undefined)
     function getDisplayRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
-        return firestoreRatings.get(animeId).avg.toFixed(1);
+        const avg = firestoreRatings.get(animeId)?.avg;
+        return (avg != null && !isNaN(avg)) ? avg.toFixed(1) : '—';
       }
       if (anime.rating != null && !isNaN(anime.rating)) {
         return anime.rating.toFixed(1);
@@ -733,7 +734,7 @@
       return '—';
     }
 
-    // Cargar animes con paginación (CORREGIDO)
+    // Cargar animes con paginación
     async function cargarAnimes(reset = true) {
       if (isLoading) return;
       if (!reset && !hasMore) return;
@@ -756,7 +757,6 @@
           return;
         }
 
-        // Guardar el último documento del snapshot original para la paginación
         const originalLastDoc = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -776,7 +776,8 @@
         }
         if (currentFilters.rating) {
           animes = animes.filter(a => {
-            const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
+            const ratingStr = getDisplayRating(a);
+            const r = ratingStr === '—' ? 0 : parseFloat(ratingStr);
             if (currentFilters.rating === 'excellent') return r >= 4.8;
             if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
             if (currentFilters.rating === 'regular') return r < 4.6;
@@ -784,14 +785,12 @@
           });
         }
 
-        // Actualizar lastVisible con el último documento filtrado, o el original si no hay filtros
+        // Actualizar lastVisible con el último documento filtrado
         if (animes.length > 0) {
-          // Buscar el documento correspondiente al último anime filtrado
           const lastFiltered = animes[animes.length - 1];
           const lastDoc = snapshot.docs.find(d => d.id === lastFiltered.id);
           lastVisible = lastDoc || originalLastDoc;
         } else {
-          // Si no hay resultados después de filtrar, seguimos paginando desde el último documento original
           lastVisible = originalLastDoc;
         }
 
