@@ -1,4 +1,4 @@
-// anime-detail-core.js - Versión Firestore (calificación por defecto + búsqueda corregida)
+// anime-detail-core.js - Versión Firestore (calificación por defecto + búsqueda mejorada)
 // Obtiene datos desde la colección 'catalogo'
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -439,7 +439,25 @@ async function renderMainContent() {
   });
 }
 
-// ---------- BÚSQUEDA RÁPIDA (Firestore, sin índices) ----------
+// ---------- BÚSQUEDA RÁPIDA (Firestore, con títulos y alias) ----------
+let cachedCatalogForSearch = null; // Cache en memoria para búsquedas rápidas
+
+async function loadCatalogForSearch() {
+  if (cachedCatalogForSearch) return cachedCatalogForSearch;
+  try {
+    // Obtener solo los campos necesarios para búsqueda (reduce lectura de datos)
+    const snapshot = await db.collection('catalogo')
+      .select('title', 'aliases', 'img')
+      .orderBy('title')
+      .get();
+    cachedCatalogForSearch = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return cachedCatalogForSearch;
+  } catch(e) {
+    console.error('Error cargando catálogo para búsqueda:', e);
+    return [];
+  }
+}
+
 function initSearch() {
   const searchInput = document.getElementById('quick-search');
   let floatingDropdown = null;
@@ -494,22 +512,45 @@ function initSearch() {
   searchInput.addEventListener('input', async function() {
     const q = this.value.trim().toLowerCase();
     if (!q) { hideDropdown(); return; }
-    try {
-      // Obtener primeros 30 animes ordenados por título (sin filtros complejos)
-      const snapshot = await db.collection('catalogo')
-        .orderBy('title')
-        .limit(30)
-        .get();
-      const all = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Filtrar en cliente
-      const matches = all.filter(a => 
-        a.id !== currentAnimeId && 
-        a.title.toLowerCase().includes(q)
-      ).slice(0, 10);
-      showDropdown(matches);
-    } catch(e) {
-      console.error('Error en búsqueda:', e);
-    }
+    
+    const catalog = await loadCatalogForSearch();
+    
+    // Función para normalizar texto (quitar acentos)
+    const normalize = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const normalizedQ = normalize(q);
+    
+    // Puntuar cada anime según coincidencia
+    const scored = catalog.map(anime => {
+      let score = 0;
+      const titleNorm = normalize(anime.title);
+      const aliases = (anime.aliases || []).map(a => normalize(a));
+      
+      // Coincidencia exacta en título
+      if (titleNorm === normalizedQ) score += 100;
+      // Coincidencia exacta en algún alias
+      else if (aliases.some(a => a === normalizedQ)) score += 90;
+      // Título empieza con el texto
+      else if (titleNorm.startsWith(normalizedQ)) score += 80;
+      // Algún alias empieza con el texto
+      else if (aliases.some(a => a.startsWith(normalizedQ))) score += 70;
+      // Título contiene el texto
+      else if (titleNorm.includes(normalizedQ)) score += 50;
+      // Algún alias contiene el texto
+      else if (aliases.some(a => a.includes(normalizedQ))) score += 40;
+      
+      return { ...anime, score };
+    });
+    
+    // Filtrar los que tienen score > 0, ordenar por score descendente y luego por título
+    const matches = scored
+      .filter(a => a.score > 0 && a.id !== currentAnimeId)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.title.localeCompare(b.title);
+      })
+      .slice(0, 10);
+    
+    showDropdown(matches);
   });
 
   const scrollHandler = () => {
