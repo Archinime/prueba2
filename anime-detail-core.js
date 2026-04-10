@@ -1,4 +1,4 @@
-// anime-detail-core.js - Versión Firestore (calificación por defecto + búsqueda mejorada)
+// anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -77,6 +77,9 @@ let currentUserRating = null;
 const params = new URLSearchParams(location.search);
 const animeId = params.get('id');
 currentAnimeId = animeId;
+
+// Cache para búsqueda rápida
+let searchCache = []; // { id, title, img, aliases }
 
 // ---------- TOAST ----------
 function showToast(msg, isError = false) {
@@ -216,17 +219,13 @@ async function loadAnimeRating(animeId) {
   if (doc.exists) {
     animeRatingData = doc.data();
   } else {
-    // Si no existe en animeRatings, usar el rating del catálogo
     if (animeData?.rating != null) {
       animeRatingData = { avg: animeData.rating, count: 1 };
-      // Guardar en Firestore para futuras consultas
       await db.collection('animeRatings').doc(String(animeId)).set({
         avg: animeData.rating,
         count: 1,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-    } else {
-      animeRatingData = { avg: 0, count: 0 };
     }
   }
   updateRatingDisplay();
@@ -419,13 +418,10 @@ async function renderMainContent() {
   }
   container.innerHTML = html;
 
-  // Renderizar estrellas inmediatamente (deshabilitadas si no hay usuario)
   renderStars(0);
-
   await renderRecommendations(animeId);
   await loadAnimeRating(animeId);
   
-  // Si hay usuario, cargar su voto y actualizar estrellas
   if (currentUserId) {
     await loadUserRating(animeId, currentUserId);
   }
@@ -439,25 +435,26 @@ async function renderMainContent() {
   });
 }
 
-// ---------- BÚSQUEDA RÁPIDA (Firestore, con títulos y alias) ----------
-let cachedCatalogForSearch = null; // Cache en memoria para búsquedas rápidas
-
-async function loadCatalogForSearch() {
-  if (cachedCatalogForSearch) return cachedCatalogForSearch;
+// ---------- CARGAR CACHÉ DE BÚSQUEDA ----------
+async function loadSearchCache() {
   try {
-    // Obtener solo los campos necesarios para búsqueda (reduce lectura de datos)
-    const snapshot = await db.collection('catalogo')
-      .select('title', 'aliases', 'img')
-      .orderBy('title')
-      .get();
-    cachedCatalogForSearch = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return cachedCatalogForSearch;
+    const snapshot = await db.collection('catalogo').get();
+    searchCache = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title || '',
+        img: data.img || '',
+        aliases: data.aliases || []
+      };
+    });
+    console.log(`📦 Caché de búsqueda cargada: ${searchCache.length} animes`);
   } catch(e) {
-    console.error('Error cargando catálogo para búsqueda:', e);
-    return [];
+    console.error('Error cargando caché de búsqueda:', e);
   }
 }
 
+// ---------- BÚSQUEDA RÁPIDA (prefijo + alias, en cliente) ----------
 function initSearch() {
   const searchInput = document.getElementById('quick-search');
   let floatingDropdown = null;
@@ -489,7 +486,7 @@ function initSearch() {
       floatingDropdown.style.width = rect.width + 'px';
     }
   }
-  async function showDropdown(results) {
+  function showDropdown(results) {
     if (!floatingDropdown) createFloatingDropdown();
     if (!results.length) { floatingDropdown.style.display = 'none'; return; }
     floatingDropdown.innerHTML = results.map(item => `
@@ -509,46 +506,17 @@ function initSearch() {
   }
   function hideDropdown() { if (floatingDropdown) floatingDropdown.style.display = 'none'; }
 
-  searchInput.addEventListener('input', async function() {
+  searchInput.addEventListener('input', function() {
     const q = this.value.trim().toLowerCase();
     if (!q) { hideDropdown(); return; }
     
-    const catalog = await loadCatalogForSearch();
-    
-    // Función para normalizar texto (quitar acentos)
-    const normalize = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const normalizedQ = normalize(q);
-    
-    // Puntuar cada anime según coincidencia
-    const scored = catalog.map(anime => {
-      let score = 0;
-      const titleNorm = normalize(anime.title);
-      const aliases = (anime.aliases || []).map(a => normalize(a));
-      
-      // Coincidencia exacta en título
-      if (titleNorm === normalizedQ) score += 100;
-      // Coincidencia exacta en algún alias
-      else if (aliases.some(a => a === normalizedQ)) score += 90;
-      // Título empieza con el texto
-      else if (titleNorm.startsWith(normalizedQ)) score += 80;
-      // Algún alias empieza con el texto
-      else if (aliases.some(a => a.startsWith(normalizedQ))) score += 70;
-      // Título contiene el texto
-      else if (titleNorm.includes(normalizedQ)) score += 50;
-      // Algún alias contiene el texto
-      else if (aliases.some(a => a.includes(normalizedQ))) score += 40;
-      
-      return { ...anime, score };
-    });
-    
-    // Filtrar los que tienen score > 0, ordenar por score descendente y luego por título
-    const matches = scored
-      .filter(a => a.score > 0 && a.id !== currentAnimeId)
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return a.title.localeCompare(b.title);
-      })
-      .slice(0, 10);
+    // Filtrar usando la caché
+    const matches = searchCache.filter(item => {
+      if (item.id === currentAnimeId) return false;
+      // Buscar en título y alias
+      const titlesToCheck = [item.title, ...(item.aliases || [])];
+      return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
+    }).slice(0, 10); // Limitar a 10 resultados
     
     showDropdown(matches);
   });
@@ -594,6 +562,9 @@ auth.onAuthStateChanged(async (user) => {
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
+  // Cargar caché de búsqueda primero
+  await loadSearchCache();
+
   if (!animeId) {
     document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>ID de anime no proporcionado</h2>";
     return;
