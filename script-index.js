@@ -1,4 +1,7 @@
-/* Archivo: script-index.js - Versión final corregida */
+/* Archivo: script-index.js - Versión final estable con Firestore */
+/* -------------------------------------------------- */
+/*            PAGINACIÓN + FILTROS EN CLIENTE         */
+/* -------------------------------------------------- */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -14,22 +17,19 @@ let currentFilters = {
 };
 let debounceTimer = null;
 const gridEl = document.getElementById('grid');
+const loadingEl = document.getElementById('loadingMore');
 
 // ============================================
 // FUNCIONES DE RENDERIZADO
 // ============================================
 function render(list, append = false) {
     if (!append) gridEl.innerHTML = '';
-    
     if (!list || list.length === 0) {
-        if (!append && gridEl.children.length === 0) {
-            mostrarNoResultados();
-        }
+        if (!append && gridEl.children.length === 0) mostrarNoResultados();
         return;
     }
 
     const fragment = document.createDocumentFragment();
-    
     list.forEach(a => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -37,10 +37,8 @@ function render(list, append = false) {
         card.setAttribute('onclick', `location='anime-detail.html?id=${a.id}'`);
         card.setAttribute('role', 'link');
         card.setAttribute('tabindex', '0');
-        
-        // Mostrar rating o "—" si no existe
+
         const rating = (a.rating != null && !isNaN(a.rating)) ? a.rating.toFixed(1) : '—';
-        
         card.innerHTML = `
             <img src="${a.img}" alt="${a.title}" loading="lazy">
             <div class="info">
@@ -50,15 +48,8 @@ function render(list, append = false) {
         `;
         fragment.appendChild(card);
     });
-    
     gridEl.appendChild(fragment);
-    
-    // Aplicar tilt effect a nuevas cards
-    document.querySelectorAll('.card:not([data-tilt-init])').forEach(card => {
-        card.dataset.tiltInit = 'true';
-        card.addEventListener('mousemove', handleCardTilt);
-        card.addEventListener('mouseleave', resetCardTilt);
-    });
+    aplicarTiltANuevasCards();
 }
 
 function mostrarNoResultados() {
@@ -96,92 +87,81 @@ function mostrarNoResultados() {
 }
 
 // ============================================
-// CARGA DE DATOS DESDE FIRESTORE (SIN WHERE)
+// CARGA DE DATOS DESDE FIRESTORE (PAGINACIÓN)
 // ============================================
 async function cargarAnimes(reset = true) {
     if (isLoading) return;
     if (!reset && !hasMore) return;
-    
+
     isLoading = true;
-    
     if (reset) {
         gridEl.innerHTML = '';
         lastVisible = null;
         hasMore = true;
     }
-    
+    if (loadingEl) loadingEl.style.display = 'block';
+
     try {
-        // Consulta base SIN FILTROS - obtiene los documentos en orden natural
-        let query = db.collection('catalogo').limit(20);
-        
-        if (lastVisible) {
-            query = query.startAfter(lastVisible);
+        let query = db.collection('catalogo');
+
+        // Solo aplicamos el filtro de género en Firestore (más eficiente)
+        if (currentFilters.genre) {
+            query = query.where('genres', 'array-contains', currentFilters.genre);
         }
-        
+
+        query = query.orderBy('title').limit(20);
+        if (lastVisible) query = query.startAfter(lastVisible);
+
         const snapshot = await query.get();
-        
+        if (loadingEl) loadingEl.style.display = 'none';
+
         if (snapshot.empty) {
             hasMore = false;
             if (reset) mostrarNoResultados();
             isLoading = false;
             return;
         }
-        
+
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Ordenar por título en cliente
-        animes.sort((a, b) => a.title.localeCompare(b.title));
-        
-        // === TODOS LOS FILTROS SE APLICAN EN CLIENTE ===
-        const normalize = (s) => {
-            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        };
-        
-        // 1. Filtro por género
-        if (currentFilters.genre) {
-            const targetGenre = normalize(currentFilters.genre);
-            animes = animes.filter(a => 
-                (a.genres || []).some(g => normalize(g) === targetGenre)
-            );
-        }
-        
-        // 2. Filtro por demografía
+
+        // Normalización para filtros cliente
+        const normalize = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+        // Filtro de demografía en cliente (para evitar doble array-contains)
         if (currentFilters.demographic) {
-            const targetDemo = normalize(currentFilters.demographic);
-            animes = animes.filter(a => 
-                (a.genres || []).some(g => normalize(g) === targetDemo)
-            );
+            const target = normalize(currentFilters.demographic);
+            animes = animes.filter(a => (a.genres || []).some(g => normalize(g) === target));
         }
-        
-        // 3. Filtro por búsqueda
+
+        // Búsqueda por texto (título + aliases)
         if (currentFilters.search) {
-            const searchTerm = normalize(currentFilters.search);
+            const term = normalize(currentFilters.search);
             animes = animes.filter(a => {
                 const titles = [a.title, ...(a.aliases || [])];
-                return titles.some(t => normalize(t).includes(searchTerm));
+                return titles.some(t => normalize(t).includes(term));
             });
         }
-        
-        // 4. Filtro por rating
+
+        // Filtro por rating
         if (currentFilters.rating) {
             animes = animes.filter(a => {
-                const rating = a.rating || 0;
-                if (currentFilters.rating === 'excellent') return rating >= 4.8;
-                if (currentFilters.rating === 'good') return rating >= 4.6 && rating < 4.8;
-                if (currentFilters.rating === 'regular') return rating < 4.6;
+                const r = a.rating || 0;
+                if (currentFilters.rating === 'excellent') return r >= 4.8;
+                if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+                if (currentFilters.rating === 'regular') return r < 4.6;
                 return true;
             });
         }
-        
+
         render(animes, !reset);
-        
         if (snapshot.docs.length < 20) hasMore = false;
-        
+
     } catch (error) {
-        console.error('Error cargando animes:', error);
+        console.error('Error cargando catálogo:', error);
+        if (loadingEl) loadingEl.style.display = 'none';
         if (reset) {
-            gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; text-align:center; padding:50px; color:red;">Error al cargar el catálogo. Recarga la página.</div>';
+            gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.<br><small>${error.message}</small></div>`;
         }
     } finally {
         isLoading = false;
@@ -192,25 +172,19 @@ async function cargarAnimes(reset = true) {
 // FUNCIONES AUXILIARES PARA FILTROS
 // ============================================
 function normalizeText(s) {
-    try { 
-        return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''); 
-    } catch(e) { 
-        return (s || '').toLowerCase().replace(/[\u0300-\u036f]/g, ''); 
-    }
+    try { return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''); }
+    catch(e) { return (s || '').toLowerCase().replace(/[\u0300-\u036f]/g, ''); }
 }
 
 function debouncedCargar() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        cargarAnimes(true);
-    }, 300);
+    debounceTimer = setTimeout(() => cargarAnimes(true), 300);
 }
 
 function resetearFiltros() {
     document.getElementById('search').value = '';
     document.getElementById('genre-select').value = '';
-    const demoSelect = document.getElementById('demographic-select');
-    if (demoSelect) demoSelect.value = '';
+    document.getElementById('demographic-select').value = '';
     document.getElementById('rating-select').value = '';
     currentFilters = { search: '', genre: '', demographic: '', rating: '' };
     cargarAnimes(true);
@@ -220,61 +194,43 @@ function resetearFiltros() {
 // EVENT LISTENERS
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar carga
     cargarAnimes(true);
-    
-    // Configurar listeners de filtros
+
     const searchInput = document.getElementById('search');
     const genreSelect = document.getElementById('genre-select');
     const demographicSelect = document.getElementById('demographic-select');
     const ratingSelect = document.getElementById('rating-select');
-    
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             currentFilters.search = e.target.value;
             debouncedCargar();
         });
         searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                cargarAnimes(true);
-            }
+            if (e.key === 'Enter') { e.preventDefault(); cargarAnimes(true); }
         });
     }
-    
-    if (genreSelect) {
-        genreSelect.addEventListener('change', (e) => {
-            currentFilters.genre = e.target.value;
-            cargarAnimes(true);
-        });
-    }
-    
-    if (demographicSelect) {
-        demographicSelect.addEventListener('change', (e) => {
-            currentFilters.demographic = e.target.value;
-            cargarAnimes(true);
-        });
-    }
-    
-    if (ratingSelect) {
-        ratingSelect.addEventListener('change', (e) => {
-            currentFilters.rating = e.target.value;
-            cargarAnimes(true);
-        });
-    }
-    
-    // Scroll infinito
+    if (genreSelect) genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; cargarAnimes(true); });
+    if (demographicSelect) demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
+    if (ratingSelect) ratingSelect.addEventListener('change', (e) => { currentFilters.rating = e.target.value; cargarAnimes(true); });
+
     window.addEventListener('scroll', () => {
         if (isLoading || !hasMore) return;
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            cargarAnimes(false);
-        }
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) cargarAnimes(false);
     });
 });
 
 // ============================================
-// TILT EFFECT (optimizado)
+// TILT EFFECT
 // ============================================
+function aplicarTiltANuevasCards() {
+    document.querySelectorAll('.card:not([data-tilt-init])').forEach(card => {
+        card.dataset.tiltInit = 'true';
+        card.addEventListener('mousemove', handleCardTilt);
+        card.addEventListener('mouseleave', resetCardTilt);
+    });
+}
+
 function handleCardTilt(e) {
     const card = e.currentTarget;
     if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
@@ -316,28 +272,21 @@ function getPerformanceHints() {
 window.addEventListener('DOMContentLoaded', () => {
     const audio = document.getElementById('bg-music');
     const hints = getPerformanceHints();
-    
     if (typeof musicList === 'undefined' || musicList.length === 0) return;
 
     let currentMusicIndex = Math.floor(Math.random() * musicList.length);
-
     function playByIndex(idx) {
         currentMusicIndex = ((idx % musicList.length) + musicList.length) % musicList.length;
         audio.src = musicList[currentMusicIndex];
         audio.load();
         audio.volume = 0.75;
-        
         if (hints.processingScale >= 0.6) {
-            audio.play().catch(() => { 
-                document.addEventListener('click', () => { audio.play().catch(() => {}); }, { once: true }); 
+            audio.play().catch(() => {
+                document.addEventListener('click', () => { audio.play().catch(() => {}); }, { once: true });
             });
         }
     }
-
-    audio.addEventListener('ended', () => { 
-        currentMusicIndex = currentMusicIndex + 1; 
-        playByIndex(currentMusicIndex); 
-    });
+    audio.addEventListener('ended', () => { currentMusicIndex = currentMusicIndex + 1; playByIndex(currentMusicIndex); });
     playByIndex(currentMusicIndex);
 });
 
