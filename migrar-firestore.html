@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migración a Firestore - Archinime</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Tus datos actuales -->
+    <script src="index-data.js"></script>
+    <style>
+        body { background: #0a0a0f; color: #fff; font-family: monospace; padding: 20px; }
+        h1 { color: #00f3ff; }
+        #log { background: #111; padding: 20px; border-radius: 8px; height: 400px; overflow-y: auto; }
+        .success { color: #00ff9d; }
+        .error { color: #ff4757; }
+        button { background: #00f3ff; color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Migración de index-data.js a Firestore</h1>
+    <button onclick="iniciarMigracion()">Iniciar Migración</button>
+    <pre id="log"></pre>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+            authDomain: "login-admin-archinime.firebaseapp.com",
+            projectId: "login-admin-archinime",
+            storageBucket: "login-admin-archinime.firebasestorage.app",
+            messagingSenderId: "938164660242",
+            appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const logEl = document.getElementById('log');
+        function log(msg, tipo = 'info') {
+            const clase = tipo === 'error' ? 'error' : (tipo === 'success' ? 'success' : '');
+            logEl.innerHTML += `<span class="${clase}">${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function iniciarMigracion() {
+            log('=== INICIANDO MIGRACIÓN ===');
+            
+            if (typeof animes === 'undefined') {
+                log('❌ ERROR: No se encontró la variable "animes". Asegúrate de que index-data.js esté en la misma carpeta.', 'error');
+                return;
+            }
+
+            log(`📦 Total de animes a migrar: ${animes.length}`);
+            
+            const BATCH_SIZE = 400; // Firestore permite hasta 500 por lote
+            let batch = db.batch();
+            let operacionesEnLote = 0;
+            let totalMigrados = 0;
+            let lotes = 0;
+
+            for (let i = 0; i < animes.length; i++) {
+                const anime = animes[i];
+                const docRef = db.collection('catalogo').doc(String(anime.id));
+                
+                // Aseguramos que lastUpdate sea un timestamp de Firestore si existe
+                const datosParaFirestore = { ...anime };
+                if (datosParaFirestore.lastUpdate) {
+                    datosParaFirestore.lastUpdate = firebase.firestore.Timestamp.fromMillis(datosParaFirestore.lastUpdate);
+                }
+                
+                batch.set(docRef, datosParaFirestore);
+                operacionesEnLote++;
+                totalMigrados++;
+
+                if (operacionesEnLote === BATCH_SIZE || i === animes.length - 1) {
+                    try {
+                        await batch.commit();
+                        lotes++;
+                        log(`✅ Lote ${lotes}: ${operacionesEnLote} documentos subidos. Total: ${totalMigrados}/${animes.length}`, 'success');
+                    } catch (error) {
+                        log(`❌ Error en lote ${lotes}: ${error.message}`, 'error');
+                    }
+                    batch = db.batch();
+                    operacionesEnLote = 0;
+                }
+            }
+
+            log('🎉 ¡MIGRACIÓN COMPLETADA CON ÉXITO!', 'success');
+            log(`📊 Total de animes migrados: ${totalMigrados}`);
+            log('👉 Ya puedes cerrar esta página.');
+        }
+
+        window.iniciarMigracion = iniciarMigracion;
+    </script>
+</body>
+</html>

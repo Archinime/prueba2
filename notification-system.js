@@ -1,5 +1,6 @@
 // notification-system.js
-/* Sistema de notificaciones optimizado: 
+/* Sistema de notificaciones optimizado para Firestore:
+   - Escucha en tiempo real de nuevos animes/actualizaciones.
    - Renderizado con DocumentFragment y límite de 30 notificaciones visibles.
    - Uso de requestAnimationFrame para evitar bloqueos de UI.
    - Sincronización con Firestore y caché local.
@@ -10,7 +11,7 @@ let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
-let isFirstTimeSetup = false;
+let catalogoUnsubscribe = null;
 
 // Funciones para bloquear/desbloquear scroll (se definen en el scope global si no existen)
 if (typeof disableBodyScroll !== 'function') {
@@ -27,11 +28,8 @@ if (typeof disableBodyScroll !== 'function') {
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryFromStorage();
     
-    if (typeof animes !== 'undefined') {
-        checkForNewUpdates();
-    } else {
-        console.warn('Sistema de Notificaciones: index-data.js no cargado.');
-    }
+    // Iniciar escucha de catálogo en Firestore
+    listenForCatalogUpdates();
     
     // Render inicial con fragmento y límite
     renderNotificationList();
@@ -170,111 +168,82 @@ function listenForReplies(uid) {
         });
 }
 
-// --- Detección de nuevos animes / actualizaciones ---
-function checkForNewUpdates() {
-    const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
-    updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
-    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    let hasChanges = false;
-    const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
+// --- Escucha de catálogo en tiempo real (Firestore) ---
+function listenForCatalogUpdates() {
+    if (catalogoUnsubscribe) catalogoUnsubscribe();
     
-    if (isFirstVisit) {
-        const newNotifsToAdd = [];
-        const popupsToQueue = [];
-        const latestFive = updatedAnimes.slice(0, 5);
-        const rest = updatedAnimes.slice(5);
-        
-        latestFive.forEach(anime => {
-            const notifId = `${anime.id}_${anime.lastUpdate}`;
-            if (!seenNotifIds.includes(notifId)) {
-                seenNotifIds.push(notifId);
-                hasChanges = true;
-                const newNotif = {
-                    notifId: notifId,
-                    animeId: anime.id,
-                    title: anime.title,
-                    img: anime.img,
-                    seasonCover: anime.latestSeasonCover || anime.img,
-                    blockName: anime.latestBlockName || "",
-                    epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                    type: anime.updateType,
-                    date: anime.lastUpdate,
-                    seen: true,
-                    isFinal: anime.isFinal || false,
-                    popupShown: true
-                };
-                newNotifsToAdd.push(newNotif);
-                popupsToQueue.push(newNotif);
-            }
-        });
-        rest.forEach(anime => {
-            const notifId = `${anime.id}_${anime.lastUpdate}`;
-            if (!seenNotifIds.includes(notifId)) {
-                seenNotifIds.push(notifId);
-                hasChanges = true;
-                const newNotif = {
-                    notifId: notifId,
-                    animeId: anime.id,
-                    title: anime.title,
-                    img: anime.img,
-                    seasonCover: anime.latestSeasonCover || anime.img,
-                    blockName: anime.latestBlockName || "",
-                    epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                    type: anime.updateType,
-                    date: anime.lastUpdate,
-                    seen: true,
-                    isFinal: anime.isFinal || false,
-                    popupShown: false
-                };
-                newNotifsToAdd.push(newNotif);
-            }
-        });
-        if (newNotifsToAdd.length > 0) {
-            notificationsHistory = [...newNotifsToAdd, ...notificationsHistory];
-            if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-            saveHistoryToStorage();
-            notificationQueue = notificationQueue.concat(popupsToQueue.slice(0, 5));
-        }
-    } 
-    else {
-        updatedAnimes.forEach(anime => {
-            if (anime.updateType.includes("ACTUALIZACIÓN")) return;
-            if (anime.updateType === "Ninguna") return;
-            const notifId = `${anime.id}_${anime.lastUpdate}`;
-            if (!seenNotifIds.includes(notifId)) {
-                seenNotifIds.push(notifId);
-                hasChanges = true;
-                const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
-                if (!existsInHistory) {
-                    const newNotif = {
-                        notifId: notifId,
-                        animeId: anime.id,
-                        title: anime.title,
-                        img: anime.img,
-                        seasonCover: anime.latestSeasonCover || anime.img,
-                        blockName: anime.latestBlockName || "",
-                        epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                        type: anime.updateType,
-                        date: anime.lastUpdate,
-                        seen: false,
-                        isFinal: anime.isFinal || false,
-                        popupShown: true
-                    };
-                    notificationsHistory.unshift(newNotif);
-                    notificationQueue.push(newNotif);
+    // Escuchar animes cuyo lastUpdate sea mayor a 7 días atrás
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    
+    catalogoUnsubscribe = db.collection('catalogo')
+        .where('lastUpdate', '>', sevenDaysAgo)
+        .orderBy('lastUpdate', 'desc')
+        .limit(30)
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                // Solo nos interesan documentos nuevos o modificados
+                if (change.type === 'added' || change.type === 'modified') {
+                    const anime = { id: change.doc.id, ...change.doc.data() };
+                    // Solo procesar si tiene un tipo de actualización válido
+                    if (anime.updateType && anime.updateType !== 'Ninguna') {
+                        procesarActualizacionCatalogo(anime);
+                    }
                 }
-            }
+            });
+        }, error => {
+            console.error('Error escuchando catálogo:', error);
         });
-        if (hasChanges) {
-            if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-            saveHistoryToStorage();
-        }
-    }
+}
+
+function procesarActualizacionCatalogo(anime) {
+    // Crear un ID único para esta notificación
+    const notifId = `${anime.id}_${anime.lastUpdate}`;
     
-    if (hasChanges) {
-        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+    
+    // Si ya se ha visto, no hacer nada
+    if (seenNotifIds.includes(notifId)) return;
+    
+    // Marcar como visto para no repetir
+    seenNotifIds.push(notifId);
+    if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+    localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+    
+    // Verificar si ya existe en el historial
+    const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
+    if (existsInHistory) return;
+    
+    // Crear nueva notificación
+    const newNotif = {
+        notifId: notifId,
+        animeId: anime.id,
+        title: anime.title,
+        img: anime.img,
+        seasonCover: anime.latestSeasonCover || anime.img,
+        blockName: anime.latestBlockName || "",
+        epTitle: anime.latestEpTitle || "Nuevo Contenido",
+        type: anime.updateType,
+        date: anime.lastUpdate,
+        seen: false,
+        isFinal: anime.isFinal || false,
+        popupShown: true
+    };
+    
+    // Añadir al historial
+    notificationsHistory.unshift(newNotif);
+    if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+    
+    // Añadir a la cola de popups
+    notificationQueue.push(newNotif);
+    
+    // Guardar y actualizar UI
+    saveHistoryToStorage();
+    renderNotificationList();
+    updateBellBadge();
+    
+    // Si no hay un popup activo, mostrar el siguiente
+    if (notificationQueue.length === 1) {
+        showNextPopup();
     }
 }
 
@@ -282,6 +251,7 @@ function checkForNewUpdates() {
 window.startNotificationSequence = function() {
     showNextPopup();
 };
+
 function showNextPopup() {
     if (notificationQueue.length === 0) return;
     const notif = notificationQueue[0];
@@ -515,3 +485,8 @@ function markAsRead(notifId) {
         renderNotificationList();
     }
 }
+
+// Exponer funciones globales
+window.toggleNotifMenu = toggleNotifMenu;
+window.closePopup = closePopup;
+window.goToAnimeFromPopup = goToAnimeFromPopup;

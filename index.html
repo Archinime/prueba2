@@ -109,7 +109,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase se carga normalmente, pero las operaciones pesadas se difieren -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -535,11 +535,14 @@
 
   <main class="container">
     <div class="grid" id="grid"></div>
+    <div id="loadingMore" style="text-align:center; padding:20px; display:none;">
+      <i class="fas fa-spinner fa-spin" style="color:var(--neon-cyan)"></i> Cargando más...
+    </div>
   </main>
 
   <!-- ==================== SCRIPTS ==================== -->
   
-  <!-- 1. Configuración de Firebase (inmediata pero ligera) -->
+  <!-- 1. Configuración de Firebase -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -557,13 +560,13 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
-  <!-- 2. Sistema de notificaciones (inline optimizado) -->
+  <!-- 2. Sistema de notificaciones (adaptado a Firestore) -->
   <script>
-    // notification-system.js (integrado)
     let notificationQueue = [];
     let notificationsHistory = [];
     let isMenuOpen = false;
     let repliesUnsubscribe = null;
+    let catalogoUnsubscribe = null;
 
     if (typeof disableBodyScroll !== 'function') {
       window.disableBodyScroll = function() {
@@ -692,116 +695,64 @@
             });
     }
 
-    function checkForNewUpdates() {
-        if (typeof animes === 'undefined') return;
-        const updatedAnimes = animes.filter(a => a.lastUpdate && a.updateType);
-        updatedAnimes.sort((a, b) => b.lastUpdate - a.lastUpdate);
-
-        let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-        let hasChanges = false;
-        const isFirstVisit = (notificationsHistory.length === 0 && seenNotifIds.length === 0);
+    // NUEVO: Escuchar cambios en catálogo para estrenos
+    function listenForCatalogUpdates() {
+        if (catalogoUnsubscribe) catalogoUnsubscribe();
+        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
         
-        if (isFirstVisit) {
-            const newNotifsToAdd = [];
-            const popupsToQueue = [];
-            const latestFive = updatedAnimes.slice(0, 5);
-            const rest = updatedAnimes.slice(5);
-            
-            latestFive.forEach(anime => {
-                const notifId = `${anime.id}_${anime.lastUpdate}`;
-                if (!seenNotifIds.includes(notifId)) {
-                    seenNotifIds.push(notifId);
-                    hasChanges = true;
-                    const newNotif = {
-                        notifId: notifId,
-                        animeId: anime.id,
-                        title: anime.title,
-                        img: anime.img,
-                        seasonCover: anime.latestSeasonCover || anime.img,
-                        blockName: anime.latestBlockName || "",
-                        epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                        type: anime.updateType,
-                        date: anime.lastUpdate,
-                        seen: true,
-                        isFinal: anime.isFinal || false,
-                        popupShown: true
-                    };
-                    newNotifsToAdd.push(newNotif);
-                    popupsToQueue.push(newNotif);
-                }
-            });
-            rest.forEach(anime => {
-                const notifId = `${anime.id}_${anime.lastUpdate}`;
-                if (!seenNotifIds.includes(notifId)) {
-                    seenNotifIds.push(notifId);
-                    hasChanges = true;
-                    const newNotif = {
-                        notifId: notifId,
-                        animeId: anime.id,
-                        title: anime.title,
-                        img: anime.img,
-                        seasonCover: anime.latestSeasonCover || anime.img,
-                        blockName: anime.latestBlockName || "",
-                        epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                        type: anime.updateType,
-                        date: anime.lastUpdate,
-                        seen: true,
-                        isFinal: anime.isFinal || false,
-                        popupShown: false
-                    };
-                    newNotifsToAdd.push(newNotif);
-                }
-            });
-            if (newNotifsToAdd.length > 0) {
-                notificationsHistory = [...newNotifsToAdd, ...notificationsHistory];
-                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-                saveHistoryToStorage();
-                notificationQueue = notificationQueue.concat(popupsToQueue.slice(0, 5));
-            }
-        } else {
-            updatedAnimes.forEach(anime => {
-                if (anime.updateType.includes("ACTUALIZACIÓN")) return;
-                if (anime.updateType === "Ninguna") return;
-                const notifId = `${anime.id}_${anime.lastUpdate}`;
-                if (!seenNotifIds.includes(notifId)) {
-                    seenNotifIds.push(notifId);
-                    hasChanges = true;
-                    const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
-                    if (!existsInHistory) {
-                        const newNotif = {
-                            notifId: notifId,
-                            animeId: anime.id,
-                            title: anime.title,
-                            img: anime.img,
-                            seasonCover: anime.latestSeasonCover || anime.img,
-                            blockName: anime.latestBlockName || "",
-                            epTitle: anime.latestEpTitle || "Nuevo Contenido",
-                            type: anime.updateType,
-                            date: anime.lastUpdate,
-                            seen: false,
-                            isFinal: anime.isFinal || false,
-                            popupShown: true
-                        };
-                        notificationsHistory.unshift(newNotif);
-                        notificationQueue.push(newNotif);
+        catalogoUnsubscribe = db.collection('catalogo')
+            .where('lastUpdate', '>', sevenDaysAgo)
+            .orderBy('lastUpdate', 'desc')
+            .limit(30)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added' || change.type === 'modified') {
+                        const anime = { id: change.doc.id, ...change.doc.data() };
+                        if (anime.updateType && anime.updateType !== 'Ninguna') {
+                            procesarActualizacionCatalogo(anime);
+                        }
                     }
-                }
-            });
-            if (hasChanges) {
-                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-                saveHistoryToStorage();
-            }
-        }
+                });
+            }, error => console.error('Error escuchando catálogo:', error));
+    }
+
+    function procesarActualizacionCatalogo(anime) {
+        const notifId = `${anime.id}_${anime.lastUpdate}`;
+        let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
         
-        if (hasChanges) {
+        if (!seenNotifIds.includes(notifId)) {
+            seenNotifIds.push(notifId);
             if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
             localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+            
+            const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
+            if (!existsInHistory) {
+                const newNotif = {
+                    notifId: notifId,
+                    animeId: anime.id,
+                    title: anime.title,
+                    img: anime.img,
+                    seasonCover: anime.latestSeasonCover || anime.img,
+                    blockName: anime.latestBlockName || "",
+                    epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                    type: anime.updateType,
+                    date: anime.lastUpdate,
+                    seen: false,
+                    isFinal: anime.isFinal || false,
+                    popupShown: true
+                };
+                notificationsHistory.unshift(newNotif);
+                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                notificationQueue.push(newNotif);
+                saveHistoryToStorage();
+                renderNotificationList();
+                if (!isMenuOpen) updateBellBadge();
+                if (notificationQueue.length === 1) showNextPopup();
+            }
         }
     }
 
-    window.startNotificationSequence = function() {
-        showNextPopup();
-    };
+    window.startNotificationSequence = function() { showNextPopup(); };
     function showNextPopup() {
         if (notificationQueue.length === 0) return;
         const notif = notificationQueue[0];
@@ -827,16 +778,11 @@
         }
 
         let badgeColor = "#bc13fe";
-        if (notif.type.includes("ESTRENO")) {
-            badgeColor = "#ff0055";
-        } else if (notif.type.includes("PRÓXIMAMENTE")) {
-            badgeColor = "#f1c40f";
-        }
+        if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
+        else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
         
         let finalImgHTML = '';
-        if (notif.isFinal) {
-            finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
-        }
+        if (notif.isFinal) finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
 
         modal.innerHTML = `
             <div class="event-card">
@@ -874,9 +820,7 @@
             setTimeout(() => {
                 modal.remove();
                 const processed = notificationQueue.shift();
-                if (processed && !processed.seen) {
-                    markAsRead(processed.notifId);
-                }
+                if (processed && !processed.seen) markAsRead(processed.notifId);
                 if (typeof enableBodyScroll === 'function') enableBodyScroll();
                 showNextPopup();
             }, 300);
@@ -884,9 +828,7 @@
     }
 
     function goToAnimeFromPopup(animeId, notifId) {
-        if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) {
-            markAsRead(notifId);
-        }
+        if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) markAsRead(notifId);
         notificationQueue = [];
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
         window.location.href = `anime-detail.html?id=${animeId}`;
@@ -895,12 +837,8 @@
     function toggleNotifMenu() {
         const menu = document.getElementById('notifMenu');
         isMenuOpen = !isMenuOpen;
-        if (isMenuOpen) {
-            menu.classList.add('active');
-            renderNotificationList();
-        } else {
-            menu.classList.remove('active');
-        }
+        if (isMenuOpen) { menu.classList.add('active'); renderNotificationList(); }
+        else menu.classList.remove('active');
     }
 
     document.addEventListener('click', (e) => {
@@ -920,38 +858,26 @@
                 listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
                 return;
             }
-
             const visibleCount = Math.min(notificationsHistory.length, 30);
             const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date).slice(0, visibleCount);
             const fragment = document.createDocumentFragment();
-            
             sortedHistory.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'notif-item';
-               
                 let imgBoxClass = 'notif-img-box';
-                if (item.type === 'RESPUESTA') {
-                    imgBoxClass += ' rounded-avatar';
-                }
-          
+                if (item.type === 'RESPUESTA') imgBoxClass += ' rounded-avatar';
                 let infoString = "";
-                if (item.blockName && item.blockName !== "Novedad") {
-                    infoString += `<span class="n-block">${item.blockName}</span>`;
-                }
+                if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
                 if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
                     if (infoString !== "") infoString += " ";
                     infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
-                } else if (infoString === "") {
-                    infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
-                }
-
+                } else if (infoString === "") infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
                 let typeColor = "var(--neon-purple)";
                 if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
                 else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
                 else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
                 let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
-                const unreadDot = !item.seen ?
-                    '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
+                const unreadDot = !item.seen ? '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
                 div.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         ${unreadDot}
@@ -960,33 +886,19 @@
                         </div>
                     </div>
                     <div class="notif-content">
-                        <div class="notif-header-line">
-                            <span class="n-title">${item.title}</span>
-                        </div>
+                        <div class="notif-header-line"><span class="n-title">${item.title}</span></div>
                         <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
                         <div class="n-meta">${infoString}</div>
                     </div>
                 `;
                 div.addEventListener('click', (e) => {
-                    if (!item.seen) {
-                        markAsRead(item.notifId);
-                        item.seen = true;
-                        updateBellBadge();
-                        const dot = div.querySelector('.unread-dot');
-                        if (dot) dot.remove();
-                    }
-                    if (item.url) {
-                        window.location.href = item.url;
-                    } else {
-                        window.location.href = `anime-detail.html?id=${item.animeId}`;
-                    }
+                    if (!item.seen) { markAsRead(item.notifId); item.seen = true; updateBellBadge(); div.querySelector('.unread-dot')?.remove(); }
+                    location.href = item.url || `anime-detail.html?id=${item.animeId}`;
                 });
                 fragment.appendChild(div);
             });
-            
             listContainer.innerHTML = '';
             listContainer.appendChild(fragment);
-            
             if (notificationsHistory.length > 30) {
                 const moreDiv = document.createElement('div');
                 moreDiv.className = 'notif-item';
@@ -1002,41 +914,28 @@
         const unread = notificationsHistory.filter(n => !n.seen).length;
         const badge = document.getElementById('notifBadge');
         if (badge) {
-            if (unread > 0) {
-                badge.style.display = 'flex';
-                badge.textContent = unread > 9 ? '+9' : unread;
-            } else {
-                badge.style.display = 'none';
-            }
+            badge.style.display = unread > 0 ? 'flex' : 'none';
+            if (unread > 0) badge.textContent = unread > 9 ? '+9' : unread;
         }
     }
 
     function markAsRead(notifId) {
         const target = notificationsHistory.find(n => n.notifId === notifId);
-        if (target && !target.seen) {
-            target.seen = true;
-            saveHistoryToStorage();
-            updateBellBadge();
-            renderNotificationList();
-        }
+        if (target && !target.seen) { target.seen = true; saveHistoryToStorage(); updateBellBadge(); renderNotificationList(); }
     }
 
     window.toggleNotifMenu = toggleNotifMenu;
     window.closePopup = closePopup;
     window.goToAnimeFromPopup = goToAnimeFromPopup;
 
-    // Inicialización diferida
+    // Inicialización
     document.addEventListener('DOMContentLoaded', () => {
         loadHistoryFromStorage();
-        if (typeof animes !== 'undefined') {
-            checkForNewUpdates();
-        }
         renderNotificationList();
         updateBellBadge();
-
+        listenForCatalogUpdates();
         auth.onAuthStateChanged(user => {
             if (user) {
-                // Diferir sincronización con Firestore
                 requestIdleCallback(() => syncNotificationsWithCloud(user.uid));
                 requestIdleCallback(() => listenForReplies(user.uid));
             } else {
@@ -1046,160 +945,216 @@
     });
   </script>
 
-  <!-- 3. Scripts externos de datos y funcionalidad principal (con defer) -->
-  <script defer src="index-data.js?v=20250406"></script>
-  <script defer src="animaciones.js?v=20250406"></script>
-  <script defer src="musica_fondo.js?v=20250406"></script>
-  <script defer src="script-index.js?v=20250406"></script>
+  <!-- 3. Paginación desde Firestore (reemplaza a index-data.js) -->
+  <script>
+    let lastVisible = null;
+    let isLoading = false;
+    let hasMore = true;
+    let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    let debounceTimer = null;
 
-  <!-- 4. Autenticación y UI de usuario (inline, pero ligero) -->
+    const gridEl = document.getElementById('grid');
+    const loadingEl = document.getElementById('loadingMore');
+    const searchInput = document.getElementById('search');
+    const genreSelect = document.getElementById('genre-select');
+    const demographicSelect = document.getElementById('demographic-select');
+    const ratingSelect = document.getElementById('rating-select');
+
+    function normalizeText(s) { return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+    async function cargarAnimes(reset = true) {
+        if (isLoading) return;
+        if (!reset && !hasMore) return;
+        isLoading = true;
+        if (reset) {
+            gridEl.innerHTML = '';
+            lastVisible = null;
+            hasMore = true;
+        }
+        loadingEl.style.display = 'block';
+
+        try {
+            let query = db.collection('catalogo');
+            if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
+            if (currentFilters.demographic) query = query.where('genres', 'array-contains', currentFilters.demographic);
+            query = query.orderBy('title').limit(20);
+            if (lastVisible) query = query.startAfter(lastVisible);
+
+            const snapshot = await query.get();
+            loadingEl.style.display = 'none';
+
+            if (snapshot.empty) {
+                hasMore = false;
+                if (reset) mostrarNoResultados();
+                isLoading = false;
+                return;
+            }
+
+            lastVisible = snapshot.docs[snapshot.docs.length - 1];
+            let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Filtros cliente-side
+            if (currentFilters.search) {
+                const term = normalizeText(currentFilters.search);
+                animes = animes.filter(a => {
+                    const titles = [a.title, ...(a.aliases || [])];
+                    return titles.some(t => normalizeText(t).includes(term));
+                });
+            }
+            if (currentFilters.rating) {
+                animes = animes.filter(a => {
+                    const r = a.rating || 0;
+                    if (currentFilters.rating === 'excellent') return r >= 4.8;
+                    if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+                    if (currentFilters.rating === 'regular') return r < 4.6;
+                    return true;
+                });
+            }
+
+            renderAnimes(animes, !reset);
+            if (snapshot.docs.length < 20) hasMore = false;
+
+        } catch (error) {
+            console.error('Error cargando catálogo:', error);
+            loadingEl.style.display = 'none';
+            gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.</div>';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    function renderAnimes(animes, append = true) {
+        if (!append) gridEl.innerHTML = '';
+        if (animes.length === 0 && !append) { mostrarNoResultados(); return; }
+        const fragment = document.createDocumentFragment();
+        animes.forEach(anime => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = anime.id;
+            card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
+            card.setAttribute('role', 'link');
+            card.setAttribute('tabindex', '0');
+            const rating = anime.rating ? anime.rating.toFixed(1) : '—';
+            card.innerHTML = `
+                <img src="${anime.img}" alt="${anime.title}" loading="lazy">
+                <div class="info"><strong>${anime.title}</strong><span class="rating-value">⭐ ${rating}</span></div>
+            `;
+            fragment.appendChild(card);
+        });
+        gridEl.appendChild(fragment);
+        aplicarTiltANuevasCards();
+    }
+
+    function mostrarNoResultados() {
+        gridEl.innerHTML = `
+            <div class="cyber-no-results" style="grid-column:1/-1; display:flex; flex-direction:column; align-items:center; padding:60px; background:rgba(10,12,16,0.7); border:1px solid var(--neon-purple); border-radius:16px;">
+                <i class="fas fa-satellite-dish" style="font-size:3rem; color:var(--neon-cyan);"></i>
+                <h2 style="font-family:Orbitron; margin:20px 0;">Sin Resultados</h2>
+                <p>Prueba con otros filtros o busca por alias.</p>
+                <button onclick="resetearFiltros()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
+            </div>
+        `;
+    }
+
+    function resetearFiltros() {
+        searchInput.value = '';
+        genreSelect.value = '';
+        demographicSelect.value = '';
+        ratingSelect.value = '';
+        currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+        cargarAnimes(true);
+    }
+
+    function aplicarTiltANuevasCards() {
+        document.querySelectorAll('.card:not([data-tilt-init])').forEach(card => {
+            card.dataset.tiltInit = 'true';
+            card.addEventListener('mousemove', (e) => {
+                if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
+                card.tiltRAF = requestAnimationFrame(() => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const rotateX = ((y - rect.height/2) / (rect.height/2)) * -6;
+                    const rotateY = ((x - rect.width/2) / (rect.width/2)) * 6;
+                    card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                });
+            });
+            card.addEventListener('mouseleave', () => {
+                if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
+                card.style.transform = '';
+            });
+        });
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', (e) => {
+        currentFilters.search = e.target.value;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => cargarAnimes(true), 300);
+    });
+    genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; cargarAnimes(true); });
+    demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
+    ratingSelect.addEventListener('change', (e) => { currentFilters.rating = e.target.value; cargarAnimes(true); });
+
+    window.addEventListener('scroll', () => {
+        if (isLoading || !hasMore) return;
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) cargarAnimes(false);
+    });
+
+    // Carga inicial
+    cargarAnimes(true);
+  </script>
+
+  <!-- 4. Autenticación y UI de usuario -->
   <script>
     let currentUser = null;
     
     function goToProfile() { 
-      if (!currentUser) { 
-        showAuthModal(); 
-        document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; 
-        return; 
-      } 
+      if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; } 
       location.href = 'opciones.html'; 
     }
-    
-    function showAuthModal() { 
-      document.getElementById('authModal').classList.add('show');
-      disableBodyScroll();
-    }
-    
-    function closeAuthModal() { 
-      document.getElementById('authModal').classList.remove('show');
-      enableBodyScroll();
-      document.getElementById('authError').innerText = '';
-    }
-    
-    document.querySelectorAll('.auth-tab').forEach(tab => { 
-      tab.addEventListener('click', () => { 
-        const tabName = tab.getAttribute('data-tab'); 
-        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); 
-        tab.classList.add('active'); 
-        document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; 
-        document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; 
-        document.getElementById('authError').innerText = ''; 
-      }); 
-    });
-    
-    async function loginWithEmail() { 
-      const email = document.getElementById('loginEmail').value; 
-      const pass = document.getElementById('loginPassword').value; 
-      try { 
-        await auth.signInWithEmailAndPassword(email, pass); 
-        closeAuthModal(); 
-      } catch (err) { 
-        document.getElementById('authError').innerText = err.message; 
-      } 
-    }
-    
-    async function registerWithEmail() { 
-      const email = document.getElementById('registerEmail').value; 
-      const pass = document.getElementById('registerPassword').value; 
-      const confirm = document.getElementById('registerConfirm').value; 
-      if (pass !== confirm) { 
-        document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
-        return; 
-      } 
-      try { 
-        await auth.createUserWithEmailAndPassword(email, pass); 
-        closeAuthModal(); 
-      } catch (err) { 
-        document.getElementById('authError').innerText = err.message; 
-      } 
-    }
-    
-    async function loginWithGoogle() { 
-      try { 
-        await auth.signInWithPopup(providerGoogle); 
-        closeAuthModal(); 
-      } catch (err) { 
-        document.getElementById('authError').innerText = err.message; 
-      } 
-    }
-    
-    async function loginWithGitHub() { 
-      try { 
-        await auth.signInWithPopup(providerGitHub); 
-        closeAuthModal(); 
-      } catch (err) { 
-        document.getElementById('authError').innerText = err.message; 
-      } 
-    }
-    
-    function logoutUser() { 
-      auth.signOut().then(() => { 
-        location.reload(); 
-      }); 
-    }
-    
-    function getNeonColorFallback(str) { 
-      const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; 
-      let hash = 0; 
-      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); 
-      return neonColors[Math.abs(hash) % neonColors.length]; 
-    }
-    
+    function showAuthModal() { document.getElementById('authModal').classList.add('show'); disableBodyScroll(); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); enableBodyScroll(); document.getElementById('authError').innerText = ''; }
+    document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { const tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none'; document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none'; document.getElementById('authError').innerText = ''; }); });
+    async function loginWithEmail() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function registerWithEmail() { const email = document.getElementById('registerEmail').value; const pass = document.getElementById('registerPassword').value; const confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    function logoutUser() { auth.signOut().then(() => { location.reload(); }); }
+    function getNeonColorFallback(str) { const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff']; let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash); return neonColors[Math.abs(hash) % neonColors.length]; }
     function updateUserUI(user) { 
       currentUser = user; 
       const avatarBtn = document.getElementById('userAvatarBtn'); 
       const dropdownAvatar = document.getElementById('dropdownAvatar'); 
       const dropdownName = document.getElementById('dropdownName'); 
       const loginItem = document.getElementById('loginBtnItem'); 
-      
       if (user) { 
         const photoURL = user.photoURL || 'invitado.avif'; 
-        avatarBtn.src = photoURL; 
-        dropdownAvatar.src = photoURL; 
+        avatarBtn.src = photoURL; dropdownAvatar.src = photoURL; 
         dropdownName.innerText = user.displayName || user.email.split('@')[0]; 
         loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; 
         loginItem.onclick = () => logoutUser(); 
-        
         db.collection('users').doc(user.uid).get().then(doc => { 
           let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email); 
-          avatarBtn.style.borderColor = color; 
-          avatarBtn.style.boxShadow = `0 0 15px ${color}`; 
-          dropdownAvatar.style.borderColor = color; 
-          dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; 
-          dropdownName.style.color = color; 
-          dropdownName.style.textShadow = `0 0 8px ${color}`; 
+          avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`; 
+          dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`; 
+          dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`; 
         }).catch(e => console.log(e)); 
       } else { 
-        avatarBtn.src = 'invitado.avif'; 
-        dropdownAvatar.src = 'invitado.avif'; 
+        avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif'; 
         dropdownName.innerText = 'Invitado'; 
         loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; 
         loginItem.onclick = () => showAuthModal(); 
-        avatarBtn.style.borderColor = 'var(--neon-cyan)'; 
-        avatarBtn.style.boxShadow = 'none'; 
-        dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; 
-        dropdownAvatar.style.boxShadow = 'none'; 
-        dropdownName.style.color = 'var(--neon-cyan)'; 
-        dropdownName.style.textShadow = 'none'; 
+        avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none'; 
+        dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none'; 
+        dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none'; 
       } 
     }
-    
     const userAvatarBtn = document.getElementById('userAvatarBtn'); 
     const userDropdown = document.getElementById('userDropdown'); 
-    userAvatarBtn.addEventListener('click', (e) => { 
-      e.stopPropagation(); 
-      userDropdown.classList.toggle('active'); 
-    }); 
-    document.addEventListener('click', (e) => { 
-      if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) 
-        userDropdown.classList.remove('active'); 
-    });
-    
-    auth.onAuthStateChanged(user => { 
-      updateUserUI(user); 
-    });
-
-    // Exponer funciones globales
+    userAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('active'); }); 
+    document.addEventListener('click', (e) => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    auth.onAuthStateChanged(user => { updateUserUI(user); });
     window.loginWithEmail = loginWithEmail;
     window.registerWithEmail = registerWithEmail;
     window.loginWithGoogle = loginWithGoogle;
@@ -1209,16 +1164,10 @@
     window.goToProfile = goToProfile;
   </script>
 
-  <!-- 5. Selects personalizados, loader, tilt effect (inline, necesario para UI) -->
+  <!-- 5. Selects personalizados, loader, tilt effect (inline) -->
   <script>
-    function disableBodyScroll() {
-      document.body.classList.add('modal-open');
-      document.documentElement.classList.add('modal-open');
-    }
-    function enableBodyScroll() {
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-    }
+    function disableBodyScroll() { document.body.classList.add('modal-open'); document.documentElement.classList.add('modal-open'); }
+    function enableBodyScroll() { document.body.classList.remove('modal-open'); document.documentElement.classList.remove('modal-open'); }
 
     (function() {
       const selects = ['genre-select', 'demographic-select', 'rating-select'];
@@ -1263,11 +1212,7 @@
             });
             overlay.appendChild(popup);
             document.body.appendChild(overlay);
-            function closePopup() {
-              overlay.classList.remove('active');
-              enableBodyScroll();
-              setTimeout(() => overlay.remove(), 300);
-            }
+            function closePopup() { overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); }
             overlay.addEventListener('click', (e) => { if (e.target === overlay) closePopup(); });
             disableBodyScroll();
             setTimeout(() => overlay.classList.add('active'), 10);
@@ -1284,49 +1229,24 @@
               const optDiv = document.createElement('div');
               optDiv.className = 'custom-select-option';
               optDiv.textContent = opt.textContent;
-              if (opt.value === select.value) {
-                optDiv.style.background = 'rgba(0, 243, 255, 0.15)';
-                optDiv.style.color = 'var(--neon-cyan)';
-              }
-              optDiv.addEventListener('click', () => {
-                select.value = opt.value;
-                select.dispatchEvent(new Event('change'));
-                updateTriggerText(trigger, select);
-                dropdown.remove();
-              });
+              if (opt.value === select.value) { optDiv.style.background = 'rgba(0, 243, 255, 0.15)'; optDiv.style.color = 'var(--neon-cyan)'; }
+              optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); dropdown.remove(); });
               dropdown.appendChild(optDiv);
             });
             document.body.appendChild(dropdown);
-            const closeDropdown = (e) => {
-              if (!dropdown.contains(e.target) && e.target !== trigger) {
-                dropdown.remove();
-                document.removeEventListener('click', closeDropdown);
-                document.removeEventListener('scroll', closeDropdown);
-              }
-            };
-            setTimeout(() => {
-              document.addEventListener('click', closeDropdown);
-              document.addEventListener('scroll', closeDropdown, { passive: true });
-            }, 10);
+            const closeDropdown = (e) => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove(); document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
+            setTimeout(() => { document.addEventListener('click', closeDropdown); document.addEventListener('scroll', closeDropdown, { passive: true }); }, 10);
           }
         };
         trigger.addEventListener('click', openSelector);
       });
     })();
 
-    // Loader y video
     window.addEventListener('load', () => { 
       const loader = document.getElementById('page-loader'); 
       const bgVideo = document.getElementById('bg-video'); 
-      
-      const forcePlayVideo = () => { 
-        bgVideo.muted = true; 
-        bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { 
-          document.body.addEventListener('click', () => bgVideo.play(), { once: true }); 
-        }); 
-      }; 
+      const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => { document.body.addEventListener('click', () => bgVideo.play(), { once: true }); }); }; 
       forcePlayVideo(); 
-      
       const isFirstVisit = !sessionStorage.getItem('archinime_loaded'); 
       const delay = isFirstVisit ? 1400 : 50; 
       setTimeout(() => { 
@@ -1338,112 +1258,33 @@
         }, 400); 
       }, delay); 
     });
-
-    // Tilt effect en cards
-    const gridObserver = new MutationObserver(() => { 
-      document.querySelectorAll('.card').forEach(card => { 
-        if (card.dataset.tiltInit) return; 
-        card.dataset.tiltInit = 'true'; 
-        card.addEventListener('mousemove', (e) => { 
-          if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); 
-          card.tiltRAF = requestAnimationFrame(() => { 
-            const rect = card.getBoundingClientRect(); 
-            const x = e.clientX - rect.left; 
-            const y = e.clientY - rect.top; 
-            const rotateX = ((y - rect.height/2) / rect.height/2) * -6; 
-            const rotateY = ((x - rect.width/2) / rect.width/2) * 6; 
-            card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`; 
-          }); 
-        }); 
-        card.addEventListener('mouseleave', () => { 
-          if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF); 
-          card.style.transform = ''; 
-        }); 
-      }); 
-    });
-    const gridEl = document.getElementById('grid'); 
-    if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
 
-  <!-- 6. Actualizar ratings desde Firestore (CORREGIDO - se ejecuta cada vez que cambia el grid) -->
+  <!-- 6. Actualizar ratings desde Firestore -->
   <script>
     (function() {
-      // Mapa global de ratings de Firestore
       const firestoreRatings = new Map();
-      
-      // Función para actualizar el mapa de ratings desde Firestore
       async function refreshRatingsMap() {
-        try {
-          const snapshot = await db.collection('animeRatings').get();
-          firestoreRatings.clear();
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            firestoreRatings.set(parseInt(doc.id), {
-              avg: data.avg,
-              count: data.count
-            });
-          });
-        } catch (e) {
-          console.warn('Error al obtener ratings de Firestore:', e);
-        }
+        try { const snapshot = await db.collection('animeRatings').get(); firestoreRatings.clear(); snapshot.forEach(doc => { const data = doc.data(); firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count }); }); } catch (e) { console.warn('Error al obtener ratings de Firestore:', e); }
       }
-
-      // Función que actualiza todas las cards visibles con el rating correcto
       function updateCardsWithRatings() {
-        const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-          const animeId = card.dataset.id;
-          if (!animeId) return;
-          
-          const ratingSpan = card.querySelector('.rating-value');
-          if (!ratingSpan) return;
-          
-          // Prioridad: Firestore > animes.rating
-          if (firestoreRatings.has(parseInt(animeId))) {
-            const ratingObj = firestoreRatings.get(parseInt(animeId));
-            ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
-          } else if (typeof animes !== 'undefined') {
-            const animeInfo = animes.find(a => String(a.id) === String(animeId));
-            if (animeInfo && typeof animeInfo.rating === 'number') {
-              ratingSpan.innerHTML = `⭐ ${animeInfo.rating.toFixed(1)}`;
-            } else {
-              ratingSpan.innerHTML = `⭐ —`;
-            }
-          } else {
-            ratingSpan.innerHTML = `⭐ —`;
-          }
+        document.querySelectorAll('.card').forEach(card => {
+          const animeId = card.dataset.id; if (!animeId) return;
+          const ratingSpan = card.querySelector('.rating-value'); if (!ratingSpan) return;
+          if (firestoreRatings.has(parseInt(animeId))) { ratingSpan.innerHTML = `⭐ ${firestoreRatings.get(parseInt(animeId)).avg.toFixed(1)}`; }
+          else { ratingSpan.innerHTML = `⭐ —`; }
         });
       }
-
-      // Inicialización: obtener ratings de Firestore y luego observar el grid
       async function initRatings() {
         await refreshRatingsMap();
-        
-        // Observar cambios en el grid (cuando se filtra/busca)
-        const targetNode = document.getElementById('grid');
-        if (!targetNode) return;
-        
-        const observer = new MutationObserver(() => {
-          // Pequeño retraso para asegurar que el DOM esté actualizado
-          setTimeout(updateCardsWithRatings, 50);
-        });
-        
+        const targetNode = document.getElementById('grid'); if (!targetNode) return;
+        const observer = new MutationObserver(() => { setTimeout(updateCardsWithRatings, 50); });
         observer.observe(targetNode, { childList: true, subtree: true });
-        
-        // Actualizar inmediatamente si ya hay cards
-        if (document.querySelector('.card')) {
-          updateCardsWithRatings();
-        }
+        if (document.querySelector('.card')) updateCardsWithRatings();
       }
-
-      // Esperar a que Firestore esté listo y luego iniciar
-      if (typeof db !== 'undefined') {
-        initRatings();
-      } else {
-        // Si db no está listo, esperar un poco
-        setTimeout(initRatings, 500);
-      }
+      if (typeof db !== 'undefined') initRatings(); else setTimeout(initRatings, 500);
     })();
   </script>
+
 </body>
 </html>
