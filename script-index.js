@@ -1,4 +1,4 @@
-/* Archivo: script-index.js - Versión Firestore con paginación, filtros cliente y demografía normalizada */
+/* Archivo: script-index.js - Versión Firestore con paginación, filtros cliente y sin orderBy */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -111,10 +111,8 @@ async function cargarAnimes(reset = true) {
     }
     
     try {
-        // Consulta base SIN filtros (solo paginación y orden)
-        let query = db.collection('catalogo')
-                      .orderBy('title')
-                      .limit(20);
+        // Consulta base SIN orderBy (evita índices)
+        let query = db.collection('catalogo').limit(20);
         
         if (lastVisible) {
             query = query.startAfter(lastVisible);
@@ -131,6 +129,9 @@ async function cargarAnimes(reset = true) {
         
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Ordenar por título en cliente
+        animes.sort((a, b) => a.title.localeCompare(b.title));
         
         // === TODOS LOS FILTROS SE APLICAN EN CLIENTE ===
         const normalize = (s) => {
