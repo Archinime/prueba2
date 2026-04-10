@@ -504,7 +504,7 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
-  <!-- Sistema de notificaciones (Firestore) -->
+  <!-- Sistema de notificaciones (Firestore) - SIN CAMBIOS -->
   <script>
     let notificationQueue = [], notificationsHistory = [], isMenuOpen = false;
     let repliesUnsubscribe = null, catalogoUnsubscribe = null;
@@ -686,7 +686,7 @@
     });
   </script>
 
-  <!-- ===== PAGINACIÓN FIRESTORE + RATINGS CORREGIDOS ===== -->
+  <!-- ===== PAGINACIÓN FIRESTORE + RATINGS CORREGIDOS (SCROLL ARREGLADO) ===== -->
   <script>
     // Variables de paginación
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -733,7 +733,7 @@
       return '—';
     }
 
-    // Cargar animes con paginación
+    // Cargar animes con paginación (CORREGIDO)
     async function cargarAnimes(reset = true) {
       if (isLoading) return;
       if (!reset && !hasMore) return;
@@ -747,6 +747,7 @@
         let query = db.collection('catalogo').orderBy('title').limit(20);
         if (lastVisible) query = query.startAfter(lastVisible);
         const snapshot = await query.get();
+        console.log(`📄 Página cargada: ${snapshot.size} docs`);
 
         if (snapshot.empty) {
           hasMore = false;
@@ -755,7 +756,8 @@
           return;
         }
 
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        // Guardar el último documento del snapshot original para la paginación
+        const originalLastDoc = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
         // Filtros en cliente
@@ -782,11 +784,22 @@
           });
         }
 
+        // Actualizar lastVisible con el último documento filtrado, o el original si no hay filtros
+        if (animes.length > 0) {
+          // Buscar el documento correspondiente al último anime filtrado
+          const lastFiltered = animes[animes.length - 1];
+          const lastDoc = snapshot.docs.find(d => d.id === lastFiltered.id);
+          lastVisible = lastDoc || originalLastDoc;
+        } else {
+          // Si no hay resultados después de filtrar, seguimos paginando desde el último documento original
+          lastVisible = originalLastDoc;
+        }
+
         renderAnimes(animes, !reset);
         if (snapshot.docs.length < 20) hasMore = false;
       } catch (e) {
-        console.error(e);
-        gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.</div>';
+        console.error('Error en cargarAnimes:', e);
+        gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error al cargar: ${e.message}</div>`;
       } finally {
         isLoading = false;
       }
@@ -854,7 +867,7 @@
     window.resetearFiltros = resetearFiltros;
   </script>
 
-  <!-- Autenticación y UI de usuario -->
+  <!-- Autenticación y UI de usuario (SIN CAMBIOS) -->
   <script>
     let currentUser = null;
     function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; } else location.href = 'opciones.html'; }
@@ -894,7 +907,7 @@
     window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle; window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal; window.goToProfile = goToProfile;
   </script>
 
-  <!-- Selects personalizados, loader -->
+  <!-- Selects personalizados, loader (SIN CAMBIOS) -->
   <script>
     function disableBodyScroll() { document.body.classList.add('modal-open'); document.documentElement.classList.add('modal-open'); }
     function enableBodyScroll() { document.body.classList.remove('modal-open'); document.documentElement.classList.remove('modal-open'); }
