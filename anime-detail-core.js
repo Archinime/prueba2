@@ -1,4 +1,4 @@
-// anime-detail-core.js - Versión Firestore (corregida estrellas)
+// anime-detail-core.js - Versión Firestore (robusta)
 // Obtiene datos desde la colección 'catalogo'
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -157,6 +157,10 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   const loading = details.querySelector(`#loading-${seasonIdx}`);
   if (loading) loading.style.display = 'block';
   const season = animeData.seasons[seasonIdx];
+  if (!season || !season.eps) {
+    if (loading) loading.style.display = 'none';
+    return;
+  }
   const episodes = season.eps;
   const total = episodes.length;
   const seasonNum = season.num;
@@ -188,7 +192,7 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
       btn.appendChild(action);
       
       const span = document.createElement('span');
-      span.textContent = `▶ ${ep.title}`;
+      span.textContent = `▶ ${ep.title || `Episodio ${epNum}`}`;
       btn.appendChild(span);
       if (isWatched) {
         const tag = document.createElement('div');
@@ -212,7 +216,7 @@ async function loadAnimeRating(animeId) {
   if (doc.exists) {
     animeRatingData = doc.data();
   } else {
-    if (animeData?.rating) {
+    if (animeData?.rating != null) {
       animeRatingData = { avg: animeData.rating, count: 1 };
       await db.collection('animeRatings').doc(String(animeId)).set({
         avg: animeData.rating,
@@ -227,8 +231,8 @@ async function loadAnimeRating(animeId) {
 function updateRatingDisplay() {
   const avgSpan = document.getElementById('averageRatingDisplay');
   const countSpan = document.getElementById('voteCountDisplay');
-  if (avgSpan) avgSpan.textContent = animeRatingData.avg.toFixed(1);
-  if (countSpan) countSpan.textContent = `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
+  if (avgSpan) avgSpan.textContent = (animeRatingData.avg || 0).toFixed(1);
+  if (countSpan) countSpan.textContent = `(${animeRatingData.count || 0} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
   updateRatingLabel(animeRatingData.avg);
 }
 function updateRatingLabel(avg) {
@@ -284,8 +288,8 @@ async function voteAnime(newVal) {
       const ratingDoc = await t.get(ratingRef);
       const userDoc = await t.get(userRef);
       let oldValue = userDoc.exists ? userDoc.data().value : null;
-      let newAvg = animeRatingData.avg;
-      let newCount = animeRatingData.count;
+      let newAvg = animeRatingData.avg || 0;
+      let newCount = animeRatingData.count || 0;
 
       if (oldValue !== null && oldValue === newVal) {
         if (newCount > 1) {
@@ -369,17 +373,18 @@ async function renderMainContent() {
     container.innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
     return;
   }
-  document.title = `${animeData.title} - Archinime OS`;
+  document.title = `${animeData.title || 'Anime'} - Archinime OS`;
 
   const genres = animeData.genres || [];
   const genreHtml = genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
-  const ratingDisplay = animeData.rating ? animeData.rating.toFixed(1) : '--';
+  const ratingDisplay = (animeData.rating != null) ? animeData.rating.toFixed(1) : '--';
+  const desc = animeData.desc || 'Sin descripción disponible.';
 
   let html = `
-    <div class="anime-cover"><img src="${animeData.img}" alt="cover" loading="lazy"></div>
-    <h1>${animeData.title}</h1>
+    <div class="anime-cover"><img src="${animeData.img || ''}" alt="cover" loading="lazy"></div>
+    <h1>${animeData.title || ''}</h1>
     <div class="genres-wrap">${genreHtml || '<span class="genre-chip">Sin géneros</span>'}</div>
-    <p class="desc">${animeData.desc}</p>
+    <p class="desc">${desc}</p>
     <div class="rating-section">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
         <div class="rating-stats">
@@ -393,11 +398,12 @@ async function renderMainContent() {
     </div>
   `;
 
-  if (animeData.seasons) {
+  if (animeData.seasons && Array.isArray(animeData.seasons)) {
     animeData.seasons.forEach((s, idx) => {
+      if (!s) return;
       html += `
         <details data-season-index="${idx}" data-anime-id="${animeId}">
-          <summary>${s.name || 'Temporada ' + s.num}</summary>
+          <summary>${s.name || 'Temporada ' + (s.num || idx+1)}</summary>
           <div class="season-content">
             ${s.cover ? `<img src="${s.cover}" style="width:100%; border-radius:12px; margin-bottom:15px;" loading="lazy">` : ''}
             <div class="video-list" id="list-${idx}"></div>
@@ -520,11 +526,9 @@ auth.onAuthStateChanged(async (user) => {
   currentUserId = user ? user.uid : null;
   
   if (currentAnimeId && animeData) {
-    // Si el usuario acaba de iniciar sesión, recargar su voto y actualizar estrellas
     if (currentUserId && !previousUserId) {
       await loadUserRating(currentAnimeId, currentUserId);
     }
-    // Si cerró sesión, volver a mostrar estrellas deshabilitadas
     if (!currentUserId && previousUserId) {
       currentUserRating = null;
       renderStars(0);
@@ -563,6 +567,6 @@ auth.onAuthStateChanged(async (user) => {
     });
   } catch(e) {
     console.error('Error cargando anime:', e);
-    document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime</h2>";
+    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${e.message}</h2>`;
   }
 })();
