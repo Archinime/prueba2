@@ -39,7 +39,7 @@
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
         
-        // Limitar la actualización del DOM (meta tag) a ~10 fps para evitar lag en dispositivos móviles
+        // Limitar a ~10 fps para rendimiento
         if (timestamp - lastUpdate > 100) {
           let currentProgress = (progress / animationDuration) * segments;
           currentProgress %= segments;
@@ -74,9 +74,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* ---------------------------
-       RESET Y VARIABLES CYBERPUNK
-    --------------------------- */
+    /* ===== ESTILOS OPTIMIZADOS (MENOS BRILLO, MISMO DISEÑO CYBERPUNK) ===== */
     * {
       margin: 0;
       padding: 0;
@@ -92,7 +90,7 @@
       --glass-bg: rgba(10, 12, 16, 0.75);
       --text: #ffffff;
       --header-height: 72px;
-      --glow-intensity: 0.6;
+      --glow-intensity: 0.4; /* Reducido para menos brillo */
       --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
@@ -105,7 +103,6 @@
       scroll-behavior: smooth;
     }
 
-    /* Fondo vídeo - Optimizado con Hardware Acceleration */
     #bg-video {
       position: fixed;
       top: 0;
@@ -118,8 +115,7 @@
       opacity: 1;
       transition: opacity 1.2s ease;
       pointer-events: none;
-      filter: contrast(1.2) brightness(0.7) saturate(1.1);
-      /* Forzar GPU */
+      filter: contrast(1.1) brightness(0.65) saturate(1.0); /* Menos contraste */
       transform: translateZ(0); 
       will-change: opacity;
     }
@@ -131,7 +127,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
+      background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.08) 0%, rgba(0,0,0,0.8) 90%);
       z-index: -1;
       pointer-events: none;
       transform: translateZ(0);
@@ -143,14 +139,13 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 6px);
       z-index: -1;
       pointer-events: none;
-      opacity: 0.25;
+      opacity: 0.2;
       transform: translateZ(0);
     }
 
-    /* Pantalla de carga */
     #loading-screen {
       position: fixed;
       top:0; left:0;
@@ -172,7 +167,7 @@
       font-weight: 900;
       letter-spacing: 8px;
       color: white;
-      text-shadow: 0 0 20px var(--neon-cyan);
+      text-shadow: 0 0 15px var(--neon-cyan);
       animation: pulseText 1.2s infinite;
       transform: translateZ(0);
     }
@@ -184,33 +179,31 @@
       margin-top: 20px;
     }
     @keyframes pulseText {
-      0%,100% { opacity: 0.8; text-shadow: 0 0 20px var(--neon-cyan); }
+      0%,100% { opacity: 0.8; text-shadow: 0 0 15px var(--neon-cyan); }
       50% { opacity: 0.4; text-shadow: 0 0 5px var(--neon-purple); }
     }
 
-    /* --- CONTENEDOR PRINCIPAL --- */
     .container {
       position: relative;
       z-index: 1;
       max-width: 1200px;
       margin: 100px auto 60px;
       padding: 25px 30px;
-      background: rgba(5, 5, 10, 0.7);
+      background: rgba(5, 5, 10, 0.65);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-radius: 24px;
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 0 1px rgba(0, 243, 255, 0.1) inset;
+      border: 1px solid rgba(0, 243, 255, 0.25);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
       transition: all 0.3s ease;
       animation: fadeInUp 0.6s var(--transition-smooth);
-      transform: translateZ(0); /* Forzar aceleración GPU en móvil */
+      transform: translateZ(0);
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* --- TOP BUTTONS (mejorado para móvil) --- */
     .top-buttons {
       display: flex;
       justify-content: space-between;
@@ -219,8 +212,8 @@
       flex-wrap: wrap;
       margin: -25px -30px 25px -30px;
       padding: 15px 25px;
-      background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(188, 19, 254, 0.1));
-      border-bottom: 1px solid rgba(0, 243, 255, 0.4);
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(188, 19, 254, 0.05));
+      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 24px 24px 0 0;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
@@ -229,8 +222,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(0, 243, 255, 0.5);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(0, 243, 255, 0.4);
       padding: 8px 18px;
       border-radius: 40px;
       color: var(--neon-cyan);
@@ -243,8 +236,8 @@
       will-change: transform;
     }
     .back:hover, .share-detail:hover {
-      background: rgba(0, 243, 255, 0.2);
-      box-shadow: 0 0 12px var(--neon-cyan);
+      background: rgba(0, 243, 255, 0.15);
+      box-shadow: 0 0 8px var(--neon-cyan);
       transform: translateY(-2px);
       border-color: var(--neon-cyan);
     }
@@ -255,8 +248,8 @@
     }
     .search-container input {
       width: 100%;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(0, 243, 255, 0.4);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 40px;
       padding: 8px 16px;
       color: white;
@@ -266,11 +259,10 @@
     }
     .search-container input:focus {
       border-color: var(--neon-cyan);
-      box-shadow: 0 0 15px rgba(0,243,255,0.3);
-      background: rgba(0,0,0,0.8);
+      box-shadow: 0 0 10px rgba(0,243,255,0.2);
+      background: rgba(0,0,0,0.7);
     }
 
-    /* MÓVIL: reorganizar en grid más compacto */
     @media (max-width: 768px) {
       .container {
         margin: 70px 12px 30px;
@@ -293,16 +285,8 @@
         max-width: none;
         width: 100%;
       }
-      .search-container input {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-      }
-      .back i, .share-detail i {
-        font-size: 0.8rem;
-      }
     }
 
-    /* Dropdown flotante optimizado para móvil */
     .floating-dropdown {
       position: fixed;
       background: #0f0f13;
@@ -316,8 +300,8 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       width: auto;
       min-width: 200px;
-      transform: translateZ(0); /* Evitar tirones visuales al scrollear */
-      will-change: top, left, width;
+      transform: translateZ(0);
+      will-change: top, left;
     }
     @media (max-width: 768px) {
       .floating-dropdown {
@@ -338,12 +322,7 @@
     }
     .search-item:hover { background: rgba(0,243,255,0.1); }
     .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
-    .search-item-title {
-      font-weight: 500;
-      color: white;
-    }
 
-    /* --- PORTADA --- */
     .anime-cover {
       text-align: center;
       margin-bottom: 20px;
@@ -353,13 +332,13 @@
       width: auto;
       max-width: 90%;
       border-radius: 20px;
-      box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 2px rgba(0, 243, 255, 0.3);
+      box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(0, 243, 255, 0.2);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       will-change: transform;
     }
     .anime-cover img:hover {
       transform: scale(1.02);
-      box-shadow: 0 25px 40px rgba(0,0,0,0.8), 0 0 0 3px var(--neon-cyan);
+      box-shadow: 0 25px 40px rgba(0,0,0,0.8), 0 0 0 2px var(--neon-cyan);
     }
     h1 {
       text-align: center;
@@ -371,7 +350,7 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 0 10px rgba(0,243,255,0.3);
+      text-shadow: 0 0 8px rgba(0,243,255,0.2);
       margin: 25px 0 20px;
     }
     .genres-wrap {
@@ -382,8 +361,8 @@
       margin-bottom: 30px;
     }
     .genre-chip {
-      background: rgba(0, 243, 255, 0.1);
-      border: 1px solid rgba(0, 243, 255, 0.5);
+      background: rgba(0, 243, 255, 0.08);
+      border: 1px solid rgba(0, 243, 255, 0.4);
       padding: 6px 14px;
       border-radius: 30px;
       font-size: 0.75rem;
@@ -392,7 +371,7 @@
       backdrop-filter: blur(4px);
     }
     .desc {
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.4);
       border-left: 4px solid var(--neon-pink);
       padding: 18px 20px;
       border-radius: 16px;
@@ -401,10 +380,9 @@
       color: #e0e0e0;
       font-size: 0.95rem;
     }
-    /* Rating section */
     .rating-section {
-      background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(188,19,254,0.1));
-      border: 1px solid rgba(0, 243, 255, 0.4);
+      background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(188,19,254,0.08));
+      border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 20px;
       padding: 20px;
       margin: 20px 0;
@@ -417,17 +395,11 @@
       gap: 15px;
       flex-wrap: wrap;
     }
-    .rating-stats span:first-child {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #ccc;
-      transition: color 0.2s;
-    }
     #averageRatingDisplay {
       font-size: 2.5rem;
       font-weight: 800;
       color: var(--neon-yellow);
-      text-shadow: 0 0 10px rgba(241,196,15,0.5);
+      text-shadow: 0 0 8px rgba(241,196,15,0.3);
       font-family: 'Orbitron', monospace;
     }
     #voteCountDisplay {
@@ -442,7 +414,7 @@
     }
     .star.hover, .star.selected {
       color: #facc15;
-      text-shadow: 0 0 12px #ffaa00;
+      text-shadow: 0 0 8px #ffaa00;
       transform: scale(1.1);
       will-change: transform;
     }
@@ -455,19 +427,18 @@
       font-size: 0.8rem;
       color: var(--neon-cyan);
     }
-    /* Temporadas */
     details {
       margin-bottom: 15px;
-      background: rgba(10, 10, 15, 0.7);
-      border: 1px solid rgba(188, 19, 254, 0.4);
+      background: rgba(10, 10, 15, 0.6);
+      border: 1px solid rgba(188, 19, 254, 0.3);
       border-radius: 16px;
       overflow: hidden;
       transition: 0.2s;
     }
     details[open] {
-      background: rgba(15, 15, 25, 0.8);
+      background: rgba(15, 15, 25, 0.7);
       border-color: var(--neon-cyan);
-      box-shadow: 0 0 15px rgba(0,243,255,0.2);
+      box-shadow: 0 0 10px rgba(0,243,255,0.15);
     }
     summary {
       padding: 16px 20px;
@@ -479,7 +450,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.2);
     }
     summary::-webkit-details-marker { display: none; }
     summary::after {
@@ -490,7 +461,7 @@
     details[open] summary::after { transform: rotate(180deg); }
     .season-content {
       padding: 15px;
-      border-top: 1px solid rgba(0,243,255,0.2);
+      border-top: 1px solid rgba(0,243,255,0.15);
     }
     .video-list {
       display: grid;
@@ -498,7 +469,7 @@
       gap: 12px;
     }
     .ep-btn {
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.5);
       border: 1px solid #330c4d;
       border-radius: 12px;
       padding: 12px 5px;
@@ -516,21 +487,16 @@
       will-change: transform;
     }
     .ep-btn:hover {
-      background: rgba(0, 243, 255, 0.15);
+      background: rgba(0, 243, 255, 0.1);
       border-color: var(--neon-cyan);
       color: white;
       transform: translateY(-3px);
-      box-shadow: 0 5px 12px rgba(0,243,255,0.2);
+      box-shadow: 0 5px 12px rgba(0,243,255,0.15);
     }
     .ep-btn.watched {
       background: #0f1d18;
       border-color: #00ff9d;
       color: #ccffdd;
-    }
-    .watched-tag {
-      font-size: 0.6rem;
-      color: #00ff9d;
-      font-weight: bold;
     }
     .ep-action-btn {
       position: absolute;
@@ -547,11 +513,10 @@
       transition: 0.2s;
     }
     .ep-btn:hover .ep-action-btn { opacity: 1; }
-    /* Recomendaciones */
     .recommendations {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 1px solid rgba(0,243,255,0.3);
+      border-top: 1px solid rgba(0,243,255,0.2);
     }
     .rec-title {
       font-family: 'Orbitron', sans-serif;
@@ -566,12 +531,8 @@
       display: grid;
       gap: 15px;
     }
-    @media (min-width: 1200px) {
-      .rec-grid { grid-template-columns: repeat(6, 1fr); }
-    }
-    @media (min-width: 768px) and (max-width: 1199px) {
-      .rec-grid { grid-template-columns: repeat(4, 1fr); }
-    }
+    @media (min-width: 1200px) { .rec-grid { grid-template-columns: repeat(6, 1fr); } }
+    @media (min-width: 768px) and (max-width: 1199px) { .rec-grid { grid-template-columns: repeat(4, 1fr); } }
     @media (max-width: 767px) {
       .rec-grid { grid-template-columns: repeat(2, 1fr); }
       .video-list { grid-template-columns: repeat(2, 1fr); }
@@ -579,18 +540,18 @@
       .star { font-size: 1.5rem; }
     }
     .rec-card {
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.4);
       border-radius: 12px;
       overflow: hidden;
       transition: 0.2s;
       cursor: pointer;
-      border: 1px solid rgba(188,19,254,0.3);
+      border: 1px solid rgba(188,19,254,0.2);
       will-change: transform;
     }
     .rec-card:hover {
       transform: translateY(-5px);
       border-color: var(--neon-cyan);
-      box-shadow: 0 8px 20px rgba(0,243,255,0.2);
+      box-shadow: 0 8px 20px rgba(0,243,255,0.1);
     }
     .rec-card img {
       width: 100%;
@@ -604,7 +565,6 @@
       font-weight: 500;
       color: #eee;
     }
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -620,7 +580,7 @@
       z-index: 9999;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 0 20px rgba(0,243,255,0.3);
+      box-shadow: 0 0 15px rgba(0,243,255,0.2);
     }
   </style>
 </head>
@@ -654,611 +614,37 @@
 
 <div id="toast" class="toast">Enlace copiado</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase se carga con defer para no bloquear -->
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+<!-- Scripts de datos (esenciales, pero con defer para no bloquear render) -->
+<script defer src="index-data.js?v=20250406"></script>
+<script defer src="anime-detail-data.js?v=20250406"></script>
+<script defer src="musica-data.js?v=20250406"></script>
+<script defer src="users-data.js?v=20250406"></script>
+
+<!-- Lógica principal diferida -->
+<script defer src="anime-detail-core.js?v=20250406"></script>
+
+<!-- Inicialización mínima inline (no bloqueante) -->
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
-    authDomain: "login-admin-archinime.firebaseapp.com",
-    projectId: "login-admin-archinime",
-    storageBucket: "login-admin-archinime.firebasestorage.app",
-    messagingSenderId: "938164660242",
-    appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-</script>
-
-<script>
-  var version = Date.now();
-  document.write('<script src="index-data.js?v='+version+'"><\/script>');
-  document.write('<script src="anime-detail-data.js?v='+version+'"><\/script>');
-  document.write('<script src="musica-data.js?v='+version+'"><\/script>');
-  document.write('<script src="users-data.js?v='+version+'"><\/script>');
-</script>
-
-<script>
-  // ---------- SONIDOS UI ----------
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  function playUISound(type) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    const now = audioCtx.currentTime;
-    if (type === 'hover') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, now);
-      osc.frequency.exponentialRampToValueAtTime(1200, now+0.05);
-      gain.gain.setValueAtTime(0.02, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now+0.05);
-      osc.start(now);
-      osc.stop(now+0.05);
-    } else if (type === 'click') {
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now+0.1);
-      gain.gain.setValueAtTime(0.05, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now+0.1);
-      osc.start(now);
-      osc.stop(now+0.1);
-    }
-  }
-
-  // ---------- CARGA INICIAL ----------
+  // Loader y video (mínimo para que la UI responda rápido)
   window.addEventListener('load', () => {
-    if (typeof audioPlaylists === 'undefined' && typeof musica !== 'undefined') window.audioPlaylists = musica;
     const screen = document.getElementById('loading-screen');
-    screen.style.opacity = '0';
-    setTimeout(() => screen.style.display = 'none', 500);
     const bgVideo = document.getElementById('bg-video');
     bgVideo.play().catch(()=>{});
+    screen.style.opacity = '0';
+    setTimeout(() => screen.style.display = 'none', 500);
   });
 
-  // ---------- MÚSICA DE FONDO ----------
-  let currentAudio = null, playlist = [], currentTrackIndex = -1;
-  function playTrack(idx) {
-    if (currentAudio) { currentAudio.pause(); currentAudio.onended = null; }
-    currentAudio = new Audio(playlist[idx]);
-    currentAudio.volume = 0.3;
-    currentAudio.loop = false;
-    currentAudio.onended = () => {
-      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-      playTrack(currentTrackIndex);
-    };
-    currentAudio.play().catch(e=>console.log);
-  }
-  document.addEventListener('click', () => {
-    if (typeof audioPlaylists === 'undefined' && typeof musica !== 'undefined') window.audioPlaylists = musica;
-    if (typeof audioPlaylists !== 'undefined' && !currentAudio) {
-      const id = new URLSearchParams(location.search).get('id');
-      if (audioPlaylists[id]?.length) {
-        playlist = audioPlaylists[id];
-        currentTrackIndex = Math.floor(Math.random() * playlist.length);
-        playTrack(currentTrackIndex);
-      }
-    }
-  }, { once: true });
-
-  // ---------- HISTORIAL DE VISUALIZACIÓN ----------
-  let currentUserId = null, currentAnimeId = null, authReady = false;
-  function getLocalKey(animeId, s, e) { return `watched_${animeId}_${s}_${e}`; }
-  function showToast(msg, isError = false) {
-    let toast = document.getElementById('toast');
-    if (!toast) { toast = document.createElement('div'); toast.id = 'toast'; toast.className = 'toast'; document.body.appendChild(toast); }
-    toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 3000);
-  }
-  async function markEpisodeWatched(animeId, s, e) {
-    if (currentUserId) {
-      const docRef = db.collection('watchHistory').doc(currentUserId);
-      const doc = await docRef.get();
-      let data = doc.exists ? doc.data() : {};
-      if (!data[animeId]) data[animeId] = {};
-      if (!data[animeId][s]) data[animeId][s] = [];
-      if (!data[animeId][s].includes(e)) data[animeId][s].push(e);
-      await docRef.set(data, { merge: true });
-      showToast('Episodio marcado como visto');
-    } else {
-      localStorage.setItem(getLocalKey(animeId, s, e), 'true');
-      showToast('Episodio marcado (local)');
-    }
-  }
-  async function removeEpisodeWatched(animeId, s, e) {
-    if (currentUserId) {
-      const docRef = db.collection('watchHistory').doc(currentUserId);
-      const doc = await docRef.get();
-      if (doc.exists) {
-        let data = doc.data();
-        if (data[animeId]?.[s]) {
-          data[animeId][s] = data[animeId][s].filter(n => n !== e);
-          if (data[animeId][s].length === 0) delete data[animeId][s];
-          if (Object.keys(data[animeId]).length === 0) delete data[animeId];
-          await docRef.set(data);
-          showToast('Episodio eliminado');
-        }
-      }
-    } else {
-      localStorage.removeItem(getLocalKey(animeId, s, e));
-      showToast('Episodio eliminado (local)');
-    }
-  }
-  async function loadWatchedEpisodes(animeId) {
-    if (currentUserId) {
-      const doc = await db.collection('watchHistory').doc(currentUserId).get();
-      return doc.exists ? (doc.data()[animeId] || {}) : {};
-    } else {
-      const watched = {};
-      const len = localStorage.length;
-      for (let i=0; i<len; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(`watched_${animeId}_`)) {
-          const parts = key.split('_');
-          const s = parseInt(parts[2]), e = parseInt(parts[3]);
-          if (!watched[s]) watched[s] = [];
-          watched[s].push(e);
-        }
-      }
-      return watched;
-    }
-  }
-  async function reloadSeason(details, animeId, seasonIdx) {
-    if (!details || !details.open) return;
-    const list = details.querySelector('.video-list');
-    if (list) { list.innerHTML = ''; await toggleSeason(details, animeId, seasonIdx); }
-  }
-
-  // ---------- RENDERIZADO PRINCIPAL ----------
-  if (typeof data === 'undefined') {
-    document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;color:red;'>Error: No se pudo cargar anime-detail-data.js</h2>";
-  } else {
-    const params = new URLSearchParams(location.search);
-    const id = params.get('id');
-    const anime = data[id];
-    const container = document.getElementById('contenido');
-    currentAnimeId = id;
-    if (anime) {
-      document.title = `${anime.title} - Archinime OS`;
-      let genreHtml = '';
-      let initialRating = 0;
-      if (typeof animes !== 'undefined') {
-        const info = animes.find(a => String(a.id) === String(id));
-        if (info?.genres) genreHtml = info.genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
-        if (info?.rating) initialRating = info.rating;
-      }
-      let ratingDisplay = initialRating ? initialRating.toFixed(1) : '--';
-      let voteCountDisplay = '(0 votos)';
-      
-      let html = `
-        <div class="anime-cover"><img src="${anime.cover}" alt="cover" loading="lazy" decoding="async"></div>
-        <h1>${anime.title}</h1>
-        <div class="genres-wrap">${genreHtml || '<span class="genre-chip">Sin géneros</span>'}</div>
-        <p class="desc">${anime.desc}</p>
-        <div class="rating-section">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-            <div class="rating-stats">
-              <span id="ratingLabel">Valoración media:</span>
-              <span id="averageRatingDisplay">${ratingDisplay}</span>
-              <span id="voteCountDisplay">${voteCountDisplay}</span>
-            </div>
-            <div id="starRatingWidget" style="display:flex; gap:8px;"></div>
-          </div>
-          <div id="ratingMessage"></div>
-        </div>
-      `;
-      if (anime.seasons) {
-        anime.seasons.forEach((s, idx) => {
-          html += `
-            <details data-season-index="${idx}" data-anime-id="${id}">
-              <summary>${s.name || 'Temporada ' + s.num}</summary>
-              <div class="season-content">
-                ${s.cover ? `<img src="${s.cover}" style="width:100%; border-radius:12px; margin-bottom:15px;" loading="lazy" decoding="async">` : ''}
-                <div class="video-list" id="list-${idx}"></div>
-                <div id="loading-${idx}" style="display:none; text-align:center; padding:10px;">Cargando...</div>
-              </div>
-            </details>
-          `;
-        });
-      }
-      container.innerHTML = html;
-      renderRecommendations(id);
-      (async () => {
-        await loadAnimeRating(id);
-        if (currentUserId) await loadUserRating(id, currentUserId);
-        if (animeRatingData.avg !== initialRating) updateRatingDisplay();
-      })();
-    } else {
-      container.innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
-    }
-  }
-
-  // Función para actualizar el texto de valoración según el promedio
-  function updateRatingLabel(avg) {
-    const labelSpan = document.getElementById('ratingLabel');
-    if (!labelSpan) return;
-    let text = 'Valoración media:';
-    let color = '#ccc';
-    if (avg >= 1 && avg <= 2.9) {
-      text = '⭐ Valoración baja';
-      color = '#ff8888';
-    } else if (avg >= 3 && avg <= 4.0) {
-      text = '👍 Valoración media';
-      color = '#ffcc88';
-    } else if (avg >= 4.1 && avg <= 5) {
-      text = '🔥 Valoración alta';
-      color = '#ffaa44';
-    }
-    labelSpan.innerHTML = text;
-    labelSpan.style.color = color;
-  }
-
-  window.toggleSeason = async function(details, animeId, seasonIdx) {
-    if (!details.open) return;
-    playUISound('click');
-    const list = details.querySelector('.video-list');
-    if (list.children.length) return;
-    const loading = details.querySelector(`#loading-${seasonIdx}`);
-    if (loading) loading.style.display = 'block';
-    const episodes = data[animeId].seasons[seasonIdx].eps;
-    const total = episodes.length;
-    const seasonNum = data[animeId].seasons[seasonIdx].num;
-    let watched = await loadWatchedEpisodes(animeId);
-    let processed = 0;
-    const CHUNK = 30;
-    
-    function chunk() {
-      const frag = document.createDocumentFragment();
-      const end = Math.min(processed+CHUNK, total);
-      for (let i=processed; i<end; i++) {
-        const ep = episodes[i];
-        const epNum = i+1;
-        const isWatched = watched[seasonNum]?.includes(epNum);
-        const btn = document.createElement('a');
-        btn.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
-        btn.className = 'ep-btn' + (isWatched ? ' watched' : '');
-        btn.onmouseenter = () => playUISound('hover');
-        
-        const action = document.createElement('button');
-        action.className = 'ep-action-btn';
-        action.innerHTML = isWatched ? '<i class="fas fa-trash-alt"></i>' : '<i class="fas fa-check-circle"></i>';
-        action.onclick = async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (isWatched) await removeEpisodeWatched(animeId, seasonNum, epNum);
-          else await markEpisodeWatched(animeId, seasonNum, epNum);
-          await reloadSeason(details, animeId, seasonIdx);
-        };
-        btn.appendChild(action);
-        
-        const span = document.createElement('span');
-        span.textContent = `▶ ${ep.title}`;
-        btn.appendChild(span);
-        if (isWatched) {
-          const tag = document.createElement('div');
-          tag.className = 'watched-tag';
-          tag.innerHTML = '<i class="fas fa-check"></i> VISTO';
-          btn.appendChild(tag);
-        }
-        frag.appendChild(btn);
-      }
-      list.appendChild(frag);
-      processed += CHUNK;
-      if (processed < total) requestAnimationFrame(chunk);
-      else if (loading) loading.style.display = 'none';
-    }
-    requestAnimationFrame(chunk);
+  // Funciones básicas globales que necesita el HTML
+  window.playUISound = function(type) {
+    // Se definirá en anime-detail-core.js, pero dejamos placeholder
+    if (window._playUISound) window._playUISound(type);
   };
-
-  function attachDetails() {
-    document.querySelectorAll('details').forEach(d => {
-      if (d.hasAttribute('data-listener')) return;
-      d.setAttribute('data-listener', 'true');
-      const animeId = d.dataset.animeId;
-      const idx = d.dataset.seasonIndex;
-      if (animeId && idx) d.ontoggle = () => toggleSeason(d, animeId, parseInt(idx));
-    });
-  }
-  const observer = new MutationObserver(attachDetails);
-  observer.observe(document.getElementById('contenido'), { childList: true, subtree: true });
-  attachDetails();
-
-  document.getElementById('share-detail')?.addEventListener('click', () => {
-    playUISound('click');
-    navigator.clipboard.writeText(location.href);
-    showToast('Enlace copiado');
-  });
-
-  function renderRecommendations(currentId) {
-    const grid = document.getElementById('rec-grid');
-    const keys = Object.keys(data).filter(k => k != currentId);
-    const random = keys.sort(()=>0.5-Math.random()).slice(0,12);
-    if (!random.length) { grid.innerHTML = '<p style="color:#666;">Sin recomendaciones</p>'; return; }
-    grid.innerHTML = random.map(k => `
-      <div class="rec-card" onclick="playUISound('click'); location.href='anime-detail.html?id=${k}'" onmouseenter="playUISound('hover')">
-        <img src="${data[k].cover}" alt="${data[k].title}" loading="lazy" decoding="async">
-        <p>${data[k].title}</p>
-      </div>
-    `).join('');
-  }
-  function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  // ---------- BÚSQUEDA RÁPIDA CON DROPDOWN FLOTANTE (FIX MÓVIL Y OPTIMIZADA) ----------
-  if (typeof data !== 'undefined') {
-    const searchInput = document.getElementById('quick-search');
-    let floatingDropdown = null;
-    let isScrolling = false;
-
-    function createFloatingDropdown() {
-      if (floatingDropdown) floatingDropdown.remove();
-      floatingDropdown = document.createElement('div');
-      floatingDropdown.className = 'floating-dropdown';
-      document.body.appendChild(floatingDropdown);
-      return floatingDropdown;
-    }
-
-    function updateDropdownPosition() {
-      if (!floatingDropdown || floatingDropdown.style.display === 'none') return;
-      const rect = searchInput.getBoundingClientRect();
-      let top = rect.bottom + window.scrollY + 5;
-      let left = rect.left + window.scrollX;
-      
-      const dropdownWidth = floatingDropdown.offsetWidth;
-      const viewportWidth = window.innerWidth;
-      
-      if (left + dropdownWidth > viewportWidth - 10) {
-        left = viewportWidth - dropdownWidth - 10;
-      }
-      if (left < 10) left = 10;
-      
-      floatingDropdown.style.top = top + 'px';
-      floatingDropdown.style.left = left + 'px';
-      
-      if (window.innerWidth <= 768) {
-        floatingDropdown.style.width = '90%';
-        floatingDropdown.style.left = '5%';
-        floatingDropdown.style.right = '5%';
-      } else {
-        floatingDropdown.style.width = rect.width + 'px';
-      }
-    }
-
-    function showDropdown(results) {
-      if (!floatingDropdown) createFloatingDropdown();
-      if (!results.length) {
-        floatingDropdown.style.display = 'none';
-        return;
-      }
-      floatingDropdown.innerHTML = results.map(item => `
-        <div class="search-item" data-id="${item.id}">
-          <img src="${item.cover}" loading="lazy" decoding="async">
-          <div class="search-item-info">
-            <span class="search-item-title">${item.title}</span>
-          </div>
-        </div>
-      `).join('');
-      
-      floatingDropdown.querySelectorAll('.search-item').forEach(el => {
-        el.addEventListener('click', () => {
-          const id = el.dataset.id;
-          window.location.href = `anime-detail.html?id=${id}`;
-        });
-        el.addEventListener('mouseenter', () => playUISound('hover'));
-      });
-      
-      updateDropdownPosition();
-      floatingDropdown.style.display = 'block';
-    }
-
-    function hideDropdown() {
-      if (floatingDropdown) floatingDropdown.style.display = 'none';
-    }
-
-    searchInput.addEventListener('input', function() {
-      const q = this.value.toLowerCase().trim();
-      if (!q) {
-        hideDropdown();
-        return;
-      }
-      const currentId = new URLSearchParams(location.search).get('id');
-      const matches = Object.entries(data)
-        .filter(([id, a]) => a.title.toLowerCase().startsWith(q) && id !== currentId)
-        .map(([id, a]) => ({ id, title: a.title, cover: a.cover }));
-      showDropdown(matches);
-    });
-
-    // Eventos pasivos y debounced con requestAnimationFrame para evitar lag al scrollear
-    const scrollHandler = () => {
-      if (!isScrolling) {
-        window.requestAnimationFrame(() => {
-          updateDropdownPosition();
-          isScrolling = false;
-        });
-        isScrolling = true;
-      }
-    };
-
-    window.addEventListener('resize', scrollHandler, { passive: true });
-    window.addEventListener('scroll', scrollHandler, { passive: true });
-    
-    document.addEventListener('click', (e) => {
-      if (!searchInput.contains(e.target) && !floatingDropdown?.contains(e.target)) {
-        hideDropdown();
-      }
-    });
-    
-    searchInput.addEventListener('focus', () => {
-      if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input'));
-    });
-  }
-
-  // ---------- AUTENTICACIÓN Y RECARGA ----------
-  auth.onAuthStateChanged(async (user) => {
-    currentUserId = user ? user.uid : null;
-    authReady = true;
-    if (currentAnimeId && data[currentAnimeId]) {
-      const details = document.querySelectorAll('details');
-      for (let d of details) {
-        if (d.open) {
-          const aid = d.dataset.animeId;
-          const sidx = d.dataset.seasonIndex;
-          if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
-        }
-      }
-      if (typeof loadUserRating === 'function') {
-        await loadUserRating(currentAnimeId, currentUserId);
-        if (typeof renderStars === 'function') renderStars(currentUserRating || 0);
-      }
-    }
-  });
-
-  window.addEventListener('pageshow', async () => {
-    if (currentAnimeId && data[currentAnimeId]) {
-      const details = document.querySelectorAll('details');
-      for (let d of details) {
-        if (d.open) {
-          const aid = d.dataset.animeId;
-          const sidx = d.dataset.seasonIndex;
-          if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
-        }
-      }
-    }
-  });
-
-  // ---------- SISTEMA DE VOTACIÓN CON TOGGLE Y VALORACIÓN DINÁMICA ----------
-  let currentUserRating = null;
-  let animeRatingData = { avg: 0, count: 0 };
-  
-  async function loadAnimeRating(animeId) {
-    const doc = await db.collection('animeRatings').doc(String(animeId)).get();
-    if (doc.exists) {
-      animeRatingData = doc.data();
-    } else {
-      if (typeof animes !== 'undefined') {
-        const info = animes.find(a => String(a.id) === String(animeId));
-        if (info?.rating) {
-          animeRatingData = { avg: info.rating, count: 1 };
-          await db.collection('animeRatings').doc(String(animeId)).set({ avg: info.rating, count: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        }
-      }
-    }
-    updateRatingDisplay();
-    updateRatingLabel(animeRatingData.avg);
-  }
-
-  function updateRatingDisplay() {
-    const avgSpan = document.getElementById('averageRatingDisplay');
-    const countSpan = document.getElementById('voteCountDisplay');
-    if (avgSpan) avgSpan.textContent = animeRatingData.avg.toFixed(1);
-    if (countSpan) countSpan.textContent = `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
-    updateRatingLabel(animeRatingData.avg);
-  }
-
-  function renderStars(currentValue = 0) {
-    const container = document.getElementById('starRatingWidget');
-    if (!container) return;
-    container.innerHTML = '';
-    for (let i=1; i<=5; i++) {
-      const star = document.createElement('i');
-      star.className = 'fas fa-star star';
-      if (currentValue >= i) star.classList.add('selected');
-      star.setAttribute('data-value', i);
-      if (!currentUserId) star.classList.add('disabled');
-      else {
-        star.addEventListener('mouseenter', () => highlightStars(i));
-        star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
-        star.addEventListener('click', () => voteAnime(i));
-      }
-      container.appendChild(star);
-    }
-  }
-
-  function highlightStars(val) {
-    document.querySelectorAll('#starRatingWidget .star').forEach((s, idx) => { if (idx < val) s.classList.add('hover'); else s.classList.remove('hover'); });
-  }
-
-  function resetStars(val) {
-    document.querySelectorAll('#starRatingWidget .star').forEach((s, idx) => {
-      s.classList.remove('hover');
-      if (idx < val) s.classList.add('selected'); else s.classList.remove('selected');
-    });
-  }
-
-  async function voteAnime(newVal) {
-    if (!currentUserId) {
-      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
-      return;
-    }
-    const animeId = currentAnimeId;
-    const ratingRef = db.collection('animeRatings').doc(String(animeId));
-    const userRef = ratingRef.collection('userRatings').doc(currentUserId);
-    
-    try {
-      await db.runTransaction(async (t) => {
-        const ratingDoc = await t.get(ratingRef);
-        const userDoc = await t.get(userRef);
-        let oldValue = userDoc.exists ? userDoc.data().value : null;
-        let newAvg = animeRatingData.avg;
-        let newCount = animeRatingData.count;
-        
-        if (oldValue !== null && oldValue === newVal) {
-          if (newCount > 1) {
-            newAvg = (newAvg * newCount - oldValue) / (newCount - 1);
-            newCount--;
-          } else {
-            newAvg = 0;
-            newCount = 0;
-          }
-          t.delete(userRef);
-          if (newCount === 0) {
-            t.delete(ratingRef);
-            animeRatingData = { avg: 0, count: 0 };
-            currentUserRating = null;
-          } else {
-            t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-            animeRatingData = { avg: newAvg, count: newCount };
-            currentUserRating = null;
-          }
-          document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
-        } 
-        else {
-          if (oldValue !== null) {
-            newAvg = (newAvg * newCount - oldValue + newVal) / newCount;
-          } else {
-            newAvg = (newAvg * newCount + newVal) / (newCount + 1);
-            newCount++;
-          }
-          t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-          t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-          animeRatingData = { avg: newAvg, count: newCount };
-          currentUserRating = newVal;
-          document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
-        }
-      });
-      updateRatingDisplay();
-      renderStars(currentUserRating || 0);
-      setTimeout(() => {
-        const msg = document.getElementById('ratingMessage');
-        if (msg.innerHTML.includes('Gracias') || msg.innerHTML.includes('eliminado')) {
-          msg.innerHTML = '';
-        }
-      }, 3000);
-    } catch(e) { 
-      console.error(e); 
-      document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-times-circle"></i> Error al procesar el voto.';
-    }
-  }
-
-  async function loadUserRating(animeId, userId) {
-    if (!userId) return;
-    const doc = await db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId).get();
-    currentUserRating = doc.exists ? doc.data().value : null;
-    renderStars(currentUserRating || 0);
-  }
+  window.escapeHtml = function(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
 </script>
 </body>
 </html>
