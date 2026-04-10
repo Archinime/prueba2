@@ -1,4 +1,4 @@
-// anime-detail-core.js - Versión Firestore (robusta)
+// anime-detail-core.js - Versión Firestore (calificación por defecto + búsqueda corregida)
 // Obtiene datos desde la colección 'catalogo'
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -216,13 +216,17 @@ async function loadAnimeRating(animeId) {
   if (doc.exists) {
     animeRatingData = doc.data();
   } else {
+    // Si no existe en animeRatings, usar el rating del catálogo
     if (animeData?.rating != null) {
       animeRatingData = { avg: animeData.rating, count: 1 };
+      // Guardar en Firestore para futuras consultas
       await db.collection('animeRatings').doc(String(animeId)).set({
         avg: animeData.rating,
         count: 1,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
+    } else {
+      animeRatingData = { avg: 0, count: 0 };
     }
   }
   updateRatingDisplay();
@@ -435,7 +439,7 @@ async function renderMainContent() {
   });
 }
 
-// ---------- BÚSQUEDA RÁPIDA (Firestore) ----------
+// ---------- BÚSQUEDA RÁPIDA (Firestore, sin índices) ----------
 function initSearch() {
   const searchInput = document.getElementById('quick-search');
   let floatingDropdown = null;
@@ -491,15 +495,17 @@ function initSearch() {
     const q = this.value.trim().toLowerCase();
     if (!q) { hideDropdown(); return; }
     try {
+      // Obtener primeros 30 animes ordenados por título (sin filtros complejos)
       const snapshot = await db.collection('catalogo')
         .orderBy('title')
-        .startAt(q)
-        .endAt(q + '\uf8ff')
-        .limit(10)
+        .limit(30)
         .get();
-      const matches = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(a => a.id !== currentAnimeId);
+      const all = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Filtrar en cliente
+      const matches = all.filter(a => 
+        a.id !== currentAnimeId && 
+        a.title.toLowerCase().includes(q)
+      ).slice(0, 10);
       showDropdown(matches);
     } catch(e) {
       console.error('Error en búsqueda:', e);
