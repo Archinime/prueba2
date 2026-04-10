@@ -1,4 +1,4 @@
-/* Archivo: script-index.js - Versión Firestore con paginación y filtros */
+/* Archivo: script-index.js - Versión Firestore con paginación, filtros y correcciones */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -38,7 +38,8 @@ function render(list, append = false) {
         card.setAttribute('role', 'link');
         card.setAttribute('tabindex', '0');
         
-        const rating = a.rating ? a.rating.toFixed(1) : '—';
+        // Mostrar rating o "—" si no existe
+        const rating = (a.rating != null && !isNaN(a.rating)) ? a.rating.toFixed(1) : '—';
         
         card.innerHTML = `
             <img src="${a.img}" alt="${a.title}" loading="lazy">
@@ -165,7 +166,7 @@ async function cargarAnimes(reset = true) {
     } catch (error) {
         console.error('Error cargando animes:', error);
         if (reset) {
-            gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; text-align:center; padding:50px; color:red;">Error al cargar el catálogo</div>';
+            gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; text-align:center; padding:50px; color:red;">Error al cargar el catálogo. Recarga la página.</div>';
         }
     } finally {
         isLoading = false;
@@ -327,15 +328,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ============================================
 // CHROMA + FG LOGIC (sin cambios)
-// ============================================
-// (Todo el código de chroma key, fuegos artificiales, etc. se mantiene exactamente igual)
-// ... (copiar aquí el resto del código original desde "const fgContainer = ..." hasta el final)
-
-// NOTA: Por brevedad no copio todo el bloque de chroma, pero debes mantenerlo íntegro.
-// El código de chroma, fuegos artificiales, etc. NO se modifica, solo se añade la parte de Firestore.
-
-// ============================================
-// INICIALIZACIÓN DE CHROMA (sin cambios)
 // ============================================
 const fgContainer = document.getElementById('fgContainer');
 const fgCanvas = document.getElementById('fgCanvas');
