@@ -1365,43 +1365,84 @@
     if (gridEl) gridObserver.observe(gridEl, { childList: true });
   </script>
 
-  <!-- 6. Actualizar ratings desde Firestore (diferido) -->
+  <!-- 6. Actualizar ratings desde Firestore (CORREGIDO - se ejecuta cada vez que cambia el grid) -->
   <script>
-    (async function updateRatingsFromFirestore() {
-        if (typeof animes === 'undefined') return;
-        const db = firebase.firestore();
-        const snapshot = await db.collection('animeRatings').get();
-        const ratingsMap = new Map();
-        snapshot.forEach(doc => {
+    (function() {
+      // Mapa global de ratings de Firestore
+      const firestoreRatings = new Map();
+      
+      // Función para actualizar el mapa de ratings desde Firestore
+      async function refreshRatingsMap() {
+        try {
+          const snapshot = await db.collection('animeRatings').get();
+          firestoreRatings.clear();
+          snapshot.forEach(doc => {
             const data = doc.data();
-            ratingsMap.set(parseInt(doc.id), {
-                avg: data.avg,
-                count: data.count
+            firestoreRatings.set(parseInt(doc.id), {
+              avg: data.avg,
+              count: data.count
             });
-        });
-        
-        function updateCards() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                const animeId = card.dataset.id;
-                if (animeId && ratingsMap.has(parseInt(animeId))) {
-                    const ratingObj = ratingsMap.get(parseInt(animeId));
-                    const ratingSpan = card.querySelector('.rating-value');
-                    if (ratingSpan) {
-                        ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
-                    }
-                }
-            });
+          });
+        } catch (e) {
+          console.warn('Error al obtener ratings de Firestore:', e);
         }
+      }
+
+      // Función que actualiza todas las cards visibles con el rating correcto
+      function updateCardsWithRatings() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+          const animeId = card.dataset.id;
+          if (!animeId) return;
+          
+          const ratingSpan = card.querySelector('.rating-value');
+          if (!ratingSpan) return;
+          
+          // Prioridad: Firestore > animes.rating
+          if (firestoreRatings.has(parseInt(animeId))) {
+            const ratingObj = firestoreRatings.get(parseInt(animeId));
+            ratingSpan.innerHTML = `⭐ ${ratingObj.avg.toFixed(1)}`;
+          } else if (typeof animes !== 'undefined') {
+            const animeInfo = animes.find(a => String(a.id) === String(animeId));
+            if (animeInfo && typeof animeInfo.rating === 'number') {
+              ratingSpan.innerHTML = `⭐ ${animeInfo.rating.toFixed(1)}`;
+            } else {
+              ratingSpan.innerHTML = `⭐ —`;
+            }
+          } else {
+            ratingSpan.innerHTML = `⭐ —`;
+          }
+        });
+      }
+
+      // Inicialización: obtener ratings de Firestore y luego observar el grid
+      async function initRatings() {
+        await refreshRatingsMap();
+        
+        // Observar cambios en el grid (cuando se filtra/busca)
+        const targetNode = document.getElementById('grid');
+        if (!targetNode) return;
         
         const observer = new MutationObserver(() => {
-            if (document.querySelector('.card')) {
-                updateCards();
-                observer.disconnect();
-            }
+          // Pequeño retraso para asegurar que el DOM esté actualizado
+          setTimeout(updateCardsWithRatings, 50);
         });
-        observer.observe(document.getElementById('grid'), { childList: true, subtree: true });
-        setTimeout(updateCards, 500);
+        
+        observer.observe(targetNode, { childList: true, subtree: true });
+        
+        // Actualizar inmediatamente si ya hay cards
+        if (document.querySelector('.card')) {
+          updateCardsWithRatings();
+        }
+      }
+
+      // Esperar a que Firestore esté listo y luego iniciar
+      if (typeof db !== 'undefined') {
+        initRatings();
+      } else {
+        // Si db no está listo, esperar un poco
+        setTimeout(initRatings, 500);
+      }
     })();
   </script>
 </body>
