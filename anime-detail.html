@@ -39,7 +39,6 @@
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
         
-        // Limitar a ~10 fps para rendimiento
         if (timestamp - lastUpdate > 100) {
           let currentProgress = (progress / animationDuration) * segments;
           currentProgress %= segments;
@@ -614,23 +613,19 @@
 
 <div id="toast" class="toast">Enlace copiado</div>
 
-<!-- Firebase se carga con defer para no bloquear -->
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- Scripts de datos (esenciales, pero con defer para no bloquear render) -->
-<script defer src="index-data.js?v=20250406"></script>
-<script defer src="anime-detail-data.js?v=20250406"></script>
-<script defer src="musica-data.js?v=20250406"></script>
-<script defer src="users-data.js?v=20250406"></script>
+<!-- Música de fondo (aún usa musica-data.js) -->
+<script src="musica-data.js?v=20250406"></script>
 
-<!-- Lógica principal diferida -->
-<script defer src="anime-detail-core.js?v=20250406"></script>
+<!-- Lógica principal Firestore -->
+<script src="anime-detail-core.js?v=20250406"></script>
 
-<!-- Inicialización mínima inline (no bloqueante) -->
+<!-- Inicialización mínima -->
 <script>
-  // Loader y video (mínimo para que la UI responda rápido)
   window.addEventListener('load', () => {
     const screen = document.getElementById('loading-screen');
     const bgVideo = document.getElementById('bg-video');
@@ -639,9 +634,7 @@
     setTimeout(() => screen.style.display = 'none', 500);
   });
 
-  // Funciones básicas globales que necesita el HTML
   window.playUISound = function(type) {
-    // Se definirá en anime-detail-core.js, pero dejamos placeholder
     if (window._playUISound) window._playUISound(type);
   };
   window.escapeHtml = function(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
