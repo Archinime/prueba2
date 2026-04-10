@@ -121,7 +121,7 @@ async function cargarAnimes(reset = true) {
             query = query.where('genres', 'array-contains', currentFilters.demographic);
         }
         
-        // Ordenar por título (requiere índice en Firestore)
+        // Ordenar por título (requiere índice compuesto: genres Arrays + title Ascending)
         query = query.orderBy('title').limit(20);
         
         if (lastVisible) {
