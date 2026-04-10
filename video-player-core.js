@@ -14,12 +14,15 @@ class VideoPlayer {
     this.storage = null;
     this.currentUser = null;
     
-    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
+    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','�71','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
     this.initFirebase();
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
+    
+    // Exponer la instancia globalmente
+    window.videoPlayer = this;
   }
   
   initFirebase() {
@@ -44,6 +47,8 @@ class VideoPlayer {
     this.auth.onAuthStateChanged(user => {
       this.currentUser = user;
       this.updateCommentFormVisibility();
+      
+      // Inicializar sistemas externos cuando estén listos
       if (typeof initComentariosSystem === 'function') {
         initComentariosSystem(this.db, this.auth);
       }
@@ -77,6 +82,7 @@ class VideoPlayer {
           this.enviarComentario();
         }
       });
+      textarea.addEventListener('input', () => this.validateSendButton());
     }
     
     // Tabs de stickers
@@ -89,6 +95,11 @@ class VideoPlayer {
     if (fileInput) {
       fileInput.addEventListener('change', (e) => this.uploadSticker(e.target.files[0]));
     }
+    
+    // Configurar variables globales para comentarios
+    window.comentariosAnimeId = this.animeId;
+    window.comentariosSeason = this.season;
+    window.comentariosEpisode = this.episode;
   }
   
   loadEpisodeData() {
@@ -118,7 +129,8 @@ class VideoPlayer {
   createServerButton(label, url, isActive) {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
-    btn.className = 'opt-btn' + (isActive ? ' active' : '');
+    const isFirst = container.children.length === 0;
+    btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
     btn.innerText = label;
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
@@ -325,6 +337,7 @@ class VideoPlayer {
     const textarea = document.getElementById('comentarioTexto');
     textarea.value += emoji;
     textarea.focus();
+    this.validateSendButton();
   }
   
   toggleStickerPanel() {
@@ -337,7 +350,7 @@ class VideoPlayer {
   
   switchStickerTab(tabId) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.sticker-tab[data-tab="${tabId}"]`).classList.add('active');
+    document.querySelector(`.sticker-tab[onclick*="${tabId}"]`).classList.add('active');
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab').classList.add('active');
   }
@@ -348,25 +361,48 @@ class VideoPlayer {
       alert('Inicia sesión para subir stickers');
       return;
     }
-    // Lógica de subida (delegada a stickers-system.js si existe)
-    if (typeof subirStickerPersonalizado === 'function') {
-      await subirStickerPersonalizado(file, this.currentUser.uid);
+    if (typeof subirStickerDesdePC === 'function') {
+      // La función original espera el input, simulamos
+      const fakeInput = { files: [file] };
+      await subirStickerDesdePC(fakeInput);
+    }
+  }
+  
+  validateSendButton() {
+    const textarea = document.getElementById('comentarioTexto');
+    const btn = document.getElementById('enviarComentarioBtn');
+    if (textarea && btn) {
+      const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
+      btn.disabled = !hasContent;
+      btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
   
   enviarComentario() {
     if (typeof enviarComentarioTexto === 'function') {
       enviarComentarioTexto();
-    } else {
-      alert('Sistema de comentarios no disponible');
     }
+  }
+  
+  quitarStickerPreview() {
+    if (typeof quitarStickerPreview === 'function') {
+      quitarStickerPreview();
+    }
+    this.validateSendButton();
   }
 }
 
-// Inicializar cuando todo esté listo
-window.addEventListener('load', () => {
-  window.videoPlayer = new VideoPlayer();
-  
-  // Exponer funciones globales que usan los onclick
-  window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
-});
+// Inicializar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
+} else {
+  new VideoPlayer();
+}
+
+// Exponer funciones globales para mantener compatibilidad con los scripts existentes
+window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
+window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
+window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
+window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
+window.switchStickerTab = (tab) => window.videoPlayer?.switchStickerTab(tab);
+window.subirStickerDesdePC = (input) => window.videoPlayer?.uploadSticker(input.files[0]);

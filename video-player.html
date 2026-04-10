@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
@@ -50,14 +50,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase (carga normal) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <!-- Firebase (carga diferida) -->
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <style>
     /* ===== VARIABLES Y ESTILOS BASE ===== */
@@ -813,7 +815,7 @@
     <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
       <i class="fas fa-lock" style="font-size: 2rem; color: #888; margin-bottom: 10px;"></i>
       <p>Inicia sesión para comentar y usar stickers</p>
-      <button class="login-link-btn" onclick="openLoginModalFromComent()">
+      <button class="login-link-btn" onclick="window.videoPlayer?.openLoginModal()">
         <i class="fas fa-sign-in-alt"></i> Iniciar sesión / Registrarse
       </button>
     </div>
@@ -826,8 +828,8 @@
 
       <div class="comentario-input-wrapper">
         <textarea id="comentarioTexto" placeholder="Escribe un comentario... (Presiona Enter para enviar)" maxlength="500"></textarea>
-        <button type="button" class="emoji-btn" onclick="toggleEmojiPanelSistema()">😊</button>
-        <button type="button" class="sticker-btn" onclick="toggleStickerPanelSistema()">
+        <button type="button" class="emoji-btn" onclick="window.videoPlayer?.toggleEmojiPanel()">😊</button>
+        <button type="button" class="sticker-btn" onclick="window.videoPlayer?.toggleStickerPanel()">
           <i class="fas fa-sticky-note"></i>
         </button>
       </div>
@@ -836,7 +838,7 @@
         <div class="preview-sticker-wrapper">
           <img id="previewStickerImgObj" src="" style="display: none;">
           <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none;"></video>
-          <button class="remove-sticker-btn" onclick="quitarStickerPreview()" title="Quitar sticker">✖</button>
+          <button class="remove-sticker-btn" onclick="window.videoPlayer?.quitarStickerPreview()" title="Quitar sticker">✖</button>
         </div>
       </div>
 
@@ -844,8 +846,8 @@
 
       <div id="stickerPanelFull" class="sticker-panel-full">
         <div class="sticker-tabs">
-          <button class="sticker-tab active" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
-          <button class="sticker-tab" onclick="switchStickerTab('subir')">➕ SUBIR</button>
+          <button class="sticker-tab active" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
+          <button class="sticker-tab" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
         </div>
         <div id="misStickersTab" class="sticker-tab-content active">
           <div id="userStickersContainer" class="stickers-grid">
@@ -858,7 +860,7 @@
             <label for="stickerFileInput" class="upload-sticker-label">
               <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
             </label>
-            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="subirStickerDesdePC(this)">
+            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none">
             <div id="stickerPreview" style="display:none; margin-top:20px;">
               <img id="previewImage" style="display:none; max-width:150px; border-radius:12px;">
               <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; border-radius:12px;"></video>
@@ -867,7 +869,7 @@
         </div>
       </div>
 
-      <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="enviarComentarioTexto()">
+      <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="window.videoPlayer?.enviarComentario()">
         <i class="fas fa-paper-plane"></i> Enviar Comentario
       </button>
     </div>
@@ -881,7 +883,7 @@
 <!-- Modal de autenticación -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
-    <div class="auth-close" onclick="closeAuthModal()">&times;</div>
+    <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
     <div class="auth-tabs">
       <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
       <div class="auth-tab" data-tab="register">Registrarse</div>
@@ -889,19 +891,19 @@
     <div id="authLoginForm" class="auth-form">
       <input type="email" id="loginEmail" placeholder="Correo electrónico">
       <input type="password" id="loginPassword" placeholder="Contraseña">
-      <button onclick="loginWithEmail()">Iniciar sesión</button>
+      <button onclick="window.videoPlayer?.loginWithEmail()">Iniciar sesión</button>
     </div>
     <div id="authRegisterForm" class="auth-form" style="display:none;">
       <input type="email" id="registerEmail" placeholder="Correo electrónico">
       <input type="password" id="registerPassword" placeholder="Contraseña">
       <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
-      <button onclick="registerWithEmail()">Registrarse</button>
+      <button onclick="window.videoPlayer?.registerWithEmail()">Registrarse</button>
     </div>
     <div class="auth-providers">
-      <div class="provider-btn" onclick="loginWithGoogle()">
+      <div class="provider-btn" onclick="window.videoPlayer?.loginWithGoogle()">
         <i class="fab fa-google"></i> Continuar con Google
       </div>
-      <div class="provider-btn" onclick="loginWithGitHub()">
+      <div class="provider-btn" onclick="window.videoPlayer?.loginWithGitHub()">
         <i class="fab fa-github"></i> Continuar con GitHub
       </div>
     </div>
@@ -909,252 +911,13 @@
   </div>
 </div>
 
-<script>
-  // Configuración de Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
-    authDomain: "login-admin-archinime.firebaseapp.com",
-    projectId: "login-admin-archinime",
-    storageBucket: "login-admin-archinime.firebasestorage.app",
-    messagingSenderId: "938164660242",
-    appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
-  };
-  firebase.initializeApp(firebaseConfig);
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const storage = firebase.storage();
-  const providerGoogle = new firebase.auth.GoogleAuthProvider();
-  const providerGitHub = new firebase.auth.GithubAuthProvider();
+<!-- Carga de scripts externos (con defer para no bloquear) -->
+<script defer src="video-player-data.js?v=20250406"></script>
+<script defer src="stickers-system.js?v=20250406"></script>
+<script defer src="reacciones.js?v=20250406"></script>
+<script defer src="comentarios.js?v=20250406"></script>
 
-  // Emojis
-  const emojisList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','�57','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
-  const emojiPanel = document.getElementById('emojiPanel');
-  if (emojiPanel) {
-    emojiPanel.innerHTML = emojisList.map(e => `<div class="emoji-option" onclick="agregarEmojiAlTexto('${e}')">${e}</div>`).join('');
-  }
-
-  // Funciones de autenticación
-  function closeAuthModal() {
-    document.getElementById('authModal').classList.remove('show');
-    document.getElementById('authError').innerText = '';
-  }
-
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabName = tab.getAttribute('data-tab');
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
-      document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
-      document.getElementById('authError').innerText = '';
-    });
-  });
-
-  async function loginWithEmail() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
-    try {
-      await auth.signInWithEmailAndPassword(email, pass);
-      closeAuthModal();
-    } catch (err) {
-      document.getElementById('authError').innerText = err.message;
-    }
-  }
-
-  async function registerWithEmail() {
-    const email = document.getElementById('registerEmail').value;
-    const pass = document.getElementById('registerPassword').value;
-    const confirm = document.getElementById('registerConfirm').value;
-    if (pass !== confirm) {
-      document.getElementById('authError').innerText = 'Las contraseñas no coinciden';
-      return;
-    }
-    try {
-      await auth.createUserWithEmailAndPassword(email, pass);
-      closeAuthModal();
-    } catch (err) {
-      document.getElementById('authError').innerText = err.message;
-    }
-  }
-
-  async function loginWithGoogle() {
-    try {
-      await auth.signInWithPopup(providerGoogle);
-      closeAuthModal();
-    } catch (err) {
-      document.getElementById('authError').innerText = err.message;
-    }
-  }
-
-  async function loginWithGitHub() {
-    try {
-      await auth.signInWithPopup(providerGitHub);
-      closeAuthModal();
-    } catch (err) {
-      document.getElementById('authError').innerText = err.message;
-    }
-  }
-
-  window.openLoginModalFromComent = function() {
-    document.getElementById('authModal').classList.add('show');
-  };
-</script>
-
-<!-- Carga de scripts externos -->
-<script>
-  const version = Date.now();
-  document.write('<script src="video-player-data.js?v=' + version + '"><\/script>');
-  document.write('<script src="stickers-system.js?v=' + version + '"><\/script>');
-  document.write('<script src="reacciones.js?v=' + version + '"><\/script>');
-  document.write('<script src="comentarios.js?v=' + version + '"><\/script>');
-</script>
-
-<!-- Lógica principal del reproductor -->
-<script>
-  const DB = (typeof players !== 'undefined') ? players : {};
-  const params = new URLSearchParams(location.search);
-  const animeId = params.get('anime');
-  const season = params.get('s');
-  const episode = params.get('e');
-  const backLink = document.getElementById('backLink');
-
-  window.comentariosAnimeId = animeId;
-  window.comentariosSeason = season;
-  window.comentariosEpisode = episode;
-
-  if (backLink && animeId) backLink.href = `anime-detail.html?id=${animeId}`;
-
-  const epData = DB[animeId]?.[season]?.[episode];
-
-  function isMobileDevice() {
-    return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
-  }
-
-  function generateDirectDownloadLink(url) {
-    if (!url) return "#";
-    if (url.includes("drive.google.com")) {
-      const match = url.match(/\/d\/(.+?)\//);
-      if (match) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download`;
-    }
-    if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
-    return url;
-  }
-
-  function updateDownloadButton(url) {
-    const dlBtn = document.getElementById('downloadBtn');
-    const directLink = generateDirectDownloadLink(url);
-    dlBtn.href = directLink;
-    if (isMobileDevice()) dlBtn.setAttribute("target", "_blank");
-  }
-
-  function createOptionBtn(label, url, isActive) {
-    const container = document.getElementById('serverOptions');
-    const btn = document.createElement('button');
-    const isFirst = container.children.length === 0;
-    btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
-    btn.innerText = label;
-    btn.onclick = () => {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateDownloadButton(url);
-      loadVideo(url);
-    };
-    container.appendChild(btn);
-  }
-
-  function loadVideo(url) {
-    const container = document.getElementById('mediaContainer');
-    container.innerHTML = '';
-    if (!url) return;
-    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    if (isVideoFile && !url.includes('drive.google.com')) {
-      const video = document.createElement('video');
-      video.src = url;
-      video.controls = true;
-      video.style.width = '100%';
-      video.style.height = '100%';
-      container.appendChild(video);
-    } else {
-      const iframe = document.createElement('iframe');
-      iframe.src = url;
-      iframe.allow = "autoplay; fullscreen";
-      iframe.allowFullscreen = true;
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      container.appendChild(iframe);
-    }
-  }
-
-  function setupNavigation() {
-    if (!DB[animeId]) return;
-    let flatList = [];
-    Object.keys(DB[animeId]).sort((a,b)=>Number(a)-Number(b)).forEach(sKey => {
-      Object.keys(DB[animeId][sKey]).sort((a,b)=>Number(a)-Number(b)).forEach(eKey => {
-        flatList.push({ s: sKey, e: eKey });
-      });
-    });
-    const idx = flatList.findIndex(i => String(i.s) === String(season) && String(i.e) === String(episode));
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    if (idx > 0) {
-      prevBtn.classList.remove('btn-hidden');
-      prevBtn.href = `?anime=${animeId}&s=${flatList[idx-1].s}&e=${flatList[idx-1].e}`;
-    }
-    if (idx < flatList.length - 1) {
-      nextBtn.classList.remove('btn-hidden');
-      nextBtn.href = `?anime=${animeId}&s=${flatList[idx+1].s}&e=${flatList[idx+1].e}`;
-    }
-  }
-
-  const autoMarkEpisodeWatched = () => {
-    const aId = params.get('anime');
-    const sNum = parseInt(params.get('s'));
-    const eNum = parseInt(params.get('e'));
-    if (!aId || isNaN(sNum) || isNaN(eNum)) return;
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const docRef = db.collection('watchHistory').doc(user.uid);
-          const doc = await docRef.get();
-          let data = doc.exists ? doc.data() : {};
-          let animeData = data[aId] || {};
-          let seasonData = animeData[sNum] || [];
-          if (!seasonData.includes(eNum)) {
-            seasonData.push(eNum);
-            animeData[sNum] = seasonData;
-            data[aId] = animeData;
-            await docRef.set(data, { merge: true });
-          }
-        } catch (e) {}
-      } else {
-        localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
-      }
-    });
-  };
-
-  if (epData) {
-    document.title = `Ver ${epData.title} - Archinime`;
-    document.getElementById('epTitle').innerText = epData.title;
-    const initialLink = epData.link || epData.link2;
-    updateDownloadButton(initialLink);
-    loadVideo(initialLink);
-    document.getElementById('serverOptions').innerHTML = '';
-    if(epData.link) createOptionBtn("Latino", epData.link, true);
-    if(epData.link2) createOptionBtn("Opcion 2", epData.link2, !epData.link);
-    setupNavigation();
-    autoMarkEpisodeWatched();
-
-    const checkScriptsInterval = setInterval(() => {
-      if (typeof initStickersSystem === 'function' && typeof initComentariosSystem === 'function') {
-        clearInterval(checkScriptsInterval);
-        initStickersSystem(db, auth);
-        initComentariosSystem(db, auth);
-      }
-    }, 100);
-  } else {
-    document.getElementById('epTitle').innerText = "No encontrado";
-  }
-</script>
+<!-- Núcleo del reproductor (optimizado) -->
+<script defer src="video-player-core.js?v=20250406"></script>
 </body>
 </html>
