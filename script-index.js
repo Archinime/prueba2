@@ -1,4 +1,4 @@
-/* Archivo: script-index.js - Versión Firestore con paginación, filtros y demografía normalizada */
+/* Archivo: script-index.js - Versión Firestore con paginación, filtros cliente y demografía normalizada */
 
 // ============================================
 // VARIABLES GLOBALES PARA FIRESTORE
@@ -111,17 +111,10 @@ async function cargarAnimes(reset = true) {
     }
     
     try {
-        let query = db.collection('catalogo');
-        
-        // Filtros de Firestore (solo los que soporta nativamente)
-        if (currentFilters.genre) {
-            query = query.where('genres', 'array-contains', currentFilters.genre);
-        }
-        // NOTA: La demografía NO se filtra en Firestore porque puede haber diferencias de acentos.
-        // Se aplicará en cliente más abajo.
-        
-        // Ordenar por título (requiere índice compuesto: genres Arrays + title Ascending)
-        query = query.orderBy('title').limit(20);
+        // Consulta base SIN filtros (solo paginación y orden)
+        let query = db.collection('catalogo')
+                      .orderBy('title')
+                      .limit(20);
         
         if (lastVisible) {
             query = query.startAfter(lastVisible);
@@ -139,15 +132,37 @@ async function cargarAnimes(reset = true) {
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Filtros adicionales en cliente (búsqueda, rating y demografía)
+        // === TODOS LOS FILTROS SE APLICAN EN CLIENTE ===
+        const normalize = (s) => {
+            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        };
+        
+        // 1. Filtro por género
+        if (currentFilters.genre) {
+            const targetGenre = normalize(currentFilters.genre);
+            animes = animes.filter(a => 
+                (a.genres || []).some(g => normalize(g) === targetGenre)
+            );
+        }
+        
+        // 2. Filtro por demografía
+        if (currentFilters.demographic) {
+            const targetDemo = normalize(currentFilters.demographic);
+            animes = animes.filter(a => 
+                (a.genres || []).some(g => normalize(g) === targetDemo)
+            );
+        }
+        
+        // 3. Filtro por búsqueda
         if (currentFilters.search) {
-            const searchTerm = normalizeText(currentFilters.search);
+            const searchTerm = normalize(currentFilters.search);
             animes = animes.filter(a => {
                 const titles = [a.title, ...(a.aliases || [])];
-                return titles.some(t => normalizeText(t).includes(searchTerm));
+                return titles.some(t => normalize(t).includes(searchTerm));
             });
         }
         
+        // 4. Filtro por rating
         if (currentFilters.rating) {
             animes = animes.filter(a => {
                 const rating = a.rating || 0;
@@ -155,17 +170,6 @@ async function cargarAnimes(reset = true) {
                 if (currentFilters.rating === 'good') return rating >= 4.6 && rating < 4.8;
                 if (currentFilters.rating === 'regular') return rating < 4.6;
                 return true;
-            });
-        }
-
-        // FILTRO DE DEMOGRAFÍA NORMALIZADO (cliente)
-        if (currentFilters.demographic) {
-            const normalize = (s) => {
-                return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            };
-            const target = normalize(currentFilters.demographic);
-            animes = animes.filter(a => {
-                return (a.genres || []).some(g => normalize(g) === target);
             });
         }
         
