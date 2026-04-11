@@ -729,7 +729,7 @@
     })();
   </script>
 
-  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO BÚSQUEDA POR ALIAS) ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO - ERROR toFixed) ===== -->
   <script>
     // Variables de paginación (solo para vista sin filtros)
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -749,14 +749,19 @@
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
-    // Cargar ratings desde Firestore
+    // Cargar ratings desde Firestore (con validación de campos)
     async function loadRatingsFromFirestore() {
       try {
         const snapshot = await db.collection('animeRatings').get();
         firestoreRatings.clear();
         snapshot.forEach(doc => {
           const data = doc.data();
-          firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count });
+          // Solo almacenar si avg es un número válido
+          if (typeof data.avg === 'number' && !isNaN(data.avg)) {
+            firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
+          } else {
+            console.warn(`Documento ${doc.id} en animeRatings tiene avg inválido:`, data.avg);
+          }
         });
         console.log(`📊 Ratings cargados: ${firestoreRatings.size}`);
       } catch (e) {
@@ -764,16 +769,30 @@
       }
     }
 
-    // Obtener el rating a mostrar para un anime
+    // Obtener el rating a mostrar (NUNCA lanza error)
     function getDisplayRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
-        return firestoreRatings.get(animeId).avg.toFixed(1);
+        const ratingObj = firestoreRatings.get(animeId);
+        if (ratingObj && typeof ratingObj.avg === 'number') {
+          return ratingObj.avg.toFixed(1);
+        }
       }
-      if (anime.rating != null && !isNaN(anime.rating)) {
+      if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) {
         return anime.rating.toFixed(1);
       }
       return '—';
+    }
+
+    // Obtener rating numérico para filtrar (0 si no existe)
+    function getNumericRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const avg = firestoreRatings.get(animeId).avg;
+        if (typeof avg === 'number') return avg;
+      }
+      if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
+      return 0;
     }
 
     // Renderizar tarjetas
@@ -819,38 +838,29 @@
     function resetearFiltros() {
       searchInput.value = ''; genreSelect.value = ''; demographicSelect.value = ''; ratingSelect.value = '';
       currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-      // Volver a la vista paginada sin filtros
       cargarAnimesPaginado(true);
     }
 
-    // ===== BÚSQUEDA Y FILTROS (CON ALIAS EN CLIENTE) =====
+    // Búsqueda y filtros (con alias en cliente)
     async function aplicarFiltros() {
-      gridEl.innerHTML = ''; // Limpiar grid
+      gridEl.innerHTML = '';
       isLoading = true;
       try {
         let query = db.collection('catalogo');
         let hasFilters = false;
 
-        // Filtro de género (array-contains)
         if (currentFilters.genre) {
           query = query.where('genres', 'array-contains', currentFilters.genre);
           hasFilters = true;
         }
-
-        // Filtro de demografía (array-contains)
         if (currentFilters.demographic) {
           query = query.where('genres', 'array-contains', currentFilters.demographic);
           hasFilters = true;
         }
-
-        // Ordenar por título
         query = query.orderBy('title');
-
-        // Obtener hasta 200 resultados (suficiente para mostrar)
         const snapshot = await query.limit(200).get();
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // Filtro de búsqueda (título y alias) en cliente
         if (currentFilters.search) {
           const searchTermNormalized = normalizeText(currentFilters.search);
           animes = animes.filter(a => {
@@ -860,10 +870,9 @@
           hasFilters = true;
         }
 
-        // Filtro por rating (cliente)
         if (currentFilters.rating) {
           animes = animes.filter(a => {
-            const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
+            const r = getNumericRating(a);
             if (currentFilters.rating === 'excellent') return r >= 4.8;
             if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
             if (currentFilters.rating === 'regular') return r < 4.6;
@@ -876,7 +885,6 @@
           renderAnimes(animes, false);
           if (animes.length === 0) mostrarNoResultados();
         } else {
-          // Sin filtros, usar paginación normal
           cargarAnimesPaginado(true);
         }
       } catch (e) {
@@ -901,14 +909,12 @@
         let query = db.collection('catalogo').orderBy('title').limit(20);
         if (lastVisible) query = query.startAfter(lastVisible);
         const snapshot = await query.get();
-
         if (snapshot.empty) {
           hasMore = false;
           if (reset) mostrarNoResultados();
           isLoading = false;
           return;
         }
-
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         renderAnimes(animes, !reset);
@@ -921,7 +927,6 @@
       }
     }
 
-    // Debounce para búsqueda
     function debouncedAplicarFiltros() {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => aplicarFiltros(), 300);
@@ -945,7 +950,7 @@
       aplicarFiltros();
     });
 
-    // Scroll infinito solo cuando NO hay filtros activos
+    // Scroll infinito solo si no hay filtros activos
     window.addEventListener('scroll', () => {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
