@@ -11,71 +11,140 @@
       --neon-purple: #bc13fe;
       --dark-bg: #050505;
     }
+    
     body {
-      margin: 0; padding: 0;
+      margin: 0; 
+      padding: 0;
       background-color: var(--dark-bg);
-      background-image: radial-gradient(circle at center, #111116, #000000);
+      background-image: radial-gradient(circle at center, #111116 0%, #020202 100%);
       height: 100vh;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
+      display: flex; 
+      flex-direction: column;
+      justify-content: center; 
+      align-items: center;
       font-family: 'Orbitron', sans-serif;
-      color: white; overflow: hidden;
+      color: white; 
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Efecto de líneas de escaneo Cyberpunk de fondo */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 1;
     }
     
     /* Contenedor del Gato */
     .cat-loader-wrapper {
       position: relative;
-      width: 180px; /* Tamaño del gato */
+      width: 180px; 
       height: 180px;
-      margin-bottom: 20px;
-      /* El resplandor se aplica DESPUÉS de colorearlo con SVG */
-      filter: drop-shadow(0 0 20px var(--neon-cyan));
-      animation: runCat 1s infinite alternate ease-in-out;
+      margin-bottom: 10px;
+      z-index: 2;
+      /* Glow general suavizado */
+      filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6));
+      animation: runCat 0.8s infinite alternate ease-in-out;
     }
 
     .cat-loader-img {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      /* AQUÍ ESTÁ LA MAGIA: Aplica el filtro SVG definido abajo */
+      /* Aplica el nuevo filtro inteligente */
       filter: url(#magic-cyan-cat);
     }
 
+    /* Textos y contadores */
+    .loader-text-container {
+      z-index: 2;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
     .loader-sub {
-      font-size: 1.2rem;
-      color: var(--neon-cyan);
-      letter-spacing: 5px;
-      text-shadow: 0 0 15px var(--neon-cyan);
+      font-size: 1.4rem;
+      color: white;
+      letter-spacing: 6px;
+      text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
       animation: pulseText 1.5s infinite;
     }
 
+    .loader-percentage {
+      font-size: 0.85rem;
+      color: var(--neon-purple);
+      letter-spacing: 2px;
+      font-weight: 700;
+      text-shadow: 0 0 8px var(--neon-purple);
+    }
+
+    /* Barra de progreso */
     .loader-line-container {
-      width: 300px; height: 3px;
-      background: rgba(255,255,255,0.1);
-      margin-top: 30px; border-radius: 3px;
+      position: relative;
+      z-index: 2;
+      width: 300px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-top: 25px; 
+      border-radius: 4px;
       overflow: hidden;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+      border: 1px solid rgba(0, 243, 255, 0.2);
     }
 
     .loader-line {
-      width: 0; height: 100%;
-      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
-      box-shadow: 0 0 15px var(--neon-cyan);
-      animation: loadProgress 3s forwards cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0; 
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-cyan), #fff);
+      box-shadow: 0 0 15px var(--neon-cyan), 0 0 5px var(--neon-purple);
+      border-radius: 4px;
+      animation: loadProgress 3s forwards cubic-bezier(0.8, 0, 0.2, 1);
     }
 
-    @keyframes pulseText { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
-    @keyframes loadProgress { 0% { width: 0%; } 100% { width: 100%; } }
-    @keyframes runCat { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+    /* Animaciones */
+    @keyframes pulseText { 
+      0%, 100% { opacity: 0.9; } 
+      50% { opacity: 0.4; } 
+    }
+    @keyframes loadProgress { 
+      0% { width: 0%; opacity: 0;} 
+      10% { opacity: 1; }
+      100% { width: 100%; } 
+    }
+    @keyframes runCat { 
+      0% { transform: translateY(0) scale(1); } 
+      100% { transform: translateY(-10px) scale(1.02); } 
+    }
   </style>
 </head>
 <body>
 
-  <svg width="0" height="0" style="position: absolute;">
+  <svg width="0" height="0" style="position: absolute; display: none;">
     <filter id="magic-cyan-cat">
-      <feColorMatrix type="matrix" values="
+      <feColorMatrix in="SourceGraphic" result="mask" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        -1.2 -1.2 -1.2 0 3
+      "/>
+      <feComposite in="mask" in2="SourceGraphic" operator="in" result="alphaFixed"/>
+      <feColorMatrix in="alphaFixed" type="matrix" values="
         0 0 0 0 0.0     
         0 0 0 0 0.95    
         0 0 0 0 1.0     
-        -3 1 1 0 1      
+        0 0 0 1 0      
       "/>
     </filter>
   </svg>
@@ -83,14 +152,44 @@
   <div class="cat-loader-wrapper">
     <img src="gato.gif" alt="Cargando sistema" class="cat-loader-img">
   </div>
-  <div class="loader-sub">ARCHINIME</div>
-  <div class="loader-line-container"><div class="loader-line"></div></div>
+  
+  <div class="loader-text-container">
+    <div class="loader-sub">ARCHINIME</div>
+    <div class="loader-percentage" id="loading-percentage">0%</div>
+  </div>
+  
+  <div class="loader-line-container">
+    <div class="loader-line"></div>
+  </div>
 
   <script>
-    // Te redirige a tu index principal después de 3 segundos
+    // Lógica para sincronizar el porcentaje numérico con la animación de 3 segundos
+    const percentageEl = document.getElementById('loading-percentage');
+    const duration = 3000; // 3 segundos
+    const intervalTime = 30; // Actualizar cada 30ms para fluidez
+    const step = (100 / (duration / intervalTime));
+    let progress = 0;
+
+    // Simular la carga numérica
+    const counterInterval = setInterval(() => {
+      progress += step;
+      // Añadir un ligero efecto de "pausa/carga irregular" típica de las UI Cyberpunk
+      let displayProgress = progress + (Math.random() * 5 - 2.5); 
+      
+      if (progress >= 100) {
+        displayProgress = 100;
+        clearInterval(counterInterval);
+        percentageEl.innerText = "SISTEMA LISTO";
+        percentageEl.style.color = "var(--neon-cyan)";
+      } else {
+        percentageEl.innerText = Math.max(0, Math.min(99, Math.floor(displayProgress))) + '%';
+      }
+    }, intervalTime);
+
+    // Redirigir al finalizar
     setTimeout(() => {
       window.location.href = 'index.html';
-    }, 3000);
+    }, duration);
   </script>
 </body>
 </html>
