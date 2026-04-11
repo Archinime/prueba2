@@ -145,41 +145,124 @@
       transform: translateZ(0);
     }
 
+    /* Pantalla de carga mejorada (similar a index) */
     #loading-screen {
       position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: #000;
-      z-index: 9999;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0a0a0f 0%, #010101 100%);
+      z-index: 100000;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      transition: opacity 0.5s;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      font-family: 'Orbitron', sans-serif;
+      transition: opacity 0.8s var(--transition-smooth), visibility 0.8s;
+      backdrop-filter: blur(8px);
       will-change: opacity;
     }
-    .loader-glitch {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 3rem;
-      font-weight: 900;
-      letter-spacing: 8px;
-      color: white;
-      text-shadow: 0 0 12px var(--neon-cyan);
-      animation: pulseText 1.2s infinite;
+    #loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-content {
+      text-align: center;
       transform: translateZ(0);
+      animation: fadeInUpLoader 0.8s ease;
+    }
+    .gif-wrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 30px;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+      animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
+      box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
+    }
+    .gif-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #000;
+    }
+    .gif-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .loader-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, #fff, var(--neon-cyan), var(--neon-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(0,243,255,0.5);
+      animation: glitchText 3s infinite;
+    }
+    .loader-percentage {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px var(--neon-cyan);
+      margin-bottom: 20px;
+      font-family: 'Orbitron', monospace;
+    }
+    .loader-line-container {
+      width: 320px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      margin-top: 10px;
+    }
+    .loader-line {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
+      border-radius: 10px;
+      transition: width 0.2s linear;
+      box-shadow: 0 0 12px var(--neon-cyan);
     }
     .loader-sub {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.8rem;
-      color: var(--neon-purple);
-      letter-spacing: 4px;
       margin-top: 20px;
+      font-size: 0.75rem;
+      color: #aaa;
+      letter-spacing: 1px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
     }
-    @keyframes pulseText {
-      0%,100% { opacity: 0.8; text-shadow: 0 0 12px var(--neon-cyan); }
-      50% { opacity: 0.4; text-shadow: 0 0 5px var(--neon-purple); }
+    .loader-sub i {
+      color: var(--neon-purple);
+    }
+    @keyframes spinGradient {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    @keyframes floatAnim {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-12px); }
+    }
+    @keyframes glitchText {
+      0%,100% { opacity: 1; transform: skewX(0deg); }
+      94% { opacity: 1; transform: skewX(0deg); }
+      96% { opacity: 0.8; transform: skewX(6deg); text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--neon-cyan); }
+      98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
+    }
+    @keyframes fadeInUpLoader {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .container {
@@ -197,6 +280,13 @@
       transition: all 0.3s ease;
       animation: fadeInUp 0.6s var(--transition-smooth);
       transform: translateZ(0);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .container.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -585,9 +675,24 @@
 </head>
 <body>
 
+<!-- Pantalla de carga mejorada (con GIF y barra) -->
 <div id="loading-screen">
-  <div class="loader-glitch">ARCHINIME</div>
-  <div class="loader-sub">CARGANDO SISTEMA...</div>
+  <div class="loader-content">
+    <div class="gif-wrapper">
+      <div class="gif-inner">
+        <img src="chica_corriendo.gif" alt="Cargando sistema">
+      </div>
+    </div>
+    <div class="loader-title">ARCHINIME</div>
+    <div class="loader-percentage" id="loadingPercentage">0%</div>
+    <div class="loader-line-container">
+      <div class="loader-line" id="loaderLine"></div>
+    </div>
+    <div class="loader-sub">
+      <span><i class="fas fa-database"></i> Cargando anime</span>
+      <span><i class="fas fa-sync-alt fa-spin"></i> Preparando datos</span>
+    </div>
+  </div>
 </div>
 
 <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
@@ -596,7 +701,7 @@
 <div id="overlay"></div>
 <div id="scanlines"></div>
 
-<div class="container">
+<div class="container" id="mainContainer">
   <div class="top-buttons">
     <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Volver</a>
     <div class="search-container">
@@ -618,26 +723,79 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- Música de fondo (aún usa musica-data.js) -->
+<!-- Música de fondo -->
 <script src="musica-data.js?v=20250406"></script>
 
-<!-- Lógica principal Firestore -->
+<!-- Lógica principal (anime-detail-core.js) -->
 <script src="anime-detail-core.js?v=20250406"></script>
 
-<!-- Inicialización mínima -->
 <script>
-  window.addEventListener('load', () => {
-    const screen = document.getElementById('loading-screen');
-    const bgVideo = document.getElementById('bg-video');
-    bgVideo.play().catch(()=>{});
-    screen.style.opacity = '0';
-    setTimeout(() => screen.style.display = 'none', 500);
-  });
+  // Control de la pantalla de carga: se oculta solo cuando el contenido principal está renderizado y las imágenes críticas están listas
+  (function() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const percentEl = document.getElementById('loadingPercentage');
+    const lineEl = document.getElementById('loaderLine');
+    const mainContainer = document.getElementById('mainContainer');
+    let loadingCompleted = false;
 
-  window.playUISound = function(type) {
-    if (window._playUISound) window._playUISound(type);
-  };
-  window.escapeHtml = function(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    function updateProgress(percent) {
+      const p = Math.min(99, Math.max(0, Math.floor(percent)));
+      if (percentEl) percentEl.innerText = p + '%';
+      if (lineEl) lineEl.style.width = p + '%';
+    }
+
+    function finishLoading() {
+      if (loadingCompleted) return;
+      loadingCompleted = true;
+      updateProgress(100);
+      percentEl.innerText = "SISTEMA LISTO";
+      // Mostrar el contenedor principal con animación
+      mainContainer.classList.add('visible');
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 800);
+    }
+
+    // Esperar a que el script anime-detail-core.js termine de cargar y renderizar
+    // La variable global 'animeData' se define en ese script cuando termina la carga
+    let checkInterval = setInterval(() => {
+      if (window.animeData && document.getElementById('contenido')?.innerHTML?.length > 50) {
+        clearInterval(checkInterval);
+        // Pequeño retardo para asegurar que las imágenes de recomendaciones también se hayan cargado
+        setTimeout(finishLoading, 300);
+      }
+    }, 100);
+
+    // Fallback por si algo falla: ocultar después de 5 segundos
+    setTimeout(() => {
+      if (!loadingCompleted) {
+        clearInterval(checkInterval);
+        finishLoading();
+      }
+    }, 5000);
+
+    // Simular progreso mientras se carga
+    let progressValue = 0;
+    const progressInterval = setInterval(() => {
+      if (loadingCompleted) {
+        clearInterval(progressInterval);
+        return;
+      }
+      if (progressValue < 85) {
+        progressValue += Math.random() * 8;
+        if (progressValue > 85) progressValue = 85;
+        updateProgress(progressValue);
+      }
+    }, 200);
+  })();
+
+  // Asegurar que el video de fondo se reproduzca
+  window.addEventListener('load', () => {
+    const bgVideo = document.getElementById('bg-video');
+    bgVideo.play().catch(() => {});
+  });
 </script>
+
 </body>
 </html>
