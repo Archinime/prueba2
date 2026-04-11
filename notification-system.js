@@ -1,13 +1,12 @@
-// notification-system.js - VERSIÓN CON LÍMITE ESTRICTO DE 5 POPUPS
+// notification-system.js - VERSIÓN CORREGIDA (marca como vistas al iniciar sesión si no hay historial en la nube)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
-// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
-const MAX_POPUPS = 5;          // <--- CAMBIA ESTE NÚMERO SI QUIERES MÁS O MENOS POPUPS
+const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
 
 if (typeof disableBodyScroll !== 'function') {
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
-        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
+        console.log("🎉 Primera visita al sitio. Se mostrarán máximo 5 popups (los más recientes).");
         firstVisitInitialized = true;
         await initFirstVisitNotifications();
         localStorage.setItem('archinime_notif_first_visit', 'true');
@@ -48,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
+// ========== PRIMERA VISITA DEL SITIO (sin importar login) ==========
 async function initFirstVisitNotifications() {
     // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
@@ -68,10 +67,9 @@ async function initFirstVisitNotifications() {
     popupsShownCount = 0;
 
     try {
-        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
-            .limit(MAX_POPUPS)   // <--- SOLO 5 POPUPS
+            .limit(MAX_POPUPS)
             .get();
         
         const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -102,7 +100,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: true,   // Marcado como visto desde el principio
+                seen: true,
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -117,7 +115,6 @@ async function initFirstVisitNotifications() {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
             }
 
-            // LIMITAR POPUPS: solo si no hemos alcanzado el máximo
             if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                 notificationQueue.push(newNotif);
                 popupsShownCount++;
@@ -137,7 +134,7 @@ async function initFirstVisitNotifications() {
     }
 }
 
-// ========== FUNCIONES EXISTENTES (con límite de popups) ==========
+// ========== FUNCIONES PRINCIPALES ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
@@ -160,11 +157,15 @@ function saveHistoryToStorage() {
     }
 }
 
+// ========== SINCRONIZACIÓN CORREGIDA ==========
 async function syncNotificationsWithCloud(uid) {
     try {
-        const doc = await db.collection('users').doc(uid).get();
-        let isNewUser = !doc.exists;
-
+        const docRef = db.collection('users').doc(uid);
+        const doc = await docRef.get();
+        
+        // Determinar si el usuario no tiene historial en la nube (es "nuevo" para este dispositivo)
+        const hasCloudHistory = doc.exists && doc.data().notifHistory && doc.data().notifHistory.length > 0;
+        
         if (doc.exists) {
             const data = doc.data();
             if (data.seenNotifIds) {
@@ -179,9 +180,11 @@ async function syncNotificationsWithCloud(uid) {
                 notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
             }
         }
-
-        if (isNewUser && notificationsHistory.length > 0) {
-            console.log("🆕 Usuario nuevo en la nube. Marcando notificaciones existentes como vistas.");
+        
+        // Si no hay historial en la nube (nuevo usuario o primera vez que se loguea en este dispositivo)
+        // Marcamos TODAS las notificaciones locales como vistas para que no aparezcan puntos rojos.
+        if (!hasCloudHistory && notificationsHistory.length > 0) {
+            console.log("🆕 Usuario sin historial en la nube. Marcando todas las notificaciones locales como vistas.");
             let changed = false;
             for (let notif of notificationsHistory) {
                 if (!notif.seen) {
@@ -189,9 +192,11 @@ async function syncNotificationsWithCloud(uid) {
                     changed = true;
                 }
             }
-            if (changed) saveHistoryToStorage();
+            if (changed) {
+                saveHistoryToStorage();
+            }
         }
-
+        
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
@@ -300,7 +305,6 @@ function procesarActualizacionCatalogo(anime) {
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
-    // *** LÍMITE ESTRICTO DE POPUPS: máximo 5 ***
     const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
     
     if (shouldEnqueuePopup) {
