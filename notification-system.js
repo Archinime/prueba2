@@ -1,9 +1,14 @@
-// notification-system.js - VERSIÓN SIN ÍNDICE (filtro en cliente)
+// notification-system.js - VERSIÓN CON LÍMITE ESTRICTO DE 5 POPUPS
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
+
+// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
+let popupsShownCount = 0;
+const MAX_POPUPS = 5;          // <--- CAMBIA ESTE NÚMERO SI QUIERES MÁS O MENOS POPUPS
+let firstVisitInitialized = false;
 
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
@@ -16,23 +21,123 @@ if (typeof disableBodyScroll !== 'function') {
   };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
-    listenForCatalogUpdates(); // Escucha sin where, solo orderBy
-    renderNotificationList();
-    updateBellBadge();
+    
+    const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
+    if (isFirstVisit && !firstVisitInitialized) {
+        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
+        firstVisitInitialized = true;
+        await initFirstVisitNotifications();
+        localStorage.setItem('archinime_notif_first_visit', 'true');
+    } else {
+        renderNotificationList();
+        updateBellBadge();
+    }
+
+    listenForCatalogUpdates();
 
     if (typeof auth !== 'undefined') {
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
             if (user) {
-                syncNotificationsWithCloud(user.uid);
+                await syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
 });
 
+// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
+async function initFirstVisitNotifications() {
+    // Marcar todas las notificaciones existentes como vistas
+    let anyChanged = false;
+    for (let notif of notificationsHistory) {
+        if (!notif.seen) {
+            notif.seen = true;
+            anyChanged = true;
+        }
+    }
+    if (anyChanged) {
+        saveHistoryToStorage();
+        renderNotificationList();
+        updateBellBadge();
+    }
+
+    notificationQueue = [];
+    popupsShownCount = 0;
+
+    try {
+        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
+        const snapshot = await db.collection('catalogo')
+            .orderBy('lastUpdate', 'desc')
+            .limit(MAX_POPUPS)   // <--- SOLO 5 POPUPS
+            .get();
+        
+        const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`📦 Primeros ${animes.length} animes más recientes para popups iniciales`);
+
+        for (const anime of animes) {
+            if (!anime.updateType || anime.updateType === 'Ninguna') continue;
+
+            let lastUpdateMs = anime.lastUpdate;
+            if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
+                lastUpdateMs = anime.lastUpdate.toMillis();
+            } else if (typeof anime.lastUpdate === 'number') {
+                lastUpdateMs = anime.lastUpdate;
+            } else {
+                lastUpdateMs = Date.now();
+            }
+
+            const notifId = `${anime.id}_${lastUpdateMs}`;
+            if (notificationsHistory.some(n => n.notifId === notifId)) continue;
+
+            const newNotif = {
+                notifId,
+                animeId: anime.id,
+                title: anime.title,
+                img: anime.img,
+                seasonCover: anime.latestSeasonCover || anime.img,
+                blockName: anime.latestBlockName || "",
+                epTitle: anime.latestEpTitle || "Nuevo Contenido",
+                type: anime.updateType,
+                date: lastUpdateMs,
+                seen: true,   // Marcado como visto desde el principio
+                isFinal: anime.isFinal || false,
+                popupShown: false
+            };
+
+            notificationsHistory.unshift(newNotif);
+            if (notificationsHistory.length > 50) notificationsHistory.pop();
+
+            let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+            if (!seenNotifIds.includes(notifId)) {
+                seenNotifIds.push(notifId);
+                if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+                localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+            }
+
+            // LIMITAR POPUPS: solo si no hemos alcanzado el máximo
+            if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
+                notificationQueue.push(newNotif);
+                popupsShownCount++;
+                console.log(`➕ Popup #${popupsShownCount} encolado para: ${anime.title}`);
+            }
+        }
+
+        saveHistoryToStorage();
+        renderNotificationList();
+        updateBellBadge();
+
+        if (notificationQueue.length > 0) {
+            showNextPopup();
+        }
+    } catch (error) {
+        console.error("❌ Error al obtener los últimos animes para primera visita:", error);
+    }
+}
+
+// ========== FUNCIONES EXISTENTES (con límite de popups) ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
@@ -58,6 +163,8 @@ function saveHistoryToStorage() {
 async function syncNotificationsWithCloud(uid) {
     try {
         const doc = await db.collection('users').doc(uid).get();
+        let isNewUser = !doc.exists;
+
         if (doc.exists) {
             const data = doc.data();
             if (data.seenNotifIds) {
@@ -72,6 +179,19 @@ async function syncNotificationsWithCloud(uid) {
                 notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
             }
         }
+
+        if (isNewUser && notificationsHistory.length > 0) {
+            console.log("🆕 Usuario nuevo en la nube. Marcando notificaciones existentes como vistas.");
+            let changed = false;
+            for (let notif of notificationsHistory) {
+                if (!notif.seen) {
+                    notif.seen = true;
+                    changed = true;
+                }
+            }
+            if (changed) saveHistoryToStorage();
+        }
+
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
@@ -104,7 +224,8 @@ function listenForReplies(uid) {
                         blockName: 'Foro',
                         epTitle: `"${cleanText.substring(0,35)}${cleanText.length>35?'...':''}"`,
                         date: data.timestamp?.toMillis() || Date.now(),
-                        seen: false, isFinal: false,
+                        seen: false,
+                        isFinal: false,
                         url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
                     });
                     hasNew = true;
@@ -119,31 +240,21 @@ function listenForReplies(uid) {
         }, error => console.error("Error replies:", error));
 }
 
-// --- Escucha SIN where, solo orderBy (no necesita índice compuesto) ---
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
-    
-    console.log("📡 Iniciando escucha de catálogo (sin filtro where)...");
-    // Solo orderBy, sin where - esto funciona sin índice compuesto
     catalogoUnsubscribe = db.collection('catalogo')
         .orderBy('lastUpdate', 'desc')
         .limit(50)
         .onSnapshot(snapshot => {
-            console.log(`📡 [Notif] Se detectaron ${snapshot.docChanges().length} cambios en catálogo`);
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added' || change.type === 'modified') {
                     const anime = { id: change.doc.id, ...change.doc.data() };
-                    console.log(`📦 Anime recibido: ${anime.title} - updateType: ${anime.updateType} - lastUpdate:`, anime.lastUpdate);
                     if (anime.updateType && anime.updateType !== 'Ninguna') {
                         procesarActualizacionCatalogo(anime);
-                    } else {
-                        console.log(`⏭️ Ignorado: updateType = ${anime.updateType}`);
                     }
                 }
             });
-        }, error => {
-            console.error('❌ Error escuchando catálogo:', error);
-        });
+        }, error => console.error('❌ Error escuchando catálogo:', error));
 }
 
 function procesarActualizacionCatalogo(anime) {
@@ -158,19 +269,16 @@ function procesarActualizacionCatalogo(anime) {
         lastUpdateMs = Date.now();
     }
     
-    // Filtro de 30 días en cliente (opcional, puedes comentarlo para que salgan todas)
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    if (lastUpdateMs < thirtyDaysAgo) {
-        console.log(`⏭️ ${anime.title} tiene lastUpdate > 30 días (${new Date(lastUpdateMs).toLocaleDateString()}), se omite.`);
-        return;
-    }
+    if (lastUpdateMs < thirtyDaysAgo) return;
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    if (seenNotifIds.includes(notifId)) {
-        console.log(`⏭️ ${anime.title} ya fue notificado (ID: ${notifId})`);
-        return;
-    }
+    if (seenNotifIds.includes(notifId)) return;
+    
+    const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
+    const markAsSeen = isFirstVisitGlobal;
+    
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
@@ -184,20 +292,32 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: false,
+        seen: markAsSeen,
         isFinal: anime.isFinal || false,
-        popupShown: true
+        popupShown: false
     };
     
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    notificationQueue.push(newNotif);
+    
+    // *** LÍMITE ESTRICTO DE POPUPS: máximo 5 ***
+    const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
+    
+    if (shouldEnqueuePopup) {
+        notificationQueue.push(newNotif);
+        popupsShownCount++;
+        console.log(`🔔 NUEVO POPUP #${popupsShownCount}: ${anime.title}`);
+    } else {
+        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado): ${anime.title}`);
+    }
+    
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
     
-    console.log(`🔔 NUEVA NOTIFICACIÓN: ${anime.title} - ${anime.updateType}`);
-    if (notificationQueue.length === 1) showNextPopup();
+    if (shouldEnqueuePopup && notificationQueue.length === 1) {
+        showNextPopup();
+    }
 }
 
 window.startNotificationSequence = () => showNextPopup();
@@ -240,8 +360,7 @@ function closePopup() {
     modal.classList.remove('show');
     setTimeout(() => {
         modal.remove();
-        const processed = notificationQueue.shift();
-        if (processed && !processed.seen) markAsRead(processed.notifId);
+        notificationQueue.shift();
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
         showNextPopup();
     }, 300);
