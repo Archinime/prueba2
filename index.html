@@ -686,59 +686,52 @@
     });
   </script>
 
-  <!-- ===== MÚSICA DE FONDO (INTERNA) ===== -->
+  <!-- ===== MÚSICA DE FONDO ===== -->
   <script>
-    // Lista de reproducción (antes en musica_fondo.js)
-    const musicList = [
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Siempre%20estuviste%20en%20m%C3%AD%20-%20Piano%20versi%C3%B3n.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Love%20Like%20You%20Piano%20Cover%20%20Steven%20Universe%20%20%20%20%20%20.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Twin%20Stars%20%20%20%20%20%20.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Your%20Lie%20in%20April%20OST%20%20Friend%20A%20Piano%20Cover%20.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Again%20%20Your%20Lie%20in%20April%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Sparkle%20%20Kimi%20no%20Na%20wa%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Zen%20Zen%20Zense%20%20Kimi%20no%20Na%20wa%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Nandemonaiya%20%20Kimi%20no%20Na%20wa%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Gurenge%20%20Demon%20Slayer%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Homura%20%20Demon%20Slayer%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Kamado%20Tanjiro%20no%20Uta%20%20Demon%20Slayer%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Zankyou%20Sanka%20%20Demon%20Slayer%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Shinzou%20wo%20Sasageyo%20%20Attack%20on%20Titan%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Akuma%20no%20Ko%20%20Attack%20on%20Titan%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20The%20Rumbling%20%20Attack%20on%20Titan%20OST%20%20Piano%20Cover.mp3",
-      "https://fsb-latest-gdv3.onrender.com/audio/y2mate.com%20-%20Call%20of%20Silence%20%20Attack%20on%20Titan%20OST%20%20Piano%20Cover.mp3"
-    ];
+    (function() {
+      const musicList = [
+        "musica1.mp3", "musica2.mp3", "musica3.mp3", "musica4.mp3", "musica5.mp3",
+        "musica6.mp3", "musica7.mp3", "musica8.mp3", "musica9.mp3", "musica10.mp3",
+        "musica11.mp3", "musica12.mp3", "musica13.mp3", "musica14.mp3", "musica15.mp3",
+        "musica16.mp3", "musica17.mp3", "musica18.mp3", "musica19.mp3", "musica20.mp3"
+      ];
+      let currentAudio = null;
+      let currentTrackIndex = Math.floor(Math.random() * musicList.length);
+      let isPlaying = false;
 
-    let currentAudio = null;
-    let currentTrackIndex = -1;
-
-    function playTrack(index) {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.onended = null;
+      function playTrack(index) {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+        const track = musicList[index];
+        if (!track) return;
+        currentAudio = new Audio(track);
+        currentAudio.volume = 0.3;
+        currentAudio.loop = false;
+        currentAudio.onended = () => {
+          currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+          playTrack(currentTrackIndex);
+        };
+        currentAudio.play().catch(e => console.log('Esperando interacción para música'));
+        isPlaying = true;
       }
-      if (!musicList.length) return;
-      currentTrackIndex = index;
-      currentAudio = new Audio(musicList[currentTrackIndex]);
-      currentAudio.volume = 0.35;
-      currentAudio.onended = () => {
-        currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
-        playTrack(currentTrackIndex);
-      };
-      currentAudio.play().catch(e => console.log('Autoplay bloqueado, esperando interacción'));
-    }
 
-    // Iniciar música al primer clic en cualquier parte de la página
-    document.addEventListener('click', () => {
-      if (!currentAudio) {
-        currentTrackIndex = Math.floor(Math.random() * musicList.length);
-        playTrack(currentTrackIndex);
+      function startMusic() {
+        if (!isPlaying) {
+          playTrack(currentTrackIndex);
+        }
       }
-    }, { once: true });
+
+      // Activar con el primer clic o toque en cualquier parte
+      document.addEventListener('click', startMusic, { once: true });
+      document.addEventListener('touchstart', startMusic, { once: true });
+    })();
   </script>
 
-  <!-- ===== PAGINACIÓN FIRESTORE + FILTROS (CORREGIDOS) ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS CORREGIDOS ===== -->
   <script>
-    // Variables de paginación
+    // Variables de paginación (solo para vista sin filtros)
     let lastVisible = null, isLoading = false, hasMore = true;
     let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
     let debounceTimer = null;
@@ -781,96 +774,6 @@
         return anime.rating.toFixed(1);
       }
       return '—';
-    }
-
-    // Cargar animes con filtros (consulta directa a Firestore)
-    async function cargarAnimesConFiltros() {
-      try {
-        let query = db.collection('catalogo');
-        
-        // Aplicar filtros en Firestore
-        if (currentFilters.genre) {
-          query = query.where('genres', 'array-contains', currentFilters.genre);
-        }
-        if (currentFilters.demographic) {
-          query = query.where('genres', 'array-contains', currentFilters.demographic);
-        }
-        
-        // Ordenar por título y limitar a 100 resultados máximo
-        query = query.orderBy('title').limit(100);
-        
-        const snapshot = await query.get();
-        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        // Filtros adicionales en cliente (búsqueda y rating)
-        const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        if (currentFilters.search) {
-          const t = norm(currentFilters.search);
-          animes = animes.filter(a => [a.title, ...(a.aliases || [])].some(tx => norm(tx).includes(t)));
-        }
-        if (currentFilters.rating) {
-          animes = animes.filter(a => {
-            const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
-            if (currentFilters.rating === 'excellent') return r >= 4.8;
-            if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
-            if (currentFilters.rating === 'regular') return r < 4.6;
-            return true;
-          });
-        }
-        
-        renderAnimes(animes, false);
-      } catch (e) {
-        console.error('Error en búsqueda:', e);
-        gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error en búsqueda: ${e.message}</div>`;
-      }
-    }
-
-    // Cargar animes con paginación (sin filtros)
-    async function cargarAnimesPaginado(reset = true) {
-      if (isLoading) return;
-      if (!reset && !hasMore) return;
-      isLoading = true;
-      if (reset) {
-        gridEl.innerHTML = '';
-        lastVisible = null;
-        hasMore = true;
-      }
-      try {
-        let query = db.collection('catalogo').orderBy('title').limit(20);
-        if (lastVisible) query = query.startAfter(lastVisible);
-        const snapshot = await query.get();
-        console.log(`📄 Página cargada: ${snapshot.size} docs`);
-
-        if (snapshot.empty) {
-          hasMore = false;
-          if (reset) mostrarNoResultados();
-          isLoading = false;
-          return;
-        }
-
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
-        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderAnimes(animes, !reset);
-        if (snapshot.docs.length < 20) hasMore = false;
-      } catch (e) {
-        console.error('Error en paginación:', e);
-        gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error al cargar: ${e.message}</div>`;
-      } finally {
-        isLoading = false;
-      }
-    }
-
-    // Función principal que decide qué método usar
-    async function ejecutarCarga(reset = true) {
-      const hayFiltros = currentFilters.genre || currentFilters.demographic || currentFilters.search || currentFilters.rating;
-      
-      if (hayFiltros) {
-        // Con filtros: consulta directa (sin paginación)
-        await cargarAnimesConFiltros();
-      } else {
-        // Sin filtros: paginación normal
-        await cargarAnimesPaginado(reset);
-      }
     }
 
     // Renderizar tarjetas
@@ -916,25 +819,146 @@
     function resetearFiltros() {
       searchInput.value = ''; genreSelect.value = ''; demographicSelect.value = ''; ratingSelect.value = '';
       currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-      ejecutarCarga(true);
+      // Volver a la vista paginada sin filtros
+      cargarAnimesPaginado(true);
+    }
+
+    // ===== BÚSQUEDA Y FILTROS (CONSULTAS DIRECTAS) =====
+    async function aplicarFiltros() {
+      gridEl.innerHTML = ''; // Limpiar grid
+      isLoading = true;
+      try {
+        let query = db.collection('catalogo');
+        let hasFilters = false;
+
+        // Si hay búsqueda, usar startAt/endAt (prefijo)
+        if (currentFilters.search) {
+          const searchTerm = currentFilters.search.trim();
+          // Normalizar para búsqueda (minúsculas sin acentos)
+          const normalizedSearch = normalizeText(searchTerm);
+          // Firestore es case-sensitive, pero ordenando por 'title' podemos usar startAt/endAt
+          // Para incluir alias, hacemos la consulta por título y luego filtramos en cliente
+          query = query.orderBy('title')
+                       .startAt(searchTerm)
+                       .endAt(searchTerm + '\uf8ff');
+          hasFilters = true;
+        } else {
+          query = query.orderBy('title');
+        }
+
+        // Filtro de género (array-contains)
+        if (currentFilters.genre) {
+          query = query.where('genres', 'array-contains', currentFilters.genre);
+          hasFilters = true;
+        }
+
+        // Filtro de demografía (array-contains)
+        if (currentFilters.demographic) {
+          query = query.where('genres', 'array-contains', currentFilters.demographic);
+          hasFilters = true;
+        }
+
+        if (hasFilters) {
+          // Obtener hasta 100 resultados (suficiente para mostrar)
+          const snapshot = await query.limit(100).get();
+          let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          // Filtro adicional para alias (cliente)
+          if (currentFilters.search) {
+            const searchTermLower = currentFilters.search.toLowerCase();
+            animes = animes.filter(a => {
+              const titles = [a.title, ...(a.aliases || [])];
+              return titles.some(t => t.toLowerCase().startsWith(searchTermLower));
+            });
+          }
+
+          // Filtro por rating (cliente)
+          if (currentFilters.rating) {
+            animes = animes.filter(a => {
+              const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
+              if (currentFilters.rating === 'excellent') return r >= 4.8;
+              if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+              if (currentFilters.rating === 'regular') return r < 4.6;
+              return true;
+            });
+          }
+
+          renderAnimes(animes, false);
+          if (animes.length === 0) mostrarNoResultados();
+        } else {
+          // Sin filtros, usar paginación normal
+          cargarAnimesPaginado(true);
+        }
+      } catch (e) {
+        console.error('Error en filtros:', e);
+        gridEl.innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    // Paginación normal (sin filtros)
+    async function cargarAnimesPaginado(reset = true) {
+      if (isLoading) return;
+      if (!reset && !hasMore) return;
+      isLoading = true;
+      if (reset) {
+        gridEl.innerHTML = '';
+        lastVisible = null;
+        hasMore = true;
+      }
+      try {
+        let query = db.collection('catalogo').orderBy('title').limit(20);
+        if (lastVisible) query = query.startAfter(lastVisible);
+        const snapshot = await query.get();
+
+        if (snapshot.empty) {
+          hasMore = false;
+          if (reset) mostrarNoResultados();
+          isLoading = false;
+          return;
+        }
+
+        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAnimes(animes, !reset);
+        if (snapshot.docs.length < 20) hasMore = false;
+      } catch (e) {
+        console.error('Error en paginación:', e);
+        gridEl.innerHTML = `<div class="error-message">Error al cargar: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
     }
 
     // Debounce para búsqueda
-    function debouncedEjecutar() {
+    function debouncedAplicarFiltros() {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => ejecutarCarga(true), 300);
+      debounceTimer = setTimeout(() => aplicarFiltros(), 300);
     }
 
     // Event listeners
-    searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedEjecutar(); });
-    genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; ejecutarCarga(true); });
-    demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; ejecutarCarga(true); });
-    ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; ejecutarCarga(true); });
-    
-    // Scroll infinito (solo cuando no hay filtros activos)
+    searchInput.addEventListener('input', e => {
+      currentFilters.search = e.target.value;
+      debouncedAplicarFiltros();
+    });
+    genreSelect.addEventListener('change', e => {
+      currentFilters.genre = e.target.value;
+      aplicarFiltros();
+    });
+    demographicSelect.addEventListener('change', e => {
+      currentFilters.demographic = e.target.value;
+      aplicarFiltros();
+    });
+    ratingSelect.addEventListener('change', e => {
+      currentFilters.rating = e.target.value;
+      aplicarFiltros();
+    });
+
+    // Scroll infinito solo cuando NO hay filtros activos
     window.addEventListener('scroll', () => {
-      const hayFiltros = currentFilters.genre || currentFilters.demographic || currentFilters.search || currentFilters.rating;
-      if (!hayFiltros && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
         cargarAnimesPaginado(false);
       }
     });
@@ -942,7 +966,7 @@
     // Inicialización
     (async function init() {
       await loadRatingsFromFirestore();
-      ejecutarCarga(true);
+      cargarAnimesPaginado(true);
     })();
 
     window.resetearFiltros = resetearFiltros;
