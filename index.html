@@ -729,7 +729,7 @@
     })();
   </script>
 
-  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS CORREGIDOS ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO BÚSQUEDA POR ALIAS) ===== -->
   <script>
     // Variables de paginación (solo para vista sin filtros)
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -744,7 +744,7 @@
     // Mapa global de ratings de Firestore
     const firestoreRatings = new Map();
 
-    // Normalizar texto
+    // Normalizar texto (eliminar acentos, minúsculas)
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -823,28 +823,13 @@
       cargarAnimesPaginado(true);
     }
 
-    // ===== BÚSQUEDA Y FILTROS (CONSULTAS DIRECTAS) =====
+    // ===== BÚSQUEDA Y FILTROS (CON ALIAS EN CLIENTE) =====
     async function aplicarFiltros() {
       gridEl.innerHTML = ''; // Limpiar grid
       isLoading = true;
       try {
         let query = db.collection('catalogo');
         let hasFilters = false;
-
-        // Si hay búsqueda, usar startAt/endAt (prefijo)
-        if (currentFilters.search) {
-          const searchTerm = currentFilters.search.trim();
-          // Normalizar para búsqueda (minúsculas sin acentos)
-          const normalizedSearch = normalizeText(searchTerm);
-          // Firestore es case-sensitive, pero ordenando por 'title' podemos usar startAt/endAt
-          // Para incluir alias, hacemos la consulta por título y luego filtramos en cliente
-          query = query.orderBy('title')
-                       .startAt(searchTerm)
-                       .endAt(searchTerm + '\uf8ff');
-          hasFilters = true;
-        } else {
-          query = query.orderBy('title');
-        }
 
         // Filtro de género (array-contains)
         if (currentFilters.genre) {
@@ -858,31 +843,36 @@
           hasFilters = true;
         }
 
+        // Ordenar por título
+        query = query.orderBy('title');
+
+        // Obtener hasta 200 resultados (suficiente para mostrar)
+        const snapshot = await query.limit(200).get();
+        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Filtro de búsqueda (título y alias) en cliente
+        if (currentFilters.search) {
+          const searchTermNormalized = normalizeText(currentFilters.search);
+          animes = animes.filter(a => {
+            const titles = [a.title, ...(a.aliases || [])];
+            return titles.some(t => normalizeText(t).startsWith(searchTermNormalized));
+          });
+          hasFilters = true;
+        }
+
+        // Filtro por rating (cliente)
+        if (currentFilters.rating) {
+          animes = animes.filter(a => {
+            const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
+            if (currentFilters.rating === 'excellent') return r >= 4.8;
+            if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+            if (currentFilters.rating === 'regular') return r < 4.6;
+            return true;
+          });
+          hasFilters = true;
+        }
+
         if (hasFilters) {
-          // Obtener hasta 100 resultados (suficiente para mostrar)
-          const snapshot = await query.limit(100).get();
-          let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-          // Filtro adicional para alias (cliente)
-          if (currentFilters.search) {
-            const searchTermLower = currentFilters.search.toLowerCase();
-            animes = animes.filter(a => {
-              const titles = [a.title, ...(a.aliases || [])];
-              return titles.some(t => t.toLowerCase().startsWith(searchTermLower));
-            });
-          }
-
-          // Filtro por rating (cliente)
-          if (currentFilters.rating) {
-            animes = animes.filter(a => {
-              const r = getDisplayRating(a) === '—' ? 0 : parseFloat(getDisplayRating(a));
-              if (currentFilters.rating === 'excellent') return r >= 4.8;
-              if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
-              if (currentFilters.rating === 'regular') return r < 4.6;
-              return true;
-            });
-          }
-
           renderAnimes(animes, false);
           if (animes.length === 0) mostrarNoResultados();
         } else {
