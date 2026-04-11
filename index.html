@@ -504,7 +504,7 @@
     const providerGitHub = new firebase.auth.GithubAuthProvider();
   </script>
 
-  <!-- Sistema de notificaciones (Firestore) -->
+  <!-- Sistema de notificaciones (Firestore) - SIN CAMBIOS -->
   <script>
     let notificationQueue = [], notificationsHistory = [], isMenuOpen = false;
     let repliesUnsubscribe = null, catalogoUnsubscribe = null;
@@ -686,8 +686,9 @@
     });
   </script>
 
-  <!-- Paginación Firestore (sin array-contains múltiples) -->
+  <!-- ===== PAGINACIÓN FIRESTORE + RATINGS CORREGIDOS (SCROLL Y RATINGS ARREGLADOS) ===== -->
   <script>
+    // Variables de paginación
     let lastVisible = null, isLoading = false, hasMore = true;
     let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
     let debounceTimer = null;
@@ -697,27 +698,86 @@
     const demographicSelect = document.getElementById('demographic-select');
     const ratingSelect = document.getElementById('rating-select');
 
-    function normalizeText(s) { return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    // Mapa global de ratings de Firestore
+    const firestoreRatings = new Map();
 
+    // Normalizar texto
+    function normalizeText(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Cargar ratings desde Firestore
+    async function loadRatingsFromFirestore() {
+      try {
+        const snapshot = await db.collection('animeRatings').get();
+        firestoreRatings.clear();
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count });
+        });
+        console.log(`📊 Ratings cargados: ${firestoreRatings.size}`);
+      } catch (e) {
+        console.warn('Error al cargar ratings de Firestore:', e);
+      }
+    }
+
+    // Obtener el rating a mostrar para un anime (NUNCA retorna undefined)
+    function getDisplayRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const avg = firestoreRatings.get(animeId)?.avg;
+        return (avg != null && !isNaN(avg)) ? avg.toFixed(1) : '—';
+      }
+      if (anime.rating != null && !isNaN(anime.rating)) {
+        return anime.rating.toFixed(1);
+      }
+      return '—';
+    }
+
+    // Cargar animes con paginación
     async function cargarAnimes(reset = true) {
-      if (isLoading) return; if (!reset && !hasMore) return;
-      isLoading = true; if (reset) { gridEl.innerHTML = ''; lastVisible = null; hasMore = true; }
+      if (isLoading) return;
+      if (!reset && !hasMore) return;
+      isLoading = true;
+      if (reset) {
+        gridEl.innerHTML = '';
+        lastVisible = null;
+        hasMore = true;
+      }
       try {
         let query = db.collection('catalogo').orderBy('title').limit(20);
         if (lastVisible) query = query.startAfter(lastVisible);
         const snapshot = await query.get();
-        if (snapshot.empty) { hasMore = false; if (reset) mostrarNoResultados(); isLoading = false; return; }
-        lastVisible = snapshot.docs[snapshot.docs.length-1];
+        console.log(`📄 Página cargada: ${snapshot.size} docs`);
+
+        if (snapshot.empty) {
+          hasMore = false;
+          if (reset) mostrarNoResultados();
+          isLoading = false;
+          return;
+        }
+
+        const originalLastDoc = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
         // Filtros en cliente
-        const norm = (s) => (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        if (currentFilters.genre) { const t = norm(currentFilters.genre); animes = animes.filter(a => (a.genres||[]).some(g => norm(g) === t)); }
-        if (currentFilters.demographic) { const t = norm(currentFilters.demographic); animes = animes.filter(a => (a.genres||[]).some(g => norm(g) === t)); }
-        if (currentFilters.search) { const t = norm(currentFilters.search); animes = animes.filter(a => [a.title, ...(a.aliases||[])].some(tx => norm(tx).includes(t))); }
+        const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (currentFilters.genre) {
+          const t = norm(currentFilters.genre);
+          animes = animes.filter(a => (a.genres || []).some(g => norm(g) === t));
+        }
+        if (currentFilters.demographic) {
+          const t = norm(currentFilters.demographic);
+          animes = animes.filter(a => (a.genres || []).some(g => norm(g) === t));
+        }
+        if (currentFilters.search) {
+          const t = norm(currentFilters.search);
+          animes = animes.filter(a => [a.title, ...(a.aliases || [])].some(tx => norm(tx).includes(t)));
+        }
         if (currentFilters.rating) {
           animes = animes.filter(a => {
-            const r = a.rating || 0;
+            const ratingStr = getDisplayRating(a);
+            const r = ratingStr === '—' ? 0 : parseFloat(ratingStr);
             if (currentFilters.rating === 'excellent') return r >= 4.8;
             if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
             if (currentFilters.rating === 'regular') return r < 4.6;
@@ -725,24 +785,44 @@
           });
         }
 
+        // Actualizar lastVisible con el último documento filtrado
+        if (animes.length > 0) {
+          const lastFiltered = animes[animes.length - 1];
+          const lastDoc = snapshot.docs.find(d => d.id === lastFiltered.id);
+          lastVisible = lastDoc || originalLastDoc;
+        } else {
+          lastVisible = originalLastDoc;
+        }
+
         renderAnimes(animes, !reset);
         if (snapshot.docs.length < 20) hasMore = false;
-      } catch (e) { console.error(e); gridEl.innerHTML = '<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.</div>'; }
-      finally { isLoading = false; }
+      } catch (e) {
+        console.error('Error en cargarAnimes:', e);
+        gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; padding:40px; color:var(--neon-pink);">Error al cargar: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
     }
 
+    // Renderizar tarjetas
     function renderAnimes(animes, append = true) {
       if (!append) gridEl.innerHTML = '';
-      if (!animes.length && !append) { mostrarNoResultados(); return; }
+      if (!animes.length && !append) {
+        mostrarNoResultados();
+        return;
+      }
       const frag = document.createDocumentFragment();
       animes.forEach(a => {
-        const card = document.createElement('div'); card.className = 'card'; card.dataset.id = a.id;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = a.id;
         card.setAttribute('onclick', `location='anime-detail.html?id=${a.id}'`);
-        const rating = (a.rating != null && !isNaN(a.rating)) ? a.rating.toFixed(1) : '—';
+        const rating = getDisplayRating(a);
         card.innerHTML = `<img src="${a.img}" alt="${a.title}" loading="lazy"><div class="info"><strong>${a.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
         frag.appendChild(card);
       });
       gridEl.appendChild(frag);
+      // Tilt effect
       document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
         c.dataset.tiltInit = 'true';
         c.addEventListener('mousemove', (e) => {
@@ -766,19 +846,27 @@
 
     function resetearFiltros() {
       searchInput.value = ''; genreSelect.value = ''; demographicSelect.value = ''; ratingSelect.value = '';
-      currentFilters = { search: '', genre: '', demographic: '', rating: '' }; cargarAnimes(true);
+      currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+      cargarAnimes(true);
     }
 
+    // Event listeners
     searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; clearTimeout(debounceTimer); debounceTimer = setTimeout(() => cargarAnimes(true), 300); });
     genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; cargarAnimes(true); });
     demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
     ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; cargarAnimes(true); });
     window.addEventListener('scroll', () => { if (!isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) cargarAnimes(false); });
 
-    cargarAnimes(true);
+    // Inicialización
+    (async function init() {
+      await loadRatingsFromFirestore();
+      cargarAnimes(true);
+    })();
+
+    window.resetearFiltros = resetearFiltros;
   </script>
 
-  <!-- Autenticación y UI de usuario -->
+  <!-- Autenticación y UI de usuario (SIN CAMBIOS) -->
   <script>
     let currentUser = null;
     function goToProfile() { if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; } else location.href = 'opciones.html'; }
@@ -818,7 +906,7 @@
     window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle; window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal; window.goToProfile = goToProfile;
   </script>
 
-  <!-- Selects personalizados, loader -->
+  <!-- Selects personalizados, loader (SIN CAMBIOS) -->
   <script>
     function disableBodyScroll() { document.body.classList.add('modal-open'); document.documentElement.classList.add('modal-open'); }
     function enableBodyScroll() { document.body.classList.remove('modal-open'); document.documentElement.classList.remove('modal-open'); }
@@ -863,24 +951,6 @@
       const isFirstVisit = !sessionStorage.getItem('archinime_loaded'), delay = isFirstVisit ? 1400 : 50;
       setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay);
     });
-  </script>
-
-  <!-- Actualizar ratings desde Firestore -->
-  <script>
-    (function() {
-      const firestoreRatings = new Map();
-      async function refreshRatingsMap() { try { const s = await db.collection('animeRatings').get(); firestoreRatings.clear(); s.forEach(d => { const data = d.data(); firestoreRatings.set(parseInt(d.id), { avg: data.avg, count: data.count }); }); } catch(e) {} }
-      function updateCardsWithRatings() {
-        document.querySelectorAll('.card').forEach(card => {
-          const animeId = card.dataset.id; if (!animeId) return;
-          const span = card.querySelector('.rating-value'); if (!span) return;
-          if (firestoreRatings.has(parseInt(animeId))) { const r = firestoreRatings.get(parseInt(animeId)).avg; span.innerHTML = `⭐ ${r != null ? r.toFixed(1) : '—'}`; }
-          else span.innerHTML = `⭐ —`;
-        });
-      }
-      async function init() { await refreshRatingsMap(); const grid = document.getElementById('grid'); if (!grid) return; new MutationObserver(() => setTimeout(updateCardsWithRatings, 50)).observe(grid, { childList: true, subtree: true }); if (document.querySelector('.card')) updateCardsWithRatings(); }
-      if (typeof db !== 'undefined') init(); else setTimeout(init, 500);
-    })();
   </script>
 </body>
 </html>
