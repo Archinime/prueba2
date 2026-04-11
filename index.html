@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.5";
+      const APP_VERSION = "2025-04-06-v4.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -139,6 +139,126 @@
     #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
       z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0);
+    }
+
+    /* ===== PANTALLA DE CARGA MEJORADA ===== */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0a0a0f 0%, #010101 100%);
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Orbitron', sans-serif;
+      transition: opacity 0.8s var(--transition-smooth), visibility 0.8s;
+      backdrop-filter: blur(8px);
+      will-change: opacity;
+    }
+    #loadingScreen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-content {
+      text-align: center;
+      transform: translateZ(0);
+      animation: fadeInUp 0.8s ease;
+    }
+    .gif-wrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 30px;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+      animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
+      box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
+    }
+    .gif-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #000;
+    }
+    .gif-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .loader-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, #fff, var(--neon-cyan), var(--neon-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(0,243,255,0.5);
+      animation: glitchText 3s infinite;
+    }
+    .loader-percentage {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px var(--neon-cyan);
+      margin-bottom: 20px;
+      font-family: 'Orbitron', monospace;
+    }
+    .loader-line-container {
+      width: 320px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      margin-top: 10px;
+    }
+    .loader-line {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
+      border-radius: 10px;
+      transition: width 0.2s linear;
+      box-shadow: 0 0 12px var(--neon-cyan);
+    }
+    .loader-sub {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #aaa;
+      letter-spacing: 1px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .loader-sub i {
+      color: var(--neon-purple);
+    }
+    @keyframes spinGradient {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    @keyframes floatAnim {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-12px); }
+    }
+    @keyframes glitchText {
+      0%,100% { opacity: 1; transform: skewX(0deg); }
+      94% { opacity: 1; transform: skewX(0deg); }
+      96% { opacity: 0.8; transform: skewX(6deg); text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--neon-cyan); }
+      98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== NAVBAR ===== */
@@ -394,6 +514,27 @@
 </head>
 <body>
 
+  <!-- PANTALLA DE CARGA INTEGRADA -->
+  <div id="loadingScreen">
+    <div class="loader-content">
+      <div class="gif-wrapper">
+        <div class="gif-inner">
+          <img src="chica_corriendo.gif" alt="Cargando sistema">
+        </div>
+      </div>
+      <div class="loader-title">ARCHINIME</div>
+      <div class="loader-percentage" id="loadingPercentage">0%</div>
+      <div class="loader-line-container">
+        <div class="loader-line" id="loaderLine"></div>
+      </div>
+      <div class="loader-sub">
+        <span><i class="fas fa-database"></i> Conectando a la red</span>
+        <span><i class="fas fa-sync-alt fa-spin"></i> Sincronizando datos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
   <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
     <source src="galaxia.mp4" type="video/mp4">
   </video>
@@ -541,94 +682,99 @@
   <script src="notification-system.js"></script>
 
   <script>
-    (function() {
-      const musicList = [
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3'
-      ];
-      let currentAudio = null;
-      let currentTrackIndex = Math.floor(Math.random() * musicList.length);
-      let isPlaying = false;
-      function playTrack(index) {
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio = null;
-        }
-        const track = musicList[index];
-        if (!track) return;
-        currentAudio = new Audio(track);
-        currentAudio.volume = 0.3;
-        currentAudio.loop = false;
-        currentAudio.onended = () => {
-          currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
-          playTrack(currentTrackIndex);
-        };
-        currentAudio.play().catch(e => console.log('Esperando interacción para música'));
-        isPlaying = true;
-      }
+    // ========== LÓGICA DE CARGA REAL CON PROGRESO ==========
+    let loadingCompleted = false;
+    const loadingScreen = document.getElementById('loadingScreen');
+    const percentEl = document.getElementById('loadingPercentage');
+    const lineEl = document.getElementById('loaderLine');
+    
+    function updateProgress(percent) {
+      const p = Math.min(99, Math.max(0, Math.floor(percent)));
+      if (percentEl) percentEl.innerText = p + '%';
+      if (lineEl) lineEl.style.width = p + '%';
+    }
 
-      function startMusic() {
-        if (!isPlaying) {
-          playTrack(currentTrackIndex);
-        }
-      }
+    function finishLoading() {
+      if (loadingCompleted) return;
+      loadingCompleted = true;
+      updateProgress(100);
+      percentEl.innerText = "SISTEMA LISTO";
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 800);
+    }
 
-      // Activar con el primer clic o toque en cualquier parte
-      document.addEventListener('click', startMusic, { once: true });
-      document.addEventListener('touchstart', startMusic, { once: true });
-    })();
-  </script>
+    // Promesas de carga crítica
+    const loadPromises = [];
 
-  <script>
-    let lastVisible = null, isLoading = false, hasMore = true;
-    let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-    let debounceTimer = null;
-    const gridEl = document.getElementById('grid');
-    const searchInput = document.getElementById('search');
-    const genreSelect = document.getElementById('genre-select');
-    const demographicSelect = document.getElementById('demographic-select');
-    const ratingSelect = document.getElementById('rating-select');
+    // 1. Cargar ratings de Firestore
     const firestoreRatings = new Map();
+    const ratingsPromise = db.collection('animeRatings').get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (typeof data.avg === 'number') firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
+      });
+      console.log(`📊 Ratings cargados: ${firestoreRatings.size}`);
+    }).catch(e => console.warn('Error cargando ratings:', e));
+    loadPromises.push(ratingsPromise);
+
+    // 2. Cargar primeros animes (para que el grid se pinte rápido)
     let allAnimes = [];
     let shuffledAnimes = [];
     let currentShufflePage = 0;
     const ITEMS_PER_PAGE = 20;
+    const animesPromise = db.collection('catalogo').orderBy('title').limit(50).get().then(snapshot => {
+      allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      shuffledAnimes = [...allAnimes];
+      for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
+      }
+      // Renderizar primeras cards
+      const firstPage = shuffledAnimes.slice(0, ITEMS_PER_PAGE);
+      renderAnimes(firstPage, false);
+    }).catch(e => console.warn('Error cargando animes iniciales:', e));
+    loadPromises.push(animesPromise);
 
+    // 3. Video de fondo (al menos intente cargar)
+    const bgVideo = document.getElementById('bg-video');
+    const videoPromise = new Promise((resolve) => {
+      if (bgVideo.readyState >= 2) resolve();
+      else bgVideo.addEventListener('loadeddata', resolve, { once: true });
+      setTimeout(resolve, 2000);
+    });
+    loadPromises.push(videoPromise);
+
+    // Progreso incremental simulado
+    let progressValue = 0;
+    const interval = setInterval(() => {
+      if (loadingCompleted) {
+        clearInterval(interval);
+        return;
+      }
+      if (progressValue < 85) {
+        progressValue += Math.random() * 8;
+        if (progressValue > 85) progressValue = 85;
+        updateProgress(progressValue);
+      }
+    }, 200);
+
+    Promise.all(loadPromises).then(() => {
+      clearInterval(interval);
+      updateProgress(95);
+      setTimeout(() => {
+        updateProgress(100);
+        finishLoading();
+      }, 300);
+    }).catch(err => {
+      console.error('Error en carga inicial:', err);
+      finishLoading();
+    });
+
+    // ========== RESTO DE LA LÓGICA ORIGINAL (FILTROS, PAGINACIÓN, AUTENTICACIÓN, ETC.) ==========
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
-
-    function shuffleArray(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    async function loadRatingsFromFirestore() {
-      try {
-        const snapshot = await db.collection('animeRatings').get();
-        firestoreRatings.clear();
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (typeof data.avg === 'number' && !isNaN(data.avg)) {
-            firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
-          }
-        });
-        console.log(`📊 Ratings cargados: ${firestoreRatings.size}`);
-      } catch (e) { console.warn('Error cargando ratings:', e);
-      }
     }
 
     function getDisplayRating(anime) {
@@ -687,16 +833,27 @@
     }
 
     function resetearFiltros() {
-      searchInput.value = ''; genreSelect.value = '';
-      demographicSelect.value = ''; ratingSelect.value = '';
+      document.getElementById('search').value = '';
+      document.getElementById('genre-select').value = '';
+      document.getElementById('demographic-select').value = '';
+      document.getElementById('rating-select').value = '';
       currentFilters = { search: '', genre: '', demographic: '', rating: '' };
       currentShufflePage = 0;
       cargarAnimesPaginado(true);
     }
 
+    let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    let isLoading = false;
+    let hasMore = true;
+    let debounceTimer = null;
+    const gridEl = document.getElementById('grid');
+    const searchInput = document.getElementById('search');
+    const genreSelect = document.getElementById('genre-select');
+    const demographicSelect = document.getElementById('demographic-select');
+    const ratingSelect = document.getElementById('rating-select');
+
     async function aplicarFiltros() {
-      const hasActiveFilters = currentFilters.search ||
-      currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters) {
         cargarAnimesPaginado(true);
         return;
@@ -705,30 +862,17 @@
       isLoading = true;
       try {
         let query = db.collection('catalogo');
-        let hasFilters = false;
-        if (currentFilters.genre) {
-          query = query.where('genres', 'array-contains', currentFilters.genre);
-          hasFilters = true;
-        }
-        if (currentFilters.demographic) {
-          // Nota: Firestore permite solo un 'array-contains' por consulta, así que aplicamos la demografía en cliente después
-        }
+        if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
         query = query.orderBy('title');
         const snapshot = await query.limit(200).get();
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Filtro de demografía en cliente
-        if (currentFilters.demographic) {
-          animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
-          hasFilters = true;
-        }
-        
+        if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
         if (currentFilters.search) {
           const searchTermNormalized = normalizeText(currentFilters.search);
           animes = animes.filter(a => {
             const titles = [a.title, ...(a.aliases || [])];
             return titles.some(t => normalizeText(t).startsWith(searchTermNormalized));
           });
-          hasFilters = true;
         }
         if (currentFilters.rating) {
           animes = animes.filter(a => {
@@ -738,14 +882,9 @@
             if (currentFilters.rating === 'regular') return r < 4.6;
             return true;
           });
-          hasFilters = true;
         }
-        if (hasFilters) {
-          renderAnimes(animes, false);
-          if (animes.length === 0) mostrarNoResultados();
-        } else {
-          cargarAnimesPaginado(true);
-        }
+        renderAnimes(animes, false);
+        if (animes.length === 0) mostrarNoResultados();
       } catch (e) {
         console.error('Error en filtros:', e);
         gridEl.innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
@@ -755,8 +894,7 @@
     }
 
     async function cargarAnimesPaginado(reset = true) {
-      const hasActiveFilters = currentFilters.search ||
-      currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (hasActiveFilters) return;
       if (isLoading) return;
       if (reset) {
@@ -770,7 +908,11 @@
         if (allAnimes.length === 0) {
           const snapshot = await db.collection('catalogo').orderBy('title').get();
           allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          shuffledAnimes = shuffleArray(allAnimes);
+          shuffledAnimes = [...allAnimes];
+          for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
+          }
         }
         const start = currentShufflePage * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
@@ -808,14 +950,10 @@
         cargarAnimesPaginado(false);
       }
     });
-    (async function init() {
-      await loadRatingsFromFirestore();
-      cargarAnimesPaginado(true);
-    })();
-    window.resetearFiltros = resetearFiltros;
-  </script>
 
-  <script>
+    window.resetearFiltros = resetearFiltros;
+
+    // ========== AUTENTICACIÓN Y PERFIL ==========
     let currentUser = null;
     let newAvatarUrl = null;
     let lastProfileUpdate = 0;
@@ -832,9 +970,7 @@
       if (!currentUser) { showAuthModal();
       document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return;
       }
-      // Cargar datos actuales en el modal
-      document.getElementById('profileAvatar').src = currentUser.photoURL ||
-      'invitado.avif';
+      document.getElementById('profileAvatar').src = currentUser.photoURL || 'invitado.avif';
       newAvatarUrl = currentUser.photoURL;
       document.getElementById('profileUid').value = currentUser.uid;
       document.getElementById('profileDisplayName').value = currentUser.displayName || currentUser.email.split('@')[0];
@@ -879,10 +1015,8 @@
           newAvatarUrl = data.secure_url;
           document.getElementById('profileAvatar').src = newAvatarUrl;
         }
-      } catch (err) { 
-      alert("Error subiendo la imagen."); }
-      finally { btnLabel.innerHTML = '<i class="fas fa-upload"></i> Subir nuevo avatar';
-      }
+      } catch (err) { alert("Error subiendo la imagen."); }
+      finally { btnLabel.innerHTML = '<i class="fas fa-upload"></i> Subir nuevo avatar'; }
     });
 
     async function guardarCambiosPerfil() {
@@ -891,8 +1025,7 @@
       const statusMsg = document.getElementById('profileStatusMsg');
       const newName = document.getElementById('profileDisplayName').value.trim();
       const newColor = document.getElementById('profileNameColor').value;
-      if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return;
-      }
+      if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return; }
       const isAdmin = currentUser.email === 'archinime12@gmail.com';
       const now = Date.now();
       const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
@@ -923,7 +1056,6 @@
         lastProfileUpdate = Date.now();
         statusMsg.style.color = '#00fff7';
         statusMsg.innerText = '¡Cambios guardados exitosamente!';
-        // Actualizar UI
         document.getElementById('userAvatarBtn').src = newAvatarUrl || 'invitado.avif';
         document.getElementById('dropdownAvatar').src = newAvatarUrl || 'invitado.avif';
         document.getElementById('dropdownName').innerText = newName;
@@ -944,22 +1076,13 @@
       }
     }
 
-    // Autenticación
-    function showAuthModal() { document.getElementById('authModal').classList.add('show');
-    disableBodyScroll(); }
-    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); enableBodyScroll(); document.getElementById('authError').innerText = '';
-    }
-    async function loginWithEmail() { const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass);
-    closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-    async function registerWithEmail() { const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value;
-    if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal();
-    } catch (err) { document.getElementById('authError').innerText = err.message; } }
-    async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle);
-    closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-    async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub);
-    closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-    function logoutUser() { auth.signOut().then(() => location.reload());
-    }
+    function showAuthModal() { document.getElementById('authModal').classList.add('show'); disableBodyScroll(); }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); enableBodyScroll(); document.getElementById('authError').innerText = ''; }
+    async function loginWithEmail() { const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function registerWithEmail() { const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
+    function logoutUser() { auth.signOut().then(() => location.reload()); }
     function updateUserUI(user) {
       currentUser = user;
       const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
@@ -995,16 +1118,14 @@
     window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
     window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
     window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
-  </script>
 
-  <script>
+    // ========== SELECTS PERSONALIZADOS Y SCROLL ==========
     function disableBodyScroll() { 
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.paddingRight = scrollbarWidth + 'px';
       document.body.classList.add('modal-open'); 
       document.documentElement.classList.add('modal-open');
     }
-    
     function enableBodyScroll() { 
       document.body.style.paddingRight = '';
       document.body.classList.remove('modal-open'); 
@@ -1022,8 +1143,7 @@
             const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
             const popup = document.createElement('div'); popup.className = 'select-popup';
             const header = document.createElement('div'); header.className = 'select-popup-header';
-            header.textContent = select.getAttribute('aria-label') ||
-            'Seleccionar'; popup.appendChild(header);
+            header.textContent = select.getAttribute('aria-label') || 'Seleccionar'; popup.appendChild(header);
             Array.from(select.options).forEach(opt => {
               const optDiv = document.createElement('div'); optDiv.className = 'select-popup-option'; if (opt.value === select.value) optDiv.classList.add('selected'); optDiv.textContent = opt.textContent;
               optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); });
@@ -1044,21 +1164,56 @@
               dropdown.appendChild(optDiv);
              });
             document.body.appendChild(dropdown);
-            const closeDropdown = e => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove();
-            document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
+            const closeDropdown = e => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove(); document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
             setTimeout(() => { document.addEventListener('click', closeDropdown); document.addEventListener('scroll', closeDropdown, { passive: true }); }, 10);
           }
         });
       });
     })();
 
-    // INICIALIZACIÓN LIMPIA PARA EL INDEX
+    // Música de fondo (inicia con interacción)
+    (function() {
+      const musicList = [
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
+        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3'
+      ];
+      let currentAudio = null;
+      let currentTrackIndex = Math.floor(Math.random() * musicList.length);
+      let isPlaying = false;
+      function playTrack(index) {
+        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+        const track = musicList[index];
+        if (!track) return;
+        currentAudio = new Audio(track);
+        currentAudio.volume = 0.3;
+        currentAudio.loop = false;
+        currentAudio.onended = () => {
+          currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+          playTrack(currentTrackIndex);
+        };
+        currentAudio.play().catch(e => console.log('Esperando interacción para música'));
+        isPlaying = true;
+      }
+      function startMusic() { if (!isPlaying) playTrack(currentTrackIndex); }
+      document.addEventListener('click', startMusic, { once: true });
+      document.addEventListener('touchstart', startMusic, { once: true });
+    })();
+
+    // Inicialización de video de fondo y notificaciones
     window.addEventListener('load', () => {
       const bgVideo = document.getElementById('bg-video');
       const forcePlayVideo = () => { 
         bgVideo.muted = true; 
-        bgVideo.play().then(() => bgVideo.classList.add('loaded'))
-        .catch(() => document.body.addEventListener('click', () => bgVideo.play(), { once: true })); 
+        bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => document.body.addEventListener('click', () => bgVideo.play(), { once: true })); 
       };
       forcePlayVideo();
       if (window.startNotificationSequence) window.startNotificationSequence();
