@@ -1,9 +1,15 @@
-// notification-system.js - VERSIÓN SIN ÍNDICE (filtro en cliente)
+// notification-system.js
+// Versión con máximo 5 popups y primera visita: notificaciones iniciales marcadas como vistas
+
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
+
+// Control de primera visita (para no mostrar notificaciones antiguas como no leídas)
+const FIRST_VISIT_KEY = 'archinime_notif_first_visit_done';
+let isFirstVisit = false;
 
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
@@ -18,6 +24,14 @@ if (typeof disableBodyScroll !== 'function') {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
+    
+    // Detectar si es primera visita (no existe la clave en localStorage)
+    if (!localStorage.getItem(FIRST_VISIT_KEY)) {
+        isFirstVisit = true;
+        localStorage.setItem(FIRST_VISIT_KEY, 'true');
+        console.log("👋 Primera visita detectada. Las notificaciones iniciales se marcarán como vistas.");
+    }
+    
     loadHistoryFromStorage();
     listenForCatalogUpdates(); // Escucha sin where, solo orderBy
     renderNotificationList();
@@ -119,12 +133,10 @@ function listenForReplies(uid) {
         }, error => console.error("Error replies:", error));
 }
 
-// --- Escucha SIN where, solo orderBy (no necesita índice compuesto) ---
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
     
     console.log("📡 Iniciando escucha de catálogo (sin filtro where)...");
-    // Solo orderBy, sin where - esto funciona sin índice compuesto
     catalogoUnsubscribe = db.collection('catalogo')
         .orderBy('lastUpdate', 'desc')
         .limit(50)
@@ -133,11 +145,8 @@ function listenForCatalogUpdates() {
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added' || change.type === 'modified') {
                     const anime = { id: change.doc.id, ...change.doc.data() };
-                    console.log(`📦 Anime recibido: ${anime.title} - updateType: ${anime.updateType} - lastUpdate:`, anime.lastUpdate);
                     if (anime.updateType && anime.updateType !== 'Ninguna') {
                         procesarActualizacionCatalogo(anime);
-                    } else {
-                        console.log(`⏭️ Ignorado: updateType = ${anime.updateType}`);
                     }
                 }
             });
@@ -147,8 +156,6 @@ function listenForCatalogUpdates() {
 }
 
 function procesarActualizacionCatalogo(anime) {
-    console.log(`🔔 Procesando anime: ${anime.title}`);
-    
     let lastUpdateMs = anime.lastUpdate;
     if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
         lastUpdateMs = anime.lastUpdate.toMillis();
@@ -158,19 +165,18 @@ function procesarActualizacionCatalogo(anime) {
         lastUpdateMs = Date.now();
     }
     
-    // Filtro de 30 días en cliente (opcional, puedes comentarlo para que salgan todas)
+    // Filtro de 30 días en cliente (opcional)
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    if (lastUpdateMs < thirtyDaysAgo) {
-        console.log(`⏭️ ${anime.title} tiene lastUpdate > 30 días (${new Date(lastUpdateMs).toLocaleDateString()}), se omite.`);
-        return;
-    }
+    if (lastUpdateMs < thirtyDaysAgo) return;
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    if (seenNotifIds.includes(notifId)) {
-        console.log(`⏭️ ${anime.title} ya fue notificado (ID: ${notifId})`);
-        return;
-    }
+    if (seenNotifIds.includes(notifId)) return;
+    
+    // Si es primera visita, todas las notificaciones que se carguen se marcarán como vistas (sin punto rojo)
+    // y además NO se añadirán a la cola de popups (ya que no deben mostrarse emergentes para el pasado)
+    const shouldBeSeen = isFirstVisit;
+    
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
@@ -184,23 +190,35 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: false,
+        seen: shouldBeSeen,  // Si es primera visita, se marca como visto
         isFinal: anime.isFinal || false,
         popupShown: true
     };
     
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    notificationQueue.push(newNotif);
+    
+    // Si NO es primera visita, se añade a la cola de popups (máximo 5 en total en la cola)
+    if (!isFirstVisit) {
+        notificationQueue.push(newNotif);
+        // Limitar la cola a 5 elementos (los más recientes)
+        if (notificationQueue.length > 5) notificationQueue = notificationQueue.slice(0, 5);
+    }
+    
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
     
-    console.log(`🔔 NUEVA NOTIFICACIÓN: ${anime.title} - ${anime.updateType}`);
-    if (notificationQueue.length === 1) showNextPopup();
+    if (!isFirstVisit && notificationQueue.length === 1) {
+        showNextPopup();
+    } else if (isFirstVisit) {
+        console.log(`🔕 Primera visita: notificación de "${anime.title}" marcada como vista (sin popup ni punto rojo).`);
+    }
 }
 
-window.startNotificationSequence = () => showNextPopup();
+window.startNotificationSequence = () => {
+    if (notificationQueue.length > 0) showNextPopup();
+};
 
 function showNextPopup() {
     if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
