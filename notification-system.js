@@ -1,24 +1,63 @@
-// notification-system.js - VERSIÓN CON LÍMITE ESTRICTO DE 5 POPUPS + BOTÓN "MARCAR TODO COMO VISTO"
+// notification-system.js - VERSIÓN CON RETARDO DE POPUPS TRAS CARGA COMPLETA + FIX DESPLAZAMIENTO
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
-// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
-const MAX_POPUPS = 5;          // <--- CAMBIA ESTE NÚMERO SI QUIERES MÁS O MENOS POPUPS
+const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
+let pageFullyLoaded = false;       // Flag para saber si la página ya cargó completamente
+let pendingPopupTimer = null;      // Timer para retrasar popups si la página no ha cargado
+
+// --- FIX para evitar desplazamiento lateral al abrir dropdowns ---
+// Añadimos un estilo global que mantenga el scrollbar visible
+if (!document.getElementById('archinime-scroll-fix')) {
+    const style = document.createElement('style');
+    style.id = 'archinime-scroll-fix';
+    style.textContent = `
+        body.modal-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+        }
+        /* Evita el desplazamiento lateral en móviles/desktop */
+        .notif-dropdown.active, .user-dropdown.active {
+            transform: translateY(0) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
 
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
+    const scrollY = window.scrollY;
     document.body.classList.add('modal-open');
-    document.documentElement.classList.add('modal-open');
+    document.body.style.top = `-${scrollY}px`;
+    document.documentElement.style.top = `-${scrollY}px`;
   };
   window.enableBodyScroll = function() {
+    const scrollY = parseInt(document.body.style.top || '0') * -1;
     document.body.classList.remove('modal-open');
-    document.documentElement.classList.remove('modal-open');
+    document.body.style.top = '';
+    document.documentElement.style.top = '';
+    window.scrollTo(0, scrollY);
   };
+}
+
+// Esperar a que la página esté completamente cargada antes de iniciar popups
+function waitForPageFullyLoaded(callback) {
+    if (document.readyState === 'complete') {
+        // Ya está cargada
+        callback();
+    } else {
+        window.addEventListener('load', callback, { once: true });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -27,9 +66,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
-        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
+        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes) tras carga completa.");
         firstVisitInitialized = true;
-        await initFirstVisitNotifications();
+        // Primero cargar datos, pero NO mostrar popups aún
+        await initFirstVisitNotifications({ deferPopups: true });
         localStorage.setItem('archinime_notif_first_visit', 'true');
     } else {
         renderNotificationList();
@@ -46,10 +86,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
+
+    // Marcar que la página está lista cuando todo el contenido (imágenes, etc.) haya cargado
+    waitForPageFullyLoaded(() => {
+        console.log("✅ Página completamente cargada. Iniciando popups pendientes...");
+        pageFullyLoaded = true;
+        if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
+        // Si hay cola de popups, comenzar secuencia
+        if (notificationQueue.length > 0 && !window._popupSequenceActive) {
+            showNextPopup();
+        }
+    });
 });
 
-// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
-async function initFirstVisitNotifications() {
+// ========== PRIMERA VISITA: máximo 5 popups, pero diferidos hasta carga completa ==========
+async function initFirstVisitNotifications(options = {}) {
+    const { deferPopups = true } = options;
+    
     // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
@@ -68,10 +121,9 @@ async function initFirstVisitNotifications() {
     popupsShownCount = 0;
 
     try {
-        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
-            .limit(MAX_POPUPS)   // <--- SOLO 5 POPUPS
+            .limit(MAX_POPUPS)
             .get();
         
         const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -102,7 +154,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: true,   // Marcado como visto desde el principio
+                seen: true,
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -117,7 +169,6 @@ async function initFirstVisitNotifications() {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
             }
 
-            // LIMITAR POPUPS: solo si no hemos alcanzado el máximo
             if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                 notificationQueue.push(newNotif);
                 popupsShownCount++;
@@ -129,15 +180,27 @@ async function initFirstVisitNotifications() {
         renderNotificationList();
         updateBellBadge();
 
-        if (notificationQueue.length > 0) {
-            showNextPopup();
+        // Si no se difieren o la página ya está cargada, empezar popups
+        if (!deferPopups || pageFullyLoaded) {
+            if (notificationQueue.length > 0) {
+                showNextPopup();
+            }
+        } else {
+            // Esperar a que la página cargue completamente
+            console.log("⏳ Diferiendo popups hasta que la página cargue completamente...");
+            if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
+            pendingPopupTimer = setTimeout(() => {
+                if (notificationQueue.length > 0 && pageFullyLoaded) {
+                    showNextPopup();
+                }
+            }, 500); // tiempo extra de seguridad
         }
     } catch (error) {
         console.error("❌ Error al obtener los últimos animes para primera visita:", error);
     }
 }
 
-// ========== FUNCIONES EXISTENTES (con límite de popups) ==========
+// ========== FUNCIONES EXISTENTES (con límite de popups y control de carga) ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
@@ -300,15 +363,14 @@ function procesarActualizacionCatalogo(anime) {
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
-    // *** LÍMITE ESTRICTO DE POPUPS: máximo 5 ***
-    const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
+    const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS && pageFullyLoaded);
     
     if (shouldEnqueuePopup) {
         notificationQueue.push(newNotif);
         popupsShownCount++;
         console.log(`🔔 NUEVO POPUP #${popupsShownCount}: ${anime.title}`);
     } else {
-        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado): ${anime.title}`);
+        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado o página no cargada): ${anime.title}`);
     }
     
     saveHistoryToStorage();
@@ -320,10 +382,24 @@ function procesarActualizacionCatalogo(anime) {
     }
 }
 
-window.startNotificationSequence = () => showNextPopup();
+window.startNotificationSequence = () => {
+    if (pageFullyLoaded && notificationQueue.length > 0 && !window._popupSequenceActive) {
+        showNextPopup();
+    }
+};
 
 function showNextPopup() {
-    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
+    if (!pageFullyLoaded) {
+        console.log("⏳ Página aún no cargada, esperando para mostrar popup...");
+        return;
+    }
+    if (window._popupSequenceActive) return;
+    if (notificationQueue.length) {
+        window._popupSequenceActive = true;
+        createPopupHTML(notificationQueue[0]);
+    } else {
+        window._popupSequenceActive = false;
+    }
 }
 
 function createPopupHTML(notif) {
@@ -362,13 +438,22 @@ function closePopup() {
         modal.remove();
         notificationQueue.shift();
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
-        showNextPopup();
+        window._popupSequenceActive = false;
+        // Esperar un pequeño retardo entre popups para evitar choques
+        if (notificationQueue.length > 0) {
+            setTimeout(() => {
+                if (pageFullyLoaded) showNextPopup();
+            }, 400);
+        } else {
+            window._popupSequenceActive = false;
+        }
     }, 300);
 }
 
 function goToAnimeFromPopup(animeId, notifId) {
     if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) markAsRead(notifId);
     notificationQueue = [];
+    window._popupSequenceActive = false;
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
@@ -396,7 +481,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ========== NUEVO: Botón "Marcar todo como visto" ==========
 function markAllAsRead() {
     let changed = false;
     for (let notif of notificationsHistory) {
@@ -413,12 +497,10 @@ function markAllAsRead() {
     }
 }
 
-// ========== RENDERIZADO DEL PANEL (con botón) ==========
 function renderNotificationList() {
     const container = document.getElementById('notifList');
     if (!container) return;
     requestAnimationFrame(() => {
-        // Primero actualizamos el header del panel (para incluir el botón)
         const header = document.querySelector('#notifMenu .notif-header');
         if (header && !header.querySelector('.mark-all-btn')) {
             const btn = document.createElement('button');
@@ -429,7 +511,6 @@ function renderNotificationList() {
                 e.stopPropagation();
                 markAllAsRead();
             };
-            // Estilos inline para que se vea bien
             btn.style.cssText = `
                 background: rgba(0,243,255,0.1);
                 border: 1px solid var(--neon-cyan);
@@ -509,4 +590,4 @@ function markAsRead(notifId) {
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
 window.goToAnimeFromPopup = goToAnimeFromPopup;
-window.markAllAsRead = markAllAsRead; // por si se necesita desde consola
+window.markAllAsRead = markAllAsRead;
