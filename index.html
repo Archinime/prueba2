@@ -14,7 +14,7 @@
   <!-- Control de versión -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.4";
+      const APP_VERSION = "2025-04-06-v3.5";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -729,7 +729,7 @@
     })();
   </script>
 
-  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (VERSIÓN CON ORDEN ALEATORIO EN INICIO) ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO: MÚLTIPLES ARRAY-CONTAINS) ===== -->
   <script>
     // Variables de paginación
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -745,17 +745,15 @@
     const firestoreRatings = new Map();
 
     // Lista completa de animes (para orden aleatorio)
-    let allAnimes = [];       // Array con todos los animes sin filtrar
-    let shuffledAnimes = [];  // Copia mezclada de allAnimes
-    let currentShufflePage = 0; // Página actual en la vista aleatoria
+    let allAnimes = [];
+    let shuffledAnimes = [];
+    let currentShufflePage = 0;
     const ITEMS_PER_PAGE = 20;
 
-    // Normalizar texto
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
-    // Función de mezcla (Fisher-Yates)
     function shuffleArray(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -765,7 +763,6 @@
       return a;
     }
 
-    // Cargar ratings desde Firestore (con validación)
     async function loadRatingsFromFirestore() {
       try {
         const snapshot = await db.collection('animeRatings').get();
@@ -784,7 +781,6 @@
       }
     }
 
-    // Obtener rating a mostrar
     function getDisplayRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
@@ -799,7 +795,6 @@
       return '—';
     }
 
-    // Obtener rating numérico para filtros
     function getNumericRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
@@ -810,7 +805,6 @@
       return 0;
     }
 
-    // Renderizar tarjetas
     function renderAnimes(animes, append = true) {
       if (!append) gridEl.innerHTML = '';
       if (!animes.length && !append) {
@@ -853,48 +847,73 @@
     function resetearFiltros() {
       searchInput.value = ''; genreSelect.value = ''; demographicSelect.value = ''; ratingSelect.value = '';
       currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-      // Volver a la vista aleatoria
       currentShufflePage = 0;
       cargarAnimesPaginado(true);
     }
 
-    // BÚSQUEDA Y FILTROS (usando Firestore, orden alfabético)
+    // FILTRADO CON MÚLTIPLES ARRAY-CONTAINS (resuelto en cliente)
     async function aplicarFiltros() {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters) {
-        // Sin filtros: usar la vista aleatoria
         cargarAnimesPaginado(true);
         return;
       }
 
-      // Con filtros: consulta a Firestore (orden alfabético)
       gridEl.innerHTML = '';
       isLoading = true;
       try {
-        let query = db.collection('catalogo');
-        let hasFilters = false;
+        // Para evitar el error de múltiples array-contains, obtenemos los animes de forma más flexible:
+        // Si hay filtros de género y demografía, no podemos hacer ambos en Firestore. Entonces:
+        // - Si solo hay género O solo demografía, podemos usar array-contains.
+        // - Si hay ambos, obtenemos los animes sin esos filtros (o con uno solo) y filtramos en cliente.
+        // - Además, si hay búsqueda o rating, también se harán en cliente.
 
-        if (currentFilters.genre) {
+        let query = db.collection('catalogo');
+        let useFirestoreFilter = false;
+        let firestoreGenre = null;
+        let firestoreDemographic = null;
+
+        // Determinar si podemos usar array-contains en Firestore (solo uno)
+        if (currentFilters.genre && !currentFilters.demographic) {
           query = query.where('genres', 'array-contains', currentFilters.genre);
-          hasFilters = true;
-        }
-        if (currentFilters.demographic) {
+          useFirestoreFilter = true;
+          firestoreGenre = currentFilters.genre;
+        } else if (currentFilters.demographic && !currentFilters.genre) {
           query = query.where('genres', 'array-contains', currentFilters.demographic);
-          hasFilters = true;
+          useFirestoreFilter = true;
+          firestoreDemographic = currentFilters.demographic;
         }
+        // Si hay ambos, NO usamos array-contains en Firestore (para evitar error), luego filtraremos en cliente.
+
+        // Ordenar por título (necesario para paginación, pero como no paginamos con filtros, solo lo usamos para consistencia)
         query = query.orderBy('title');
-        const snapshot = await query.limit(200).get();
+
+        // Obtener hasta 500 resultados (suficiente para la mayoría de los casos)
+        const snapshot = await query.limit(500).get();
         let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Aplicar filtros de género y demografía en cliente si es necesario
+        if (currentFilters.genre && currentFilters.demographic) {
+          animes = animes.filter(a => 
+            a.genres && a.genres.includes(currentFilters.genre) && 
+            a.genres.includes(currentFilters.demographic)
+          );
+        } else if (currentFilters.genre && !firestoreGenre) {
+          animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.genre));
+        } else if (currentFilters.demographic && !firestoreDemographic) {
+          animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
+        }
+
+        // Búsqueda por título/alias (en cliente)
         if (currentFilters.search) {
           const searchTermNormalized = normalizeText(currentFilters.search);
           animes = animes.filter(a => {
             const titles = [a.title, ...(a.aliases || [])];
             return titles.some(t => normalizeText(t).startsWith(searchTermNormalized));
           });
-          hasFilters = true;
         }
 
+        // Filtro por rating
         if (currentFilters.rating) {
           animes = animes.filter(a => {
             const r = getNumericRating(a);
@@ -903,15 +922,10 @@
             if (currentFilters.rating === 'regular') return r < 4.6;
             return true;
           });
-          hasFilters = true;
         }
 
-        if (hasFilters) {
-          renderAnimes(animes, false);
-          if (animes.length === 0) mostrarNoResultados();
-        } else {
-          cargarAnimesPaginado(true);
-        }
+        renderAnimes(animes, false);
+        if (animes.length === 0) mostrarNoResultados();
       } catch (e) {
         console.error('Error en filtros:', e);
         gridEl.innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
@@ -920,16 +934,13 @@
       }
     }
 
-    // Paginación: si hay filtros activos, se usa Firestore; si no, se usa la lista aleatoria local
+    // Paginación aleatoria (sin filtros)
     async function cargarAnimesPaginado(reset = true) {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (hasActiveFilters) {
-        // Si hay filtros, no se debe llamar a esta función directamente, porque aplicarFiltros ya maneja la renderización.
-        // Para evitar loops, simplemente no hacemos nada aquí.
-        return;
+        return; // No se debe llamar cuando hay filtros
       }
 
-      // Modo aleatorio sin filtros
       if (isLoading) return;
       if (reset) {
         currentShufflePage = 0;
@@ -941,7 +952,6 @@
       isLoading = true;
       try {
         if (allAnimes.length === 0) {
-          // Cargar todos los animes desde Firestore (una sola vez)
           const snapshot = await db.collection('catalogo').orderBy('title').get();
           allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           shuffledAnimes = shuffleArray(allAnimes);
@@ -974,7 +984,6 @@
       debounceTimer = setTimeout(() => aplicarFiltros(), 300);
     }
 
-    // Event listeners
     searchInput.addEventListener('input', e => {
       currentFilters.search = e.target.value;
       debouncedAplicarFiltros();
@@ -992,7 +1001,6 @@
       aplicarFiltros();
     });
 
-    // Scroll infinito solo si no hay filtros activos
     window.addEventListener('scroll', () => {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
@@ -1000,10 +1008,8 @@
       }
     });
 
-    // Inicialización
     (async function init() {
       await loadRatingsFromFirestore();
-      // Cargar la primera página aleatoria (allAnimes se cargará dentro de cargarAnimesPaginado)
       cargarAnimesPaginado(true);
     })();
 
