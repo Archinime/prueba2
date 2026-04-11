@@ -1,5 +1,6 @@
 // anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
+// CORREGIDO: Error "Missing or insufficient permissions" al escribir en animeRatings sin autenticación
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -213,23 +214,42 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES ----------
+// ---------- VOTACIONES (CORREGIDO: SIN ESCRITURA PARA USUARIOS NO AUTENTICADOS) ----------
 async function loadAnimeRating(animeId) {
-  const doc = await db.collection('animeRatings').doc(String(animeId)).get();
-  if (doc.exists) {
-    animeRatingData = doc.data();
-  } else {
+  try {
+    const doc = await db.collection('animeRatings').doc(String(animeId)).get();
+    if (doc.exists) {
+      animeRatingData = doc.data();
+    } else {
+      // Solo leer el rating del documento del anime, pero NUNCA escribir si el usuario no está autenticado
+      if (animeData?.rating != null) {
+        animeRatingData = { avg: animeData.rating, count: 1 };
+        // SOLO escribir en Firestore si el usuario está autenticado (evita error de permisos)
+        if (currentUserId) {
+          try {
+            await db.collection('animeRatings').doc(String(animeId)).set({
+              avg: animeData.rating,
+              count: 1,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          } catch (writeError) {
+            console.warn("No se pudo escribir el rating inicial (probablemente falta autenticación):", writeError);
+            // No lanzamos el error, solo mostramos el rating localmente
+          }
+        }
+      }
+    }
+    updateRatingDisplay();
+    updateRatingLabel(animeRatingData.avg);
+  } catch (error) {
+    console.error("Error al cargar animeRating:", error);
+    // Si falla la lectura, no rompemos la página, solo mostramos el rating del documento anime si existe
     if (animeData?.rating != null) {
       animeRatingData = { avg: animeData.rating, count: 1 };
-      await db.collection('animeRatings').doc(String(animeId)).set({
-        avg: animeData.rating,
-        count: 1,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      updateRatingDisplay();
+      updateRatingLabel(animeRatingData.avg);
     }
   }
-  updateRatingDisplay();
-  updateRatingLabel(animeRatingData.avg);
 }
 function updateRatingDisplay() {
   const avgSpan = document.getElementById('averageRatingDisplay');
@@ -339,9 +359,13 @@ async function voteAnime(newVal) {
 }
 async function loadUserRating(animeId, userId) {
   if (!userId) return;
-  const doc = await db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId).get();
-  currentUserRating = doc.exists ? doc.data().value : null;
-  renderStars(currentUserRating || 0);
+  try {
+    const doc = await db.collection('animeRatings').doc(String(animeId)).collection('userRatings').doc(userId).get();
+    currentUserRating = doc.exists ? doc.data().value : null;
+    renderStars(currentUserRating || 0);
+  } catch(e) {
+    console.warn("Error al cargar voto del usuario:", e);
+  }
 }
 
 // ---------- RENDER PRINCIPAL ----------
@@ -510,13 +534,11 @@ function initSearch() {
     const q = this.value.trim().toLowerCase();
     if (!q) { hideDropdown(); return; }
     
-    // Filtrar usando la caché
     const matches = searchCache.filter(item => {
       if (item.id === currentAnimeId) return false;
-      // Buscar en título y alias
       const titlesToCheck = [item.title, ...(item.aliases || [])];
       return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
-    }).slice(0, 10); // Limitar a 10 resultados
+    }).slice(0, 10);
     
     showDropdown(matches);
   });
@@ -560,9 +582,8 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// ---------- INICIALIZACIÓN ----------
+// ---------- INICIALIZACIÓN (CORREGIDO: manejo de errores de permisos) ----------
 (async function init() {
-  // Cargar caché de búsqueda primero
   await loadSearchCache();
 
   if (!animeId) {
@@ -584,7 +605,11 @@ auth.onAuthStateChanged(async (user) => {
       showToast('Enlace copiado');
     });
   } catch(e) {
-    console.error('Error cargando anime:', e);
-    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${e.message}</h2>`;
+    console.error('Error crítico cargando anime:', e);
+    let errorMsg = e.message;
+    if (errorMsg.includes('permission') || errorMsg.includes('Missing or insufficient permissions')) {
+      errorMsg = 'No tienes permisos para ver este anime. Por favor, inicia sesión o contacta al administrador.';
+    }
+    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${errorMsg}</h2>`;
   }
 })();
