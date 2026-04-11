@@ -1,4 +1,4 @@
-// notification-system.js - VERSIÓN CON RETARDO DE POPUPS TRAS CARGA COMPLETA + FIX DESPLAZAMIENTO
+// notification-system.js - VERSIÓN CON FIX DEFINITIVO DE DESPLAZAMIENTO LATERAL + POPUPS TRAS CARGA COMPLETA
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -8,42 +8,78 @@ let catalogoUnsubscribe = null;
 let popupsShownCount = 0;
 const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
-let pageFullyLoaded = false;       // Flag para saber si la página ya cargó completamente
-let pendingPopupTimer = null;      // Timer para retrasar popups si la página no ha cargado
+let pageFullyLoaded = false;
+let pendingPopupTimer = null;
+let scrollbarWidth = null; // Para compensar el desplazamiento
 
-// --- FIX para evitar desplazamiento lateral al abrir dropdowns ---
-// Añadimos un estilo global que mantenga el scrollbar visible
+// Calcular el ancho del scrollbar una vez
+function getScrollbarWidth() {
+    if (scrollbarWidth !== null) return scrollbarWidth;
+    const div = document.createElement('div');
+    div.style.overflow = 'scroll';
+    div.style.position = 'absolute';
+    div.style.top = '-9999px';
+    div.style.width = '100px';
+    div.style.height = '100px';
+    document.body.appendChild(div);
+    scrollbarWidth = div.offsetWidth - div.clientWidth;
+    document.body.removeChild(div);
+    return scrollbarWidth || 0;
+}
+
+// --- FIX definitivo para evitar desplazamiento lateral al abrir dropdowns/popups ---
+// Añadimos un estilo global que mantenga el scrollbar visible y evite el salto
 if (!document.getElementById('archinime-scroll-fix')) {
     const style = document.createElement('style');
     style.id = 'archinime-scroll-fix';
     style.textContent = `
         body.modal-open {
             overflow: hidden !important;
-            position: fixed !important;
-            width: 100% !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
+            position: relative !important;
+            width: auto !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
         }
-        /* Evita el desplazamiento lateral en móviles/desktop */
-        .notif-dropdown.active, .user-dropdown.active {
-            transform: translateY(0) !important;
+        /* Evita que el contenido se mueva al desaparecer el scrollbar */
+        html.modal-open {
+            overflow: hidden !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
+        }
+        /* Para popups y dropdowns, asegurar que no generen scroll horizontal */
+        #eventModal, .notif-dropdown, .user-dropdown {
+            overflow-x: hidden;
         }
     `;
     document.head.appendChild(style);
 }
 
-if (typeof disableBodyScroll !== 'function') {
+// Versión mejorada de disableBodyScroll que evita el salto lateral
+if (typeof window.disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollY = window.scrollY;
+    const scrollbarWidth = getScrollbarWidth();
+    // Aplicar clase al html también
+    document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
+    // Compensar el ancho del scrollbar para evitar el salto
+    if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = scrollbarWidth + 'px';
+        document.documentElement.style.paddingRight = scrollbarWidth + 'px';
+    }
+    // Fijar la posición del scroll
     document.body.style.top = `-${scrollY}px`;
     document.documentElement.style.top = `-${scrollY}px`;
   };
+  
   window.enableBodyScroll = function() {
     const scrollY = parseInt(document.body.style.top || '0') * -1;
+    document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+    document.documentElement.style.paddingRight = '';
     document.body.style.top = '';
     document.documentElement.style.top = '';
     window.scrollTo(0, scrollY);
@@ -53,7 +89,6 @@ if (typeof disableBodyScroll !== 'function') {
 // Esperar a que la página esté completamente cargada antes de iniciar popups
 function waitForPageFullyLoaded(callback) {
     if (document.readyState === 'complete') {
-        // Ya está cargada
         callback();
     } else {
         window.addEventListener('load', callback, { once: true });
@@ -68,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isFirstVisit && !firstVisitInitialized) {
         console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes) tras carga completa.");
         firstVisitInitialized = true;
-        // Primero cargar datos, pero NO mostrar popups aún
         await initFirstVisitNotifications({ deferPopups: true });
         localStorage.setItem('archinime_notif_first_visit', 'true');
     } else {
@@ -87,23 +121,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Marcar que la página está lista cuando todo el contenido (imágenes, etc.) haya cargado
     waitForPageFullyLoaded(() => {
         console.log("✅ Página completamente cargada. Iniciando popups pendientes...");
         pageFullyLoaded = true;
         if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
-        // Si hay cola de popups, comenzar secuencia
         if (notificationQueue.length > 0 && !window._popupSequenceActive) {
             showNextPopup();
         }
     });
 });
 
-// ========== PRIMERA VISITA: máximo 5 popups, pero diferidos hasta carga completa ==========
+// ========== PRIMERA VISITA: máximo 5 popups, diferidos ==========
 async function initFirstVisitNotifications(options = {}) {
     const { deferPopups = true } = options;
     
-    // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -180,27 +211,21 @@ async function initFirstVisitNotifications(options = {}) {
         renderNotificationList();
         updateBellBadge();
 
-        // Si no se difieren o la página ya está cargada, empezar popups
         if (!deferPopups || pageFullyLoaded) {
-            if (notificationQueue.length > 0) {
-                showNextPopup();
-            }
+            if (notificationQueue.length > 0) showNextPopup();
         } else {
-            // Esperar a que la página cargue completamente
             console.log("⏳ Diferiendo popups hasta que la página cargue completamente...");
             if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
             pendingPopupTimer = setTimeout(() => {
-                if (notificationQueue.length > 0 && pageFullyLoaded) {
-                    showNextPopup();
-                }
-            }, 500); // tiempo extra de seguridad
+                if (notificationQueue.length > 0 && pageFullyLoaded) showNextPopup();
+            }, 500);
         }
     } catch (error) {
         console.error("❌ Error al obtener los últimos animes para primera visita:", error);
     }
 }
 
-// ========== FUNCIONES EXISTENTES (con límite de popups y control de carga) ==========
+// ========== FUNCIONES PRINCIPALES ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
@@ -439,7 +464,6 @@ function closePopup() {
         notificationQueue.shift();
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
         window._popupSequenceActive = false;
-        // Esperar un pequeño retardo entre popups para evitar choques
         if (notificationQueue.length > 0) {
             setTimeout(() => {
                 if (pageFullyLoaded) showNextPopup();
