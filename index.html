@@ -125,40 +125,6 @@
     ::-webkit-scrollbar-track { background: #020202; }
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
-    /* Loader Actualizado (Gato) */
-    #page-loader {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
-      z-index: 99999;
-      display: flex; justify-content: center; align-items: center; flex-direction: column;
-      transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      will-change: opacity;
-    }
-    .cat-loader-wrapper {
-      position: relative;
-      width: 140px; /* Puedes ajustar el tamaño del gato aquí */
-      height: 140px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 10px;
-      filter: drop-shadow(0 0 20px var(--neon-cyan)); /* Resplandor celeste alrededor del gato */
-      animation: floatCat 3s ease-in-out infinite;
-    }
-    .cat-loader-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .loader-sub { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--neon-cyan); font-weight: 700; letter-spacing: 4px; margin-top: 20px; animation: pulseText 1.2s infinite; text-shadow: 0 0 10px var(--neon-cyan); }
-    .loader-line { width: 0; height: 2px; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); margin-top: 30px; box-shadow: 0 0 12px var(--neon-cyan); border-radius: 2px; animation: loadLine 1.2s forwards ease-out; }
-
-    @keyframes floatCat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
     /* Fondo y overlay */
     #bg-video { position: fixed; top: 0; left: 0;
       width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
@@ -427,16 +393,6 @@
   </style>
 </head>
 <body>
-
-  <div id="page-loader">
-    <div class="cat-loader-wrapper">
-      <img src="gato.gif" alt="Cargando sistema" class="cat-loader-img">
-    </div>
-    <div class="loader-sub">CARGANDO SISTEMA...</div>
-    <div style="width: 280px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 20px; border-radius: 2px;">
-      <div class="loader-line"></div>
-    </div>
-  </div>
 
   <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
     <source src="galaxia.mp4" type="video/mp4">
@@ -1042,7 +998,6 @@
   </script>
 
   <script>
-    // FIX SCROLLBAR SALTO - Solo afecta al body y es seguro.
     function disableBodyScroll() { 
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.paddingRight = scrollbarWidth + 'px';
@@ -1096,12 +1051,17 @@
         });
       });
     })();
+
+    // INICIALIZACIÓN LIMPIA PARA EL INDEX
     window.addEventListener('load', () => {
-      const loader = document.getElementById('page-loader'), bgVideo = document.getElementById('bg-video');
-      const forcePlayVideo = () => { bgVideo.muted = true; bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => document.body.addEventListener('click', () => bgVideo.play(), { once: true })); };
+      const bgVideo = document.getElementById('bg-video');
+      const forcePlayVideo = () => { 
+        bgVideo.muted = true; 
+        bgVideo.play().then(() => bgVideo.classList.add('loaded'))
+        .catch(() => document.body.addEventListener('click', () => bgVideo.play(), { once: true })); 
+      };
       forcePlayVideo();
-      const isFirstVisit = !sessionStorage.getItem('archinime_loaded'), delay = isFirstVisit ? 1400 : 50;
-      setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; sessionStorage.setItem('archinime_loaded', 'true'); if (window.startNotificationSequence) window.startNotificationSequence(); }, 400); }, delay);
+      if (window.startNotificationSequence) window.startNotificationSequence();
     });
   </script>
 </body>

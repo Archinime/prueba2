@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargando Archinime...</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-purple: #bc13fe;
+      --dark-bg: #050505;
+    }
+    body {
+      margin: 0; padding: 0;
+      background-color: var(--dark-bg);
+      background-image: radial-gradient(circle at center, #111116, #000000);
+      height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      font-family: 'Orbitron', sans-serif;
+      color: white; overflow: hidden;
+    }
+    
+    /* Contenedor del Gato */
+    .cat-loader-wrapper {
+      position: relative;
+      width: 180px; /* Tamaño del gato */
+      height: 180px;
+      margin-bottom: 20px;
+      /* El resplandor se aplica DESPUÉS de colorearlo con SVG */
+      filter: drop-shadow(0 0 20px var(--neon-cyan));
+      animation: runCat 1s infinite alternate ease-in-out;
+    }
+
+    .cat-loader-img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      /* AQUÍ ESTÁ LA MAGIA: Aplica el filtro SVG definido abajo */
+      filter: url(#magic-cyan-cat);
+    }
+
+    .loader-sub {
+      font-size: 1.2rem;
+      color: var(--neon-cyan);
+      letter-spacing: 5px;
+      text-shadow: 0 0 15px var(--neon-cyan);
+      animation: pulseText 1.5s infinite;
+    }
+
+    .loader-line-container {
+      width: 300px; height: 3px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 30px; border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loader-line {
+      width: 0; height: 100%;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+      box-shadow: 0 0 15px var(--neon-cyan);
+      animation: loadProgress 3s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes pulseText { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+    @keyframes loadProgress { 0% { width: 0%; } 100% { width: 100%; } }
+    @keyframes runCat { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position: absolute;">
+    <filter id="magic-cyan-cat">
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 0.0     
+        0 0 0 0 0.95    
+        0 0 0 0 1.0     
+        -3 1 1 0 1      
+      "/>
+    </filter>
+  </svg>
+
+  <div class="cat-loader-wrapper">
+    <img src="gato.gif" alt="Cargando sistema" class="cat-loader-img">
+  </div>
+  <div class="loader-sub">ARCHINIME</div>
+  <div class="loader-line-container"><div class="loader-line"></div></div>
+
+  <script>
+    // Te redirige a tu index principal después de 3 segundos
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 3000);
+  </script>
+</body>
+</html>
