@@ -1,103 +1,32 @@
-// notification-system.js - VERSIÓN CON FIX DE DESPLAZAMIENTO LATERAL (scrollbar padding)
+// notification-system.js - FIX: CARGA RETRASADA DE POPUPS + COMPENSACIÓN DE SCROLLBAR
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
+// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
 const MAX_POPUPS = 5;
+
 let firstVisitInitialized = false;
+
+// FIX: BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
-let pendingPopupTimer = null;
 
-// --- Función para obtener el ancho de la barra de scroll (si existe) ---
-function getScrollbarWidth() {
-    return window.innerWidth - document.documentElement.clientWidth;
-}
-
-// --- FIX definitivo para evitar desplazamiento lateral ---
-let originalBodyPadding = null;
-let originalHtmlPadding = null;
-let previousScrollY = 0;
-
+// FIX: FUNCIÓN DE SCROLLBAR CON COMPENSACIÓN DE ANCHO
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
-    // Guardar scroll actual
-    previousScrollY = window.scrollY;
-    const scrollbarWidth = getScrollbarWidth();
-    
-    // Guardar paddings originales
-    if (originalBodyPadding === null) {
-        originalBodyPadding = window.getComputedStyle(document.body).paddingRight;
-        originalHtmlPadding = window.getComputedStyle(document.documentElement).paddingRight;
-    }
-    
-    // Aplicar estilos para evitar salto
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${previousScrollY}px`;
-    document.body.style.width = '100%';
-    document.documentElement.style.width = '100%';
-    
-    // Compensar el ancho del scrollbar
-    if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
-        document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
-    }
-    
-    // Añadir clase para estilos adicionales si se necesita
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.paddingRight = scrollbarWidth + 'px';
     document.body.classList.add('modal-open');
     document.documentElement.classList.add('modal-open');
   };
-  
   window.enableBodyScroll = function() {
-    // Restaurar scroll guardado
-    const scrollY = previousScrollY;
-    
-    // Remover estilos inline
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    document.documentElement.style.width = '';
-    document.body.style.paddingRight = originalBodyPadding !== null ? originalBodyPadding : '';
-    document.documentElement.style.paddingRight = originalHtmlPadding !== null ? originalHtmlPadding : '';
-    
-    // Remover clase
+    document.body.style.paddingRight = '';
     document.body.classList.remove('modal-open');
     document.documentElement.classList.remove('modal-open');
-    
-    // Restaurar scroll
-    window.scrollTo(0, scrollY);
   };
-}
-
-// Inyectar estilos globales para evitar desbordamiento horizontal en cualquier elemento
-if (!document.getElementById('archinime-no-horizontal-scroll')) {
-    const style = document.createElement('style');
-    style.id = 'archinime-no-horizontal-scroll';
-    style.textContent = `
-        body.modal-open, html.modal-open {
-            overflow-x: hidden !important;
-        }
-        /* Evitar cualquier desplazamiento horizontal extra */
-        .notif-dropdown, .user-dropdown, #eventModal {
-            overflow-x: hidden;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Esperar a que la página esté completamente cargada antes de iniciar popups
-function waitForPageFullyLoaded(callback) {
-    if (document.readyState === 'complete') {
-        callback();
-    } else {
-        window.addEventListener('load', callback, { once: true });
-    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -106,9 +35,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
-        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes) tras carga completa.");
+        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
         firstVisitInitialized = true;
-        await initFirstVisitNotifications({ deferPopups: true });
+        await initFirstVisitNotifications();
         localStorage.setItem('archinime_notif_first_visit', 'true');
     } else {
         renderNotificationList();
@@ -125,21 +54,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
-
-    waitForPageFullyLoaded(() => {
-        console.log("✅ Página completamente cargada. Iniciando popups pendientes...");
-        pageFullyLoaded = true;
-        if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
-        if (notificationQueue.length > 0 && !window._popupSequenceActive) {
-            showNextPopup();
-        }
-    });
 });
 
-// ========== PRIMERA VISITA: máximo 5 popups, diferidos ==========
-async function initFirstVisitNotifications(options = {}) {
-    const { deferPopups = true } = options;
-    
+// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
+async function initFirstVisitNotifications() {
+    // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -155,19 +74,16 @@ async function initFirstVisitNotifications(options = {}) {
 
     notificationQueue = [];
     popupsShownCount = 0;
-
     try {
+        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
             .limit(MAX_POPUPS)
             .get();
-        
         const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log(`📦 Primeros ${animes.length} animes más recientes para popups iniciales`);
-
         for (const anime of animes) {
             if (!anime.updateType || anime.updateType === 'Ninguna') continue;
-
             let lastUpdateMs = anime.lastUpdate;
             if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
                 lastUpdateMs = anime.lastUpdate.toMillis();
@@ -194,7 +110,6 @@ async function initFirstVisitNotifications(options = {}) {
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
-
             notificationsHistory.unshift(newNotif);
             if (notificationsHistory.length > 50) notificationsHistory.pop();
 
@@ -216,28 +131,22 @@ async function initFirstVisitNotifications(options = {}) {
         renderNotificationList();
         updateBellBadge();
 
-        if (!deferPopups || pageFullyLoaded) {
-            if (notificationQueue.length > 0) showNextPopup();
-        } else {
-            console.log("⏳ Diferiendo popups hasta que la página cargue completamente...");
-            if (pendingPopupTimer) clearTimeout(pendingPopupTimer);
-            pendingPopupTimer = setTimeout(() => {
-                if (notificationQueue.length > 0 && pageFullyLoaded) showNextPopup();
-            }, 500);
+        if (notificationQueue.length > 0) {
+            showNextPopup();
         }
     } catch (error) {
         console.error("❌ Error al obtener los últimos animes para primera visita:", error);
     }
 }
 
-// ========== FUNCIONES PRINCIPALES ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
         try { 
             notificationsHistory = JSON.parse(stored);
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        } catch(e) { notificationsHistory = []; }
+        } catch(e) { notificationsHistory = [];
+        }
     }
 }
 
@@ -288,7 +197,8 @@ async function syncNotificationsWithCloud(uid) {
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-    } catch (e) { console.error("Error sync notif:", e); }
+    } catch (e) { console.error("Error sync notif:", e);
+    }
 }
 
 function listenForReplies(uid) {
@@ -301,14 +211,16 @@ function listenForReplies(uid) {
             let hasNew = false;
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
-                    const data = change.doc.data();
+                   const data = change.doc.data();
                     if (data.userId === uid) return;
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
+          
                     if (notificationsHistory.some(n => n.notifId === notifId)) return;
                     let rawText = data.texto || "";
                     let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
+         
                     notificationsHistory.unshift({
                         notifId, type: 'RESPUESTA', animeId: data.animeId,
                         title: `¡${data.userName} te respondió!`,
@@ -346,7 +258,7 @@ function listenForCatalogUpdates() {
                         procesarActualizacionCatalogo(anime);
                     }
                 }
-            });
+             });
         }, error => console.error('❌ Error escuchando catálogo:', error));
 }
 
@@ -368,14 +280,12 @@ function procesarActualizacionCatalogo(anime) {
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) return;
-    
     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
     const markAsSeen = isFirstVisitGlobal;
     
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-    
     if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
     const newNotif = {
@@ -393,43 +303,35 @@ function procesarActualizacionCatalogo(anime) {
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
-    const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS && pageFullyLoaded);
-    
+    const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
     if (shouldEnqueuePopup) {
         notificationQueue.push(newNotif);
         popupsShownCount++;
         console.log(`🔔 NUEVO POPUP #${popupsShownCount}: ${anime.title}`);
     } else {
-        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado o página no cargada): ${anime.title}`);
+        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado): ${anime.title}`);
     }
     
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
-    
     if (shouldEnqueuePopup && notificationQueue.length === 1) {
         showNextPopup();
     }
 }
 
+// FIX: LA SECUENCIA SE INICIA DESDE EL INDEX, ESTABLECIENDO LA BANDERA EN TRUE
 window.startNotificationSequence = () => {
-    if (pageFullyLoaded && notificationQueue.length > 0 && !window._popupSequenceActive) {
-        showNextPopup();
-    }
+    pageFullyLoaded = true;
+    showNextPopup();
 };
 
 function showNextPopup() {
-    if (!pageFullyLoaded) {
-        console.log("⏳ Página aún no cargada, esperando para mostrar popup...");
-        return;
-    }
-    if (window._popupSequenceActive) return;
-    if (notificationQueue.length) {
-        window._popupSequenceActive = true;
-        createPopupHTML(notificationQueue[0]);
-    } else {
-        window._popupSequenceActive = false;
-    }
+    // FIX: SI LA PÁGINA AÚN NO CARGA, NO MOSTRAR NINGÚN POPUP. 
+    // CUANDO TERMINE EL LOADER, SE LLAMARÁ A ESTA FUNCIÓN SOLA.
+    if (!pageFullyLoaded) return;
+    
+    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
 }
 
 function createPopupHTML(notif) {
@@ -448,7 +350,8 @@ function createPopupHTML(notif) {
         <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
           <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
             <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
-            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
+            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ?
+'<div class="final-stamp">FINALIZADO</div>' : ''}
           </div>
           <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
             <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
@@ -468,21 +371,13 @@ function closePopup() {
         modal.remove();
         notificationQueue.shift();
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
-        window._popupSequenceActive = false;
-        if (notificationQueue.length > 0) {
-            setTimeout(() => {
-                if (pageFullyLoaded) showNextPopup();
-            }, 400);
-        } else {
-            window._popupSequenceActive = false;
-        }
+        showNextPopup();
     }, 300);
 }
 
 function goToAnimeFromPopup(animeId, notifId) {
     if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) markAsRead(notifId);
     notificationQueue = [];
-    window._popupSequenceActive = false;
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
