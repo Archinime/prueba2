@@ -1277,24 +1277,16 @@
 </script>
 
   <script>
-    // FIX SCROLLBAR SALTO
+    // FIX SCROLLBAR SALTO - Solo afecta al body y es seguro.
     function disableBodyScroll() { 
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.paddingRight = scrollbarWidth + 'px';
-      
-      const nav = document.querySelector('.cyber-nav');
-      if(nav) nav.style.paddingRight = `calc(3% + ${scrollbarWidth}px)`;
-      
       document.body.classList.add('modal-open'); 
       document.documentElement.classList.add('modal-open');
     }
     
     function enableBodyScroll() { 
       document.body.style.paddingRight = '';
-      
-      const nav = document.querySelector('.cyber-nav');
-      if(nav) nav.style.paddingRight = '';
-      
       document.body.classList.remove('modal-open'); 
       document.documentElement.classList.remove('modal-open'); 
     }

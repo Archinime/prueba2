@@ -1,4 +1,4 @@
-// notification-system.js - FIX: CARGA RETRASADA DE POPUPS + COMPENSACIÓN DE SCROLLBAR
+// notification-system.js - FIX: CARGA RETRASADA Y DROP-DOWN SUAVE
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -11,10 +11,10 @@ const MAX_POPUPS = 5;
 
 let firstVisitInitialized = false;
 
-// FIX: BANDERA DE CARGA DE PÁGINA
+// BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
 
-// FIX: FUNCIÓN DE SCROLLBAR CON COMPENSACIÓN DE ANCHO
+// FIX: FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -320,17 +320,13 @@ function procesarActualizacionCatalogo(anime) {
     }
 }
 
-// FIX: LA SECUENCIA SE INICIA DESDE EL INDEX, ESTABLECIENDO LA BANDERA EN TRUE
 window.startNotificationSequence = () => {
     pageFullyLoaded = true;
     showNextPopup();
 };
 
 function showNextPopup() {
-    // FIX: SI LA PÁGINA AÚN NO CARGA, NO MOSTRAR NINGÚN POPUP. 
-    // CUANDO TERMINE EL LOADER, SE LLAMARÁ A ESTA FUNCIÓN SOLA.
     if (!pageFullyLoaded) return;
-    
     if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
 }
 
@@ -382,12 +378,16 @@ function goToAnimeFromPopup(animeId, notifId) {
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
+// FIX IMPORTANTE: El menú desplegable ya NO bloquea el scroll en computadora, así evitamos que los botones salten.
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
+    const isMobile = window.innerWidth <= 768; // Detectar si es móvil
+    
     if (isMenuOpen) {
         menu.classList.add('active');
-        if (typeof disableBodyScroll === 'function') disableBodyScroll();
+        // Solo bloquea el scroll si es celular (donde el menú es pantalla completa)
+        if (isMobile && typeof disableBodyScroll === 'function') disableBodyScroll();
         renderNotificationList();
     } else {
         menu.classList.remove('active');
