@@ -172,11 +172,11 @@ function listenForReplies(uid) {
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
     
-    // Escuchar animes cuyo lastUpdate sea mayor a 7 días atrás
-    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    // Escuchar animes cuyo lastUpdate sea mayor a 30 días atrás (aumentado para que incluya fechas como 2 de abril)
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
     
     catalogoUnsubscribe = db.collection('catalogo')
-        .where('lastUpdate', '>', sevenDaysAgo)
+        .where('lastUpdate', '>', thirtyDaysAgo)
         .orderBy('lastUpdate', 'desc')
         .limit(30)
         .onSnapshot(snapshot => {
@@ -212,9 +212,10 @@ function procesarActualizacionCatalogo(anime) {
         if (isNaN(lastUpdateMs)) lastUpdateMs = Date.now();
     }
     
-    // Solo notificar si la actualización es de los últimos 7 días
-    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    if (lastUpdateMs < sevenDaysAgo) return;
+    // Ya no filtramos por 7 días, sino que el where de la consulta ya lo hace con 30 días
+    // No es necesario volver a filtrar aquí, pero lo dejamos por consistencia (opcional)
+    // const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    // if (lastUpdateMs < thirtyDaysAgo) return;
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
