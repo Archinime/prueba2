@@ -729,7 +729,7 @@
     })();
   </script>
 
-  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO - ERROR toFixed) ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO - BÚSQUEDA VACÍA) ===== -->
   <script>
     // Variables de paginación (solo para vista sin filtros)
     let lastVisible = null, isLoading = false, hasMore = true;
@@ -756,7 +756,6 @@
         firestoreRatings.clear();
         snapshot.forEach(doc => {
           const data = doc.data();
-          // Solo almacenar si avg es un número válido
           if (typeof data.avg === 'number' && !isNaN(data.avg)) {
             firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
           } else {
@@ -841,8 +840,16 @@
       cargarAnimesPaginado(true);
     }
 
-    // Búsqueda y filtros (con alias en cliente)
+    // BÚSQUEDA Y FILTROS (CORREGIDO: cuando no hay filtros, carga paginado sin bloquear)
     async function aplicarFiltros() {
+      // Si no hay ningún filtro activo, cargar la vista paginada normal
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters) {
+        cargarAnimesPaginado(true);
+        return;
+      }
+
+      // Si hay filtros, ejecutar la búsqueda
       gridEl.innerHTML = '';
       isLoading = true;
       try {
