@@ -192,28 +192,39 @@ function listenForCatalogUpdates() {
             });
         }, error => {
             console.error('Error escuchando catálogo:', error);
+            // Si el error es por falta de índice, mostrar ayuda en consola
+            if (error.message.includes('index')) {
+                console.warn('⚠️ Necesitas crear un índice en Firestore para orderBy("lastUpdate", "desc") con filtro where. Sigue el enlace:', error.message.match(/https:\/\/console\.firebase\.google\.com\/[^\s]+/)?.[0]);
+            }
         });
 }
 
 function procesarActualizacionCatalogo(anime) {
-    // Crear un ID único para esta notificación
-    const notifId = `${anime.id}_${anime.lastUpdate}`;
+    // Convertir lastUpdate a número si es Timestamp de Firestore
+    let lastUpdateMs = anime.lastUpdate;
+    if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
+        lastUpdateMs = anime.lastUpdate.toMillis();
+    } else if (typeof anime.lastUpdate === 'number') {
+        lastUpdateMs = anime.lastUpdate;
+    } else {
+        // Si es string, intentamos parsearlo (solo por si acaso)
+        lastUpdateMs = Date.parse(anime.lastUpdate);
+        if (isNaN(lastUpdateMs)) lastUpdateMs = Date.now();
+    }
     
+    // Solo notificar si la actualización es de los últimos 7 días
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    if (lastUpdateMs < sevenDaysAgo) return;
+    
+    const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    
-    // Si ya se ha visto, no hacer nada
     if (seenNotifIds.includes(notifId)) return;
-    
-    // Marcar como visto para no repetir
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
     
-    // Verificar si ya existe en el historial
-    const existsInHistory = notificationsHistory.some(n => n.notifId === notifId);
-    if (existsInHistory) return;
+    if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
-    // Crear nueva notificación
     const newNotif = {
         notifId: notifId,
         animeId: anime.id,
@@ -223,25 +234,19 @@ function procesarActualizacionCatalogo(anime) {
         blockName: anime.latestBlockName || "",
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
-        date: anime.lastUpdate,
+        date: lastUpdateMs,
         seen: false,
         isFinal: anime.isFinal || false,
         popupShown: true
     };
     
-    // Añadir al historial
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    
-    // Añadir a la cola de popups
     notificationQueue.push(newNotif);
-    
-    // Guardar y actualizar UI
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
     
-    // Si no hay un popup activo, mostrar el siguiente
     if (notificationQueue.length === 1) {
         showNextPopup();
     }
@@ -309,7 +314,6 @@ function createPopupHTML(notif) {
         </div>
     `;
     document.body.appendChild(modal);
-    // Bloquear scroll al abrir el popup
     if (typeof disableBodyScroll === 'function') disableBodyScroll();
     setTimeout(() => modal.classList.add('show'), 50);
 }
@@ -324,7 +328,6 @@ function closePopup() {
             if (processed && !processed.seen) {
                 markAsRead(processed.notifId);
             }
-            // Habilitar scroll después de cerrar el popup
             if (typeof enableBodyScroll === 'function') enableBodyScroll();
             showNextPopup();
         }, 300);
@@ -336,7 +339,6 @@ function goToAnimeFromPopup(animeId, notifId) {
         markAsRead(notifId);
     }
     notificationQueue = [];
-    // Asegurar que se habilite scroll antes de redirigir
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
@@ -370,18 +372,14 @@ function renderNotificationList() {
     const listContainer = document.getElementById('notifList');
     if (!listContainer) return;
     
-    // Usamos requestAnimationFrame para no bloquear el hilo principal
     requestAnimationFrame(() => {
         if (notificationsHistory.length === 0) {
             listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
             return;
         }
 
-        // Limitar a 30 notificaciones visibles para evitar sobrecarga DOM
         const visibleCount = Math.min(notificationsHistory.length, 30);
         const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date).slice(0, visibleCount);
-        
-        // Usar DocumentFragment para minimizar reflows
         const fragment = document.createDocumentFragment();
         
         sortedHistory.forEach(item => {
@@ -447,18 +445,16 @@ function renderNotificationList() {
             fragment.appendChild(div);
         });
         
-        // Limpiar y agregar el fragmento
         listContainer.innerHTML = '';
         listContainer.appendChild(fragment);
         
-        // Si hay más de 30 notificaciones, mostrar un indicador de "más"
         if (notificationsHistory.length > 30) {
             const moreDiv = document.createElement('div');
             moreDiv.className = 'notif-item';
             moreDiv.style.justifyContent = 'center';
             moreDiv.style.opacity = '0.7';
             moreDiv.innerHTML = `<div style="text-align:center; width:100%;"><i class="fas fa-ellipsis-h"></i> ${notificationsHistory.length - 30} notificaciones antiguas</div>`;
-            fragment.appendChild(moreDiv);
+            listContainer.appendChild(moreDiv);
         }
     });
 }
@@ -486,7 +482,6 @@ function markAsRead(notifId) {
     }
 }
 
-// Exponer funciones globales
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
 window.goToAnimeFromPopup = goToAnimeFromPopup;
