@@ -1,15 +1,10 @@
-// notification-system.js
-// Versión con máximo 5 popups y primera visita: notificaciones iniciales marcadas como vistas
-
+// notification-system.js - Versión con popups garantizados
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
-
-// Control de primera visita (para no mostrar notificaciones antiguas como no leídas)
-const FIRST_VISIT_KEY = 'archinime_notif_first_visit_done';
-let isFirstVisit = false;
+let initialLoadDone = false;  // Para saber si ya terminó la carga inicial
 
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
@@ -24,16 +19,8 @@ if (typeof disableBodyScroll !== 'function') {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
-    
-    // Detectar si es primera visita (no existe la clave en localStorage)
-    if (!localStorage.getItem(FIRST_VISIT_KEY)) {
-        isFirstVisit = true;
-        localStorage.setItem(FIRST_VISIT_KEY, 'true');
-        console.log("👋 Primera visita detectada. Las notificaciones iniciales se marcarán como vistas.");
-    }
-    
     loadHistoryFromStorage();
-    listenForCatalogUpdates(); // Escucha sin where, solo orderBy
+    listenForCatalogUpdates();
     renderNotificationList();
     updateBellBadge();
 
@@ -45,6 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
+    
+    // Marcar que la carga inicial ya terminó después de 3 segundos
+    setTimeout(() => {
+        initialLoadDone = true;
+        console.log("✅ Carga inicial completada. Las nuevas notificaciones mostrarán popup.");
+    }, 3000);
 });
 
 function loadHistoryFromStorage() {
@@ -135,13 +128,13 @@ function listenForReplies(uid) {
 
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
-    
-    console.log("📡 Iniciando escucha de catálogo (sin filtro where)...");
+    console.log("📡 Iniciando escucha de catálogo...");
+    // Obtener los 30 últimos animes sin filtro de fecha (para pruebas)
     catalogoUnsubscribe = db.collection('catalogo')
         .orderBy('lastUpdate', 'desc')
-        .limit(50)
+        .limit(30)
         .onSnapshot(snapshot => {
-            console.log(`📡 [Notif] Se detectaron ${snapshot.docChanges().length} cambios en catálogo`);
+            console.log(`📡 Se detectaron ${snapshot.docChanges().length} cambios.`);
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added' || change.type === 'modified') {
                     const anime = { id: change.doc.id, ...change.doc.data() };
@@ -165,21 +158,26 @@ function procesarActualizacionCatalogo(anime) {
         lastUpdateMs = Date.now();
     }
     
-    // Filtro de 30 días en cliente (opcional)
-    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    if (lastUpdateMs < thirtyDaysAgo) return;
+    // Eliminamos filtro de 30 días para que siempre aparezca (solo para pruebas)
+    // const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    // if (lastUpdateMs < thirtyDaysAgo) return;
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    if (seenNotifIds.includes(notifId)) return;
+    if (seenNotifIds.includes(notifId)) {
+        console.log(`⏭️ Notificación ya vista: ${anime.title}`);
+        return;
+    }
     
-    // Si es primera visita, todas las notificaciones que se carguen se marcarán como vistas (sin punto rojo)
-    // y además NO se añadirán a la cola de popups (ya que no deben mostrarse emergentes para el pasado)
-    const shouldBeSeen = isFirstVisit;
+    // Si es carga inicial, marcamos como visto y no mostramos popup
+    const shouldShowPopup = initialLoadDone;
     
-    seenNotifIds.push(notifId);
-    if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-    localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+    if (!shouldShowPopup) {
+        // En carga inicial, marcar como visto sin popup
+        seenNotifIds.push(notifId);
+        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+    }
     
     if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
@@ -190,7 +188,7 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: shouldBeSeen,  // Si es primera visita, se marca como visto
+        seen: !shouldShowPopup,  // Si es carga inicial, visto = true; si no, false
         isFinal: anime.isFinal || false,
         popupShown: true
     };
@@ -198,22 +196,21 @@ function procesarActualizacionCatalogo(anime) {
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
-    // Si NO es primera visita, se añade a la cola de popups (máximo 5 en total en la cola)
-    if (!isFirstVisit) {
+    if (shouldShowPopup) {
         notificationQueue.push(newNotif);
-        // Limitar la cola a 5 elementos (los más recientes)
+        // Limitar la cola a 5 notificaciones para no saturar
         if (notificationQueue.length > 5) notificationQueue = notificationQueue.slice(0, 5);
+        console.log(`🔔 Nueva notificación en cola: ${anime.title}. Cola: ${notificationQueue.length}`);
+        if (notificationQueue.length === 1) {
+            showNextPopup();
+        }
+    } else {
+        console.log(`📦 Carga inicial: notificación de "${anime.title}" archivada como vista (sin popup).`);
     }
     
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
-    
-    if (!isFirstVisit && notificationQueue.length === 1) {
-        showNextPopup();
-    } else if (isFirstVisit) {
-        console.log(`🔕 Primera visita: notificación de "${anime.title}" marcada como vista (sin popup ni punto rojo).`);
-    }
 }
 
 window.startNotificationSequence = () => {
@@ -221,7 +218,9 @@ window.startNotificationSequence = () => {
 };
 
 function showNextPopup() {
-    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
+    if (notificationQueue.length === 0) return;
+    const notif = notificationQueue[0];
+    createPopupHTML(notif);
 }
 
 function createPopupHTML(notif) {
@@ -357,6 +356,23 @@ function markAsRead(notifId) {
         renderNotificationList();
     }
 }
+
+// === FUNCIÓN DE PRUEBA MANUAL ===
+window.testNotification = function() {
+    const testAnime = {
+        id: "test_" + Date.now(),
+        title: "ANIME DE PRUEBA",
+        img: "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mariop.avif",
+        latestSeasonCover: "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario2.avif",
+        latestBlockName: "Prueba",
+        latestEpTitle: "Episodio de prueba",
+        updateType: "ESTRENO 🚨",
+        lastUpdate: firebase.firestore.Timestamp.fromDate(new Date()),
+        isFinal: false
+    };
+    procesarActualizacionCatalogo(testAnime);
+    console.log("✅ Notificación de prueba enviada. Espera el popup.");
+};
 
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
