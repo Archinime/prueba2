@@ -1,19 +1,10 @@
-// notification-system.js
-/* Sistema de notificaciones optimizado para Firestore:
-   - Escucha en tiempo real de nuevos animes/actualizaciones.
-   - Renderizado con DocumentFragment y límite de 30 notificaciones visibles.
-   - Uso de requestAnimationFrame para evitar bloqueos de UI.
-   - Sincronización con Firestore y caché local.
-   - Control de scroll del fondo al abrir popups.
-*/
-
+// notification-system.js - VERSIÓN SIN ÍNDICE (filtro en cliente)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
-// Funciones para bloquear/desbloquear scroll (se definen en el scope global si no existen)
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     document.body.classList.add('modal-open');
@@ -26,99 +17,67 @@ if (typeof disableBodyScroll !== 'function') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
-    
-    // Iniciar escucha de catálogo en Firestore
-    listenForCatalogUpdates();
-    
-    // Render inicial con fragmento y límite
+    listenForCatalogUpdates(); // Escucha sin where, solo orderBy
     renderNotificationList();
     updateBellBadge();
 
-    if (typeof firebase !== 'undefined' && typeof auth !== 'undefined' && typeof db !== 'undefined') {
+    if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(user => {
             if (user) {
                 syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
-            } else {
-                if (repliesUnsubscribe) repliesUnsubscribe();
-            }
+            } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
 });
 
-// --- Almacenamiento local ---
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
         try { 
             notificationsHistory = JSON.parse(stored);
-            // Limitar a 50 elementos para evitar sobrecarga
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        } catch(e) { 
-            notificationsHistory = [];
-        }
+        } catch(e) { notificationsHistory = []; }
     }
 }
 
 function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
-    
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
-    if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
+    if (auth.currentUser) {
         db.collection('users').doc(auth.currentUser.uid).set({
             notifHistory: notificationsHistory,
             seenNotifIds: seenNotifIds
-        }, { merge: true }).catch(e => console.error("Error guardando notifs en la nube", e));
+        }, { merge: true }).catch(e => console.error("Error guardando en nube", e));
     }
 }
 
-// --- Sincronización con la nube ---
 async function syncNotificationsWithCloud(uid) {
     try {
-        const docRef = db.collection('users').doc(uid);
-        const doc = await docRef.get();
+        const doc = await db.collection('users').doc(uid).get();
         if (doc.exists) {
             const data = doc.data();
             if (data.seenNotifIds) {
                 let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-                let mergedSeen = Array.from(new Set([...localSeen, ...data.seenNotifIds]));
-                if (mergedSeen.length > 1000) mergedSeen = mergedSeen.slice(-1000);
-                localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(mergedSeen));
+                let merged = Array.from(new Set([...localSeen, ...data.seenNotifIds])).slice(-1000);
+                localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(merged));
             }
             if (data.notifHistory) {
-                const cloudHistory = data.notifHistory || [];
-                let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-                let newQueue = [];
-                notificationQueue.forEach(q => {
-                    const inCloud = cloudHistory.find(c => c.notifId === q.notifId);
-                    if (!inCloud && !localSeen.includes(q.notifId)) {
-                        newQueue.push(q);
-                    }
-                });
-                notificationQueue = newQueue;
-                let merged = [...notificationsHistory, ...cloudHistory];
-                let uniqueMap = new Map();
-                merged.forEach(n => {
-                    if (uniqueMap.has(n.notifId)) {
-                        if (n.seen) uniqueMap.set(n.notifId, n);
-                    } else {
-                        uniqueMap.set(n.notifId, n);
-                    }
-                });
-                notificationsHistory = Array.from(uniqueMap.values()).sort((a,b) => b.date - a.date).slice(0, 50);
+                let merged = [...notificationsHistory, ...data.notifHistory];
+                let unique = new Map();
+                merged.forEach(n => unique.set(n.notifId, n));
+                notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
             }
         }
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-    } catch (e) {
-        console.error("Error sincronizando notificaciones:", e);
-    }
+    } catch (e) { console.error("Error sync notif:", e); }
 }
 
-// --- Escucha respuestas en tiempo real ---
 function listenForReplies(uid) {
     if (repliesUnsubscribe) repliesUnsubscribe();
     repliesUnsubscribe = db.collection('comments')
@@ -133,93 +92,85 @@ function listenForReplies(uid) {
                     if (data.userId === uid) return;
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
-                    const alreadyExists = notificationsHistory.some(n => n.notifId === notifId);
-                    if (!alreadyExists) {
-                        let rawText = data.texto || "";
-                        let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
-                        if (cleanText.length === 0) cleanText = "🖼️ (Sticker)";
-                        const newNotif = {
-                            notifId: notifId,
-                            type: 'RESPUESTA',
-                            animeId: data.animeId,
-                            title: `¡${data.userName} te respondió!`,
-                            img: data.userAvatar || 'invitado.avif',
-                            seasonCover: data.userAvatar || 'invitado.avif',
-                            blockName: 'Foro',
-                            epTitle: `"${cleanText.substring(0, 35)}${cleanText.length > 35 ? '...' : ''}"`,
-                            date: data.timestamp ? data.timestamp.toMillis() : Date.now(),
-                            seen: false,
-                            isFinal: false,
-                            url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
-                        };
-                        notificationsHistory.unshift(newNotif);
-                        hasNew = true;
-                    }
+                    if (notificationsHistory.some(n => n.notifId === notifId)) return;
+                    let rawText = data.texto || "";
+                    let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+                    if (!cleanText) cleanText = "🖼️ (Sticker)";
+                    notificationsHistory.unshift({
+                        notifId, type: 'RESPUESTA', animeId: data.animeId,
+                        title: `¡${data.userName} te respondió!`,
+                        img: data.userAvatar || 'invitado.avif',
+                        seasonCover: data.userAvatar || 'invitado.avif',
+                        blockName: 'Foro',
+                        epTitle: `"${cleanText.substring(0,35)}${cleanText.length>35?'...':''}"`,
+                        date: data.timestamp?.toMillis() || Date.now(),
+                        seen: false, isFinal: false,
+                        url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
+                    });
+                    hasNew = true;
                 }
             });
             if (hasNew) {
-                if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
+                notificationsHistory = notificationsHistory.slice(0, 50);
                 saveHistoryToStorage();
                 renderNotificationList();
                 if (!isMenuOpen) updateBellBadge();
             }
-        }, error => {
-            console.error("Error al escuchar respuestas:", error);
-        });
+        }, error => console.error("Error replies:", error));
 }
 
-// --- Escucha de catálogo en tiempo real (Firestore) ---
+// --- Escucha SIN where, solo orderBy (no necesita índice compuesto) ---
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
     
-    // Escuchar animes cuyo lastUpdate sea mayor a 30 días atrás (aumentado para que incluya fechas como 2 de abril)
-    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    
+    console.log("📡 Iniciando escucha de catálogo (sin filtro where)...");
+    // Solo orderBy, sin where - esto funciona sin índice compuesto
     catalogoUnsubscribe = db.collection('catalogo')
-        .where('lastUpdate', '>', thirtyDaysAgo)
         .orderBy('lastUpdate', 'desc')
-        .limit(30)
+        .limit(50)
         .onSnapshot(snapshot => {
+            console.log(`📡 [Notif] Se detectaron ${snapshot.docChanges().length} cambios en catálogo`);
             snapshot.docChanges().forEach(change => {
-                // Solo nos interesan documentos nuevos o modificados
                 if (change.type === 'added' || change.type === 'modified') {
                     const anime = { id: change.doc.id, ...change.doc.data() };
-                    // Solo procesar si tiene un tipo de actualización válido
+                    console.log(`📦 Anime recibido: ${anime.title} - updateType: ${anime.updateType} - lastUpdate:`, anime.lastUpdate);
                     if (anime.updateType && anime.updateType !== 'Ninguna') {
                         procesarActualizacionCatalogo(anime);
+                    } else {
+                        console.log(`⏭️ Ignorado: updateType = ${anime.updateType}`);
                     }
                 }
             });
         }, error => {
-            console.error('Error escuchando catálogo:', error);
-            // Si el error es por falta de índice, mostrar ayuda en consola
-            if (error.message.includes('index')) {
-                console.warn('⚠️ Necesitas crear un índice en Firestore para orderBy("lastUpdate", "desc") con filtro where. Sigue el enlace:', error.message.match(/https:\/\/console\.firebase\.google\.com\/[^\s]+/)?.[0]);
-            }
+            console.error('❌ Error escuchando catálogo:', error);
         });
 }
 
 function procesarActualizacionCatalogo(anime) {
-    // Convertir lastUpdate a número si es Timestamp de Firestore
+    console.log(`🔔 Procesando anime: ${anime.title}`);
+    
     let lastUpdateMs = anime.lastUpdate;
     if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
         lastUpdateMs = anime.lastUpdate.toMillis();
     } else if (typeof anime.lastUpdate === 'number') {
         lastUpdateMs = anime.lastUpdate;
     } else {
-        // Si es string, intentamos parsearlo (solo por si acaso)
-        lastUpdateMs = Date.parse(anime.lastUpdate);
-        if (isNaN(lastUpdateMs)) lastUpdateMs = Date.now();
+        lastUpdateMs = Date.now();
     }
     
-    // Ya no filtramos por 7 días, sino que el where de la consulta ya lo hace con 30 días
-    // No es necesario volver a filtrar aquí, pero lo dejamos por consistencia (opcional)
-    // const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    // if (lastUpdateMs < thirtyDaysAgo) return;
+    // Filtro de 30 días en cliente (opcional, puedes comentarlo para que salgan todas)
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    if (lastUpdateMs < thirtyDaysAgo) {
+        console.log(`⏭️ ${anime.title} tiene lastUpdate > 30 días (${new Date(lastUpdateMs).toLocaleDateString()}), se omite.`);
+        return;
+    }
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-    if (seenNotifIds.includes(notifId)) return;
+    if (seenNotifIds.includes(notifId)) {
+        console.log(`⏭️ ${anime.title} ya fue notificado (ID: ${notifId})`);
+        return;
+    }
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
@@ -227,10 +178,7 @@ function procesarActualizacionCatalogo(anime) {
     if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
     const newNotif = {
-        notifId: notifId,
-        animeId: anime.id,
-        title: anime.title,
-        img: anime.img,
+        notifId, animeId: anime.id, title: anime.title, img: anime.img,
         seasonCover: anime.latestSeasonCover || anime.img,
         blockName: anime.latestBlockName || "",
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
@@ -248,72 +196,39 @@ function procesarActualizacionCatalogo(anime) {
     renderNotificationList();
     updateBellBadge();
     
-    if (notificationQueue.length === 1) {
-        showNextPopup();
-    }
+    console.log(`🔔 NUEVA NOTIFICACIÓN: ${anime.title} - ${anime.updateType}`);
+    if (notificationQueue.length === 1) showNextPopup();
 }
 
-// --- Iniciar secuencia de popups ---
-window.startNotificationSequence = function() {
-    showNextPopup();
-};
+window.startNotificationSequence = () => showNextPopup();
 
 function showNextPopup() {
-    if (notificationQueue.length === 0) return;
-    const notif = notificationQueue[0];
-    createPopupHTML(notif);
+    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
 }
 
 function createPopupHTML(notif) {
     const existing = document.getElementById('eventModal');
     if (existing) existing.remove();
-
     const modal = document.createElement('div');
     modal.id = 'eventModal';
-    const indieMessage = "¡Ya disponible en la plataforma! Disfruta del estreno.";
     let infoString = "";
-    if (notif.blockName && notif.blockName !== "Novedad") {
-        infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
-    }
-    if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") {
-        if (infoString !== "") infoString += " • ";
-        infoString += `<span style="color:#fff">${notif.epTitle}</span>`;
-    } else if (infoString === "") {
-        infoString = "Nuevo Contenido";
-    }
-
-    let badgeClass = "badge-default";
-    if (notif.type.includes("ESTRENO")) badgeClass = "badge-estreno";
-    else if (notif.type.includes("PRÓXIMAMENTE")) badgeClass = "badge-prox";
-    let finalImgHTML = '';
-    if (notif.isFinal) {
-        finalImgHTML = `<div class="final-stamp">FINALIZADO</div>`;
-    }
-
+    if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+    if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
+    else if (!infoString) infoString = "Nuevo Contenido";
+    let badgeColor = "#bc13fe";
+    if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
+    else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
     modal.innerHTML = `
-        <div class="event-card">
-            <button class="event-close" onclick="closePopup()" aria-label="Cerrar">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="event-visuals">
-                <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
-                <div class="covers-container">
-                    <img src="${notif.img}" class="cover-back" alt="Poster">
-                    <img src="${notif.seasonCover}" class="cover-front" alt="Season">
-                </div>
-                <div class="event-type-badge ${badgeClass}">${notif.type}</div>
-                ${finalImgHTML}
-            </div>
-            <div class="event-info">
-                <h2 class="event-title">${notif.title}</h2>
-                <div class="event-meta">${infoString}</div>
-                <p class="event-desc">${indieMessage}</p>
-                <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">
-                    <i class="fas fa-play"></i> VER AHORA
-                </button>
-            </div>
-        </div>
-    `;
+        <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+          <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+            <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
+            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
+          </div>
+          <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
+            <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
+            <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
+          </div>
+        </div>`;
     document.body.appendChild(modal);
     if (typeof disableBodyScroll === 'function') disableBodyScroll();
     setTimeout(() => modal.classList.add('show'), 50);
@@ -321,30 +236,24 @@ function createPopupHTML(notif) {
 
 function closePopup() {
     const modal = document.getElementById('eventModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.remove();
-            const processed = notificationQueue.shift();
-            if (processed && !processed.seen) {
-                markAsRead(processed.notifId);
-            }
-            if (typeof enableBodyScroll === 'function') enableBodyScroll();
-            showNextPopup();
-        }, 300);
-    }
+    if (!modal) return;
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.remove();
+        const processed = notificationQueue.shift();
+        if (processed && !processed.seen) markAsRead(processed.notifId);
+        if (typeof enableBodyScroll === 'function') enableBodyScroll();
+        showNextPopup();
+    }, 300);
 }
 
 function goToAnimeFromPopup(animeId, notifId) {
-    if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) {
-        markAsRead(notifId);
-    }
+    if (!notificationsHistory.find(n => n.notifId === notifId)?.seen) markAsRead(notifId);
     notificationQueue = [];
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
-// --- Menú de notificaciones (campana) ---
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
@@ -368,94 +277,46 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// --- Renderizado optimizado de la lista de notificaciones ---
 function renderNotificationList() {
-    const listContainer = document.getElementById('notifList');
-    if (!listContainer) return;
-    
+    const container = document.getElementById('notifList');
+    if (!container) return;
     requestAnimationFrame(() => {
-        if (notificationsHistory.length === 0) {
-            listContainer.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
+        if (!notificationsHistory.length) {
+            container.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
             return;
         }
-
-        const visibleCount = Math.min(notificationsHistory.length, 30);
-        const sortedHistory = [...notificationsHistory].sort((a, b) => b.date - a.date).slice(0, visibleCount);
+        const visible = notificationsHistory.slice(0, 30);
         const fragment = document.createDocumentFragment();
-        
-        sortedHistory.forEach(item => {
+        visible.forEach(item => {
             const div = document.createElement('div');
             div.className = 'notif-item';
-            
-            let imgBoxClass = 'notif-img-box';
-            if (item.type === 'RESPUESTA') {
-                imgBoxClass += ' rounded-avatar';
-            }
-      
+            let imgClass = 'notif-img-box';
+            if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
             let infoString = "";
-            if (item.blockName && item.blockName !== "Novedad") {
-                infoString += `<span class="n-block">${item.blockName}</span>`;
-            }
-            if (item.epTitle && item.epTitle !== "Nuevo Contenido") {
-                if (infoString !== "") infoString += " ";
-                infoString += `<span class="n-ep-title">${item.epTitle}</span>`;
-            } else if (infoString === "") {
-                infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
-            }
-
+            if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
+            if (item.epTitle && item.epTitle !== "Nuevo Contenido") infoString += (infoString?" ":"") + `<span class="n-ep-title">${item.epTitle}</span>`;
+            else if (!infoString) infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
             let typeColor = "var(--neon-purple)";
             if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
             else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
             else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
-
-            let finalLabel = item.isFinal ? `<span class="tag-final">FINALIZADO</span>` : "";
-            
-            const unreadDot = !item.seen ?
-                '<div class="unread-dot" style="position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 8px #ff0000; z-index: 20; border: 1px solid #fff;"></div>' : '';
-            
-            div.innerHTML = `
-                <div style="position: relative; display: inline-block;">
-                    ${unreadDot}
-                    <div class="${imgBoxClass}">
-                        <img src="${item.seasonCover}" alt="cover" loading="lazy">
-                    </div>
-                </div>
-                <div class="notif-content">
-                    <div class="notif-header-line">
-                         <span class="n-title">${item.title}</span>
-                    </div>
-                    <div class="n-type" style="color:${typeColor}">${item.type} ${finalLabel}</div>
-                    <div class="n-meta">${infoString}</div>
-                </div>
-            `;
-            
-            div.addEventListener('click', (e) => {
-                if (!item.seen) {
-                    markAsRead(item.notifId);
-                    item.seen = true;
-                    updateBellBadge();
-                    const dot = div.querySelector('.unread-dot');
-                    if (dot) dot.remove();
-                }
-                if (item.url) {
-                    window.location.href = item.url;
-                } else {
-                    window.location.href = `anime-detail.html?id=${item.animeId}`;
-                }
+            div.innerHTML = `<div style="position:relative; display:inline-block;">${!item.seen?'<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>':''}<div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div></div>
+                <div class="notif-content"><div class="notif-header-line"><span class="n-title">${item.title}</span></div><div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal?'<span class="tag-final">FINALIZADO</span>':''}</div><div class="n-meta">${infoString}</div></div>`;
+            div.addEventListener('click', () => {
+                if (!item.seen) { markAsRead(item.notifId); item.seen = true; updateBellBadge(); div.querySelector('.unread-dot')?.remove(); }
+                location.href = item.url || `anime-detail.html?id=${item.animeId}`;
             });
             fragment.appendChild(div);
         });
-        
-        listContainer.innerHTML = '';
-        listContainer.appendChild(fragment);
-        
+        container.innerHTML = '';
+        container.appendChild(fragment);
         if (notificationsHistory.length > 30) {
-            const moreDiv = document.createElement('div');
-            moreDiv.className = 'notif-item';
-            moreDiv.style.justifyContent = 'center';
-            moreDiv.style.opacity = '0.7';
-            moreDiv.innerHTML = `<div style="text-align:center; width:100%;"><i class="fas fa-ellipsis-h"></i> ${notificationsHistory.length - 30} notificaciones antiguas</div>`;
-            listContainer.appendChild(moreDiv);
+            const more = document.createElement('div');
+            more.className = 'notif-item';
+            more.style.justifyContent = 'center';
+            more.style.opacity = '0.7';
+            more.innerHTML = `<div style="text-align:center;"><i class="fas fa-ellipsis-h"></i> ${notificationsHistory.length-30} notificaciones antiguas</div>`;
+            container.appendChild(more);
         }
     });
 }
@@ -464,12 +325,8 @@ function updateBellBadge() {
     const unread = notificationsHistory.filter(n => !n.seen).length;
     const badge = document.getElementById('notifBadge');
     if (badge) {
-        if (unread > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = unread > 9 ? '+9' : unread;
-        } else {
-            badge.style.display = 'none';
-        }
+        badge.style.display = unread ? 'flex' : 'none';
+        if (unread) badge.textContent = unread > 9 ? '+9' : unread;
     }
 }
 
