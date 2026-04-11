@@ -6,7 +6,6 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
-  <!-- Theme-color animado -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -15,6 +14,7 @@
       const segments = colors.length - 1;
       const step = (intervalTime / animationDuration) * segments;
       let currentProgress = 0;
+ 
       let metaTag = document.querySelector('meta[name="theme-color"]');
       if (!metaTag) {
         metaTag = document.createElement('meta');
@@ -52,10 +52,9 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="preconnect" href="https://www.gstatic.com">
   
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase (carga diferida) -->
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -84,7 +83,8 @@
 
     #bg-video {
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%; height: 100%;
       object-fit: cover;
       z-index: -10;
@@ -94,11 +94,133 @@
     #overlay {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       z-index: -5;
       background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
       backdrop-filter: blur(8px);
       pointer-events: none;
+    }
+
+    /* ===== PANTALLA DE CARGA INTEGRADA ===== */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0a0a0f 0%, #010101 100%);
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Orbitron', sans-serif;
+      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.8s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      will-change: opacity;
+    }
+    #loadingScreen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-content {
+      text-align: center;
+      transform: translateZ(0);
+      animation: fadeInUp 0.8s ease;
+    }
+    .gif-wrapper {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 30px;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(45deg, var(--primary-color), #bc13fe, var(--accent-color));
+      animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
+      box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
+    }
+    .gif-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #000;
+    }
+    .gif-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .loader-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, #fff, var(--primary-color), #bc13fe);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(0,243,255,0.5);
+      animation: glitchText 3s infinite;
+    }
+    .loader-percentage {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary-color);
+      text-shadow: 0 0 12px var(--primary-color);
+      margin-bottom: 20px;
+      font-family: 'Orbitron', monospace;
+    }
+    .loader-line-container {
+      width: 320px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      margin-top: 10px;
+    }
+    .loader-line {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-color), #bc13fe, var(--primary-color), #fff);
+      border-radius: 10px;
+      transition: width 0.2s linear;
+      box-shadow: 0 0 12px var(--primary-color);
+    }
+    .loader-sub {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #aaa;
+      letter-spacing: 1px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .loader-sub i {
+      color: #bc13fe;
+    }
+    @keyframes spinGradient {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    @keyframes floatAnim {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-12px); }
+    }
+    @keyframes glitchText {
+      0%,100% { opacity: 1; transform: skewX(0deg); }
+      94% { opacity: 1; transform: skewX(0deg); }
+      96% { opacity: 0.8; transform: skewX(6deg); text-shadow: 2px 0 var(--accent-color), -2px 0 var(--primary-color); }
+      98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--accent-color), 2px 0 var(--primary-color); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .container {
@@ -773,6 +895,25 @@
 </head>
 <body>
 
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="gif-wrapper">
+      <div class="gif-inner">
+        <img src="chica_corriendo.gif" alt="Cargando sistema">
+      </div>
+    </div>
+    <div class="loader-title">ARCHINIME</div>
+    <div class="loader-percentage" id="loadingPercentage">0%</div>
+    <div class="loader-line-container">
+      <div class="loader-line" id="loaderLine"></div>
+    </div>
+    <div class="loader-sub">
+      <span><i class="fas fa-hand-spock"></i> ¡Bienvenido!</span>
+      <span><i class="fas fa-sync-alt fa-spin"></i> Sincronizando datos</span>
+    </div>
+  </div>
+</div>
+
 <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
@@ -805,7 +946,6 @@
     <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
   </div>
 
-  <!-- Sección de comentarios -->
   <div class="comentarios-section">
     <div class="comentarios-header">
       <i class="fas fa-comments"></i>
@@ -880,7 +1020,6 @@
   </div>
 </div>
 
-<!-- Modal de autenticación -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
     <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
@@ -911,13 +1050,60 @@
   </div>
 </div>
 
-<!-- Carga de scripts externos (con defer para no bloquear) -->
 <script defer src="video-player-data.js?v=20250406"></script>
 <script defer src="stickers-system.js?v=20250406"></script>
 <script defer src="reacciones.js?v=20250406"></script>
 <script defer src="comentarios.js?v=20250406"></script>
 
-<!-- Núcleo del reproductor (optimizado) -->
 <script defer src="video-player-core.js?v=20250406"></script>
+
+<script>
+  let loadingCompleted = false;
+  const loadingScreen = document.getElementById('loadingScreen');
+  const percentEl = document.getElementById('loadingPercentage');
+  const lineEl = document.getElementById('loaderLine');
+
+  function updateProgress(percent) {
+    const p = Math.min(99, Math.max(0, Math.floor(percent)));
+    if (percentEl) percentEl.innerText = p + '%';
+    if (lineEl) lineEl.style.width = p + '%';
+  }
+
+  function finishLoading() {
+    if (loadingCompleted) return;
+    loadingCompleted = true;
+    updateProgress(100);
+    if (percentEl) percentEl.innerText = "SISTEMA LISTO";
+    setTimeout(() => {
+      if (loadingScreen) loadingScreen.classList.add('hidden');
+    }, 800);
+  }
+
+  // Progreso incremental simulado mientras carga
+  let progressValue = 0;
+  const interval = setInterval(() => {
+    if (loadingCompleted) {
+      clearInterval(interval);
+      return;
+    }
+    if (progressValue < 85) {
+      progressValue += Math.random() * 8;
+      if (progressValue > 85) progressValue = 85;
+      updateProgress(progressValue);
+    }
+  }, 200);
+
+  // Terminar la carga cuando todo el contenido y scripts diferidos estén listos
+  window.addEventListener('load', () => {
+    clearInterval(interval);
+    updateProgress(95);
+    
+    // Le damos un pequeño tiempo adicional para asegurar que Firebase, comentarios y el video inicialicen.
+    setTimeout(() => {
+      updateProgress(100);
+      finishLoading();
+    }, 800);
+  });
+</script>
 </body>
 </html>
