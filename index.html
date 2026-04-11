@@ -14,7 +14,7 @@
   <!-- Control de versión -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v3.3";
+      const APP_VERSION = "2025-04-06-v3.4";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -729,9 +729,9 @@
     })();
   </script>
 
-  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (CORREGIDO - BÚSQUEDA VACÍA) ===== -->
+  <!-- ===== PAGINACIÓN, BÚSQUEDA Y FILTROS (VERSIÓN CON ORDEN ALEATORIO EN INICIO) ===== -->
   <script>
-    // Variables de paginación (solo para vista sin filtros)
+    // Variables de paginación
     let lastVisible = null, isLoading = false, hasMore = true;
     let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
     let debounceTimer = null;
@@ -744,12 +744,28 @@
     // Mapa global de ratings de Firestore
     const firestoreRatings = new Map();
 
-    // Normalizar texto (eliminar acentos, minúsculas)
+    // Lista completa de animes (para orden aleatorio)
+    let allAnimes = [];       // Array con todos los animes sin filtrar
+    let shuffledAnimes = [];  // Copia mezclada de allAnimes
+    let currentShufflePage = 0; // Página actual en la vista aleatoria
+    const ITEMS_PER_PAGE = 20;
+
+    // Normalizar texto
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
-    // Cargar ratings desde Firestore (con validación de campos)
+    // Función de mezcla (Fisher-Yates)
+    function shuffleArray(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // Cargar ratings desde Firestore (con validación)
     async function loadRatingsFromFirestore() {
       try {
         const snapshot = await db.collection('animeRatings').get();
@@ -768,7 +784,7 @@
       }
     }
 
-    // Obtener el rating a mostrar (NUNCA lanza error)
+    // Obtener rating a mostrar
     function getDisplayRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
@@ -783,7 +799,7 @@
       return '—';
     }
 
-    // Obtener rating numérico para filtrar (0 si no existe)
+    // Obtener rating numérico para filtros
     function getNumericRating(anime) {
       const animeId = parseInt(anime.id);
       if (firestoreRatings.has(animeId)) {
@@ -837,19 +853,21 @@
     function resetearFiltros() {
       searchInput.value = ''; genreSelect.value = ''; demographicSelect.value = ''; ratingSelect.value = '';
       currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+      // Volver a la vista aleatoria
+      currentShufflePage = 0;
       cargarAnimesPaginado(true);
     }
 
-    // BÚSQUEDA Y FILTROS (CORREGIDO: cuando no hay filtros, carga paginado sin bloquear)
+    // BÚSQUEDA Y FILTROS (usando Firestore, orden alfabético)
     async function aplicarFiltros() {
-      // Si no hay ningún filtro activo, cargar la vista paginada normal
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters) {
+        // Sin filtros: usar la vista aleatoria
         cargarAnimesPaginado(true);
         return;
       }
 
-      // Si hay filtros, ejecutar la búsqueda
+      // Con filtros: consulta a Firestore (orden alfabético)
       gridEl.innerHTML = '';
       isLoading = true;
       try {
@@ -902,32 +920,49 @@
       }
     }
 
-    // Paginación normal (sin filtros)
+    // Paginación: si hay filtros activos, se usa Firestore; si no, se usa la lista aleatoria local
     async function cargarAnimesPaginado(reset = true) {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (hasActiveFilters) {
+        // Si hay filtros, no se debe llamar a esta función directamente, porque aplicarFiltros ya maneja la renderización.
+        // Para evitar loops, simplemente no hacemos nada aquí.
+        return;
+      }
+
+      // Modo aleatorio sin filtros
       if (isLoading) return;
-      if (!reset && !hasMore) return;
-      isLoading = true;
       if (reset) {
+        currentShufflePage = 0;
         gridEl.innerHTML = '';
-        lastVisible = null;
         hasMore = true;
       }
+      if (!reset && !hasMore) return;
+
+      isLoading = true;
       try {
-        let query = db.collection('catalogo').orderBy('title').limit(20);
-        if (lastVisible) query = query.startAfter(lastVisible);
-        const snapshot = await query.get();
-        if (snapshot.empty) {
+        if (allAnimes.length === 0) {
+          // Cargar todos los animes desde Firestore (una sola vez)
+          const snapshot = await db.collection('catalogo').orderBy('title').get();
+          allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          shuffledAnimes = shuffleArray(allAnimes);
+        }
+
+        const start = currentShufflePage * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageAnimes = shuffledAnimes.slice(start, end);
+
+        if (pageAnimes.length === 0) {
           hasMore = false;
-          if (reset) mostrarNoResultados();
+          if (reset && allAnimes.length === 0) mostrarNoResultados();
           isLoading = false;
           return;
         }
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
-        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderAnimes(animes, !reset);
-        if (snapshot.docs.length < 20) hasMore = false;
+
+        renderAnimes(pageAnimes, !reset);
+        currentShufflePage++;
+        if (end >= shuffledAnimes.length) hasMore = false;
       } catch (e) {
-        console.error('Error en paginación:', e);
+        console.error('Error en paginación aleatoria:', e);
         gridEl.innerHTML = `<div class="error-message">Error al cargar: ${e.message}</div>`;
       } finally {
         isLoading = false;
@@ -968,6 +1003,7 @@
     // Inicialización
     (async function init() {
       await loadRatingsFromFirestore();
+      // Cargar la primera página aleatoria (allAnimes se cargará dentro de cargarAnimesPaginado)
       cargarAnimesPaginado(true);
     })();
 
