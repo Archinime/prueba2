@@ -44,24 +44,23 @@
       z-index: 1;
     }
     
-    /* Contenedor del Gato */
+    /* Contenedor del Gato Animado Multicolores */
     .cat-loader-wrapper {
       position: relative;
       width: 180px; 
       height: 180px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       z-index: 2;
-      /* Glow general suavizado */
-      filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.6));
-      animation: runCat 0.8s infinite alternate ease-in-out;
+      /* Animación de salto + Animación de cambio de colores constante */
+      animation: runCat 0.8s infinite alternate ease-in-out, rainbowCycle 3s linear infinite;
     }
 
     .cat-loader-img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      /* Aplica el nuevo filtro inteligente */
-      filter: url(#magic-cyan-cat);
+      /* Aplica el filtro SVG que ELIMINA el rojo y rescata la silueta */
+      filter: url(#extract-cat);
     }
 
     /* Textos y contadores */
@@ -107,7 +106,8 @@
     .loader-line {
       width: 0; 
       height: 100%;
-      background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-cyan), #fff);
+      /* Barra que también tiene un toque multicolor */
+      background: linear-gradient(90deg, transparent, #ff0055, var(--neon-purple), var(--neon-cyan), #fff);
       box-shadow: 0 0 15px var(--neon-cyan), 0 0 5px var(--neon-purple);
       border-radius: 4px;
       animation: loadProgress 3s forwards cubic-bezier(0.8, 0, 0.2, 1);
@@ -118,33 +118,34 @@
       0%, 100% { opacity: 0.9; } 
       50% { opacity: 0.4; } 
     }
+    
     @keyframes loadProgress { 
       0% { width: 0%; opacity: 0;} 
       10% { opacity: 1; }
       100% { width: 100%; } 
     }
+    
     @keyframes runCat { 
       0% { transform: translateY(0) scale(1); } 
       100% { transform: translateY(-10px) scale(1.02); } 
+    }
+
+    /* Esta animación rota el color (HUE) 360 grados, creando el efecto multicolor infinito */
+    @keyframes rainbowCycle {
+      0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg); }
+      100% { filter: drop-shadow(0 0 15px red) hue-rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
   <svg width="0" height="0" style="position: absolute; display: none;">
-    <filter id="magic-cyan-cat">
-      <feColorMatrix in="SourceGraphic" result="mask" type="matrix" values="
-        1 0 0 0 0
-        0 1 0 0 0
-        0 0 1 0 0
-        -1.2 -1.2 -1.2 0 3
-      "/>
-      <feComposite in="mask" in2="SourceGraphic" operator="in" result="alphaFixed"/>
-      <feColorMatrix in="alphaFixed" type="matrix" values="
-        0 0 0 0 0.0     
-        0 0 0 0 0.95    
-        0 0 0 0 1.0     
-        0 0 0 1 0      
+    <filter id="extract-cat">
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 1     
+        0 0 0 0 0     
+        0 0 0 0 0     
+        -3 1.5 1.5 0 1
       "/>
     </filter>
   </svg>
