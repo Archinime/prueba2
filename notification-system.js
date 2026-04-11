@@ -1,12 +1,13 @@
-// notification-system.js - VERSIÓN DEFINITIVA (con flag por usuario y límite de 5 popups)
+// notification-system.js - VERSIÓN CON LÍMITE ESTRICTO DE 5 POPUPS + BOTÓN "MARCAR TODO COMO VISTO"
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
+// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
-const MAX_POPUPS = 5;
+const MAX_POPUPS = 5;          // <--- CAMBIA ESTE NÚMERO SI QUIERES MÁS O MENOS POPUPS
 let firstVisitInitialized = false;
 
 if (typeof disableBodyScroll !== 'function') {
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
-        console.log("🎉 Primera visita al sitio. Se mostrarán máximo 5 popups (los más recientes).");
+        console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
         firstVisitInitialized = true;
         await initFirstVisitNotifications();
         localStorage.setItem('archinime_notif_first_visit', 'true');
@@ -40,8 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(async user => {
             if (user) {
-                // Inicializar notificaciones para este usuario (marcar vistas si es primera vez)
-                await initUserNotifications(user.uid);
                 await syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
             } else if (repliesUnsubscribe) repliesUnsubscribe();
@@ -49,28 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// ========== NUEVA FUNCIÓN: Inicializar usuario (marcar vistas la primera vez) ==========
-async function initUserNotifications(uid) {
-    const userFlag = `archinime_user_notif_initialized_${uid}`;
-    if (localStorage.getItem(userFlag)) return; // Ya inicializado
-
-    console.log(`🆕 Primera vez que el usuario ${uid} inicia sesión en este dispositivo. Marcando todas las notificaciones locales como vistas.`);
-    let changed = false;
-    for (let notif of notificationsHistory) {
-        if (!notif.seen) {
-            notif.seen = true;
-            changed = true;
-        }
-    }
-    if (changed) {
-        saveHistoryToStorage();
-        renderNotificationList();
-        updateBellBadge();
-    }
-    localStorage.setItem(userFlag, 'true');
-}
-
-// ========== PRIMERA VISITA DEL SITIO (sin importar login) ==========
+// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
 async function initFirstVisitNotifications() {
     // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
@@ -90,9 +68,10 @@ async function initFirstVisitNotifications() {
     popupsShownCount = 0;
 
     try {
+        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
-            .limit(MAX_POPUPS)
+            .limit(MAX_POPUPS)   // <--- SOLO 5 POPUPS
             .get();
         
         const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -123,7 +102,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: true,
+                seen: true,   // Marcado como visto desde el principio
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -138,6 +117,7 @@ async function initFirstVisitNotifications() {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
             }
 
+            // LIMITAR POPUPS: solo si no hemos alcanzado el máximo
             if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                 notificationQueue.push(newNotif);
                 popupsShownCount++;
@@ -157,7 +137,7 @@ async function initFirstVisitNotifications() {
     }
 }
 
-// ========== FUNCIONES PRINCIPALES ==========
+// ========== FUNCIONES EXISTENTES (con límite de popups) ==========
 function loadHistoryFromStorage() {
     const stored = localStorage.getItem('archinime_notif_history');
     if (stored) {
@@ -182,9 +162,9 @@ function saveHistoryToStorage() {
 
 async function syncNotificationsWithCloud(uid) {
     try {
-        const docRef = db.collection('users').doc(uid);
-        const doc = await docRef.get();
-        
+        const doc = await db.collection('users').doc(uid).get();
+        let isNewUser = !doc.exists;
+
         if (doc.exists) {
             const data = doc.data();
             if (data.seenNotifIds) {
@@ -193,15 +173,26 @@ async function syncNotificationsWithCloud(uid) {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(merged));
             }
             if (data.notifHistory) {
-                // Combinar historial local y de la nube, evitando duplicados
                 let merged = [...notificationsHistory, ...data.notifHistory];
                 let unique = new Map();
                 merged.forEach(n => unique.set(n.notifId, n));
                 notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
-                saveHistoryToStorage();
             }
         }
-        
+
+        if (isNewUser && notificationsHistory.length > 0) {
+            console.log("🆕 Usuario nuevo en la nube. Marcando notificaciones existentes como vistas.");
+            let changed = false;
+            for (let notif of notificationsHistory) {
+                if (!notif.seen) {
+                    notif.seen = true;
+                    changed = true;
+                }
+            }
+            if (changed) saveHistoryToStorage();
+        }
+
+        saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
     } catch (e) { console.error("Error sync notif:", e); }
@@ -309,6 +300,7 @@ function procesarActualizacionCatalogo(anime) {
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
+    // *** LÍMITE ESTRICTO DE POPUPS: máximo 5 ***
     const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
     
     if (shouldEnqueuePopup) {
@@ -404,10 +396,57 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// ========== NUEVO: Botón "Marcar todo como visto" ==========
+function markAllAsRead() {
+    let changed = false;
+    for (let notif of notificationsHistory) {
+        if (!notif.seen) {
+            notif.seen = true;
+            changed = true;
+        }
+    }
+    if (changed) {
+        saveHistoryToStorage();
+        renderNotificationList();
+        updateBellBadge();
+        console.log("✅ Todas las notificaciones marcadas como vistas.");
+    }
+}
+
+// ========== RENDERIZADO DEL PANEL (con botón) ==========
 function renderNotificationList() {
     const container = document.getElementById('notifList');
     if (!container) return;
     requestAnimationFrame(() => {
+        // Primero actualizamos el header del panel (para incluir el botón)
+        const header = document.querySelector('#notifMenu .notif-header');
+        if (header && !header.querySelector('.mark-all-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'mark-all-btn';
+            btn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todo';
+            btn.title = 'Marcar todas las notificaciones como vistas';
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                markAllAsRead();
+            };
+            // Estilos inline para que se vea bien
+            btn.style.cssText = `
+                background: rgba(0,243,255,0.1);
+                border: 1px solid var(--neon-cyan);
+                color: var(--neon-cyan);
+                border-radius: 20px;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                font-family: 'Orbitron', sans-serif;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-left: 10px;
+            `;
+            btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
+            btn.onmouseleave = () => { btn.style.background = 'rgba(0,243,255,0.1)'; btn.style.transform = 'scale(1)'; };
+            header.appendChild(btn);
+        }
+
         if (!notificationsHistory.length) {
             container.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
             return;
@@ -470,3 +509,4 @@ function markAsRead(notifId) {
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
 window.goToAnimeFromPopup = goToAnimeFromPopup;
+window.markAllAsRead = markAllAsRead; // por si se necesita desde consola
