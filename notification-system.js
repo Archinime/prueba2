@@ -1,4 +1,4 @@
-// notification-system.js - VERSIÓN CON FIX DEFINITIVO DE DESPLAZAMIENTO LATERAL + POPUPS TRAS CARGA COMPLETA
+// notification-system.js - VERSIÓN CON FIX DE DESPLAZAMIENTO LATERAL (scrollbar padding)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -10,80 +10,85 @@ const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
 let pageFullyLoaded = false;
 let pendingPopupTimer = null;
-let scrollbarWidth = null; // Para compensar el desplazamiento
 
-// Calcular el ancho del scrollbar una vez
+// --- Función para obtener el ancho de la barra de scroll (si existe) ---
 function getScrollbarWidth() {
-    if (scrollbarWidth !== null) return scrollbarWidth;
-    const div = document.createElement('div');
-    div.style.overflow = 'scroll';
-    div.style.position = 'absolute';
-    div.style.top = '-9999px';
-    div.style.width = '100px';
-    div.style.height = '100px';
-    document.body.appendChild(div);
-    scrollbarWidth = div.offsetWidth - div.clientWidth;
-    document.body.removeChild(div);
-    return scrollbarWidth || 0;
+    return window.innerWidth - document.documentElement.clientWidth;
 }
 
-// --- FIX definitivo para evitar desplazamiento lateral al abrir dropdowns/popups ---
-// Añadimos un estilo global que mantenga el scrollbar visible y evite el salto
-if (!document.getElementById('archinime-scroll-fix')) {
+// --- FIX definitivo para evitar desplazamiento lateral ---
+let originalBodyPadding = null;
+let originalHtmlPadding = null;
+let previousScrollY = 0;
+
+if (typeof disableBodyScroll !== 'function') {
+  window.disableBodyScroll = function() {
+    // Guardar scroll actual
+    previousScrollY = window.scrollY;
+    const scrollbarWidth = getScrollbarWidth();
+    
+    // Guardar paddings originales
+    if (originalBodyPadding === null) {
+        originalBodyPadding = window.getComputedStyle(document.body).paddingRight;
+        originalHtmlPadding = window.getComputedStyle(document.documentElement).paddingRight;
+    }
+    
+    // Aplicar estilos para evitar salto
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${previousScrollY}px`;
+    document.body.style.width = '100%';
+    document.documentElement.style.width = '100%';
+    
+    // Compensar el ancho del scrollbar
+    if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    
+    // Añadir clase para estilos adicionales si se necesita
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+  };
+  
+  window.enableBodyScroll = function() {
+    // Restaurar scroll guardado
+    const scrollY = previousScrollY;
+    
+    // Remover estilos inline
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.documentElement.style.width = '';
+    document.body.style.paddingRight = originalBodyPadding !== null ? originalBodyPadding : '';
+    document.documentElement.style.paddingRight = originalHtmlPadding !== null ? originalHtmlPadding : '';
+    
+    // Remover clase
+    document.body.classList.remove('modal-open');
+    document.documentElement.classList.remove('modal-open');
+    
+    // Restaurar scroll
+    window.scrollTo(0, scrollY);
+  };
+}
+
+// Inyectar estilos globales para evitar desbordamiento horizontal en cualquier elemento
+if (!document.getElementById('archinime-no-horizontal-scroll')) {
     const style = document.createElement('style');
-    style.id = 'archinime-scroll-fix';
+    style.id = 'archinime-no-horizontal-scroll';
     style.textContent = `
-        body.modal-open {
-            overflow: hidden !important;
-            position: relative !important;
-            width: auto !important;
-            top: auto !important;
-            left: auto !important;
-            right: auto !important;
-            bottom: auto !important;
+        body.modal-open, html.modal-open {
+            overflow-x: hidden !important;
         }
-        /* Evita que el contenido se mueva al desaparecer el scrollbar */
-        html.modal-open {
-            overflow: hidden !important;
-            margin-right: 0 !important;
-            padding-right: 0 !important;
-        }
-        /* Para popups y dropdowns, asegurar que no generen scroll horizontal */
-        #eventModal, .notif-dropdown, .user-dropdown {
+        /* Evitar cualquier desplazamiento horizontal extra */
+        .notif-dropdown, .user-dropdown, #eventModal {
             overflow-x: hidden;
         }
     `;
     document.head.appendChild(style);
-}
-
-// Versión mejorada de disableBodyScroll que evita el salto lateral
-if (typeof window.disableBodyScroll !== 'function') {
-  window.disableBodyScroll = function() {
-    const scrollY = window.scrollY;
-    const scrollbarWidth = getScrollbarWidth();
-    // Aplicar clase al html también
-    document.documentElement.classList.add('modal-open');
-    document.body.classList.add('modal-open');
-    // Compensar el ancho del scrollbar para evitar el salto
-    if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = scrollbarWidth + 'px';
-        document.documentElement.style.paddingRight = scrollbarWidth + 'px';
-    }
-    // Fijar la posición del scroll
-    document.body.style.top = `-${scrollY}px`;
-    document.documentElement.style.top = `-${scrollY}px`;
-  };
-  
-  window.enableBodyScroll = function() {
-    const scrollY = parseInt(document.body.style.top || '0') * -1;
-    document.documentElement.classList.remove('modal-open');
-    document.body.classList.remove('modal-open');
-    document.body.style.paddingRight = '';
-    document.documentElement.style.paddingRight = '';
-    document.body.style.top = '';
-    document.documentElement.style.top = '';
-    window.scrollTo(0, scrollY);
-  };
 }
 
 // Esperar a que la página esté completamente cargada antes de iniciar popups
