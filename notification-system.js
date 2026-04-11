@@ -1,10 +1,9 @@
-// notification-system.js - Versión con popups garantizados
+// notification-system.js - VERSIÓN SIN ÍNDICE (filtro en cliente)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
-let initialLoadDone = false;  // Para saber si ya terminó la carga inicial
 
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
@@ -20,7 +19,7 @@ if (typeof disableBodyScroll !== 'function') {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
-    listenForCatalogUpdates();
+    listenForCatalogUpdates(); // Escucha sin where, solo orderBy
     renderNotificationList();
     updateBellBadge();
 
@@ -32,12 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
-    
-    // Marcar que la carga inicial ya terminó después de 3 segundos
-    setTimeout(() => {
-        initialLoadDone = true;
-        console.log("✅ Carga inicial completada. Las nuevas notificaciones mostrarán popup.");
-    }, 3000);
 });
 
 function loadHistoryFromStorage() {
@@ -126,20 +119,25 @@ function listenForReplies(uid) {
         }, error => console.error("Error replies:", error));
 }
 
+// --- Escucha SIN where, solo orderBy (no necesita índice compuesto) ---
 function listenForCatalogUpdates() {
     if (catalogoUnsubscribe) catalogoUnsubscribe();
-    console.log("📡 Iniciando escucha de catálogo...");
-    // Obtener los 30 últimos animes sin filtro de fecha (para pruebas)
+    
+    console.log("📡 Iniciando escucha de catálogo (sin filtro where)...");
+    // Solo orderBy, sin where - esto funciona sin índice compuesto
     catalogoUnsubscribe = db.collection('catalogo')
         .orderBy('lastUpdate', 'desc')
-        .limit(30)
+        .limit(50)
         .onSnapshot(snapshot => {
-            console.log(`📡 Se detectaron ${snapshot.docChanges().length} cambios.`);
+            console.log(`📡 [Notif] Se detectaron ${snapshot.docChanges().length} cambios en catálogo`);
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added' || change.type === 'modified') {
                     const anime = { id: change.doc.id, ...change.doc.data() };
+                    console.log(`📦 Anime recibido: ${anime.title} - updateType: ${anime.updateType} - lastUpdate:`, anime.lastUpdate);
                     if (anime.updateType && anime.updateType !== 'Ninguna') {
                         procesarActualizacionCatalogo(anime);
+                    } else {
+                        console.log(`⏭️ Ignorado: updateType = ${anime.updateType}`);
                     }
                 }
             });
@@ -149,6 +147,8 @@ function listenForCatalogUpdates() {
 }
 
 function procesarActualizacionCatalogo(anime) {
+    console.log(`🔔 Procesando anime: ${anime.title}`);
+    
     let lastUpdateMs = anime.lastUpdate;
     if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
         lastUpdateMs = anime.lastUpdate.toMillis();
@@ -158,26 +158,22 @@ function procesarActualizacionCatalogo(anime) {
         lastUpdateMs = Date.now();
     }
     
-    // Eliminamos filtro de 30 días para que siempre aparezca (solo para pruebas)
-    // const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    // if (lastUpdateMs < thirtyDaysAgo) return;
+    // Filtro de 30 días en cliente (opcional, puedes comentarlo para que salgan todas)
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    if (lastUpdateMs < thirtyDaysAgo) {
+        console.log(`⏭️ ${anime.title} tiene lastUpdate > 30 días (${new Date(lastUpdateMs).toLocaleDateString()}), se omite.`);
+        return;
+    }
     
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) {
-        console.log(`⏭️ Notificación ya vista: ${anime.title}`);
+        console.log(`⏭️ ${anime.title} ya fue notificado (ID: ${notifId})`);
         return;
     }
-    
-    // Si es carga inicial, marcamos como visto y no mostramos popup
-    const shouldShowPopup = initialLoadDone;
-    
-    if (!shouldShowPopup) {
-        // En carga inicial, marcar como visto sin popup
-        seenNotifIds.push(notifId);
-        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-    }
+    seenNotifIds.push(notifId);
+    if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+    localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
     
     if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
@@ -188,39 +184,26 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: !shouldShowPopup,  // Si es carga inicial, visto = true; si no, false
+        seen: false,
         isFinal: anime.isFinal || false,
         popupShown: true
     };
     
     notificationsHistory.unshift(newNotif);
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    
-    if (shouldShowPopup) {
-        notificationQueue.push(newNotif);
-        // Limitar la cola a 5 notificaciones para no saturar
-        if (notificationQueue.length > 5) notificationQueue = notificationQueue.slice(0, 5);
-        console.log(`🔔 Nueva notificación en cola: ${anime.title}. Cola: ${notificationQueue.length}`);
-        if (notificationQueue.length === 1) {
-            showNextPopup();
-        }
-    } else {
-        console.log(`📦 Carga inicial: notificación de "${anime.title}" archivada como vista (sin popup).`);
-    }
-    
+    notificationQueue.push(newNotif);
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
+    
+    console.log(`🔔 NUEVA NOTIFICACIÓN: ${anime.title} - ${anime.updateType}`);
+    if (notificationQueue.length === 1) showNextPopup();
 }
 
-window.startNotificationSequence = () => {
-    if (notificationQueue.length > 0) showNextPopup();
-};
+window.startNotificationSequence = () => showNextPopup();
 
 function showNextPopup() {
-    if (notificationQueue.length === 0) return;
-    const notif = notificationQueue[0];
-    createPopupHTML(notif);
+    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
 }
 
 function createPopupHTML(notif) {
@@ -356,23 +339,6 @@ function markAsRead(notifId) {
         renderNotificationList();
     }
 }
-
-// === FUNCIÓN DE PRUEBA MANUAL ===
-window.testNotification = function() {
-    const testAnime = {
-        id: "test_" + Date.now(),
-        title: "ANIME DE PRUEBA",
-        img: "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mariop.avif",
-        latestSeasonCover: "https://cdn.jsdelivr.net/gh/Archinime/imagenes@main/mario2.avif",
-        latestBlockName: "Prueba",
-        latestEpTitle: "Episodio de prueba",
-        updateType: "ESTRENO 🚨",
-        lastUpdate: firebase.firestore.Timestamp.fromDate(new Date()),
-        isFinal: false
-    };
-    procesarActualizacionCatalogo(testAnime);
-    console.log("✅ Notificación de prueba enviada. Espera el popup.");
-};
 
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
