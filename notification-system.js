@@ -1,4 +1,4 @@
-// notification-system.js - VERSIÓN CORREGIDA (marca como vistas al iniciar sesión si no hay historial en la nube)
+// notification-system.js - VERSIÓN DEFINITIVA (con flag por usuario y límite de 5 popups)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -40,12 +40,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(async user => {
             if (user) {
+                // Inicializar notificaciones para este usuario (marcar vistas si es primera vez)
+                await initUserNotifications(user.uid);
                 await syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
             } else if (repliesUnsubscribe) repliesUnsubscribe();
         });
     }
 });
+
+// ========== NUEVA FUNCIÓN: Inicializar usuario (marcar vistas la primera vez) ==========
+async function initUserNotifications(uid) {
+    const userFlag = `archinime_user_notif_initialized_${uid}`;
+    if (localStorage.getItem(userFlag)) return; // Ya inicializado
+
+    console.log(`🆕 Primera vez que el usuario ${uid} inicia sesión en este dispositivo. Marcando todas las notificaciones locales como vistas.`);
+    let changed = false;
+    for (let notif of notificationsHistory) {
+        if (!notif.seen) {
+            notif.seen = true;
+            changed = true;
+        }
+    }
+    if (changed) {
+        saveHistoryToStorage();
+        renderNotificationList();
+        updateBellBadge();
+    }
+    localStorage.setItem(userFlag, 'true');
+}
 
 // ========== PRIMERA VISITA DEL SITIO (sin importar login) ==========
 async function initFirstVisitNotifications() {
@@ -157,14 +180,10 @@ function saveHistoryToStorage() {
     }
 }
 
-// ========== SINCRONIZACIÓN CORREGIDA ==========
 async function syncNotificationsWithCloud(uid) {
     try {
         const docRef = db.collection('users').doc(uid);
         const doc = await docRef.get();
-        
-        // Determinar si el usuario no tiene historial en la nube (es "nuevo" para este dispositivo)
-        const hasCloudHistory = doc.exists && doc.data().notifHistory && doc.data().notifHistory.length > 0;
         
         if (doc.exists) {
             const data = doc.data();
@@ -174,30 +193,15 @@ async function syncNotificationsWithCloud(uid) {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(merged));
             }
             if (data.notifHistory) {
+                // Combinar historial local y de la nube, evitando duplicados
                 let merged = [...notificationsHistory, ...data.notifHistory];
                 let unique = new Map();
                 merged.forEach(n => unique.set(n.notifId, n));
                 notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
-            }
-        }
-        
-        // Si no hay historial en la nube (nuevo usuario o primera vez que se loguea en este dispositivo)
-        // Marcamos TODAS las notificaciones locales como vistas para que no aparezcan puntos rojos.
-        if (!hasCloudHistory && notificationsHistory.length > 0) {
-            console.log("🆕 Usuario sin historial en la nube. Marcando todas las notificaciones locales como vistas.");
-            let changed = false;
-            for (let notif of notificationsHistory) {
-                if (!notif.seen) {
-                    notif.seen = true;
-                    changed = true;
-                }
-            }
-            if (changed) {
                 saveHistoryToStorage();
             }
         }
         
-        saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
     } catch (e) { console.error("Error sync notif:", e); }
