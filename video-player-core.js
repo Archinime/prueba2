@@ -20,7 +20,7 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
     
-    // Exponer métodos necesarios para eventos inline (sin usar window.videoPlayer)
+    // Exponer métodos necesarios para eventos inline
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -36,6 +36,9 @@ class VideoPlayer {
       switchStickerTab: (tab) => this.switchStickerTab(tab),
       uploadSticker: (file) => this.uploadSticker(file)
     };
+    
+    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
+    window.videoPlayer = window.videoPlayerMethods;
     
     // Mantener variables globales para compatibilidad con comentarios.js
     window.comentariosAnimeId = this.animeId;
@@ -67,7 +70,6 @@ class VideoPlayer {
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
       } else {
-        // Fallback: guardar localmente
         this.currentUser = user;
       }
       this.updateCommentFormVisibility();
@@ -81,7 +83,6 @@ class VideoPlayer {
     });
   }
   
-  // Obtener usuario desde el estado central o fallback local
   getCurrentUser() {
     if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
     return this.currentUser;
@@ -96,7 +97,7 @@ class VideoPlayer {
     const emojiPanel = document.getElementById('emojiPanel');
     if (emojiPanel) {
       emojiPanel.innerHTML = this.emojiList.map(e => 
-        `<div class="emoji-option" onclick="window.videoPlayerMethods?.insertEmoji('${e}')">${e}</div>`
+        `<div class="emoji-option" onclick="window.videoPlayer?.insertEmoji('${e}')">${e}</div>`
       ).join('');
     }
     
@@ -125,21 +126,17 @@ class VideoPlayer {
     try {
       const docRef = this.db.collection('catalogo').doc(this.animeId);
       const doc = await docRef.get();
-      
       if (!doc.exists) {
         document.getElementById('epTitle').innerText = 'Anime no encontrado';
         return;
       }
-      
       this.animeData = doc.data();
       const seasons = this.animeData.seasons || [];
-      
       const season = seasons.find(s => s.num === parseInt(this.season));
       if (!season) {
         document.getElementById('epTitle').innerText = 'Temporada no encontrada';
         return;
       }
-      
       const epIndex = parseInt(this.episode) - 1;
       const episodeData = season.eps?.[epIndex];
       if (!episodeData) {
@@ -187,7 +184,6 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
-    
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -232,7 +228,6 @@ class VideoPlayer {
   
   setupNavigation() {
     if (!this.animeData?.seasons) return;
-    
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
@@ -241,11 +236,9 @@ class VideoPlayer {
         }
       });
     });
-    
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-    
     if (idx > 0) {
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
@@ -261,7 +254,6 @@ class VideoPlayer {
     const sNum = parseInt(this.season);
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
-    
     const user = this.getCurrentUser();
     if (user) {
       try {
@@ -276,15 +268,12 @@ class VideoPlayer {
           data[aId] = animeData;
           await docRef.set(data, { merge: true });
         }
-      } catch (e) {
-        console.warn('Error al marcar como visto:', e);
-      }
+      } catch (e) { console.warn('Error al marcar como visto:', e); }
     } else {
       localStorage.setItem(`watched_${aId}_${sNum}_${eNum}`, 'true');
     }
   }
   
-  // ===== MÉTODOS DE AUTENTICACIÓN =====
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -328,7 +317,6 @@ class VideoPlayer {
     catch (e) { document.getElementById('authError').innerText = e.message; }
   }
   
-  // ===== MÉTODOS DE COMENTARIOS Y UI =====
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -390,17 +378,16 @@ class VideoPlayer {
   quitarStickerPreview() { if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } this.validateSendButton(); }
 }
 
-// Inicialización
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad con eventos inline (usando videoPlayerMethods)
-window.openLoginModalFromComent = () => window.videoPlayerMethods?.openLoginModal();
-window.toggleEmojiPanelSistema = () => window.videoPlayerMethods?.toggleEmojiPanel();
-window.toggleStickerPanelSistema = () => window.videoPlayerMethods?.toggleStickerPanel();
-window.agregarEmojiAlTexto = (emoji) => window.videoPlayerMethods?.insertEmoji(emoji);
-window.switchStickerTab = (tab) => window.videoPlayerMethods?.switchStickerTab(tab);
-window.subirStickerDesdePC = (input) => window.videoPlayerMethods?.uploadSticker(input.files[0]);
+// Funciones globales para compatibilidad
+window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
+window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
+window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
+window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
+window.switchStickerTab = (tab) => window.videoPlayer?.switchStickerTab(tab);
+window.subirStickerDesdePC = (input) => window.videoPlayer?.uploadSticker(input.files[0]);
