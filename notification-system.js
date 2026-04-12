@@ -1,4 +1,5 @@
 // notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -29,6 +30,12 @@ if (typeof disableBodyScroll !== 'function') {
   };
 }
 
+// Obtener usuario actual desde el estado central o fallback
+function getCurrentUser() {
+  if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+  return null;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
@@ -46,7 +53,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     listenForCatalogUpdates();
 
-    if (typeof auth !== 'undefined') {
+    // Suscribirse al estado central para cambios de usuario
+    if (window.ArchinimeState) {
+        ArchinimeState.on('currentUser', async user => {
+            if (user) {
+                await syncNotificationsWithCloud(user.uid);
+                listenForReplies(user.uid);
+            } else if (repliesUnsubscribe) {
+                repliesUnsubscribe();
+            }
+        });
+    } else if (typeof auth !== 'undefined') {
+        // Fallback: usar auth directamente
+        console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
         auth.onAuthStateChanged(async user => {
             if (user) {
                 await syncNotificationsWithCloud(user.uid);
@@ -153,8 +172,9 @@ function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
-    if (auth.currentUser) {
-        db.collection('users').doc(auth.currentUser.uid).set({
+    const user = getCurrentUser();
+    if (user) {
+        db.collection('users').doc(user.uid).set({
             notifHistory: notificationsHistory,
             seenNotifIds: seenNotifIds
         }, { merge: true }).catch(e => console.error("Error guardando en nube", e));

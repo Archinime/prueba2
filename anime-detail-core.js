@@ -1,6 +1,7 @@
 // anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
 // CORREGIDO: Error "Missing or insufficient permissions" al escribir en animeRatings sin autenticación
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -557,34 +558,66 @@ function initSearch() {
   searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input')); });
 }
 
-// ---------- AUTENTICACIÓN ----------
-auth.onAuthStateChanged(async (user) => {
-  const previousUserId = currentUserId;
-  currentUserId = user ? user.uid : null;
-  
-  if (currentAnimeId && animeData) {
-    if (currentUserId && !previousUserId) {
-      await loadUserRating(currentAnimeId, currentUserId);
-    }
-    if (!currentUserId && previousUserId) {
-      currentUserRating = null;
-      renderStars(0);
-    }
-    
-    const details = document.querySelectorAll('details');
-    for (let d of details) {
-      if (d.open) {
-        const aid = d.dataset.animeId;
-        const sidx = d.dataset.seasonIndex;
-        if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+// ---------- AUTENTICACIÓN (usando ArchinimeState) ----------
+function initAuthListener() {
+  if (window.ArchinimeState) {
+    // Usar el estado central
+    ArchinimeState.on('currentUser', async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
+      
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
+        }
       }
-    }
+    });
+  } else {
+    // Fallback: usar auth directamente si state.js no está cargado
+    console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
+    auth.onAuthStateChanged(async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
+      
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
+        }
+      }
+    });
   }
-});
+}
 
 // ---------- INICIALIZACIÓN (CORREGIDO: manejo de errores de permisos) ----------
 (async function init() {
   await loadSearchCache();
+  initAuthListener();
 
   if (!animeId) {
     document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>ID de anime no proporcionado</h2>";

@@ -29,21 +29,63 @@ let searchTimeout = null;
 let previewTimeout = null;
 let originalAnimeState = null;
 
+// Variables de usuario (se sincronizarán con ArchinimeState)
 let currentUserNick = "Usuario"; 
 let currentUserAvatar = "Logo_Archinime.avif";
 let currentUserEmail = "";
 let currentSearchMode = 'mine';
 
 // ============================================
-// AUTENTICACIÓN
+// AUTENTICACIÓN (integrada con ArchinimeState)
 // ============================================
-auth.onAuthStateChanged((user) => {
+
+// Función para obtener el usuario actual desde el estado central o fallback
+function getCurrentUser() {
+    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+    return auth.currentUser;
+}
+
+// Sincronizar estado local con ArchinimeState
+function syncUserFromState(user) {
     if (user) {
-        checkAccess(user);
+        currentUserEmail = user.email;
+        // Intentar obtener nick y avatar desde globalUsersData (cargado aparte)
+        if (globalUsersData[currentUserEmail]) {
+            currentUserNick = globalUsersData[currentUserEmail].nick;
+            currentUserAvatar = globalUsersData[currentUserEmail].avatar;
+        } else if (user.email === "archinime12@gmail.com") {
+            currentUserNick = "Archinime";
+            currentUserAvatar = "Logo_Archinime.avif";
+        } else {
+            currentUserNick = user.displayName || user.email.split('@')[0];
+            currentUserAvatar = user.photoURL || "Logo_Archinime.avif";
+        }
     } else {
-        showLogin();
+        currentUserEmail = "";
+        currentUserNick = "Usuario";
+        currentUserAvatar = "Logo_Archinime.avif";
     }
-});
+}
+
+// Escuchar cambios de autenticación mediante ArchinimeState (si existe) o auth directamente
+if (window.ArchinimeState) {
+    ArchinimeState.on('currentUser', async (user) => {
+        if (user) {
+            await checkAccess(user);
+        } else {
+            showLogin();
+        }
+    });
+} else {
+    // Fallback: usar auth directamente
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            checkAccess(user);
+        } else {
+            showLogin();
+        }
+    });
+}
 
 function signInWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
@@ -116,7 +158,7 @@ function showProfileSetup() {
     const btnCancel = document.getElementById('btnCancelProfile');
     if(btnCancel) btnCancel.style.display = 'none';
     
-    const user = auth.currentUser;
+    const user = getCurrentUser();
     if(user) {
         document.getElementById('setupNick').value = "";
         if(user.photoURL) {
@@ -235,6 +277,7 @@ function showLogin() {
 
 function logout() {
     auth.signOut().then(() => {
+        if (window.ArchinimeState) ArchinimeState.set('currentUser', null);
         location.reload();
     });
 }

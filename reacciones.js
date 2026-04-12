@@ -1,5 +1,6 @@
 // ============================================
-// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v3.0 (Minimalista y Compacto)
+// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v4.0
+// (Adaptado a ArchinimeState - estado central)
 // ============================================
 
 const REACTIONS_MAP = {
@@ -118,19 +119,24 @@ function injectReaccionesCSS() {
     document.head.appendChild(style);
 }
 
+// Obtener usuario actual desde el estado central
+function getCurrentUser() {
+    return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
+}
+
 window.toggleReaccion = async function(commentId, tipoReaccion, event) {
-    if (event) event.stopPropagation(); // Evitar que el clic cause fallos en la UI
-    if (!comentariosCurrentUser) return typeof openLoginModalFromComent === 'function' ? openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
+    if (event) event.stopPropagation();
+    const user = getCurrentUser();
+    if (!user) return typeof openLoginModalFromComent === 'function' ? openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
         await docRef.update({
-            [`reactions.${comentariosCurrentUser.uid}`]: tipoReaccion
+            [`reactions.${user.uid}`]: tipoReaccion
         });
         if(typeof playUISound === 'function') playUISound('click');
     } catch (e) {
         console.error("Error al reaccionar", e);
-        // Si sale este error, entonces son tus Reglas de Firestore limitando el `update` a otros comentarios
         if (e.message.includes("Missing or insufficient permissions")) {
             alert("No se pudo reaccionar. Las reglas de la base de datos (Firestore) te impiden modificar un comentario que no es tuyo.");
         }
@@ -139,12 +145,13 @@ window.toggleReaccion = async function(commentId, tipoReaccion, event) {
 
 window.quitarReaccion = async function(commentId, event) {
     if (event) event.stopPropagation();
-    if (!comentariosCurrentUser) return;
+    const user = getCurrentUser();
+    if (!user) return;
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
         await docRef.update({
-            [`reactions.${comentariosCurrentUser.uid}`]: firebase.firestore.FieldValue.delete()
+            [`reactions.${user.uid}`]: firebase.firestore.FieldValue.delete()
         });
     } catch (e) {
         console.error("Error al quitar reacción", e);
@@ -153,12 +160,13 @@ window.quitarReaccion = async function(commentId, event) {
 
 window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     const reactions = reactionsObj || {};
+    const currentUser = getCurrentUser();
     const userIds = Object.keys(reactions);
     const total = userIds.length;
     
     let currentUserReaction = null;
-    if (comentariosCurrentUser && reactions[comentariosCurrentUser.uid]) {
-        currentUserReaction = reactions[comentariosCurrentUser.uid];
+    if (currentUser && reactions[currentUser.uid]) {
+        currentUserReaction = reactions[currentUser.uid];
     }
 
     const counts = {};
