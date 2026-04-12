@@ -1,4 +1,4 @@
-// notification-system.js - FIX: CARGA RETRASADA Y DROP-DOWN SUAVE
+// notification-system.js - FIX: CARGA RETRASADA Y DROP-DOWN SUAVE CON BOTÓN CERRAR MÓVIL
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -145,8 +145,7 @@ function loadHistoryFromStorage() {
         try { 
             notificationsHistory = JSON.parse(stored);
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        } catch(e) { notificationsHistory = [];
-        }
+        } catch(e) { notificationsHistory = []; }
     }
 }
 
@@ -197,8 +196,7 @@ async function syncNotificationsWithCloud(uid) {
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-    } catch (e) { console.error("Error sync notif:", e);
-    }
+    } catch (e) { console.error("Error sync notif:", e); }
 }
 
 function listenForReplies(uid) {
@@ -211,7 +209,7 @@ function listenForReplies(uid) {
             let hasNew = false;
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
-                   const data = change.doc.data();
+                    const data = change.doc.data();
                     if (data.userId === uid) return;
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
@@ -258,7 +256,7 @@ function listenForCatalogUpdates() {
                         procesarActualizacionCatalogo(anime);
                     }
                 }
-             });
+            });
         }, error => console.error('❌ Error escuchando catálogo:', error));
 }
 
@@ -346,8 +344,7 @@ function createPopupHTML(notif) {
         <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
           <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
             <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
-            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ?
-'<div class="final-stamp">FINALIZADO</div>' : ''}
+            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
           </div>
           <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
             <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
@@ -382,7 +379,8 @@ function goToAnimeFromPopup(animeId, notifId) {
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
-    const isMobile = window.innerWidth <= 768; // Detectar si es móvil
+    const isMobile = window.innerWidth <= 768;
+    // Detectar si es móvil
     
     if (isMenuOpen) {
         menu.classList.add('active');
@@ -435,6 +433,8 @@ function renderNotificationList() {
                 e.stopPropagation();
                 markAllAsRead();
             };
+            
+            // FIX: Ajuste de margen dinámico para que no se encima con la X en móviles
             btn.style.cssText = `
                 background: rgba(0,243,255,0.1);
                 border: 1px solid var(--neon-cyan);
@@ -446,6 +446,7 @@ function renderNotificationList() {
                 cursor: pointer;
                 transition: all 0.2s;
                 margin-left: 10px;
+                ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
             `;
             btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
             btn.onmouseleave = () => { btn.style.background = 'rgba(0,243,255,0.1)'; btn.style.transform = 'scale(1)'; };
@@ -471,6 +472,7 @@ function renderNotificationList() {
             if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
             else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
             else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
+            
             div.innerHTML = `<div style="position:relative; display:inline-block;">${!item.seen?'<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>':''}<div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div></div>
                 <div class="notif-content"><div class="notif-header-line"><span class="n-title">${item.title}</span></div><div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal?'<span class="tag-final">FINALIZADO</span>':''}</div><div class="n-meta">${infoString}</div></div>`;
             div.addEventListener('click', () => {
