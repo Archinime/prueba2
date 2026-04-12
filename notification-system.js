@@ -1,4 +1,4 @@
-// notification-system.js - FIX: CARGA RETRASADA Y DROP-DOWN SUAVE CON BOTÓN CERRAR MÓVIL
+// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -375,31 +375,27 @@ function goToAnimeFromPopup(animeId, notifId) {
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
-// FIX IMPORTANTE: El menú desplegable ya NO bloquea el scroll en computadora, así evitamos que los botones salten.
+// FIX: Se quitó el bloqueo de body scroll al abrir el menú de notificaciones
+// Esto evita tirones, lag, o desencuadre en móviles al hacer scroll.
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
-    const isMobile = window.innerWidth <= 768;
-    // Detectar si es móvil
     
     if (isMenuOpen) {
         menu.classList.add('active');
-        // Solo bloquea el scroll si es celular (donde el menú es pantalla completa)
-        if (isMobile && typeof disableBodyScroll === 'function') disableBodyScroll();
         renderNotificationList();
     } else {
         menu.classList.remove('active');
-        if (typeof enableBodyScroll === 'function') enableBodyScroll();
     }
 }
 
+// FIX: También quitamos el desbloqueo de scroll cuando el menú se cierra por un clic afuera
 document.addEventListener('click', (e) => {
     const wrapper = document.querySelector('.notif-wrapper');
     const menu = document.getElementById('notifMenu');
     if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
         isMenuOpen = false;
         if(menu) menu.classList.remove('active');
-        if (typeof enableBodyScroll === 'function') enableBodyScroll();
     }
 });
 
@@ -434,7 +430,6 @@ function renderNotificationList() {
                 markAllAsRead();
             };
             
-            // FIX: Ajuste de margen dinámico para que no se encima con la X en móviles
             btn.style.cssText = `
                 background: rgba(0,243,255,0.1);
                 border: 1px solid var(--neon-cyan);
