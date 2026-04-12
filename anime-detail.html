@@ -17,6 +17,7 @@
       const animationDuration = 20000;
       const segments = colors.length - 1;
       
+  
       let metaTag = document.querySelector('meta[name="theme-color"]');
       if (!metaTag) {
         metaTag = document.createElement('meta');
@@ -537,8 +538,7 @@
       font-size: 1.2rem;
       transition: transform 0.2s;
     }
-    details[open] summary::after { transform: rotate(180deg);
-    }
+    details[open] summary::after { transform: rotate(180deg); }
     .season-content {
       padding: 15px;
       border-top: 1px solid rgba(0,243,255,0.1);
@@ -611,19 +611,13 @@
       display: grid;
       gap: 15px;
     }
-    @media (min-width: 1200px) { .rec-grid { grid-template-columns: repeat(6, 1fr);
-    } }
-    @media (min-width: 768px) and (max-width: 1199px) { .rec-grid { grid-template-columns: repeat(4, 1fr);
-    } }
+    @media (min-width: 1200px) { .rec-grid { grid-template-columns: repeat(6, 1fr); } }
+    @media (min-width: 768px) and (max-width: 1199px) { .rec-grid { grid-template-columns: repeat(4, 1fr); } }
     @media (max-width: 767px) {
-      .rec-grid { grid-template-columns: repeat(2, 1fr);
-      }
-      .video-list { grid-template-columns: repeat(2, 1fr);
-      }
-      h1 { font-size: 1.6rem; margin: 15px 0 10px;
-      }
-      .star { font-size: 1.5rem;
-      }
+      .rec-grid { grid-template-columns: repeat(2, 1fr); }
+      .video-list { grid-template-columns: repeat(2, 1fr); }
+      h1 { font-size: 1.6rem; margin: 15px 0 10px; }
+      .star { font-size: 1.5rem; }
     }
     .rec-card {
       background: rgba(0,0,0,0.35);
@@ -676,7 +670,7 @@
   <div class="loader-content">
     <div class="gif-wrapper">
       <div class="gif-inner">
-        <img src="chica_corriendo.gif" alt="Cargando sistema">
+        <img id="personaje-gif" src="chica_corriendo.gif" alt="Cargando sistema">
       </div>
     </div>
     <div class="loader-title">ARCHINIME</div>
@@ -719,10 +713,17 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script src="musica-data.js?v=20250406"></script>
-
 <script src="anime-detail-core.js?v=20250406"></script>
 
+<script src="gifs.js"></script>
+
 <script>
+  // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
+  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    document.getElementById('personaje-gif').src = gifElegido;
+  }
+
   let loadingCompleted = false;
   const loadingScreen = document.getElementById('loadingScreen');
   const percentEl = document.getElementById('loadingPercentage');
