@@ -899,7 +899,7 @@
   <div class="loader-content">
     <div class="gif-wrapper">
       <div class="gif-inner">
-        <img src="chica_corriendo.gif" alt="Cargando sistema">
+        <img id="personaje-gif" src="chica_corriendo.gif" alt="Cargando sistema">
       </div>
     </div>
     <div class="loader-title">ARCHINIME</div>
@@ -1054,10 +1054,17 @@
 <script defer src="stickers-system.js?v=20250406"></script>
 <script defer src="reacciones.js?v=20250406"></script>
 <script defer src="comentarios.js?v=20250406"></script>
-
 <script defer src="video-player-core.js?v=20250406"></script>
 
+<script src="gifs.js"></script>
+
 <script>
+  // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
+  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    document.getElementById('personaje-gif').src = gifElegido;
+  }
+
   let loadingCompleted = false;
   const loadingScreen = document.getElementById('loadingScreen');
   const percentEl = document.getElementById('loadingPercentage');
