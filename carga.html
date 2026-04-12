@@ -29,7 +29,6 @@
       position: relative;
     }
 
-    /* Efecto de líneas de escaneo Cyberpunk de fondo */
     body::before {
       content: '';
       position: absolute;
@@ -53,15 +52,13 @@
       align-items: center;
     }
 
-    /* Contenedor Holográfico para el GIF con fondo animado */
     .gif-wrapper {
       position: relative;
       width: 190px; 
       height: 190px;
       margin-bottom: 25px;
-      border-radius: 50%; /* Corte circular para disimular bordes duros del gif */
+      border-radius: 50%; 
       padding: 4px;
-      /* Borde de gradiente animado que no afecta los colores del gif */
       background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
       animation: spinGradient 4s linear infinite, floatAnim 2s ease-in-out infinite alternate;
       box-shadow: 0 0 30px rgba(188, 19, 254, 0.4), inset 0 0 20px rgba(0, 243, 255, 0.5);
@@ -78,10 +75,9 @@
     .gif-inner img {
       width: 100%;
       height: 100%;
-      object-fit: cover; /* Asegura que la imagen llene el círculo perfectamente */
+      object-fit: cover;
     }
 
-    /* Textos y contadores */
     .loader-text-container {
       text-align: center;
       display: flex;
@@ -106,7 +102,6 @@
       text-shadow: 0 0 8px var(--neon-purple);
     }
 
-    /* Barra de progreso */
     .loader-line-container {
       width: 320px;
       height: 6px;
@@ -120,7 +115,7 @@
     }
 
     .loader-line {
-      width: 0; 
+      width: 0;
       height: 100%;
       background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
       box-shadow: 0 0 20px var(--neon-cyan), 0 0 10px var(--neon-purple);
@@ -128,7 +123,6 @@
       animation: loadProgress 3s forwards cubic-bezier(0.8, 0, 0.2, 1);
     }
 
-    /* Animaciones */
     @keyframes loadProgress { 
       0% { width: 0%; opacity: 0;} 
       10% { opacity: 1; }
@@ -140,13 +134,11 @@
       100% { transform: translateY(-12px); } 
     }
 
-    /* Rota el color únicamente del borde holográfico exterior */
     @keyframes spinGradient {
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
 
-    /* Efecto glitch esporádico en el texto */
     @keyframes glitchText {
       0%, 100% { opacity: 1; transform: skewX(0deg); }
       92% { opacity: 1; transform: skewX(0deg); }
@@ -162,7 +154,7 @@
     
     <div class="gif-wrapper">
       <div class="gif-inner">
-        <img src="chica_corriendo.gif" alt="Cargando sistema" class="character-gif">
+        <img id="personaje-gif" src="" alt="Cargando sistema" class="character-gif">
       </div>
     </div>
     
@@ -177,25 +169,27 @@
 
   </div>
 
+  <script src="gifs.js"></script>
+
   <script>
-    // Lógica para sincronizar el porcentaje numérico con la animación de 3 segundos
+    // Ahora leemos la lista que está en el otro documento (gifs.js)
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    document.getElementById('personaje-gif').src = gifElegido;
+
+    // Lógica del contador y redirección
     const percentageEl = document.getElementById('loading-percentage');
-    const duration = 3000; // 3 segundos
-    const intervalTime = 30;
-    // Actualizar cada 30ms para fluidez
+    const duration = 3000; 
+    const intervalTime = 30; 
     const step = (100 / (duration / intervalTime));
     let progress = 0;
 
-    // Simular la carga numérica
     const counterInterval = setInterval(() => {
       progress += step;
-      // Añadir un ligero efecto de "pausa/carga irregular" típica de las UI Cyberpunk
       let displayProgress = progress + (Math.random() * 5 - 2.5); 
       
       if (progress >= 100) {
         displayProgress = 100;
         clearInterval(counterInterval);
-        
         percentageEl.innerText = "SISTEMA LISTO";
         percentageEl.style.color = "var(--neon-cyan)";
       } else {
@@ -203,7 +197,6 @@
       }
     }, intervalTime);
 
-    // Redirigir al finalizar
     setTimeout(() => {
       window.location.href = 'index.html';
     }, duration);
