@@ -262,14 +262,14 @@
       box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth);
       z-index: 2000; overflow: hidden; max-height: 70vh; display: flex; flex-direction: column; will-change: transform, opacity; }
     
-    /* FIX: MEJORA DE ADAPTACIÓN EN MÓVILES (Scroll absoluto y sin fixed conflictivo) */
+    /* FIX DEFINITIVO: MEJORA DE ADAPTACIÓN EN MÓVILES */
     @media (max-width: 768px) {
       .notif-dropdown { 
-        position: absolute; 
-        top: 55px; 
-        right: -10px !important; 
-        left: auto !important; 
-        width: 92vw !important; 
+        position: fixed; /* Se cambia de absolute a fixed para que se guíe por la pantalla y no por el botón */
+        top: 70px; /* Separación desde arriba */
+        left: 5vw !important; /* Centrado perfecto con 5% a cada lado */
+        right: 5vw !important; 
+        width: 90vw !important; /* El ancho exacto que cabe en pantalla */
         max-width: none;
         transform: translateY(-15px) translateZ(0); 
         max-height: 70vh; 
