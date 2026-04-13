@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
-// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// CORREGIDO: Persistencia, carga inicial y previews
 // ============================================
 
 let stickersDb = null;
@@ -16,33 +16,30 @@ function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
 
-    // Suscribirse al estado central
+    const loadIfUserExists = (user) => {
+        updateStickersUI();
+        if (user) {
+            loadUserStickers();
+        } else {
+            userStickersCollection = [];
+            renderUserStickers();
+        }
+    };
+
+    // Escuchar cambios de usuario desde el estado central
     if (window.ArchinimeState) {
-        ArchinimeState.on('currentUser', user => {
-            updateStickersUI();
-            if (user) {
-                loadUserStickers();
-            } else {
-                userStickersCollection = [];
-                renderUserStickers();
-            }
-        });
+        ArchinimeState.on('currentUser', loadIfUserExists);
+        // IMPORTANTE: Si ya hay usuario, cargar inmediatamente
+        const currentUser = ArchinimeState.get('currentUser');
+        if (currentUser) {
+            loadIfUserExists(currentUser);
+        }
     } else {
-        // Fallback: usar auth directamente
-        console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
-        auth.onAuthStateChanged(user => {
-            updateStickersUI();
-            if (user) {
-                loadUserStickers();
-            } else {
-                userStickersCollection = [];
-                renderUserStickers();
-            }
-        });
+        // Fallback
+        auth.onAuthStateChanged(loadIfUserExists);
     }
 }
 
-// Obtener usuario actual desde el estado central
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return null;
@@ -56,11 +53,11 @@ async function loadUserStickers() {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
 
         if (doc.exists && doc.data().stickers) {
-            // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
+            // Limpieza agresiva de URLs inválidas
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
-
-            // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
-            if(userStickersCollection.length !== doc.data().stickers.length) {
+            
+            // Si había elementos vacíos, limpiar en Firestore
+            if (userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({
                     stickers: userStickersCollection
                 }, { merge: true });
@@ -76,7 +73,7 @@ async function loadUserStickers() {
         console.error("Error cargando stickers:", e);
         const container = document.getElementById('userStickersContainer');
         if (container) {
-            container.innerHTML = '<div class="sticker-empty" style="color: #ff5555; font-weight: bold;">⚠️ Error al cargar tu colección.</div>';
+            container.innerHTML = '<div class="sticker-empty" style="color: #ff5555; font-weight: bold;">⚠️ Error al cargar tu colección. Intenta recargar.</div>';
         }
     }
 }
@@ -88,7 +85,14 @@ function renderUserStickers() {
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
 
     if (validStickers.length === 0) {
-        container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
+        container.innerHTML = `
+            <div class="sticker-empty-modern">
+                <div class="sticker-empty-icon"><i class="fas fa-sticky-note"></i></div>
+                <div class="sticker-empty-title">SIN STICKERS</div>
+                <div class="sticker-empty-desc">Sube imágenes o vídeos, o roba de otros comentarios.</div>
+                <div class="sticker-empty-hint"><i class="fas fa-upload"></i> Ve a la pestaña "SUBIR"</div>
+            </div>
+        `;
         return;
     }
 
@@ -100,9 +104,9 @@ function renderUserStickers() {
             : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
             
         html += `
-            <div class="sticker-item" style="border: 1px solid rgba(0, 255, 247, 0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+            <div class="sticker-item">
                 ${tagMedia}
-                <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
+                <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)">✖</button>
             </div>
         `;
     });
@@ -113,7 +117,7 @@ window.switchStickerTab = function(tabName) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     
-    const btn = document.querySelector(`.sticker-tab[onclick="switchStickerTab('${tabName}')"]`);
+    const btn = document.querySelector(`.sticker-tab[data-tab="${tabName}"]`);
     if (btn) btn.classList.add('active');
     
     const content = document.getElementById(`${tabName}StickersTab`);
@@ -137,7 +141,7 @@ async function eliminarSticker(urlSticker, event) {
         showToastSticker('🗑️ Sticker eliminado');
     } catch (e) {
         console.error(e);
-        alert("Error al eliminar el sticker de la base de datos.");
+        alert("Error al eliminar el sticker. ¿Tienes permisos?");
     }
 }
 
@@ -176,7 +180,7 @@ async function subirStickerDesdePC(input) {
     
     const btnSubir = document.querySelector('.upload-sticker-label');
     const oldText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
     btnSubir.style.pointerEvents = 'none';
 
     try {
@@ -194,16 +198,16 @@ async function subirStickerDesdePC(input) {
         if (data.secure_url) {
             await guardarStickerEnColeccion(data.secure_url);
             previewContainer.style.display = 'none';
-            if (input) input.value = ''; // Limpiar el input
-            showToastSticker('✅ Archivo subido y guardado exitosamente');
+            input.value = '';
+            showToastSticker('✅ Sticker subido y guardado');
             switchStickerTab('mis');
         } else {
-            throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
+            throw new Error(data.error ? data.error.message : 'Error desconocido');
         }
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir el archivo: Revisa tu conexión a internet o configuración.");
+        alert("Error al subir: " + error.message);
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
@@ -228,7 +232,8 @@ async function guardarStickerEnColeccion(url) {
         userStickersCollection.push(url);
         renderUserStickers();
     } catch (e) {
-        console.error("Error guardando URL en Firebase:", e);
+        console.error("Error guardando URL:", e);
+        throw e;
     }
 }
 
@@ -252,30 +257,31 @@ window.robarStickerSistema = async function(url) {
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
 
+        // Actualizar colección local y UI solo después de éxito
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
         }
 
-        showToastSticker('✅ ¡Sticker robado y guardado permanentemente!');
+        showToastSticker('✅ ¡Sticker robado y guardado!');
     } catch (e) {
-        console.error("Error crítico al robar sticker:", e);
-        alert("Error al guardar en la base de datos. Detalle técnico: " + e.message);
+        console.error("Error al robar sticker:", e);
+        alert("Error al guardar: " + e.message);
     }
 };
 
 function updateStickersUI() {
     const user = getCurrentUser();
     const subirTab = document.getElementById('subirStickersTab');
-    const contentDiv = document.getElementById('subirStickerContent');
+    const contentDiv = document.querySelector('#subirStickersTab .add-sticker-container');
     const loginPrompt = document.getElementById('subirStickerLoginPrompt');
 
-    if (subirTab) {
+    if (subirTab && contentDiv) {
         if (!user) {
-            if (contentDiv) contentDiv.style.display = 'none';
+            contentDiv.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'flex';
         } else {
-            if (contentDiv) contentDiv.style.display = 'flex';
+            contentDiv.style.display = 'flex';
             if (loginPrompt) loginPrompt.style.display = 'none';
         }
     }
@@ -286,7 +292,7 @@ function showToastSticker(msg) {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border:1px solid #00fff7;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;
@@ -298,3 +304,6 @@ window.openLoginModalFromStickers = function() {
     const modal = document.getElementById('authModal');
     if (modal) modal.classList.add('show');
 };
+
+// Exponer función global para que la use el HTML
+window.cargarStickersUsuario = loadUserStickers;

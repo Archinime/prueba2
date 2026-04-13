@@ -1,15 +1,15 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
-// (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
+// CORREGIDO: Botón de enviar, preview de stickers, validaciones
 // ============================================
 
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosUnsubscribe = null;
-let comentariosInicializados = false; // Flag para evitar reinicios dobles
+let comentariosInicializados = false;
 
-// Variables globales necesarias para interacciones inline
+// Variables globales
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
@@ -22,7 +22,6 @@ function initComentariosSystem(db, auth) {
     comentariosAuth = auth;
     injectCommentsCSS();
 
-    // Función interna para manejar la UI según el usuario
     const procesarUsuario = async (user) => {
         if (user) {
             try {
@@ -42,20 +41,16 @@ function initComentariosSystem(db, auth) {
         updateComentariosUI();
     };
 
-    // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', procesarUsuario);
-        // Procesar inmediatamente el usuario si ya resolvió
         procesarUsuario(ArchinimeState.get('currentUser'));
     } else {
-        // Fallback
         auth.onAuthStateChanged((user) => {
             window.currentUserForComent = user;
             procesarUsuario(user);
         });
     }
 
-    // 🔥 ARREGLO CRÍTICO: Disparar la carga de comentarios de inmediato, sin depender del listener del usuario
     if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
         setupComentariosRealtimeListener();
     } else {
@@ -112,7 +107,7 @@ function injectCommentsCSS() {
         #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; letter-spacing: 0.5px; transition: all 0.3s; }
 
         .comentario-item { 
-            position: relative; background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: relative; background: var(--cm-bg-glass); backdrop-filter: blur(12px);
             border: 1px solid var(--cm-border); border-left: 3px solid var(--user-color, var(--cm-neon-primary));
             border-radius: 12px; margin-bottom: 12px; padding: 16px; display: flex; flex-direction: row; gap: 15px;
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -177,6 +172,62 @@ function injectCommentsCSS() {
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
+        /* ===== PREVIEW STICKER EN FORMULARIO ===== */
+        .comentario-sticker-preview {
+            margin: 12px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .preview-sticker-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 80px;
+            max-height: 80px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--cm-neon-primary);
+        }
+        .preview-sticker-wrapper img,
+        .preview-sticker-wrapper video {
+            width: auto;
+            height: auto;
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .remove-sticker-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff0055;
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255,0,85,0.6);
+            transition: transform 0.2s;
+        }
+        .remove-sticker-btn:hover {
+            transform: scale(1.1);
+            background: #ff3366;
+        }
+
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
@@ -197,12 +248,14 @@ function injectCommentsCSS() {
             .comentario-texto { font-size: 0.85rem; }
             .comentario-footer { gap: 10px; margin-top: 8px; }
             .comment-options-container { top: 8px; right: 8px; }
+            .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
+            .preview-sticker-wrapper img,
+            .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
         }
     `;
     document.head.appendChild(style);
 }
 
-// ========== FUNCIONES QUE OBTIENEN USUARIO DESDE EL ESTADO ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -213,7 +266,6 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
-// ========== RESTO DE FUNCIONES ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -249,7 +301,6 @@ function setupComentariosRealtimeListener() {
     const tempSeason = parseInt(window.comentariosSeason);
     const tempEpisode = parseInt(window.comentariosEpisode);
 
-    // Validación extra para evitar errores silenciosos en Firebase
     if (!window.comentariosAnimeId || isNaN(tempSeason) || isNaN(tempEpisode)) {
         const container = document.getElementById('comentariosList');
         if (container) container.innerHTML = '<div class="empty-comments" style="color:var(--cm-neon-alert);">No se pudieron cargar los comentarios. La URL está incompleta.</div>';
@@ -388,7 +439,6 @@ function setupComentariosRealtimeListener() {
             }, 400);
         }
     }, (error) => {
-        // 🔥 ARREGLO CRÍTICO: Mostrar error si falla (como requerir index en Firebase)
         console.error('Error en comentarios:', error);
         const container = document.getElementById('comentariosList');
         if (container) {
@@ -722,17 +772,31 @@ window.closeStickerModal = function() {
         setTimeout(() => { modal.style.display = 'none'; document.getElementById('stickerModalVid').src = ''; }, 300);
     }
 };
-window.validarBotonPrincipal = function(textarea) {
-    if(!textarea) return;
-    const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
-    const btn = document.getElementById(btnId);
-    if(!btn) return;
 
-    if(textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
-        btn.classList.remove('btn-disabled');
-        btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+// ========== FUNCIONES CORREGIDAS: BOTÓN Y PREVIEW ==========
+window.validarBotonPrincipal = function(textarea) {
+    if (!textarea) return;
+    let btn = null;
+    if (textarea.id && textarea.id.startsWith('dynamicReplyText') && window.respondiendoA) {
+        btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
     } else {
-        btn.classList.add('btn-disabled'); btn.style.opacity = '0.5';
+        btn = document.getElementById('enviarComentarioBtn');
+    }
+    if (!btn) return;
+
+    const hasText = textarea.value.trim().length > 0;
+    const hasSticker = !!window.stickerSeleccionadoParaEnviar;
+    const enabled = hasText || hasSticker;
+
+    if (enabled) {
+        btn.disabled = false;
+        btn.classList.remove('btn-disabled');
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    } else {
+        btn.disabled = true;
+        btn.classList.add('btn-disabled');
+        btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
     }
 };
@@ -740,37 +804,129 @@ window.validarBotonPrincipal = function(textarea) {
 async function enviarComentarioTexto() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
+    
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
 
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
-    if (btn && btn.classList.contains('btn-disabled')) return;
     
-    if (btn) { btn.disabled = true; btn.dataset.original = btn.innerHTML; btn.innerHTML = 'Enviando...'; }
+    if ((!texto && !stickerUrl) || (btn && btn.disabled)) return;
+
+    const originalTexto = texto;
+    const originalSticker = stickerUrl;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.dataset.original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
-    textoInput.value = ''; textoInput.style.height = 'auto';
-    quitarStickerPreview(); validarBotonPrincipal(textoInput);
-
+    
+    textoInput.value = '';
+    textoInput.style.height = 'auto';
+    quitarStickerPreview();
     document.getElementById('emojiPanel')?.classList.remove('active');
     document.getElementById('stickerPanelFull')?.classList.remove('active');
+    
+    validarBotonPrincipal(textoInput);
 
     try {
         const docRef = await comentariosDb.collection('comments').add({
-            animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
-            userId: currentUser.uid, userName: currentUser.displayName || currentUser.email.split('@')[0],
-            userAvatar: currentUser.photoURL || 'invitado.avif', texto: textoFinal,
-            customColor: getCurrentUserColor() || null, 
-            esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
-            replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            animeId: window.comentariosAnimeId,
+            season: parseInt(window.comentariosSeason),
+            episode: parseInt(window.comentariosEpisode),
+            userId: currentUser.uid,
+            userName: currentUser.displayName || currentUser.email.split('@')[0],
+            userAvatar: currentUser.photoURL || 'invitado.avif',
+            texto: textoFinal,
+            customColor: getCurrentUserColor() || null,
+            esSticker: !!stickerUrl,
+            stickerUrl: stickerUrl || null,
+            replyToId: null,
+            replyToUser: null,
+            replyToUserId: null,
+            reactions: {},
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
-        showToastComent('✅ Enviado');
-    } catch (error) { alert('Error: ' + error.message); if (textoInput) textoInput.value = texto; }
-    finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.original; } }
+        showToastComent('✅ Comentario enviado');
+    } catch (error) {
+        console.error("Error al enviar:", error);
+        textoInput.value = originalTexto;
+        if (originalSticker) {
+            window.stickerSeleccionadoParaEnviar = originalSticker;
+            mostrarPreviewSticker(originalSticker);
+        }
+        showToastComent('❌ Error: ' + error.message);
+        validarBotonPrincipal(textoInput);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.original;
+            delete btn.dataset.original;
+        }
+    }
 }
+
+function mostrarPreviewSticker(url) {
+    const previewContainer = document.getElementById('comentarioStickerPreview');
+    const previewImg = document.getElementById('previewStickerImgObj');
+    const previewVid = document.getElementById('previewStickerVidObj');
+    if (!previewContainer) return;
+    const isVideo = url.match(/\.(mp4|webm)$/i);
+    if (isVideo) {
+        previewImg.style.display = 'none';
+        previewVid.src = url;
+        previewVid.style.display = 'inline-block';
+    } else {
+        previewVid.style.display = 'none';
+        previewImg.src = url;
+        previewImg.style.display = 'inline-block';
+    }
+    previewContainer.style.display = 'block';
+}
+
+window.seleccionarStickerParaEnviar = function(url) {
+    window.stickerSeleccionadoParaEnviar = url;
+    mostrarPreviewSticker(url);
+    const panel = document.getElementById('stickerPanelFull');
+    if (panel) panel.classList.remove('active');
+    let targetTextarea = document.getElementById('comentarioTexto');
+    if (window.respondiendoA) {
+        targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
+    }
+    if (targetTextarea) validarBotonPrincipal(targetTextarea);
+};
+
+window.quitarStickerPreview = function() {
+    window.stickerSeleccionadoParaEnviar = null;
+    const previewContainer = document.getElementById('comentarioStickerPreview');
+    if (previewContainer) previewContainer.style.display = 'none';
+    const img = document.getElementById('previewStickerImgObj');
+    const vid = document.getElementById('previewStickerVidObj');
+    if (img) img.src = '';
+    if (vid) vid.src = '';
+    let targetTextarea = document.getElementById('comentarioTexto');
+    if (window.respondiendoA) {
+        targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
+    }
+    if (targetTextarea) validarBotonPrincipal(targetTextarea);
+};
+
+window.agregarEmojiAlTexto = function(emoji) {
+    const textarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
+    if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
+        textarea.focus();
+        textarea.dispatchEvent(new Event('input'));
+        validarBotonPrincipal(textarea);
+    }
+};
 
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
@@ -794,42 +950,31 @@ window.enviarRespuestaDinamica = async function() {
 
     try {
         const docRef = await comentariosDb.collection('comments').add({
-            animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
-            userId: currentUser.uid, userName: currentUser.displayName || currentUser.email.split('@')[0],
-            userAvatar: currentUser.photoURL || 'invitado.avif', texto: textoFinal,
+            animeId: window.comentariosAnimeId,
+            season: parseInt(window.comentariosSeason),
+            episode: parseInt(window.comentariosEpisode),
+            userId: currentUser.uid,
+            userName: currentUser.displayName || currentUser.email.split('@')[0],
+            userAvatar: currentUser.photoURL || 'invitado.avif',
+            texto: textoFinal,
             customColor: getCurrentUserColor() || null,
-            esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
-            replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
-            reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            esSticker: !!stickerUrl,
+            stickerUrl: stickerUrl || null,
+            replyToId: replyContext.id,
+            replyToUser: replyContext.userName,
+            replyToUserId: replyContext.userId,
+            reactions: {},
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
-        cancelarRespuesta(true); 
-    } catch (error) { alert('Error: ' + error.message); }
-};
-
-window.seleccionarStickerParaEnviar = function(url) {
-    window.stickerSeleccionadoParaEnviar = url;
-    const previewContainer = document.getElementById('comentarioStickerPreview');
-    const previewImg = document.getElementById('previewStickerImgObj');
-    const previewVid = document.getElementById('previewStickerVidObj');
-    if (!previewContainer) return;
-
-    if (url.match(/\.(mp4|webm)$/i)) { previewImg.style.display = 'none'; previewVid.src = url; previewVid.style.display = 'inline-block'; }
-    else { previewVid.style.display = 'none'; previewImg.src = url; previewImg.style.display = 'inline-block'; }
-    
-    previewContainer.style.display = 'block';
-    const panel = document.getElementById('stickerPanelFull');
-    if (panel) panel.classList.remove('active');
-    const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
-    if(targetTextarea) validarBotonPrincipal(targetTextarea);
-};
-
-window.quitarStickerPreview = function() {
-    window.stickerSeleccionadoParaEnviar = null;
-    const previewContainer = document.getElementById('comentarioStickerPreview');
-    if(previewContainer) previewContainer.style.display = 'none';
-    const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
-    if(targetTextarea) validarBotonPrincipal(targetTextarea);
+        cancelarRespuesta(true);
+        showToastComent('✅ Respuesta enviada');
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        if (btn) btn.disabled = false;
+        textoInput.disabled = false;
+    }
 };
 
 function updateComentariosUI() {
@@ -872,15 +1017,6 @@ function toggleStickerPanelSistema() {
     if (panel) { 
         panel.classList.toggle('active'); 
         document.getElementById('emojiPanel')?.classList.remove('active');
-    }
-}
-
-function agregarEmojiAlTexto(emoji) {
-    const textarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
-    if (textarea) {
-        const start = textarea.selectionStart;
-        textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(start);
-        textarea.focus(); textarea.dispatchEvent(new Event('input'));
     }
 }
 
