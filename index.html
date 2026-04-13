@@ -422,14 +422,12 @@
       background: transparent; border-radius: 10px;
       filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
       z-index: 50;
-      /* SUAVIZADO: De 0.4s a 0.6s, con una curva mucho más gentil */
       transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, filter 0.6s;
       transform-origin: center bottom;
       cursor: pointer;
     }
 
     #fgContainer.poof {
-      /* SUAVIZADO: En lugar de scale(0) y rotación, bajamos un poco la escala y lo desvanecemos hacia abajo */
       transform: scale(0.8) translateY(40px) translateZ(0);
       opacity: 0;
       filter: drop-shadow(0 0 10px var(--neon-pink)) brightness(1.2);
@@ -693,6 +691,9 @@
 
   <script src="notification-system.js"></script>
   <script src="gifs.js"></script>
+  
+  <script src="animaciones.js"></script>
+  <script src="musica_fondo.js"></script>
 
   <script>
     if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -1261,37 +1262,13 @@
     // =========================================================================
     // LÓGICA CONJUNTA: ANIMACIONES (CHROMA KEY), MÚSICA Y VIDEO DE FONDO
     // =========================================================================
-    const videoList = [
-      { id: 'hola', src: 'hola.mp4', preset: { threshold: 0.25, diff: 0, soft: 100 } },
-      { id: 'rem',  src: 'rem.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
-      { id: 'animacionnavidad1', src: 'animacionnavidad1.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      { id: 'animacionnavidad2', src: 'animacionnavidad2.mp4', preset: { threshold: 0.06, diff: 8, soft: 60, }, keyColor: 'green' },
-      { id: 'animacionnavidad3', src: 'animacionnavidad3.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      { id: 'animacionnavidad4', src: 'animacionnavidad4.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      { id: 'animacionnavidad5', src: 'animacionnavidad5.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' },
-      { id: 'animacionnavidad6', src: 'animacionnavidad6.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' }
-    ];
-
-    const musicListGlobal = [
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
-    ];
 
     const fgContainer = document.getElementById('fgContainer');
     const fgVideo = document.getElementById('fgVideo');
     const fgCanvas = document.getElementById('fgCanvas');
     const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
 
+    // videoList y musicListGlobal ahora provienen de animaciones.js y musica_fondo.js
     let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
     let currentAudio = null;
     let isPlayingMedia = false;
