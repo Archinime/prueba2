@@ -393,7 +393,10 @@
       right: 20px; bottom: 20px; overflow: hidden; background: transparent; border-radius: 10px;
       filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
     }
-    #fgCanvas, #fgVideo { width: 100%; height: 100%; display: block; object-fit: contain; }
+    #fgCanvas { width: 100%; height: 100%; display: block; object-fit: contain; }
+    /* IMPORTANTE: El video real se oculta para que solo se vea el Canvas transparente */
+    #fgVideo { display: none; }
+    
     .play-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 900; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
     .play-btn {
       padding: 15px 40px; border-radius: 4px; border: 1px solid var(--neon-cyan);
@@ -596,40 +599,7 @@
       <canvas id="fgCanvas"></canvas>
       <video id="fgVideo" muted loop playsinline></video>
     </div>
-    <div class="play-overlay" id="playOverlay">
-      <button class="play-btn" id="playBtn">▶ INICIAR ENLACE</button>
-    </div>
   </div>
-
-  <script>
-    const videoList = [
-      { id: 'hola', src: 'hola.mp4', preset: { threshold: 0.25, diff: 0, soft: 100 } },
-      { id: 'rem',  src: 'rem.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
-      // Animaciones navideñas (pantalla verde)
-      { id: 'animacionnavidad1', src: 'animacionnavidad1.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      { id: 'animacionnavidad2', src: 'animacionnavidad2.mp4', preset: { threshold: 0.06, diff: 8, soft: 60, }, keyColor: 'green' },
-      { id: 'animacionnavidad3', src: 'animacionnavidad3.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      { id: 'animacionnavidad4', src: 'animacionnavidad4.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-      // Animaciones navideñas (pantalla azul)
-      { id: 'animacionnavidad5', src: 'animacionnavidad5.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' },
-      { id: 'animacionnavidad6', src: 'animacionnavidad6.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' }
-    ];
-
-    const musicListGlobal = [
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
-      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
-    ];
-  </script>
 
   <script>
     // Configuración de Firebase
@@ -653,7 +623,6 @@
   <script src="gifs.js"></script>
 
   <script>
-    // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
     if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
       const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
       document.getElementById('personaje-gif').src = gifElegido;
@@ -683,18 +652,15 @@
 
     // Promesas de carga crítica
     const loadPromises = [];
-    // 1. Cargar ratings de Firestore
     const firestoreRatings = new Map();
     const ratingsPromise = db.collection('animeRatings').get().then(snapshot => {
       snapshot.forEach(doc => {
         const data = doc.data();
         if (typeof data.avg === 'number') firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
       });
-      console.log(`📊 Ratings cargados: ${firestoreRatings.size}`);
     }).catch(e => console.warn('Error cargando ratings:', e));
     loadPromises.push(ratingsPromise);
 
-    // 2. Cargar primeros animes (para que el grid se pinte rápido)
     let allAnimes = [];
     let shuffledAnimes = [];
     let currentShufflePage = 0;
@@ -706,13 +672,11 @@
         const j = Math.floor(Math.random() * (i + 1));
         [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
       }
-      // Renderizar primeras cards
       const firstPage = shuffledAnimes.slice(0, ITEMS_PER_PAGE);
       renderAnimes(firstPage, false);
     }).catch(e => console.warn('Error cargando animes iniciales:', e));
     loadPromises.push(animesPromise);
 
-    // 3. Video de fondo (al menos intente cargar)
     const bgVideo = document.getElementById('bg-video');
     const videoPromise = new Promise((resolve) => {
       if (bgVideo.readyState >= 2) resolve();
@@ -721,7 +685,6 @@
     });
     loadPromises.push(videoPromise);
 
-    // Progreso incremental simulado
     let progressValue = 0;
     const interval = setInterval(() => {
       if (loadingCompleted) {
@@ -743,7 +706,6 @@
         finishLoading();
       }, 300);
     }).catch(err => {
-      console.error('Error en carga inicial:', err);
       finishLoading();
     });
 
@@ -1229,38 +1191,111 @@
       });
     })();
     
-    // Música de fondo (inicia con interacción) - Utilizando musicListGlobal integrada arriba
-    (function() {
-      let currentAudio = null;
-      let currentTrackIndex = Math.floor(Math.random() * musicListGlobal.length);
-      let isPlaying = false;
-      function playTrack(index) {
-        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-        const track = musicListGlobal[index];
-        if (!track) return;
-        currentAudio = new Audio(track);
-        currentAudio.volume = 0.3;
-        currentAudio.loop = false;
-        currentAudio.onended = () => {
-          currentTrackIndex = (currentTrackIndex + 1) % musicListGlobal.length;
-          playTrack(currentTrackIndex);
-        };
-        currentAudio.play().catch(e => console.log('Esperando interacción para música'));
-        isPlaying = true;
-      }
-      function startMusic() { if (!isPlaying) playTrack(currentTrackIndex); }
-      document.addEventListener('click', startMusic, { once: true });
-      document.addEventListener('touchstart', startMusic, { once: true });
-    })();
+    // =========================================================================
+    // LÓGICA CONJUNTA: ANIMACIONES (CHROMA KEY), MÚSICA Y VIDEO DE FONDO
+    // =========================================================================
+    const videoList = [
+      { id: 'hola', src: 'hola.mp4', preset: { threshold: 0.25, diff: 0, soft: 100 } },
+      { id: 'rem',  src: 'rem.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
+      { id: 'animacionnavidad1', src: 'animacionnavidad1.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
+      { id: 'animacionnavidad2', src: 'animacionnavidad2.mp4', preset: { threshold: 0.06, diff: 8, soft: 60, }, keyColor: 'green' },
+      { id: 'animacionnavidad3', src: 'animacionnavidad3.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
+      { id: 'animacionnavidad4', src: 'animacionnavidad4.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
+      { id: 'animacionnavidad5', src: 'animacionnavidad5.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' },
+      { id: 'animacionnavidad6', src: 'animacionnavidad6.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' }
+    ];
+
+    const musicListGlobal = [
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
+      'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
+    ];
+
+    const fgVideo = document.getElementById('fgVideo');
+    const fgCanvas = document.getElementById('fgCanvas');
+    const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
+    let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
+    let currentAudio = null;
+    let isPlayingMedia = false;
+
+    // Configurar video de animación oculto para usarlo de fuente
+    fgVideo.style.display = 'none';
+    fgVideo.src = currentAnim.src;
     
-    // Inicialización de video de fondo y notificaciones
-    window.addEventListener('load', () => {
-      const bgVideo = document.getElementById('bg-video');
-      const forcePlayVideo = () => { 
-        bgVideo.muted = true; 
-        bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(() => document.body.addEventListener('click', () => bgVideo.play(), { once: true })); 
+    fgVideo.addEventListener('loadedmetadata', () => {
+      fgCanvas.width = fgVideo.videoWidth || 800;
+      fgCanvas.height = fgVideo.videoHeight || 600;
+    });
+
+    // Motor de Chroma Key (Pantalla Verde / Azul)
+    function processChromaKey() {
+      if (fgVideo.paused || fgVideo.ended) return;
+      
+      fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+      const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+      const data = frameData.data;
+      
+      const keyColor = currentAnim.keyColor || 'green';
+      const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
+        if (keyColor === 'blue') {
+          if (b > r + threshold && b > g + threshold) data[i+3] = 0; // Transparente
+        } else {
+          // Verde
+          if (g > r + threshold && g > b + threshold) data[i+3] = 0; // Transparente
+        }
+      }
+      
+      fgCtx.putImageData(frameData, 0, 0);
+      requestAnimationFrame(processChromaKey);
+    }
+
+    fgVideo.addEventListener('play', () => {
+      requestAnimationFrame(processChromaKey);
+    });
+
+    // Función principal para iniciar todos los medios al interactuar
+    function startAllMedia() {
+      if (isPlayingMedia) return;
+      isPlayingMedia = true;
+
+      // 1. Música de fondo
+      const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
+      currentAudio = new Audio(track);
+      currentAudio.volume = 0.3;
+      currentAudio.onended = () => {
+        isPlayingMedia = false;
+        startAllMedia(); // Siguiente canción
       };
-      forcePlayVideo();
+      currentAudio.play().catch(e => console.log('Música bloqueada', e));
+
+      // 2. Animación (Foreground Chroma Key)
+      fgVideo.muted = true; // Necesario para autoplay sin problemas
+      fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+
+      // 3. Video de fondo (Galaxia)
+      const bgVideo = document.getElementById('bg-video');
+      bgVideo.muted = true;
+      bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
+    }
+
+    // Escuchar interacción del usuario para desencadenar música y animaciones
+    document.addEventListener('click', startAllMedia, { once: true });
+    document.addEventListener('touchstart', startAllMedia, { once: true });
+    
+    // Inicialización del sistema de notificaciones (si existe)
+    window.addEventListener('load', () => {
       if (window.startNotificationSequence) window.startNotificationSequence();
     });
   </script>
