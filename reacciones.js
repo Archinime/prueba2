@@ -1,5 +1,6 @@
+// reacciones.js
 // ============================================
-// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v4.0
+// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v4.1
 // (Adaptado a ArchinimeState - estado central)
 // ============================================
 
@@ -12,6 +13,9 @@ const REACTIONS_MAP = {
     'angry': { emoji: '😡', color: '#ff4757', name: 'Me enoja' }
 };
 
+// ----------------------------------------------------------------------
+// Inyección de estilos CSS para las reacciones
+// ----------------------------------------------------------------------
 function injectReaccionesCSS() {
     if (document.getElementById('archinime-reacciones-css')) return;
     const style = document.createElement('style');
@@ -119,34 +123,63 @@ function injectReaccionesCSS() {
     document.head.appendChild(style);
 }
 
-// Obtener usuario actual desde el estado central
+// ----------------------------------------------------------------------
+// Obtener usuario actual desde el estado central (ArchinimeState)
+// ----------------------------------------------------------------------
 function getCurrentUser() {
     return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
 }
 
+// ----------------------------------------------------------------------
+// Alternar una reacción (añadir o cambiar)
+// ----------------------------------------------------------------------
 window.toggleReaccion = async function(commentId, tipoReaccion, event) {
     if (event) event.stopPropagation();
     const user = getCurrentUser();
-    if (!user) return typeof openLoginModalFromComent === 'function' ? openLoginModalFromComent() : alert("Inicia sesión para reaccionar");
+    if (!user) {
+        if (typeof openLoginModalFromComent === 'function') {
+            openLoginModalFromComent();
+        } else {
+            alert("Inicia sesión para reaccionar");
+        }
+        return;
+    }
+
+    // Asegurarse de que comentariosDb esté disponible (global desde comentarios.js)
+    if (typeof comentariosDb === 'undefined' || !comentariosDb) {
+        console.error("comentariosDb no está definido. Asegúrate de que comentarios.js se haya cargado antes.");
+        alert("Error interno. Recarga la página.");
+        return;
+    }
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
         await docRef.update({
             [`reactions.${user.uid}`]: tipoReaccion
         });
-        if(typeof playUISound === 'function') playUISound('click');
+        if (typeof playUISound === 'function') playUISound('click');
     } catch (e) {
         console.error("Error al reaccionar", e);
         if (e.message.includes("Missing or insufficient permissions")) {
             alert("No se pudo reaccionar. Las reglas de la base de datos (Firestore) te impiden modificar un comentario que no es tuyo.");
+        } else {
+            alert("Error al guardar la reacción. Inténtalo de nuevo.");
         }
     }
 };
 
+// ----------------------------------------------------------------------
+// Quitar la reacción del usuario actual
+// ----------------------------------------------------------------------
 window.quitarReaccion = async function(commentId, event) {
     if (event) event.stopPropagation();
     const user = getCurrentUser();
     if (!user) return;
+
+    if (typeof comentariosDb === 'undefined' || !comentariosDb) {
+        console.error("comentariosDb no está definido.");
+        return;
+    }
 
     const docRef = comentariosDb.collection('comments').doc(commentId);
     try {
@@ -155,9 +188,13 @@ window.quitarReaccion = async function(commentId, event) {
         });
     } catch (e) {
         console.error("Error al quitar reacción", e);
+        alert("No se pudo quitar la reacción. Inténtalo de nuevo.");
     }
 };
 
+// ----------------------------------------------------------------------
+// Generar el HTML de las reacciones (resumen + picker) para un comentario
+// ----------------------------------------------------------------------
 window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     const reactions = reactionsObj || {};
     const currentUser = getCurrentUser();
@@ -169,12 +206,16 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         currentUserReaction = reactions[currentUser.uid];
     }
 
+    // Contar cada tipo de reacción
     const counts = {};
     userIds.forEach(uid => {
         const type = reactions[uid];
-        counts[type] = (counts[type] || 0) + 1;
+        if (REACTIONS_MAP[type]) {
+            counts[type] = (counts[type] || 0) + 1;
+        }
     });
     
+    // Top 3 emojis más usados
     const sortedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
     const topIconsHTML = sortedTypes.map(type => `<span class="r-emoji">${REACTIONS_MAP[type].emoji}</span>`).join('');
     
@@ -191,7 +232,7 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         }
         summaryContent = `${topIconsHTML} <strong>${total}</strong>`;
     } else {
-        // Estado vacío: Botón sutil de agregar reacción
+        // Estado vacío: botón sutil para agregar reacción
         summaryContent = `<i class="far fa-smile" style="font-size: 1rem;"></i> <span>+</span>`;
     }
 
@@ -213,4 +254,7 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     `;
 };
 
+// ----------------------------------------------------------------------
+// Inicialización: inyectar los estilos CSS automáticamente
+// ----------------------------------------------------------------------
 injectReaccionesCSS();
