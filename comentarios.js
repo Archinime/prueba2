@@ -2,7 +2,6 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
 // (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
-// + SANITIZACIÓN CON DOMPURIFY + INICIALIZACIÓN MEJORADA
 // ============================================
 
 let comentariosDb = null;
@@ -14,58 +13,35 @@ window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
-// Helper sanitizeHtml (usa DOMPurify si existe)
-function sanitizeHtml(html) {
-    if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
-        return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['div', 'span', 'br', 'a', 'img', 'video', 'button', 'i', 'b', 'strong', 'em', 'p'],
-            ALLOWED_ATTR: ['href', 'src', 'class', 'id', 'style', 'target', 'alt', 'title', 'data-*', 'onclick', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
-        });
-    }
-    const temp = document.createElement('div');
-    temp.textContent = html;
-    return temp.innerHTML;
-}
-
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
-    injectCommentsCSS();
+    injectCommentsCSS(); // CSS idéntico al original
 
-    // Función interna para iniciar el listener si ya tenemos todos los datos
-    const tryStartListener = () => {
-        const user = getCurrentUser();
-        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
-            setupComentariosRealtimeListener();
-        }
-    };
-
+    // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
-        // Escuchar cambios de usuario
         ArchinimeState.on('currentUser', async (user) => {
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    const color = userDoc.exists && userDoc.data().customColor ? userDoc.data().customColor : null;
-                    ArchinimeState.set('currentUserColor', color);
+                    if (userDoc.exists && userDoc.data().customColor) {
+                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
+                    } else {
+                        ArchinimeState.set('currentUserColor', null);
+                    }
                 } catch(e) { console.warn(e); }
             } else {
                 ArchinimeState.set('currentUserColor', null);
             }
+
             updateComentariosUI();
-            tryStartListener();
+
+            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
+                setupComentariosRealtimeListener();
+            }
         });
-        // Si ya hay usuario al cargar, el evento no se dispara, así que lo forzamos
-        const currentUser = ArchinimeState.get('currentUser');
-        if (currentUser) {
-            // Simular el evento manualmente
-            ArchinimeState.emit('currentUser', currentUser);
-        } else {
-            // Si no hay usuario, también actualizamos la UI
-            updateComentariosUI();
-        }
     } else {
-        // Fallback: usar auth directamente
+        // Fallback: usar auth directamente si state.js no está cargado
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
@@ -78,11 +54,12 @@ function initComentariosSystem(db, auth) {
                 } catch(e) {}
             }
             updateComentariosUI();
-            tryStartListener();
+            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
+                setupComentariosRealtimeListener();
+            }
         });
     }
 
-    // Configurar eventos del textarea principal después de un pequeño retraso
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
@@ -106,17 +83,6 @@ function initComentariosSystem(db, auth) {
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
-// Función pública para actualizar los parámetros del anime desde video-player-core.js
-window.setComentariosParams = function(animeId, season, episode) {
-    window.comentariosAnimeId = animeId;
-    window.comentariosSeason = parseInt(season);
-    window.comentariosEpisode = parseInt(episode);
-    // Si ya hay usuario y DB lista, reiniciamos el listener
-    if (comentariosDb && getCurrentUser()) {
-        setupComentariosRealtimeListener();
-    }
-};
-
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
@@ -126,10 +92,119 @@ function injectCommentsCSS() {
     if (document.getElementById('archinime-comments-css')) return;
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
-    style.innerHTML = `...`; // (mismo CSS que tenías, no lo repito por brevedad)
+    style.innerHTML = `
+        :root {
+            --cm-neon-primary: #00fff7;
+            --cm-neon-secondary: #bc13fe;
+            --cm-neon-alert: #ff0055;
+            --cm-bg-glass: rgba(15, 18, 25, 0.65);
+            --cm-bg-glass-hover: rgba(22, 26, 36, 0.85);
+            --cm-border: rgba(255, 255, 255, 0.05);
+            --cm-text-main: #e2e8f0;
+            --cm-text-muted: #94a3b8;
+        }
+        
+        .comentario-user-info { display: flex !important; align-items: center !important; gap: 12px !important; margin-bottom: 15px !important; }
+        #comentarioUserAvatar { width: 42px !important; height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary); transition: all 0.3s; }
+        #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; letter-spacing: 0.5px; transition: all 0.3s; }
+
+        .comentario-item { 
+            position: relative;
+            background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--cm-border); border-left: 3px solid var(--user-color, var(--cm-neon-primary));
+            border-radius: 12px; margin-bottom: 12px;
+            padding: 16px; display: flex; flex-direction: row; gap: 15px;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+
+        .comentario-item.is-reply { background: rgba(10, 12, 16, 0.4); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
+
+        .comentario-avatar { flex-shrink: 0; }
+        .comentario-avatar img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--user-color); box-shadow: 0 0 10px var(--user-color-glow); }
+        .is-reply .comentario-avatar img { width: 35px; height: 35px; }
+
+        .comentario-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .comentario-header { display: flex; align-items: center; margin-bottom: 4px; }
+        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+
+        .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
+        .comentario-fecha { color: var(--cm-text-muted); font-size: 0.8rem; font-weight: 600; }
+        .comentario-badge-edit { font-size: 0.7rem; font-style: italic; opacity: 0.7; margin-left: 5px; }
+        
+        .btn-responder-ghost { background: transparent; border: none; color: var(--cm-text-muted); font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-responder-ghost:hover { color: var(--cm-neon-primary); text-shadow: 0 0 8px rgba(0,255,247,0.5); }
+
+        .comentario-item.is-reply::before { content: ''; position: absolute; left: -22px; top: 25px; width: 22px; height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px 0 0 2px; }
+        .replies-thread { margin-left: 24px; padding-left: 20px; border-left: 2px solid rgba(255, 255, 255, 0.08); margin-top: 5px; margin-bottom: 5px; display: flex; flex-direction: column; }
+        .nested-reply .replies-thread { margin-left: 16px; padding-left: 14px; }
+        .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
+
+        .comment-options-container { position: absolute; top: 12px; right: 12px; z-index: 10; }
+        .kebab-btn { background: transparent; border: none; color: #666; font-size: 1.1rem; cursor: pointer; padding: 5px; transition: 0.2s; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        .kebab-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        
+        .comment-dropdown { position: absolute; top: 100%; right: 0; background: rgba(15, 15, 20, 0.98); border: 1px solid var(--cm-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 12px; padding: 8px 0; min-width: 140px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; }
+        .comment-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .comment-dropdown-btn { background: transparent; border: none; color: #ccc; padding: 10px 18px; width: 100%; text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .comment-dropdown-btn:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 22px; }
+
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--cm-text-muted); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.8rem; margin: 4px 0 12px 0; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .toggle-respuestas-btn:hover { color: var(--cm-neon-primary); }
+        .toggle-respuestas-btn::before { content: ''; width: 25px; height: 2px; background: rgba(255,255,255,0.1); display: inline-block; border-radius: 2px; transition: 0.2s; }
+        .toggle-respuestas-btn:hover::before { background: var(--cm-neon-primary); box-shadow: 0 0 8px var(--cm-neon-primary); }
+
+        .btn-more-replies { background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--cm-text-muted); width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 5px; }
+        .btn-more-replies:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.4); }
+
+        .reply-box-container { margin: 10px 0; padding: 16px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:12px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reply-box-header { display: flex; justify-content: space-between; align-items: center; color: var(--cm-text-muted); font-size: 0.8rem; }
+        .reply-box-header b { color: var(--cm-neon-primary); font-weight: 800; }
+        .reply-box-close { background: rgba(255,255,255,0.05); border: none; color: #aaa; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .reply-box-close:hover { background: var(--cm-neon-alert); color: #fff; transform: rotate(90deg); }
+        .reply-box-body { display: flex; gap: 12px; }
+        .reply-box-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .reply-box-textarea { width: 100%; background: rgba(15,15,20,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; outline: none; transition: 0.3s; min-height: 60px; }
+        .reply-box-textarea:focus { border-color: var(--cm-neon-primary); box-shadow: inset 0 0 10px rgba(0,255,247,0.1); }
+        .reply-box-tools { display: flex; gap: 8px; margin-top: 8px; }
+        .reply-box-tool-btn { background: rgba(255,255,255,0.05); border: 1px solid transparent; border-radius: 8px; padding: 6px 12px; cursor: pointer; color: #fff; transition: 0.2s; }
+        .reply-box-tool-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .reply-box-submit { background: var(--cm-neon-primary); border: none; color: #000; font-weight: 800; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.3); }
+        .reply-box-submit:hover:not(.btn-disabled) { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-2px); }
+
+        .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
+        .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
+
+        @keyframes targetHighlight {
+            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
+            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
+            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
+        }
+        .comment-targeted {
+            animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            border-color: var(--cm-neon-primary) !important;
+        }
+
+        @media (max-width: 768px) {
+            .comentario-item { padding: 12px !important; gap: 10px !important; border-radius: 10px !important; }
+            .comentario-avatar img { width: 38px !important; height: 38px !important; }
+            .is-reply .comentario-avatar img { width: 30px !important; height: 30px !important; }
+            .replies-thread { margin-left: 12px; padding-left: 12px; }
+            .nested-reply .replies-thread { margin-left: 8px; padding-left: 8px; }
+            .comentario-item.is-reply::before { left: -12px; width: 12px; }
+            .comentario-texto { font-size: 0.85rem; }
+            .comentario-footer { gap: 10px; margin-top: 8px; }
+            .comment-options-container { top: 8px; right: 8px; }
+        }
+    `;
     document.head.appendChild(style);
 }
 
+// ========== FUNCIONES QUE OBTIENEN USUARIO DESDE EL ESTADO ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -140,6 +215,7 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
+// ========== RESTO DE FUNCIONES (adaptadas para usar getCurrentUser) ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -172,16 +248,10 @@ function hexToRgbA(hex, alpha) {
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
-    // Verificar que los parámetros estén definidos
-    if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
-        console.warn("Comentarios: faltan parámetros del anime");
-        return;
-    }
-    
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', window.comentariosSeason)
-        .where('episode', '==', window.comentariosEpisode)
+        .where('season', '==', parseInt(window.comentariosSeason))
+        .where('episode', '==', parseInt(window.comentariosEpisode))
         .orderBy('timestamp', 'desc') 
         .limit(100);
         
@@ -386,7 +456,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     
     const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
-    let htmlCompleto = `
+    return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
@@ -412,8 +482,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         </div>
     `;
-    
-    return sanitizeHtml(htmlCompleto);
 }
 
 window.iniciarEdicion = function(commentId) {
@@ -528,8 +596,7 @@ function procesarTextoComentario(texto) {
             }
         }
     }
-    let resultado = palabras.join('').replace(/^(<br>)+/, '').trim();
-    return sanitizeHtml(resultado);
+    return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
 window.restaurarPanelesGlobales = function() {

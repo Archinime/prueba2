@@ -16,6 +16,7 @@ function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
     
+    // Suscribirse al estado central
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', user => {
             updateStickersUI();
@@ -27,6 +28,7 @@ function initStickersSystem(db, auth) {
             }
         });
     } else {
+        // Fallback: usar auth directamente
         console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
         auth.onAuthStateChanged(user => {
             updateStickersUI();
@@ -40,6 +42,7 @@ function initStickersSystem(db, auth) {
     }
 }
 
+// Obtener usuario actual desde el estado central
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return null;
@@ -51,7 +54,9 @@ async function loadUserStickers() {
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
         if (doc.exists && doc.data().stickers) {
+            // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
+            // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
             if(userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({
                     stickers: userStickersCollection
@@ -74,29 +79,21 @@ function renderUserStickers() {
     if (!container) return;
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     if (validStickers.length === 0) {
-        // Estilo mejorado (ahora usa la clase .sticker-empty-modern)
-        container.innerHTML = `
-            <div class="sticker-empty-modern">
-                <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 10px;"></i>
-                <p style="margin: 5px 0; font-weight: 600;">No tienes stickers</p>
-                <p style="font-size: 0.8rem; opacity: 0.7;">Sube uno o roba de los comentarios</p>
-            </div>
-        `;
+        container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
     }
 
     let html = '';
     validStickers.forEach((url) => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
-        const safeUrl = url.replace(/'/g, "\\'");
         const tagMedia = isVideo 
-            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${safeUrl}')"></video>`
-            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${safeUrl}')">`;
+            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
+            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
             
         html += `
             <div class="sticker-item" style="border: 1px solid rgba(0, 255, 247, 0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                 ${tagMedia}
-                <button class="sticker-delete-btn" onclick="eliminarSticker('${safeUrl}', event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
+                <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
             </div>
         `;
     });
