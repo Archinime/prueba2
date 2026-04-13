@@ -1,70 +1,50 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
-// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
+let stickersCurrentUser = null;
 let userStickersCollection = [];
 
 // ⚙️ CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
+// Stickers por defecto (Cuenta en 0)
 const DEFAULT_STICKERS = [];
 
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
     
-    // Suscribirse al estado central
-    if (window.ArchinimeState) {
-        ArchinimeState.on('currentUser', user => {
-            updateStickersUI();
-            if (user) {
-                loadUserStickers();
-            } else {
-                userStickersCollection = [];
-                renderUserStickers();
-            }
-        });
-    } else {
-        // Fallback: usar auth directamente
-        console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
-        auth.onAuthStateChanged(user => {
-            updateStickersUI();
-            if (user) {
-                loadUserStickers();
-            } else {
-                userStickersCollection = [];
-                renderUserStickers();
-            }
-        });
-    }
-}
-
-// Obtener usuario actual desde el estado central
-function getCurrentUser() {
-    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
-    return null;
+    auth.onAuthStateChanged(user => {
+        stickersCurrentUser = user;
+        updateStickersUI();
+        if (user) {
+            loadUserStickers();
+        } else {
+            userStickersCollection = [];
+            renderUserStickers();
+        }
+    });
 }
 
 async function loadUserStickers() {
-    const user = getCurrentUser();
-    if (!user) return;
+    if (!stickersCurrentUser) return;
     try {
-        const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
+        const doc = await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).get();
         if (doc.exists && doc.data().stickers) {
             // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
             // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
             if(userStickersCollection.length !== doc.data().stickers.length) {
-                await stickersDb.collection('userStickers').doc(user.uid).set({
+                await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
                     stickers: userStickersCollection
                 }, { merge: true });
             }
         } else {
             userStickersCollection = [...DEFAULT_STICKERS];
-            await stickersDb.collection('userStickers').doc(user.uid).set({
+            await stickersDb.collection('userStickers').doc(stickersCurrentUser.uid).set({
                 stickers: userStickersCollection
             }, { merge: true });
         }
@@ -113,12 +93,10 @@ window.switchStickerTab = function(tabName) {
 
 async function eliminarSticker(urlSticker, event) {
     event.stopPropagation();
-    const user = getCurrentUser();
-    if (!user) return;
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
     
     try {
-        const userRef = stickersDb.collection('userStickers').doc(user.uid);
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
@@ -132,8 +110,7 @@ async function eliminarSticker(urlSticker, event) {
 }
 
 async function subirStickerDesdePC(input) {
-    const user = getCurrentUser();
-    if (!user) {
+    if (!stickersCurrentUser) {
         openLoginModalFromStickers();
         return;
     }
@@ -141,6 +118,7 @@ async function subirStickerDesdePC(input) {
     const file = input.files[0];
     if (!file) return;
     
+    // LIMITE REDUCIDO A 2 MB
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         return;
@@ -198,15 +176,14 @@ async function subirStickerDesdePC(input) {
 }
 
 async function guardarStickerEnColeccion(url) {
-    const user = getCurrentUser();
-    if (!user) return;
+    if (!stickersCurrentUser) return;
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
 
     try {
-        const userRef = stickersDb.collection('userStickers').doc(user.uid);
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
@@ -218,8 +195,7 @@ async function guardarStickerEnColeccion(url) {
 }
 
 window.robarStickerSistema = async function(url) {
-    const user = getCurrentUser();
-    if (!user) {
+    if (!stickersCurrentUser) {
         openLoginModalFromStickers();
         return;
     }
@@ -231,7 +207,7 @@ window.robarStickerSistema = async function(url) {
     }
     
     try {
-        const userRef = stickersDb.collection('userStickers').doc(user.uid);
+        const userRef = stickersDb.collection('userStickers').doc(stickersCurrentUser.uid);
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
@@ -248,8 +224,7 @@ window.robarStickerSistema = async function(url) {
 };
 
 function updateStickersUI() {
-    const user = getCurrentUser();
-    if (!user) {
+    if (!stickersCurrentUser) {
         const subirTab = document.getElementById('subirStickersTab');
         if (subirTab) {
             subirTab.innerHTML = `
