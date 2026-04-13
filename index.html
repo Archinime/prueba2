@@ -160,7 +160,8 @@
       font-size: 2.2rem; font-weight: 900; letter-spacing: 6px;
       background: linear-gradient(135deg, #fff, var(--neon-cyan), var(--neon-purple));
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-      margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,243,255,0.5); animation: glitchText 3s infinite; 
+      margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,243,255,0.5);
+      animation: glitchText 3s infinite; 
     }
     .loader-percentage {
       font-size: 1.4rem; font-weight: 900; color: var(--neon-cyan);
@@ -216,8 +217,7 @@
     .nav-logo:hover img { transform: rotate(5deg) scale(1.05); box-shadow: 0 0 20px var(--neon-purple); }
     .nav-logo-text { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: 2px;
       background: linear-gradient(135deg, #ffffff, var(--neon-cyan), var(--neon-purple));
-      background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite; transform: translateZ(0);
-    }
+      background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite; transform: translateZ(0); }
     @media (max-width: 480px) { .nav-logo-text { font-size: 1.2rem; } .nav-logo img { height: 36px; width: 36px; } }
     @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
@@ -225,18 +225,15 @@
     .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
       transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem; 
-      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); will-change: transform, box-shadow;
-    }
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); will-change: transform, box-shadow; }
     .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px);
-    }
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
     .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
 
     .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
     .cyber-btn-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
       border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); flex-shrink: 0; will-change: transform;
-    }
+      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); flex-shrink: 0; will-change: transform; }
     .cyber-btn-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
     .cyber-btn-icon:hover { background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan);
       box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
@@ -372,7 +369,8 @@
     .auth-tab { padding: 12px 15px; cursor: pointer; font-weight: 800; color: #aaa; border-bottom: 2px solid transparent; transition: 0.2s; font-size: 1.1rem; flex-grow: 1; text-align: center; }
     .auth-tab.active { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan); }
     .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-    .auth-form input { width: 100%; box-sizing: border-box; background: #181920; border: 1px solid #2a2b35; padding: 14px; border-radius: 16px; color: white; font-size: 1rem; transition: 0.2s; will-change: border-color, box-shadow; }
+    .auth-form input { width: 100%; box-sizing: border-box; background: #181920;
+      border: 1px solid #2a2b35; padding: 14px; border-radius: 16px; color: white; font-size: 1rem; transition: 0.2s; will-change: border-color, box-shadow; }
     .auth-form input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 12px rgba(0,243,255,0.2); }
     .auth-form button { width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff); color: #000; border: none; padding: 14px;
       border-radius: 40px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 1rem; will-change: transform, box-shadow; }
@@ -404,34 +402,37 @@
     .color-picker { -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; background: none; padding: 0; }
     .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
     .color-picker::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; }
-    .profile-save-btn { width: 100%; background: var(--neon-cyan); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900; font-family: 'Orbitron'; letter-spacing: 1px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+    .profile-save-btn { width: 100%; background: var(--neon-cyan); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900;
+      font-family: 'Orbitron'; letter-spacing: 1px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
     .profile-save-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,243,255,0.5); transform: translateY(-2px); }
     .profile-save-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
     .profile-status { text-align: center; margin-top: 15px; font-size: 0.9rem; }
 
-    /* ===== STAGE (ANIMACIONES FRONTALES) ===== */
+    /* ===== STAGE (ANIMACIONES FRONTALES OPTIMIZADAS) ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     
     #fgContainer {
-      position: absolute; pointer-events: auto; display: flex; align-items: center; justify-content: center;
+      position: absolute;
+      pointer-events: auto; display: flex; align-items: center; justify-content: center;
       right: 20px; bottom: 20px; 
       width: 280px;
       height: auto;
       max-height: 350px;
-      overflow: hidden; background: transparent; border-radius: 10px;
+      overflow: hidden;
+      background: transparent; border-radius: 10px;
       filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
       z-index: 50;
-      /* Nuevas transiciones y cursor para la interacción */
-      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease, filter 0.4s;
-      transform-origin: center;
+      /* SUAVIZADO: De 0.4s a 0.6s, con una curva mucho más gentil */
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, filter 0.6s;
+      transform-origin: center bottom;
       cursor: pointer;
     }
 
-    /* Clase para ocultar con estilo el contenedor */
     #fgContainer.poof {
-      transform: scale(0) rotate(20deg) translateZ(0);
+      /* SUAVIZADO: En lugar de scale(0) y rotación, bajamos un poco la escala y lo desvanecemos hacia abajo */
+      transform: scale(0.8) translateY(40px) translateZ(0);
       opacity: 0;
-      filter: drop-shadow(0 0 30px var(--neon-pink)) brightness(1.5);
+      filter: drop-shadow(0 0 10px var(--neon-pink)) brightness(1.2);
     }
 
     #fgCanvas { width: 100%; height: 100%; display: block; object-fit: contain; }
@@ -439,10 +440,7 @@
 
     /* Estilos para el sistema de partículas (Chispitas) */
     .spark {
-      position: fixed;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999;
       animation: sparkAnim 0.6s ease-out forwards;
     }
     @keyframes sparkAnim {
@@ -463,25 +461,24 @@
     #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.4s; padding: 20px; will-change: opacity; }
     #eventModal.show { opacity: 1; pointer-events: auto; }
-    .event-card { background: #0e0e12; width: 100%; max-width: 460px; border-radius: 32px; overflow: hidden;
-      border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3); transform: scale(0.9) translateY(30px) translateZ(0);
+    .event-card { background: #0e0e12; width: 100%; max-width: 460px; border-radius: 32px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 50px rgba(188, 19, 254, 0.3); transform: scale(0.9) translateY(30px) translateZ(0);
       transition: transform 0.4s var(--transition-smooth); position: relative; will-change: transform; }
     #eventModal.show .event-card { transform: scale(1) translateY(0) translateZ(0); }
-    .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50; background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem; will-change: transform;}
+    .event-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; z-index: 50; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.3rem;
+      will-change: transform;}
     .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); box-shadow: 0 0 15px var(--neon-pink); }
     .event-visuals { position: relative; height: 280px; background: #000; }
     .visual-bg { position: absolute; inset: 0; background-size: cover; filter: blur(20px) brightness(0.5); transform: scale(1.2) translateZ(0); will-change: transform; }
     .covers-container { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 100%; gap: 15px; padding-bottom: 20px; transform: translateZ(0); }
     .cover-back { width: 110px; height: 165px; object-fit: cover; border-radius: 12px; opacity: 0.8; transform: rotate(-8deg) translateX(15px); border: 1px solid rgba(255,255,255,0.3); }
     .cover-front { width: 130px; height: 195px; object-fit: cover; border-radius: 16px; border: 2px solid var(--neon-cyan); transform: rotate(3deg) translateX(-15px); box-shadow: 0 10px 25px black; z-index: 2; }
-    .event-type-badge { position: absolute; top: 18px; left: 18px; padding: 6px 16px; border-radius: 30px; background: var(--neon-pink);
-      color: white; font-weight: 800; font-size: 0.7rem; letter-spacing: 1px; box-shadow: 0 0 15px var(--neon-pink); z-index: 3; }
+    .event-type-badge { position: absolute; top: 18px; left: 18px; padding: 6px 16px; border-radius: 30px; background: var(--neon-pink); color: white; font-weight: 800; font-size: 0.7rem; letter-spacing: 1px; box-shadow: 0 0 15px var(--neon-pink); z-index: 3; }
     .event-info { padding: 25px; text-align: center; background: linear-gradient(to top, #0a0a0e, #111116); transform: translateZ(0); }
     .event-title { font-family: 'Orbitron'; font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
     .event-meta { color: var(--neon-cyan); font-weight: 600; margin-bottom: 15px; letter-spacing: 1px; }
     .event-desc { color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
-    .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
+    .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex;
+      align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
     @media (max-width: 768px) {
@@ -545,7 +542,7 @@
       <div class="notif-wrapper">
         <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
         <div id="notifMenu" class="notif-dropdown">
-          <div class="notif-header">
+           <div class="notif-header">
              <i class="fas fa-bell"></i> NOTIFICACIONES
              <button class="notif-close-mobile" onclick="toggleNotifMenu()" title="Cerrar"><i class="fas fa-times"></i></button>
           </div>
@@ -766,7 +763,6 @@
     }).catch(err => {
       finishLoading();
     });
-
     // ========== RESTO DE LA LÓGICA ORIGINAL ==========
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -846,7 +842,6 @@
     const genreSelect = document.getElementById('genre-select');
     const demographicSelect = document.getElementById('demographic-select');
     const ratingSelect = document.getElementById('rating-select');
-    
     async function aplicarFiltros() {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters) {
@@ -953,7 +948,6 @@
     let lastProfileUpdate = 0;
     const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
     const CLOUDINARY_PRESET = 'stickers_archinime';
-    
     function getNeonColorFallback(str) {
       const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
       let hash = 0;
@@ -1022,13 +1016,11 @@
       const statusMsg = document.getElementById('profileStatusMsg');
       const newName = document.getElementById('profileDisplayName').value.trim();
       const newColor = document.getElementById('profileNameColor').value;
-      
       if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return; }
       
       const isAdmin = currentUser.email === 'archinime12@gmail.com';
       const now = Date.now();
       const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
-      
       if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
         const daysLeft = Math.ceil((fiveDaysMs - (now - lastProfileUpdate)) / (1000 * 60 * 60 * 24));
         statusMsg.style.color = '#ff0055';
@@ -1046,7 +1038,6 @@
           customColor: newColor,
           lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        
         statusMsg.style.color = '#fff';
         statusMsg.innerText = 'Actualizando comentarios históricos...';
         
@@ -1096,7 +1087,6 @@
         }
       });
     });
-    
     function showAuthModal() { 
       document.getElementById('authModal').classList.add('show'); 
       disableBodyScroll();
@@ -1191,7 +1181,7 @@
     window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
     window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
     window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
-    
+
     // ========== SELECTS PERSONALIZADOS Y SCROLL ==========
     function disableBodyScroll() { 
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -1245,7 +1235,7 @@
         });
       });
     })();
-    
+
     // =========================================================================
     // LÓGICA CONJUNTA: ANIMACIONES (CHROMA KEY), MÚSICA Y VIDEO DE FONDO
     // =========================================================================
@@ -1274,42 +1264,51 @@
       'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
       'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
     ];
-    
+
     const fgContainer = document.getElementById('fgContainer');
     const fgVideo = document.getElementById('fgVideo');
     const fgCanvas = document.getElementById('fgCanvas');
     const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
-    
+
     let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
     let currentAudio = null;
     let isPlayingMedia = false;
-    
+    let isTransitioning = false; // NUEVO: Bandera para pausar cálculo y clics extra
+
     // Configurar video de animación oculto para usarlo de fuente
     fgVideo.style.display = 'none';
     fgVideo.src = currentAnim.src;
-    
+
     fgVideo.addEventListener('loadedmetadata', () => {
-      fgCanvas.width = fgVideo.videoWidth || 800;
-      fgCanvas.height = fgVideo.videoHeight || 600;
+      // OPTIMIZACIÓN CLAVE PARA EL LAG: Reducimos la resolución interna del canvas
+      const maxCanvasWidth = 300; // Suficiente ya que el contenedor mide ~280px
+      const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
+      fgCanvas.width = maxCanvasWidth;
+      fgCanvas.height = maxCanvasWidth / ratio;
     });
-    
+
     // Motor de Chroma Key (Pantalla Verde / Azul)
     function processChromaKey() {
-      if (fgVideo.paused || fgVideo.ended) return;
+      // OPTIMIZACIÓN: Si estamos en transición, no procesamos nada ahorrando mucho CPU
+      if (fgVideo.paused || fgVideo.ended || isTransitioning) {
+        requestAnimationFrame(processChromaKey);
+        return;
+      }
+
       fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
       const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
       const data = frameData.data;
-      
+
       const keyColor = currentAnim.keyColor || 'green';
       const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
-      
+
       for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
+
         if (keyColor === 'blue') {
-          if (b > r + threshold && b > g + threshold) data[i+3] = 0; // Transparente
+          if (b > r + threshold && b > g + threshold) data[i+3] = 0;
         } else {
-          // Verde
-          if (g > r + threshold && g > b + threshold) data[i+3] = 0; // Transparente
+          if (g > r + threshold && g > b + threshold) data[i+3] = 0;
         }
       }
       
@@ -1320,81 +1319,100 @@
     fgVideo.addEventListener('play', () => {
       requestAnimationFrame(processChromaKey);
     });
-    
+
     // Función para iniciar componentes visuales en autoplay
     function startVisualMedia() {
       const bgVideo = document.getElementById('bg-video');
+
       bgVideo.muted = true;
       bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
 
       fgVideo.muted = true;
       fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+
     }
 
     // Función para iniciar la música 
     function startAudioMedia() {
       if (isPlayingMedia) return;
+
       isPlayingMedia = true;
 
       const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
       currentAudio = new Audio(track);
       currentAudio.volume = 0.3;
+
       currentAudio.onended = () => {
         isPlayingMedia = false;
         startAudioMedia();
       };
+
       currentAudio.play().catch(e => {
         console.log('Música bloqueada', e);
         isPlayingMedia = false;
       });
+
     }
 
     // --- NUEVO: SISTEMA DE INTERACCIÓN Y CHISPAS ---
     function createSparks(clientX, clientY) {
       const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
+
       for (let i = 0; i < 30; i++) { // 30 partículas
         const spark = document.createElement('div');
+
         spark.className = 'spark';
         
         // Tamaño aleatorio
         const size = Math.random() * 6 + 3;
+
         spark.style.width = size + 'px';
         spark.style.height = size + 'px';
-        
+
         // Posición inicial (centro del clic)
         spark.style.left = clientX + 'px';
+
         spark.style.top = clientY + 'px';
         
         // Color aleatorio
         spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+
         spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
-        
+
         // Calcular trayectoria circular aleatoria
         const angle = Math.random() * Math.PI * 2;
+
         const distance = Math.random() * 120 + 40; // Distancia de explosión
         
         spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+
         spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
         
         document.body.appendChild(spark);
         
         // Eliminar del DOM después de la animación
         setTimeout(() => spark.remove(), 600);
+
       }
     }
 
     fgContainer.addEventListener('click', (e) => {
       // Evitamos que el clic se propague al documento y reinicie otras cosas
       e.stopPropagation();
+      
+      // Prevenir clics múltiples mientras ya hay una animación en curso
+      if (isTransitioning) return;
 
       // 1. Crear el efecto de partículas
       createSparks(e.clientX, e.clientY);
 
-      // 2. Animar la desaparición (Poof!)
+      // 2. Animar la desaparición (Poof!) suavemente y pausar proceso para evitar lag
+      isTransitioning = true;
       fgContainer.classList.add('poof');
 
       // 3. Cambiar de video oculto tras bambalinas
       setTimeout(() => {
+        
         let newAnim;
         // Escoger un video nuevo al azar (diferente al actual, si hay más de 1)
         do {
@@ -1404,23 +1422,29 @@
         currentAnim = newAnim;
         fgVideo.src = currentAnim.src;
         
+  
         // Reproducir el nuevo video y volver a mostrar el contenedor
         fgVideo.play().then(() => {
+          isTransitioning = false; // Reactivamos el chroma key
           fgContainer.classList.remove('poof');
-        }).catch(err => console.log('Error cambiando anim', err));
-        
-      }, 400); // 400ms empata con la duración de la transición CSS
+        }).catch(err => {
+          console.log('Error cambiando anim', err);
+          isTransitioning = false;
+        });
+
+      }, 600); // Sincronizado con los 0.6s del CSS (antes era 400ms)
     });
 
     // Eventos iniciales
     window.addEventListener('DOMContentLoaded', startVisualMedia);
     document.addEventListener('click', startAudioMedia, { once: true });
     document.addEventListener('touchstart', startAudioMedia, { once: true });
-    
+
     // Inicialización del sistema de notificaciones
     window.addEventListener('load', () => {
       if (window.startNotificationSequence) window.startNotificationSequence();
     });
+
   </script>
 </body>
 </html>
