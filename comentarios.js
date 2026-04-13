@@ -1,20 +1,18 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v11.0
-// (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
-// + SANITIZACIÓN CON DOMPURIFY + INICIALIZACIÓN ROBUSTA
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v12.0
+// CON INICIALIZACIÓN ROBUSTA Y AUTOMÁTICA
 // ============================================
 
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosUnsubscribe = null;
 
-// Variables globales necesarias para interacciones inline
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
-// ========== SANITIZACIÓN (usa DOMPurify si está disponible) ==========
+// ========== SANITIZACIÓN ==========
 function sanitizeHtml(html) {
     if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
         return DOMPurify.sanitize(html, {
@@ -22,7 +20,6 @@ function sanitizeHtml(html) {
             ALLOWED_ATTR: ['href', 'src', 'class', 'id', 'style', 'target', 'alt', 'title', 'data-*', 'onclick', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
         });
     }
-    // Fallback básico
     const temp = document.createElement('div');
     temp.textContent = html;
     return temp.innerHTML;
@@ -32,30 +29,31 @@ function sanitizeHtml(html) {
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
-    injectCommentsCSS(); // CSS idéntico al original
+    injectCommentsCSS();
 
-    // Intenta iniciar el listener cuando todo esté listo
     const tryStartListener = () => {
         const user = getCurrentUser();
-        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
-            console.log("✅ Comentarios: todos los datos listos, iniciando listener");
+        const animeId = window.comentariosAnimeId;
+        const season = window.comentariosSeason;
+        const episode = window.comentariosEpisode;
+        
+        console.log("🔍 Comentarios - Intentando iniciar:", { user: !!user, animeId, season, episode });
+        
+        if (user && animeId && season !== undefined && episode !== undefined) {
+            console.log("✅ Comentarios: iniciando listener en tiempo real");
             setupComentariosRealtimeListener();
             return true;
         }
         return false;
     };
 
-    // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', async (user) => {
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
-                    } else {
-                        ArchinimeState.set('currentUserColor', null);
-                    }
+                    const color = userDoc.exists && userDoc.data().customColor ? userDoc.data().customColor : null;
+                    ArchinimeState.set('currentUserColor', color);
                 } catch(e) { console.warn(e); }
             } else {
                 ArchinimeState.set('currentUserColor', null);
@@ -63,24 +61,17 @@ function initComentariosSystem(db, auth) {
             updateComentariosUI();
             tryStartListener();
         });
-        // Si ya hay usuario, forzar evento (por si el evento ya pasó)
         const currentUser = ArchinimeState.get('currentUser');
-        if (currentUser) {
-            ArchinimeState.emit('currentUser', currentUser);
-        } else {
-            updateComentariosUI();
-        }
+        if (currentUser) ArchinimeState.emit('currentUser', currentUser);
+        else updateComentariosUI();
     } else {
-        // Fallback: usar auth directamente
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        window.comentariosCurrentUserColor = userDoc.data().customColor;
-                    }
+                    if (userDoc.exists && userDoc.data().customColor) window.comentariosCurrentUserColor = userDoc.data().customColor;
                 } catch(e) {}
             }
             updateComentariosUI();
@@ -88,16 +79,13 @@ function initComentariosSystem(db, auth) {
         });
     }
 
-    // Configurar eventos del textarea principal después de un pequeño retraso
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
-                        enviarComentarioTexto();
-                    }
+                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) enviarComentarioTexto();
                 }
             });
             textarea.addEventListener('input', function() {
@@ -111,22 +99,21 @@ function initComentariosSystem(db, auth) {
 
     document.addEventListener('click', () => closeAllCommentMenus());
 
-    // Reintento cada segundo hasta que los parámetros estén listos (máx 20s)
-    let retryCount = 0;
+    let retry = 0;
     const interval = setInterval(() => {
-        if (tryStartListener() || retryCount > 20) {
+        if (tryStartListener() || retry > 30) {
             clearInterval(interval);
+            if (retry > 30) console.error("❌ Comentarios: no se pudo iniciar después de 30 segundos");
         }
-        retryCount++;
+        retry++;
     }, 1000);
 }
 
-// ========== FUNCIÓN PÚBLICA PARA RECIBIR PARÁMETROS DESDE video-player-core.js ==========
 window.setComentariosParams = function(animeId, season, episode) {
     window.comentariosAnimeId = animeId;
     window.comentariosSeason = parseInt(season);
     window.comentariosEpisode = parseInt(episode);
-    // Si ya hay usuario y DB lista, reiniciamos el listener
+    console.log("📡 Parámetros de comentarios recibidos:", { animeId, season, episode });
     if (comentariosDb && getCurrentUser()) {
         setupComentariosRealtimeListener();
     }
@@ -254,7 +241,6 @@ function injectCommentsCSS() {
     document.head.appendChild(style);
 }
 
-// ========== FUNCIONES PARA OBTENER USUARIO DESDE EL ESTADO CENTRAL ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -265,7 +251,6 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
-// ========== MANEJO DE MENÚS ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -283,7 +268,6 @@ window.closeAllCommentMenus = function() {
     document.querySelectorAll('.comentario-item').forEach(m => m.style.zIndex = '');
 };
 
-// ========== UTILIDADES DE COLOR ==========
 function getNeonColorByString(str) {
     const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
     let hash = 0;
@@ -296,20 +280,20 @@ function hexToRgbA(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// ========== LISTENER EN TIEMPO REAL (RENDERIZADO COMPLETO) ==========
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
-    
     if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
-        console.warn("Comentarios: faltan parámetros del anime, no se puede iniciar listener");
+        console.warn("Comentarios: faltan parámetros, no se inicia listener");
         return;
     }
+    
+    console.log("🔥 Escuchando comentarios para:", window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
     
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', window.comentariosSeason)
         .where('episode', '==', window.comentariosEpisode)
-        .orderBy('timestamp', 'desc') 
+        .orderBy('timestamp', 'desc')
         .limit(100);
         
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
@@ -447,7 +431,6 @@ function setupComentariosRealtimeListener() {
     }, (error) => console.error('Error en comentarios:', error));
 }
 
-// ========== ELIMINAR COMENTARIO (CON SUS RESPUESTAS) ==========
 window.eliminarComentarioSistema = async function(id) {
     if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
     try {
@@ -466,7 +449,6 @@ window.eliminarComentarioSistema = async function(id) {
     }
 };
 
-// ========== GENERAR HTML DE UN COMENTARIO (CON SANITIZACIÓN) ==========
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
@@ -545,7 +527,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     return sanitizeHtml(htmlCompleto);
 }
 
-// ========== EDICIÓN DE COMENTARIOS ==========
 window.iniciarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer || textContainer.classList.contains('editing')) return;
@@ -599,7 +580,6 @@ window.reportarComentario = function(id) {
     showToastComent('🚩 Reportado.');
 };
 
-// ========== MOSTRAR/OCULTAR RESPUESTAS ==========
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
@@ -623,7 +603,6 @@ window.showMoreReplies = function(rootId) {
     if(btn) btn.style.display = 'none';
 };
 
-// ========== OBTENER TIEMPO RELATIVO ==========
 function obtenerTiempoRelativo(fecha) {
     const diff = Math.floor((new Date() - fecha) / 1000);
     if (diff < 60) return 'Hace un momento';
@@ -632,7 +611,6 @@ function obtenerTiempoRelativo(fecha) {
     return fecha.toLocaleDateString();
 }
 
-// ========== PROCESAR TEXTO DEL COMENTARIO (EMOJIS, LINKS, STICKERS) CON SANITIZACIÓN ==========
 function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto.trim());
@@ -665,7 +643,6 @@ function procesarTextoComentario(texto) {
     return sanitizeHtml(resultado);
 }
 
-// ========== RESTAURAR PANELES GLOBALES ==========
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
     const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
@@ -683,7 +660,6 @@ window.restaurarPanelesGlobales = function() {
     if(stickerEl) stickerEl.classList.remove('active');
 };
 
-// ========== PREPARAR RESPUESTA ==========
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -749,7 +725,6 @@ window.cancelarRespuesta = function(forzarSync = false) {
     if (box) box.remove();
 };
 
-// ========== MODAL DE STICKER ==========
 window.openStickerModal = function(url) {
     let modal = document.getElementById('stickerViewModal');
     if (!modal) {
@@ -792,7 +767,6 @@ window.closeStickerModal = function() {
     }
 };
 
-// ========== VALIDAR BOTÓN DE ENVÍO ==========
 window.validarBotonPrincipal = function(textarea) {
     if(!textarea) return;
     const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
@@ -808,7 +782,6 @@ window.validarBotonPrincipal = function(textarea) {
     }
 };
 
-// ========== ENVIAR COMENTARIO PRINCIPAL ==========
 async function enviarComentarioTexto() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -844,7 +817,6 @@ async function enviarComentarioTexto() {
     finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.original; } }
 }
 
-// ========== ENVIAR RESPUESTA DINÁMICA ==========
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -883,7 +855,6 @@ window.enviarRespuestaDinamica = async function() {
     } catch (error) { alert('Error: ' + error.message); }
 };
 
-// ========== SELECCIONAR STICKER PARA ENVIAR ==========
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -911,7 +882,6 @@ window.quitarStickerPreview = function() {
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
 
-// ========== ACTUALIZAR UI SEGÚN USUARIO ==========
 function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -942,7 +912,6 @@ function updateComentariosUI() {
     }
 }
 
-// ========== SISTEMA DE EMOTICONES Y STICKERS (PANELES) ==========
 function toggleEmojiPanelSistema() {
     const panel = document.getElementById('emojiPanel');
     if (panel) { panel.classList.toggle('active'); document.getElementById('stickerPanelFull')?.classList.remove('active'); }
@@ -962,7 +931,6 @@ function agregarEmojiAlTexto(emoji) {
     }
 }
 
-// ========== TOAST ==========
 function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
     if (!toast) {
@@ -977,7 +945,7 @@ function showToastComent(msg) {
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
 function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
-// ========== EXPONER FUNCIONES GLOBALES PARA EL HTML ==========
+// Exponer funciones globales necesarias para el HTML
 window.initComentariosSystem = initComentariosSystem;
 window.enviarComentarioTexto = enviarComentarioTexto;
 window.toggleEmojiPanelSistema = toggleEmojiPanelSistema;
