@@ -605,11 +605,40 @@
   </script>
 
   <script src="notification-system.js"></script>
-
   <script src="gifs.js"></script>
 
   <script>
-    // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
+    // ========== LÓGICA DE PESTAÑAS AUTH (CORREGIDA) ==========
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const loginForm = document.getElementById('authLoginForm');
+    const registerForm = document.getElementById('authRegisterForm');
+
+    function switchAuthTab(tabId) {
+      if (tabId === 'login') {
+        loginForm.style.display = 'flex';
+        registerForm.style.display = 'none';
+        authTabs.forEach(tab => {
+          if (tab.getAttribute('data-tab') === 'login') tab.classList.add('active');
+          else tab.classList.remove('active');
+        });
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+        authTabs.forEach(tab => {
+          if (tab.getAttribute('data-tab') === 'register') tab.classList.add('active');
+          else tab.classList.remove('active');
+        });
+      }
+    }
+
+    authTabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const tabId = tab.getAttribute('data-tab');
+        if (tabId) switchAuthTab(tabId);
+      });
+    });
+
+    // Añadir también el GIF aleatorio
     if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
       const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
       document.getElementById('personaje-gif').src = gifElegido;
@@ -639,7 +668,6 @@
 
     // Promesas de carga crítica
     const loadPromises = [];
-    // 1. Cargar ratings de Firestore
     const firestoreRatings = new Map();
     const ratingsPromise = db.collection('animeRatings').get().then(snapshot => {
       snapshot.forEach(doc => {
@@ -650,7 +678,6 @@
     }).catch(e => console.warn('Error cargando ratings:', e));
     loadPromises.push(ratingsPromise);
 
-    // 2. Cargar primeros animes (para que el grid se pinte rápido)
     let allAnimes = [];
     let shuffledAnimes = [];
     let currentShufflePage = 0;
@@ -662,12 +689,10 @@
         const j = Math.floor(Math.random() * (i + 1));
         [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
       }
-      // Renderizar primeras cards
       const firstPage = shuffledAnimes.slice(0, ITEMS_PER_PAGE);
       renderAnimes(firstPage, false);
     }).catch(e => console.warn('Error cargando animes iniciales:', e));
     loadPromises.push(animesPromise);
-    // 3. Video de fondo (al menos intente cargar)
     const bgVideo = document.getElementById('bg-video');
     const videoPromise = new Promise((resolve) => {
       if (bgVideo.readyState >= 2) resolve();
@@ -676,7 +701,6 @@
     });
     loadPromises.push(videoPromise);
 
-    // Progreso incremental simulado
     let progressValue = 0;
     const interval = setInterval(() => {
       if (loadingCompleted) {
@@ -700,7 +724,8 @@
       console.error('Error en carga inicial:', err);
       finishLoading();
     });
-    // ========== RESTO DE LA LÓGICA ORIGINAL (FILTROS, PAGINACIÓN, AUTENTICACIÓN, ETC.) ==========
+
+    // ========== RESTO DE LÓGICA ORIGINAL (FILTROS, PAGINACIÓN, AUTENTICACIÓN) ==========
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -1095,39 +1120,45 @@
       });
     })();
 
-    // Música de fondo (inicia con interacción)
+    // ========== MÚSICA DE FONDO USANDO EL ARCHIVO EXTERNO ==========
+    // Esperamos a que se cargue el archivo musica_fondo.js que define window.musicList
     (function() {
-      const musicList = [
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
-        'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3'
-      ];
       let currentAudio = null;
-      let currentTrackIndex = Math.floor(Math.random() * musicList.length);
+      let currentTrackIndex = 0;
       let isPlaying = false;
+
       function playTrack(index) {
-        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-        const track = musicList[index];
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+        // Verificar que window.musicList esté disponible (desde musica_fondo.js)
+        if (!window.musicList || !window.musicList.length) {
+          console.warn("Lista de música no cargada o vacía");
+          return;
+        }
+        const track = window.musicList[index % window.musicList.length];
         if (!track) return;
         currentAudio = new Audio(track);
         currentAudio.volume = 0.3;
         currentAudio.loop = false;
         currentAudio.onended = () => {
-          currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+          currentTrackIndex = (currentTrackIndex + 1) % window.musicList.length;
           playTrack(currentTrackIndex);
         };
-        currentAudio.play().catch(e => console.log('Esperando interacción para música'));
+        currentAudio.play().catch(e => console.log("Esperando interacción para música"));
         isPlaying = true;
       }
-      function startMusic() { if (!isPlaying) playTrack(currentTrackIndex); }
+
+      function startMusic() {
+        if (!isPlaying && window.musicList && window.musicList.length) {
+          // Seleccionar un índice aleatorio al inicio
+          currentTrackIndex = Math.floor(Math.random() * window.musicList.length);
+          playTrack(currentTrackIndex);
+        }
+      }
+
+      // Iniciar con la primera interacción del usuario
       document.addEventListener('click', startMusic, { once: true });
       document.addEventListener('touchstart', startMusic, { once: true });
     })();
@@ -1143,5 +1174,10 @@
       if (window.startNotificationSequence) window.startNotificationSequence();
     });
   </script>
+
+  <!-- ===== SCRIPTS EXTERNOS ===== -->
+  <script src="animaciones.js" defer></script>
+  <script src="musica_fondo.js" defer></script>
+
 </body>
 </html>
