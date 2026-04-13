@@ -1,81 +1,62 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v13.0
-// CON SANITIZACIÓN, REINTENTOS Y PANELES FIJOS
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
+// (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
 // ============================================
 
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosUnsubscribe = null;
 
+// Variables globales necesarias para interacciones inline
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
-// ========== SANITIZACIÓN (usa DOMPurify si está disponible) ==========
-function sanitizeHtml(html) {
-    if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
-        return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['div', 'span', 'br', 'a', 'img', 'video', 'button', 'i', 'b', 'strong', 'em', 'p'],
-            ALLOWED_ATTR: ['href', 'src', 'class', 'id', 'style', 'target', 'alt', 'title', 'data-*', 'onclick', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
-        });
-    }
-    const temp = document.createElement('div');
-    temp.textContent = html;
-    return temp.innerHTML;
-}
-
-function escapeHtmlComent(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ========== INICIALIZACIÓN PRINCIPAL ==========
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
 
-    const tryStartListener = () => {
-        const user = getCurrentUser();
-        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
-            console.log("✅ Comentarios: todos los datos listos, iniciando listener");
-            setupComentariosRealtimeListener();
-            return true;
-        }
-        return false;
-    };
-
+    // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', async (user) => {
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    const color = userDoc.exists && userDoc.data().customColor ? userDoc.data().customColor : null;
-                    ArchinimeState.set('currentUserColor', color);
+                    if (userDoc.exists && userDoc.data().customColor) {
+                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
+                    } else {
+                        ArchinimeState.set('currentUserColor', null);
+                    }
                 } catch(e) { console.warn(e); }
             } else {
                 ArchinimeState.set('currentUserColor', null);
             }
+
             updateComentariosUI();
-            tryStartListener();
+
+            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
+                setupComentariosRealtimeListener();
+            }
         });
-        const currentUser = ArchinimeState.get('currentUser');
-        if (currentUser) ArchinimeState.emit('currentUser', currentUser);
-        else updateComentariosUI();
     } else {
+        // Fallback: usar auth directamente si state.js no está cargado
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) window.comentariosCurrentUserColor = userDoc.data().customColor;
+                    if (userDoc.exists && userDoc.data().customColor) {
+                        window.comentariosCurrentUserColor = userDoc.data().customColor;
+                    }
                 } catch(e) {}
             }
             updateComentariosUI();
-            tryStartListener();
+            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
+                setupComentariosRealtimeListener();
+            }
         });
     }
 
@@ -85,7 +66,9 @@ function initComentariosSystem(db, auth) {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) enviarComentarioTexto();
+                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
+                        enviarComentarioTexto();
+                    }
                 }
             });
             textarea.addEventListener('input', function() {
@@ -96,30 +79,9 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
-
     document.addEventListener('click', () => closeAllCommentMenus());
-
-    let retry = 0;
-    const interval = setInterval(() => {
-        if (tryStartListener() || retry > 30) {
-            clearInterval(interval);
-            if (retry > 30) console.error("❌ Comentarios: no se pudo iniciar después de 30 segundos");
-        }
-        retry++;
-    }, 1000);
 }
 
-window.setComentariosParams = function(animeId, season, episode) {
-    window.comentariosAnimeId = animeId;
-    window.comentariosSeason = parseInt(season);
-    window.comentariosEpisode = parseInt(episode);
-    console.log("📡 Parámetros de comentarios recibidos:", { animeId, season, episode });
-    if (comentariosDb && getCurrentUser()) {
-        setupComentariosRealtimeListener();
-    }
-};
-
-// ========== FUNCIONES DE UTILIDAD ==========
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
@@ -146,11 +108,9 @@ function injectCommentsCSS() {
         #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; letter-spacing: 0.5px; transition: all 0.3s; }
 
         .comentario-item { 
-            position: relative;
-            background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: relative; background: var(--cm-bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--cm-border); border-left: 3px solid var(--user-color, var(--cm-neon-primary));
-            border-radius: 12px; margin-bottom: 12px;
-            padding: 16px; display: flex; flex-direction: row; gap: 15px;
+            border-radius: 12px; margin-bottom: 12px; padding: 16px; display: flex; flex-direction: row; gap: 15px;
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
@@ -221,10 +181,7 @@ function injectCommentsCSS() {
             50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
             100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
         }
-        .comment-targeted {
-            animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
-            border-color: var(--cm-neon-primary) !important;
-        }
+        .comment-targeted { animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important; border-color: var(--cm-neon-primary) !important; }
 
         @media (max-width: 768px) {
             .comentario-item { padding: 12px !important; gap: 10px !important; border-radius: 10px !important; }
@@ -241,6 +198,7 @@ function injectCommentsCSS() {
     document.head.appendChild(style);
 }
 
+// ========== FUNCIONES QUE OBTIENEN USUARIO DESDE EL ESTADO ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -251,6 +209,7 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
+// ========== RESTO DE FUNCIONES ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -282,20 +241,16 @@ function hexToRgbA(hex, alpha) {
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
-    if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
-        console.warn("Comentarios: faltan parámetros, no se inicia listener");
-        return;
-    }
-    console.log("🔥 Escuchando comentarios para:", window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', window.comentariosSeason)
-        .where('episode', '==', window.comentariosEpisode)
-        .orderBy('timestamp', 'desc')
+        .where('season', '==', parseInt(window.comentariosSeason))
+        .where('episode', '==', parseInt(window.comentariosEpisode))
+        .orderBy('timestamp', 'desc') 
         .limit(100);
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
+        
         if (snapshot.empty) {
             container.innerHTML = `<div class="empty-comments" style="text-align: center; padding: 40px 20px;"><i class="fas fa-ghost" style="font-size: 3rem; color: var(--cm-border); margin-bottom: 15px; display:block;"></i><p style="font-size: 1rem; color: var(--cm-text-muted); font-weight: 600;">El vacío espacial... Sé el primero en comentar.</p></div>`;
             return;
@@ -310,6 +265,7 @@ function setupComentariosRealtimeListener() {
         const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
         const commentMap = new Map();
         allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
+      
         const roots = [];
         allComments.forEach(c => {
             if (c.replyToId && commentMap.has(c.replyToId)) {
@@ -318,14 +274,12 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-
         roots.sort((a, b) => {
             const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
             const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
             if (scoreB !== scoreA) return scoreB - scoreA;
             return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
         });
-
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -337,6 +291,7 @@ function setupComentariosRealtimeListener() {
             const isNew = window.lastPostedCommentId === node.id;
             const hiddenClass = isHiddenRoot ? `hidden-reply-${rootId}` : '';
             const hiddenStyle = isHiddenRoot ? 'display: none;' : '';
+            
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
             if (node.replies && node.replies.length > 0) {
@@ -440,6 +395,7 @@ window.eliminarComentarioSistema = async function(id) {
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
+    
     const currentUser = getCurrentUser();
     const isAdmin = currentUser?.email === 'archinime12@gmail.com';
     const isOwner = currentUser?.uid === c.userId;
@@ -447,8 +403,10 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const userName = c.userName || 'Usuario';
     const neonColor = c.customColor || getNeonColorByString(c.userId || userName);
     const neonGlow = hexToRgbA(neonColor, 0.4);
+
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span class="comentario-badge-edit">(Editado)</span>' : '';
+    
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
@@ -460,6 +418,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         `;
     }
+    
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
@@ -474,10 +433,13 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         </div>
     `;
+
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
+    
     const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
-    let htmlCompleto = `
+
+    return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
@@ -503,7 +465,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         </div>
     `;
-    return sanitizeHtml(htmlCompleto);
 }
 
 window.iniciarEdicion = function(commentId) {
@@ -512,6 +473,7 @@ window.iniciarEdicion = function(commentId) {
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
+    
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
     textContainer.innerHTML = `
         <div class="reply-box-container" style="animation: none; margin: 10px 0 0 0; background: rgba(0,0,0,0.2);">
@@ -523,14 +485,12 @@ window.iniciarEdicion = function(commentId) {
         </div>
     `;
 };
-
 window.cancelarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer) return;
     textContainer.innerHTML = textContainer.getAttribute('data-original-html');
     textContainer.classList.remove('editing');
 };
-
 window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
@@ -549,12 +509,10 @@ window.guardarEdicion = async function(commentId) {
         }
     } catch (error) { alert("Error: " + error.message); }
 };
-
 window.reportarComentario = function(id) {
     if(!getCurrentUser()) return openLoginModalFromComent();
     showToastComent('🚩 Reportado.');
 };
-
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
@@ -570,7 +528,6 @@ window.toggleRespuestas = function(rootId) {
         }
     }
 };
-
 window.showMoreReplies = function(rootId) {
     document.querySelectorAll(`.hidden-reply-${rootId}`).forEach(el => el.style.display = 'block');
     const btn = document.getElementById(`showMore-${rootId}`);
@@ -590,6 +547,7 @@ function procesarTextoComentario(texto) {
     let html = escapeHtmlComent(texto.trim());
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
     for (const [code, emoji] of Object.entries(emojisMap)) html = html.split(code).join(emoji);
+    
     html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
     html = html.replace(stickerRegex, (match, url) => {
@@ -610,25 +568,46 @@ function procesarTextoComentario(texto) {
             }
         }
     }
-    let resultado = palabras.join('').replace(/^(<br>)+/, '').trim();
-    return sanitizeHtml(resultado);
+    return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
+// -------------------------------------------------------------
+// AQUÍ ESTABA EL BUG PRINCIPAL. CÓDIGO CORREGIDO:
+// -------------------------------------------------------------
 window.restaurarPanelesGlobales = function() {
-    // Esta función ya NO mueve los paneles, solo cierra los paneles activos
+    const originalContainer = document.getElementById('comentarioFormContainer');
+    const sendBtn = document.getElementById('enviarComentarioBtn'); // Usamos el botón de enviar como ancla real
+    
+    const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
+
+    // Devolvemos los paneles a su lugar correcto antes del botón de enviar
+    if (originalContainer && sendBtn) {
+        if(previewEl) originalContainer.insertBefore(previewEl, sendBtn);
+        if(emojiEl) originalContainer.insertBefore(emojiEl, sendBtn);
+        if(stickerEl) originalContainer.insertBefore(stickerEl, sendBtn);
+    } else if (originalContainer) {
+        // Fallback seguro por si no existiera el botón
+        if(previewEl) originalContainer.appendChild(previewEl);
+        if(emojiEl) originalContainer.appendChild(emojiEl);
+        if(stickerEl) originalContainer.appendChild(stickerEl);
+    }
+    
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
+// -------------------------------------------------------------
 
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
     cancelarRespuesta(true);
     window.respondiendoA = { id: commentId, userName, userId };
+    
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (!commentEl) return;
+    
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
@@ -645,6 +624,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
                     <button type="button" class="reply-box-tool-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                     <button type="button" class="reply-box-tool-btn" onclick="toggleStickerPanelSistema()"><i class="fas fa-sticky-note"></i></button>
                 </div>
+                <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 8px;"></div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                     <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="reply-box-submit btn-disabled">Responder</button>
                 </div>
@@ -652,6 +632,17 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         </div>
     `;
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
+    
+    const panelDest = document.getElementById(`dynamicPanelsDest-${commentId}`);
+    if (panelDest) {
+        const p1 = document.getElementById('comentarioStickerPreview');
+        const p2 = document.getElementById('emojiPanel');
+        const p3 = document.getElementById('stickerPanelFull');
+        if(p1) panelDest.appendChild(p1);
+        if(p2) { panelDest.appendChild(p2); p2.classList.remove('active'); }
+        if(p3) { panelDest.appendChild(p3); p3.classList.remove('active'); }
+    }
+    
     const textArea = document.getElementById(`dynamicReplyText-${commentId}`);
     if(textArea) {
         textArea.focus();
@@ -668,7 +659,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
 window.cancelarRespuesta = function(forzarSync = false) {
     const box = window.respondiendoA ? document.getElementById(`dynamicReplyBox-${window.respondiendoA.id}`) : document.querySelector('[id^="dynamicReplyBox-"]');
     window.respondiendoA = null;
-    restaurarPanelesGlobales();
+    restaurarPanelesGlobales(); // <--- AHORA SÍ FUNCIONARÁ
     quitarStickerPreview();
     if (box) box.remove();
 };
@@ -691,11 +682,14 @@ window.openStickerModal = function(url) {
         `;
         document.body.appendChild(modal);
     }
+    
     const isVideo = url.match(/\.(mp4|webm)$/i);
     const imgEl = document.getElementById('stickerModalImg');
     const vidEl = document.getElementById('stickerModalVid');
+    
     if (isVideo) { imgEl.style.display = 'none'; vidEl.src = url; vidEl.style.display = 'block'; }
     else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
+    
     document.getElementById('stickerModalStealBtn').onclick = () => {
         if(typeof window.robarStickerSistema === 'function') { window.robarStickerSistema(url); closeStickerModal(); }
         else alert("Inicia sesión primero.");
@@ -711,12 +705,12 @@ window.closeStickerModal = function() {
         setTimeout(() => { modal.style.display = 'none'; document.getElementById('stickerModalVid').src = ''; }, 300);
     }
 };
-
 window.validarBotonPrincipal = function(textarea) {
     if(!textarea) return;
     const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
     const btn = document.getElementById(btnId);
     if(!btn) return;
+
     if(textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
         btn.classList.remove('btn-disabled');
         btn.style.opacity = '1'; btn.style.cursor = 'pointer';
@@ -731,14 +725,22 @@ async function enviarComentarioTexto() {
     if (!currentUser) return openLoginModalFromComent();
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
+
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
     if (btn && btn.classList.contains('btn-disabled')) return;
+    
     if (btn) { btn.disabled = true; btn.dataset.original = btn.innerHTML; btn.innerHTML = 'Enviando...'; }
+    
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     textoInput.value = ''; textoInput.style.height = 'auto';
     quitarStickerPreview(); validarBotonPrincipal(textoInput);
+
+    // Esconder paneles al enviar un comentario principal para que no estorben
+    document.getElementById('emojiPanel')?.classList.remove('active');
+    document.getElementById('stickerPanelFull')?.classList.remove('active');
+
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
@@ -761,15 +763,19 @@ window.enviarRespuestaDinamica = async function() {
     const replyContext = { ...window.respondiendoA };
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
+
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     if (!texto && !stickerUrl) return;
+
     const btn = document.getElementById(`btnEnviarRespuesta-${replyContext.id}`);
     if (btn) btn.disabled = true;
     textoInput.disabled = true;
+    
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     quitarStickerPreview();
-    restaurarPanelesGlobales();
+    restaurarPanelesGlobales(); // Mueve los paneles al form base antes de eliminar
+
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
@@ -781,26 +787,25 @@ window.enviarRespuestaDinamica = async function() {
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
-        cancelarRespuesta(true);
-        showToastComent('✅ Respuesta enviada');
+        cancelarRespuesta(true); // Cierra y elimina la caja (pero los paneles ya están a salvo)
     } catch (error) { alert('Error: ' + error.message); }
 };
-
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
     const previewImg = document.getElementById('previewStickerImgObj');
     const previewVid = document.getElementById('previewStickerVidObj');
     if (!previewContainer) return;
+
     if (url.match(/\.(mp4|webm)$/i)) { previewImg.style.display = 'none'; previewVid.src = url; previewVid.style.display = 'inline-block'; }
     else { previewVid.style.display = 'none'; previewImg.src = url; previewImg.style.display = 'inline-block'; }
+    
     previewContainer.style.display = 'block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
-
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -808,7 +813,6 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
-
 function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -826,23 +830,30 @@ function updateComentariosUI() {
             avatar.style.borderColor = color;
             avatar.style.boxShadow = `0 0 15px ${hexToRgbA(color, 0.5)}`;
         }
-        const nameSpan = document.getElementById('comentarioUserName');
-        if (nameSpan) {
-            nameSpan.innerText = currentUser.displayName || currentUser.email.split('@')[0];
-            nameSpan.style.color = color;
-            nameSpan.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
+        
+        const name = document.getElementById('comentarioUserName');
+        if (name) {
+            name.innerText = currentUser.displayName || currentUser.email.split('@')[0];
+            name.style.color = color;
+            name.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
         }
     }
 }
 
 function toggleEmojiPanelSistema() {
     const panel = document.getElementById('emojiPanel');
-    if (panel) { panel.classList.toggle('active'); document.getElementById('stickerPanelFull')?.classList.remove('active'); }
+    if (panel) { 
+        panel.classList.toggle('active'); 
+        document.getElementById('stickerPanelFull')?.classList.remove('active');
+    }
 }
 
 function toggleStickerPanelSistema() {
     const panel = document.getElementById('stickerPanelFull');
-    if (panel) { panel.classList.toggle('active'); document.getElementById('emojiPanel')?.classList.remove('active'); }
+    if (panel) { 
+        panel.classList.toggle('active'); 
+        document.getElementById('emojiPanel')?.classList.remove('active');
+    }
 }
 
 function agregarEmojiAlTexto(emoji) {
@@ -866,14 +877,5 @@ function showToastComent(msg) {
 }
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
-
-// Exponer funciones globales necesarias
-window.initComentariosSystem = initComentariosSystem;
-window.enviarComentarioTexto = enviarComentarioTexto;
-window.toggleEmojiPanelSistema = toggleEmojiPanelSistema;
-window.toggleStickerPanelSistema = toggleStickerPanelSistema;
-window.agregarEmojiAlTexto = agregarEmojiAlTexto;
-window.quitarStickerPreview = quitarStickerPreview;
-window.cancelarRespuesta = cancelarRespuesta;
-window.restaurarPanelesGlobales = restaurarPanelesGlobales;
-window.setComentariosParams = setComentariosParams;
+function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text;
+return div.innerHTML; }
