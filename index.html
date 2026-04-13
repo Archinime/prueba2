@@ -417,6 +417,30 @@
     .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
+    /* ESTILOS PARA ANIMACIONES (CHROMA KEY) */
+    .stage {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 200px;
+      height: 200px;
+      z-index: 50;
+      pointer-events: none;
+      border-radius: 16px;
+      overflow: hidden;
+      filter: drop-shadow(0 0 12px rgba(0, 243, 255, 0.5));
+      transition: all 0.3s ease;
+    }
+    .stage canvas, .stage video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .stage { width: 120px; height: 120px; bottom: 10px; right: 10px; }
+    }
+
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -585,6 +609,12 @@
   <main class="container">
     <div class="grid" id="grid"></div>
   </main>
+
+  <!-- CONTENEDOR PARA LAS ANIMACIONES (CHROMA) -->
+  <div class="stage" id="stageContainer">
+    <canvas id="fgCanvas"></canvas>
+    <video id="fgVideo" muted loop playsinline style="display:none;"></video>
+  </div>
 
   <script>
     // Configuración de Firebase
@@ -1120,8 +1150,132 @@
       });
     })();
 
+    // ========== LÓGICA DE ANIMACIONES (CHROMA KEY) ==========
+    (function() {
+      const videoElement = document.getElementById('fgVideo');
+      const canvas = document.getElementById('fgCanvas');
+      const ctx = canvas.getContext('2d');
+      let currentVideoIndex = 0;
+      let animationFrameId = null;
+      let isAnimating = false;
+
+      // Ajustar tamaño del canvas al contenedor
+      function resizeCanvas() {
+        const container = document.getElementById('stageContainer');
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+
+      // Aplicar chroma key (verde/azul) según preset
+      function drawFrame() {
+        if (!videoElement || videoElement.paused || videoElement.ended || !ctx) return;
+        if (videoElement.readyState < 2) {
+          requestAnimationFrame(drawFrame);
+          return;
+        }
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        // Obtener datos de píxeles
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        // Usar el preset del video actual (se obtiene desde window.videoList)
+        const preset = window.videoList && window.videoList[currentVideoIndex] ? window.videoList[currentVideoIndex].preset : { threshold: 0.1, diff: 0, soft: 50 };
+        const threshold = preset.threshold || 0.1;
+        const diff = preset.diff || 0;
+        const soft = preset.soft || 50;
+        
+        // Determinar color clave (verde o azul) según el video
+        const keyColor = (window.videoList && window.videoList[currentVideoIndex] && window.videoList[currentVideoIndex].keyColor) || 'green';
+        let rRef = 0, gRef = 0, bRef = 0;
+        if (keyColor === 'green') { gRef = 255; }
+        else if (keyColor === 'blue') { bRef = 255; }
+        else { gRef = 255; } // por defecto verde
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i+1];
+          const b = data[i+2];
+          // Calcular distancia al color clave
+          let dist = 0;
+          if (keyColor === 'green') {
+            dist = Math.sqrt( (r - rRef)**2 + (g - gRef)**2 + (b - bRef)**2 );
+          } else if (keyColor === 'blue') {
+            dist = Math.sqrt( (r - rRef)**2 + (g - gRef)**2 + (b - bRef)**2 );
+          } else {
+            dist = Math.sqrt( (r - rRef)**2 + (g - gRef)**2 + (b - bRef)**2 );
+          }
+          const maxDist = 255 * Math.sqrt(3);
+          let alpha = 1;
+          if (dist < threshold * maxDist) {
+            alpha = 0;
+          } else if (dist < (threshold + diff) * maxDist && soft > 0) {
+            const t = (dist - threshold * maxDist) / (diff * maxDist);
+            alpha = Math.min(1, Math.max(0, t));
+          }
+          if (alpha === 0) {
+            data[i+3] = 0;
+          } else if (alpha < 1) {
+            data[i+3] = Math.floor(255 * alpha);
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        requestAnimationFrame(drawFrame);
+      }
+
+      function startAnimation(index) {
+        if (!window.videoList || !window.videoList.length) return;
+        if (index >= window.videoList.length) index = 0;
+        currentVideoIndex = index;
+        const videoData = window.videoList[currentVideoIndex];
+        if (!videoData || !videoData.src) return;
+        videoElement.src = videoData.src;
+        videoElement.load();
+        videoElement.muted = true;
+        videoElement.loop = true;
+        videoElement.play().catch(e => console.log("Error reproduciendo animación:", e));
+        resizeCanvas();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(drawFrame);
+        isAnimating = true;
+      }
+
+      function rotateAnimation() {
+        if (!window.videoList || window.videoList.length === 0) return;
+        if (!isAnimating) {
+          startAnimation(0);
+        }
+        // Cambiar de video cada 30 segundos
+        setInterval(() => {
+          if (!window.videoList || window.videoList.length === 0) return;
+          currentVideoIndex = (currentVideoIndex + 1) % window.videoList.length;
+          const newVideo = window.videoList[currentVideoIndex];
+          if (newVideo && newVideo.src) {
+            videoElement.src = newVideo.src;
+            videoElement.load();
+            videoElement.play().catch(e => console.log("Error cambiando animación"));
+          }
+        }, 30000);
+      }
+
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+      });
+
+      // Esperar a que cargue animaciones.js (window.videoList)
+      if (window.videoList && window.videoList.length) {
+        rotateAnimation();
+      } else {
+        const checkVideoList = setInterval(() => {
+          if (window.videoList && window.videoList.length) {
+            clearInterval(checkVideoList);
+            rotateAnimation();
+          }
+        }, 500);
+      }
+    })();
+
     // ========== MÚSICA DE FONDO USANDO EL ARCHIVO EXTERNO ==========
-    // Esperamos a que se cargue el archivo musica_fondo.js que define window.musicList
     (function() {
       let currentAudio = null;
       let currentTrackIndex = 0;
@@ -1132,7 +1286,6 @@
           currentAudio.pause();
           currentAudio = null;
         }
-        // Verificar que window.musicList esté disponible (desde musica_fondo.js)
         if (!window.musicList || !window.musicList.length) {
           console.warn("Lista de música no cargada o vacía");
           return;
@@ -1152,13 +1305,11 @@
 
       function startMusic() {
         if (!isPlaying && window.musicList && window.musicList.length) {
-          // Seleccionar un índice aleatorio al inicio
           currentTrackIndex = Math.floor(Math.random() * window.musicList.length);
           playTrack(currentTrackIndex);
         }
       }
 
-      // Iniciar con la primera interacción del usuario
       document.addEventListener('click', startMusic, { once: true });
       document.addEventListener('touchstart', startMusic, { once: true });
     })();
