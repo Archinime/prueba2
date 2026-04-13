@@ -15,6 +15,11 @@ class VideoPlayer {
     
     this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
+    // Mantener variables globales para compatibilidad con comentarios.js
+    window.comentariosAnimeId = this.animeId;
+    window.comentariosSeason = this.season;
+    window.comentariosEpisode = this.episode;
+    
     this.initFirebase();
     this.initUI();
     this.loadEpisodeData();
@@ -39,11 +44,6 @@ class VideoPlayer {
     
     // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
-    
-    // Mantener variables globales para compatibilidad con comentarios.js
-    window.comentariosAnimeId = this.animeId;
-    window.comentariosSeason = this.season;
-    window.comentariosEpisode = this.episode;
   }
   
   initFirebase() {
@@ -342,12 +342,11 @@ class VideoPlayer {
     }
   }
   
-  // SOLUCIÓN: Agregada protección de nulidad (el panel no se romperá si por alguna razón no está en el DOM un momento)
   toggleEmojiPanel() { 
     const panel = document.getElementById('emojiPanel');
     if (panel) {
       panel.classList.toggle('active'); 
-      document.getElementById('stickerPanelFull')?.classList.remove('active'); // Ocultar el otro si se abre este
+      document.getElementById('stickerPanelFull')?.classList.remove('active');
     }
   }
   
@@ -364,7 +363,7 @@ class VideoPlayer {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) {
       panel.classList.toggle('active');
-      document.getElementById('emojiPanel')?.classList.remove('active'); // Ocultar el otro
+      document.getElementById('emojiPanel')?.classList.remove('active'); 
       
       if (panel.classList.contains('active') && typeof cargarStickersUsuario === 'function') {
         cargarStickersUsuario();

@@ -7,6 +7,7 @@
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosUnsubscribe = null;
+let comentariosInicializados = false; // Flag para evitar reinicios dobles
 
 // Variables globales necesarias para interacciones inline
 window.stickerSeleccionadoParaEnviar = null;
@@ -14,50 +15,52 @@ window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
 function initComentariosSystem(db, auth) {
+    if (comentariosInicializados) return;
+    comentariosInicializados = true;
+
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
 
+    // Función interna para manejar la UI según el usuario
+    const procesarUsuario = async (user) => {
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().customColor) {
+                    if(window.ArchinimeState) ArchinimeState.set('currentUserColor', userDoc.data().customColor);
+                    else window.comentariosCurrentUserColor = userDoc.data().customColor;
+                } else {
+                    if(window.ArchinimeState) ArchinimeState.set('currentUserColor', null);
+                    else window.comentariosCurrentUserColor = null;
+                }
+            } catch(e) { console.warn(e); }
+        } else {
+            if(window.ArchinimeState) ArchinimeState.set('currentUserColor', null);
+            else window.comentariosCurrentUserColor = null;
+        }
+        updateComentariosUI();
+    };
+
     // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
-        ArchinimeState.on('currentUser', async (user) => {
-            if (user) {
-                try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
-                    } else {
-                        ArchinimeState.set('currentUserColor', null);
-                    }
-                } catch(e) { console.warn(e); }
-            } else {
-                ArchinimeState.set('currentUserColor', null);
-            }
-
-            updateComentariosUI();
-
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
-        });
+        ArchinimeState.on('currentUser', procesarUsuario);
+        // Procesar inmediatamente el usuario si ya resolvió
+        procesarUsuario(ArchinimeState.get('currentUser'));
     } else {
-        // Fallback: usar auth directamente si state.js no está cargado
-        auth.onAuthStateChanged(async (user) => {
+        // Fallback
+        auth.onAuthStateChanged((user) => {
             window.currentUserForComent = user;
-            window.comentariosCurrentUserColor = null;
-            if (user) {
-                try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        window.comentariosCurrentUserColor = userDoc.data().customColor;
-                    }
-                } catch(e) {}
-            }
-            updateComentariosUI();
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            procesarUsuario(user);
         });
+    }
+
+    // 🔥 ARREGLO CRÍTICO: Disparar la carga de comentarios de inmediato, sin depender del listener del usuario
+    if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
+        setupComentariosRealtimeListener();
+    } else {
+        const container = document.getElementById('comentariosList');
+        if(container) container.innerHTML = '<div class="empty-comments" style="color:var(--cm-neon-alert);">Error: Faltan datos del episodio en la URL.</div>';
     }
 
     setTimeout(() => {
@@ -79,6 +82,7 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
+    
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
@@ -241,12 +245,24 @@ function hexToRgbA(hex, alpha) {
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
+    
+    const tempSeason = parseInt(window.comentariosSeason);
+    const tempEpisode = parseInt(window.comentariosEpisode);
+
+    // Validación extra para evitar errores silenciosos en Firebase
+    if (!window.comentariosAnimeId || isNaN(tempSeason) || isNaN(tempEpisode)) {
+        const container = document.getElementById('comentariosList');
+        if (container) container.innerHTML = '<div class="empty-comments" style="color:var(--cm-neon-alert);">No se pudieron cargar los comentarios. La URL está incompleta.</div>';
+        return;
+    }
+
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', parseInt(window.comentariosSeason))
-        .where('episode', '==', parseInt(window.comentariosEpisode))
+        .where('season', '==', tempSeason)
+        .where('episode', '==', tempEpisode)
         .orderBy('timestamp', 'desc') 
         .limit(100);
+        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
@@ -371,7 +387,14 @@ function setupComentariosRealtimeListener() {
                 }
             }, 400);
         }
-    }, (error) => console.error('Error en comentarios:', error));
+    }, (error) => {
+        // 🔥 ARREGLO CRÍTICO: Mostrar error si falla (como requerir index en Firebase)
+        console.error('Error en comentarios:', error);
+        const container = document.getElementById('comentariosList');
+        if (container) {
+            container.innerHTML = `<div class="empty-comments" style="color:var(--cm-neon-alert); border: 1px dashed var(--cm-neon-alert); padding: 20px;"><b>Error de sistema:</b><br>${error.message}<br><br><span style="font-size:0.8rem; color:#aaa;">(Si eres el creador, verifica que tienes los "Índices compuestos" configurados en tu consola de Firestore).</span></div>`;
+        }
+    });
 }
 
 window.eliminarComentarioSistema = async function(id) {
@@ -571,24 +594,19 @@ function procesarTextoComentario(texto) {
     return palabras.join('').replace(/^(<br>)+/, '').trim();
 }
 
-// -------------------------------------------------------------
-// AQUÍ ESTABA EL BUG PRINCIPAL. CÓDIGO CORREGIDO:
-// -------------------------------------------------------------
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
-    const sendBtn = document.getElementById('enviarComentarioBtn'); // Usamos el botón de enviar como ancla real
+    const sendBtn = document.getElementById('enviarComentarioBtn'); 
     
     const previewEl = document.getElementById('comentarioStickerPreview');
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
 
-    // Devolvemos los paneles a su lugar correcto antes del botón de enviar
     if (originalContainer && sendBtn) {
         if(previewEl) originalContainer.insertBefore(previewEl, sendBtn);
         if(emojiEl) originalContainer.insertBefore(emojiEl, sendBtn);
         if(stickerEl) originalContainer.insertBefore(stickerEl, sendBtn);
     } else if (originalContainer) {
-        // Fallback seguro por si no existiera el botón
         if(previewEl) originalContainer.appendChild(previewEl);
         if(emojiEl) originalContainer.appendChild(emojiEl);
         if(stickerEl) originalContainer.appendChild(stickerEl);
@@ -597,7 +615,6 @@ window.restaurarPanelesGlobales = function() {
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
-// -------------------------------------------------------------
 
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
@@ -659,7 +676,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
 window.cancelarRespuesta = function(forzarSync = false) {
     const box = window.respondiendoA ? document.getElementById(`dynamicReplyBox-${window.respondiendoA.id}`) : document.querySelector('[id^="dynamicReplyBox-"]');
     window.respondiendoA = null;
-    restaurarPanelesGlobales(); // <--- AHORA SÍ FUNCIONARÁ
+    restaurarPanelesGlobales(); 
     quitarStickerPreview();
     if (box) box.remove();
 };
@@ -737,7 +754,6 @@ async function enviarComentarioTexto() {
     textoInput.value = ''; textoInput.style.height = 'auto';
     quitarStickerPreview(); validarBotonPrincipal(textoInput);
 
-    // Esconder paneles al enviar un comentario principal para que no estorben
     document.getElementById('emojiPanel')?.classList.remove('active');
     document.getElementById('stickerPanelFull')?.classList.remove('active');
 
@@ -774,7 +790,7 @@ window.enviarRespuestaDinamica = async function() {
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     quitarStickerPreview();
-    restaurarPanelesGlobales(); // Mueve los paneles al form base antes de eliminar
+    restaurarPanelesGlobales(); 
 
     try {
         const docRef = await comentariosDb.collection('comments').add({
@@ -787,9 +803,10 @@ window.enviarRespuestaDinamica = async function() {
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
-        cancelarRespuesta(true); // Cierra y elimina la caja (pero los paneles ya están a salvo)
+        cancelarRespuesta(true); 
     } catch (error) { alert('Error: ' + error.message); }
 };
+
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -806,6 +823,7 @@ window.seleccionarStickerParaEnviar = function(url) {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -813,6 +831,7 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -877,5 +896,9 @@ function showToastComent(msg) {
 }
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
-function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text;
-return div.innerHTML; }
+
+function escapeHtmlComent(text) { 
+    const div = document.createElement('div'); 
+    div.textContent = text;
+    return div.innerHTML; 
+}
