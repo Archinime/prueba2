@@ -1,7 +1,8 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v11.0
 // (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
+// + SANITIZACIÓN CON DOMPURIFY + INICIALIZACIÓN ROBUSTA
 // ============================================
 
 let comentariosDb = null;
@@ -13,10 +14,36 @@ window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
+// ========== SANITIZACIÓN (usa DOMPurify si está disponible) ==========
+function sanitizeHtml(html) {
+    if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['div', 'span', 'br', 'a', 'img', 'video', 'button', 'i', 'b', 'strong', 'em', 'p'],
+            ALLOWED_ATTR: ['href', 'src', 'class', 'id', 'style', 'target', 'alt', 'title', 'data-*', 'onclick', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
+        });
+    }
+    // Fallback básico
+    const temp = document.createElement('div');
+    temp.textContent = html;
+    return temp.innerHTML;
+}
+
+// ========== INICIALIZACIÓN PRINCIPAL ==========
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS(); // CSS idéntico al original
+
+    // Intenta iniciar el listener cuando todo esté listo
+    const tryStartListener = () => {
+        const user = getCurrentUser();
+        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
+            console.log("✅ Comentarios: todos los datos listos, iniciando listener");
+            setupComentariosRealtimeListener();
+            return true;
+        }
+        return false;
+    };
 
     // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
@@ -33,15 +60,18 @@ function initComentariosSystem(db, auth) {
             } else {
                 ArchinimeState.set('currentUserColor', null);
             }
-
             updateComentariosUI();
-
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
+        // Si ya hay usuario, forzar evento (por si el evento ya pasó)
+        const currentUser = ArchinimeState.get('currentUser');
+        if (currentUser) {
+            ArchinimeState.emit('currentUser', currentUser);
+        } else {
+            updateComentariosUI();
+        }
     } else {
-        // Fallback: usar auth directamente si state.js no está cargado
+        // Fallback: usar auth directamente
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
@@ -54,12 +84,11 @@ function initComentariosSystem(db, auth) {
                 } catch(e) {}
             }
             updateComentariosUI();
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
     }
 
+    // Configurar eventos del textarea principal después de un pequeño retraso
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
@@ -81,8 +110,29 @@ function initComentariosSystem(db, auth) {
     }, 1000);
 
     document.addEventListener('click', () => closeAllCommentMenus());
+
+    // Reintento cada segundo hasta que los parámetros estén listos (máx 20s)
+    let retryCount = 0;
+    const interval = setInterval(() => {
+        if (tryStartListener() || retryCount > 20) {
+            clearInterval(interval);
+        }
+        retryCount++;
+    }, 1000);
 }
 
+// ========== FUNCIÓN PÚBLICA PARA RECIBIR PARÁMETROS DESDE video-player-core.js ==========
+window.setComentariosParams = function(animeId, season, episode) {
+    window.comentariosAnimeId = animeId;
+    window.comentariosSeason = parseInt(season);
+    window.comentariosEpisode = parseInt(episode);
+    // Si ya hay usuario y DB lista, reiniciamos el listener
+    if (comentariosDb && getCurrentUser()) {
+        setupComentariosRealtimeListener();
+    }
+};
+
+// ========== FUNCIONES DE UTILIDAD ==========
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
@@ -204,7 +254,7 @@ function injectCommentsCSS() {
     document.head.appendChild(style);
 }
 
-// ========== FUNCIONES QUE OBTIENEN USUARIO DESDE EL ESTADO ==========
+// ========== FUNCIONES PARA OBTENER USUARIO DESDE EL ESTADO CENTRAL ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -215,7 +265,7 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
-// ========== RESTO DE FUNCIONES (adaptadas para usar getCurrentUser) ==========
+// ========== MANEJO DE MENÚS ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -233,6 +283,7 @@ window.closeAllCommentMenus = function() {
     document.querySelectorAll('.comentario-item').forEach(m => m.style.zIndex = '');
 };
 
+// ========== UTILIDADES DE COLOR ==========
 function getNeonColorByString(str) {
     const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
     let hash = 0;
@@ -245,13 +296,19 @@ function hexToRgbA(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// ========== LISTENER EN TIEMPO REAL (RENDERIZADO COMPLETO) ==========
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
+    if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
+        console.warn("Comentarios: faltan parámetros del anime, no se puede iniciar listener");
+        return;
+    }
+    
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', parseInt(window.comentariosSeason))
-        .where('episode', '==', parseInt(window.comentariosEpisode))
+        .where('season', '==', window.comentariosSeason)
+        .where('episode', '==', window.comentariosEpisode)
         .orderBy('timestamp', 'desc') 
         .limit(100);
         
@@ -390,6 +447,7 @@ function setupComentariosRealtimeListener() {
     }, (error) => console.error('Error en comentarios:', error));
 }
 
+// ========== ELIMINAR COMENTARIO (CON SUS RESPUESTAS) ==========
 window.eliminarComentarioSistema = async function(id) {
     if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
     try {
@@ -408,6 +466,7 @@ window.eliminarComentarioSistema = async function(id) {
     }
 };
 
+// ========== GENERAR HTML DE UN COMENTARIO (CON SANITIZACIÓN) ==========
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
@@ -456,7 +515,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     
     const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
-    return `
+    let htmlCompleto = `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
@@ -482,8 +541,11 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         </div>
     `;
+    
+    return sanitizeHtml(htmlCompleto);
 }
 
+// ========== EDICIÓN DE COMENTARIOS ==========
 window.iniciarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer || textContainer.classList.contains('editing')) return;
@@ -537,6 +599,7 @@ window.reportarComentario = function(id) {
     showToastComent('🚩 Reportado.');
 };
 
+// ========== MOSTRAR/OCULTAR RESPUESTAS ==========
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
@@ -560,6 +623,7 @@ window.showMoreReplies = function(rootId) {
     if(btn) btn.style.display = 'none';
 };
 
+// ========== OBTENER TIEMPO RELATIVO ==========
 function obtenerTiempoRelativo(fecha) {
     const diff = Math.floor((new Date() - fecha) / 1000);
     if (diff < 60) return 'Hace un momento';
@@ -568,6 +632,7 @@ function obtenerTiempoRelativo(fecha) {
     return fecha.toLocaleDateString();
 }
 
+// ========== PROCESAR TEXTO DEL COMENTARIO (EMOJIS, LINKS, STICKERS) CON SANITIZACIÓN ==========
 function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto.trim());
@@ -596,9 +661,11 @@ function procesarTextoComentario(texto) {
             }
         }
     }
-    return palabras.join('').replace(/^(<br>)+/, '').trim();
+    let resultado = palabras.join('').replace(/^(<br>)+/, '').trim();
+    return sanitizeHtml(resultado);
 }
 
+// ========== RESTAURAR PANELES GLOBALES ==========
 window.restaurarPanelesGlobales = function() {
     const originalContainer = document.getElementById('comentarioFormContainer');
     const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
@@ -616,6 +683,7 @@ window.restaurarPanelesGlobales = function() {
     if(stickerEl) stickerEl.classList.remove('active');
 };
 
+// ========== PREPARAR RESPUESTA ==========
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -681,6 +749,7 @@ window.cancelarRespuesta = function(forzarSync = false) {
     if (box) box.remove();
 };
 
+// ========== MODAL DE STICKER ==========
 window.openStickerModal = function(url) {
     let modal = document.getElementById('stickerViewModal');
     if (!modal) {
@@ -723,6 +792,7 @@ window.closeStickerModal = function() {
     }
 };
 
+// ========== VALIDAR BOTÓN DE ENVÍO ==========
 window.validarBotonPrincipal = function(textarea) {
     if(!textarea) return;
     const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
@@ -738,6 +808,7 @@ window.validarBotonPrincipal = function(textarea) {
     }
 };
 
+// ========== ENVIAR COMENTARIO PRINCIPAL ==========
 async function enviarComentarioTexto() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -773,6 +844,7 @@ async function enviarComentarioTexto() {
     finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.original; } }
 }
 
+// ========== ENVIAR RESPUESTA DINÁMICA ==========
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -807,9 +879,11 @@ window.enviarRespuestaDinamica = async function() {
         
         window.lastPostedCommentId = docRef.id;
         cancelarRespuesta(true);
+        showToastComent('✅ Respuesta enviada');
     } catch (error) { alert('Error: ' + error.message); }
 };
 
+// ========== SELECCIONAR STICKER PARA ENVIAR ==========
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -837,6 +911,7 @@ window.quitarStickerPreview = function() {
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
 
+// ========== ACTUALIZAR UI SEGÚN USUARIO ==========
 function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -858,15 +933,16 @@ function updateComentariosUI() {
             avatar.style.boxShadow = `0 0 15px ${hexToRgbA(color, 0.5)}`;
         }
         
-        const name = document.getElementById('comentarioUserName');
-        if (name) {
-            name.innerText = currentUser.displayName || currentUser.email.split('@')[0];
-            name.style.color = color;
-            name.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
+        const nameSpan = document.getElementById('comentarioUserName');
+        if (nameSpan) {
+            nameSpan.innerText = currentUser.displayName || currentUser.email.split('@')[0];
+            nameSpan.style.color = color;
+            nameSpan.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
         }
     }
 }
 
+// ========== SISTEMA DE EMOTICONES Y STICKERS (PANELES) ==========
 function toggleEmojiPanelSistema() {
     const panel = document.getElementById('emojiPanel');
     if (panel) { panel.classList.toggle('active'); document.getElementById('stickerPanelFull')?.classList.remove('active'); }
@@ -886,6 +962,7 @@ function agregarEmojiAlTexto(emoji) {
     }
 }
 
+// ========== TOAST ==========
 function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
     if (!toast) {
@@ -899,3 +976,14 @@ function showToastComent(msg) {
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
 function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+// ========== EXPONER FUNCIONES GLOBALES PARA EL HTML ==========
+window.initComentariosSystem = initComentariosSystem;
+window.enviarComentarioTexto = enviarComentarioTexto;
+window.toggleEmojiPanelSistema = toggleEmojiPanelSistema;
+window.toggleStickerPanelSistema = toggleStickerPanelSistema;
+window.agregarEmojiAlTexto = agregarEmojiAlTexto;
+window.quitarStickerPreview = quitarStickerPreview;
+window.cancelarRespuesta = cancelarRespuesta;
+window.restaurarPanelesGlobales = restaurarPanelesGlobales;
+window.setComentariosParams = setComentariosParams;

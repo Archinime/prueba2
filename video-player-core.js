@@ -1,5 +1,6 @@
 // video-player-core.js - Versión Firestore + Estado central
 // Obtiene los enlaces desde la colección 'catalogo'
+// ACTUALIZADO: Soporte para comentarios.js (variables globales y setComentariosParams)
 
 class VideoPlayer {
   constructor() {
@@ -7,6 +8,16 @@ class VideoPlayer {
     this.animeId = this.params.get('anime');
     this.season = this.params.get('s');
     this.episode = this.params.get('e');
+    
+    // ========== NUEVO: Asignar variables globales para comentarios.js ==========
+    window.comentariosAnimeId = this.animeId;
+    window.comentariosSeason = this.season;
+    window.comentariosEpisode = this.episode;
+    
+    // Notificar a comentarios.js (si ya está cargado)
+    if (window.setComentariosParams) {
+      window.setComentariosParams(this.animeId, this.season, this.episode);
+    }
     
     this.auth = null;
     this.db = null;
@@ -37,13 +48,8 @@ class VideoPlayer {
       uploadSticker: (file) => this.uploadSticker(file)
     };
     
-    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
+    // Mantener compatibilidad: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
-    
-    // Mantener variables globales para compatibilidad con comentarios.js
-    window.comentariosAnimeId = this.animeId;
-    window.comentariosSeason = this.season;
-    window.comentariosEpisode = this.episode;
   }
   
   initFirebase() {
@@ -338,12 +344,14 @@ class VideoPlayer {
   }
   
   toggleEmojiPanel() { document.getElementById('emojiPanel').classList.toggle('active'); }
+  
   insertEmoji(emoji) { 
     const ta = document.getElementById('comentarioTexto'); 
     ta.value += emoji; 
     ta.focus(); 
     this.validateSendButton(); 
   }
+  
   toggleStickerPanel() {
     const panel = document.getElementById('stickerPanelFull');
     panel.classList.toggle('active');
@@ -351,12 +359,14 @@ class VideoPlayer {
       cargarStickersUsuario();
     }
   }
+  
   switchStickerTab(tabId) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`.sticker-tab[data-tab="${tabId}"]`).classList.add('active');
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab').classList.add('active');
   }
+  
   async uploadSticker(file) {
     if (!file) return;
     if (!this.getCurrentUser()) { alert('Inicia sesión para subir stickers'); return; }
@@ -365,6 +375,7 @@ class VideoPlayer {
       await subirStickerDesdePC(fakeInput);
     }
   }
+  
   validateSendButton() {
     const textarea = document.getElementById('comentarioTexto');
     const btn = document.getElementById('enviarComentarioBtn');
@@ -374,17 +385,27 @@ class VideoPlayer {
       btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
-  enviarComentario() { if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto(); }
-  quitarStickerPreview() { if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } this.validateSendButton(); }
+  
+  enviarComentario() { 
+    if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto(); 
+  }
+  
+  quitarStickerPreview() { 
+    if (typeof quitarStickerPreview === 'function') { 
+      quitarStickerPreview(); 
+    } 
+    this.validateSendButton(); 
+  }
 }
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
+// Funciones globales para compatibilidad (necesarias para eventos inline)
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();

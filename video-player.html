@@ -55,10 +55,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+  <!-- Firebase (siempre primero) -->
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <!-- DOMPurify para sanitización (NUEVO) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+  <!-- Estado global y autenticación (NUEVO: necesario para mantener sesión) -->
+  <script src="state.js"></script>
+  <script src="app-core.js"></script>
 
   <style>
     /* ===== VARIABLES Y ESTILOS BASE ===== */
@@ -753,6 +761,23 @@
       transform: translateY(-3px);
     }
 
+    /* Estilo moderno para cuando no hay stickers (NUEVO) */
+    .sticker-empty-modern {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 16px;
+      border: 1px dashed rgba(0, 255, 247, 0.3);
+      color: #ccc;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
     /* ===== MODAL LOGIN ===== */
     .auth-modal {
       position: fixed;
@@ -1110,6 +1135,20 @@
       updateProgress(100);
       finishLoading();
     }, 800);
+  });
+
+  // ========== CORRECCIÓN: Asegurar que el input de stickers funcione ==========
+  document.addEventListener('DOMContentLoaded', function() {
+    const stickerFileInput = document.getElementById('stickerFileInput');
+    if (stickerFileInput) {
+      stickerFileInput.addEventListener('change', function(e) {
+        if (window.subirStickerDesdePC) {
+          window.subirStickerDesdePC(this);
+        } else {
+          console.error('subirStickerDesdePC no está definido. Asegúrate de que stickers-system.js se cargó correctamente.');
+        }
+      });
+    }
   });
 </script>
 </body>

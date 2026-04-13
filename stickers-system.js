@@ -1,6 +1,8 @@
+// stickers-system.js
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// + ESTILO MODERNO PARA MENSAJE DE STICKERS VACÍOS
 // ============================================
 
 let stickersDb = null;
@@ -79,21 +81,29 @@ function renderUserStickers() {
     if (!container) return;
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     if (validStickers.length === 0) {
-        container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
+        // Estilo mejorado con la clase .sticker-empty-modern (definida en video-player.html)
+        container.innerHTML = `
+            <div class="sticker-empty-modern">
+                <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 10px;"></i>
+                <p style="margin: 5px 0; font-weight: 600;">No tienes stickers</p>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Sube uno o roba de los comentarios</p>
+            </div>
+        `;
         return;
     }
 
     let html = '';
     validStickers.forEach((url) => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
+        const safeUrl = url.replace(/'/g, "\\'");
         const tagMedia = isVideo 
-            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
-            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
+            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${safeUrl}')"></video>`
+            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${safeUrl}')">`;
             
         html += `
             <div class="sticker-item" style="border: 1px solid rgba(0, 255, 247, 0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5);">
                 ${tagMedia}
-                <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
+                <button class="sticker-delete-btn" onclick="eliminarSticker('${safeUrl}', event)" style="box-shadow: 0 0 8px #ff5555;">✖</button>
             </div>
         `;
     });
@@ -281,3 +291,8 @@ window.openLoginModalFromStickers = function() {
     const modal = document.getElementById('authModal');
     if (modal) modal.classList.add('show');
 };
+
+// Exponer funciones globales necesarias para eventos inline
+window.subirStickerDesdePC = subirStickerDesdePC;
+window.eliminarSticker = eliminarSticker;
+window.robarStickerSistema = window.robarStickerSistema;
