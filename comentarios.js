@@ -300,7 +300,7 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
-// ========== RESTO DE FUNCIONES (adaptadas para usar getCurrentUser) ==========
+// ========== RESTO DE FUNCIONES ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -332,12 +332,14 @@ function hexToRgbA(hex, alpha) {
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
+    
+    // EVITAR ERROR DE FIREBASE: Se quitó el .orderBy para no forzar la creación de Índices Compuestos manuales en Firestore
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
         .where('season', '==', parseInt(window.comentariosSeason))
         .where('episode', '==', parseInt(window.comentariosEpisode))
-        .orderBy('timestamp', 'desc') 
         .limit(100);
+        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
@@ -345,7 +347,6 @@ function setupComentariosRealtimeListener() {
         if (snapshot.empty) {
             container.innerHTML = `<div class="empty-comments" style="text-align: center; padding: 40px 20px;"><i class="fas fa-ghost" style="font-size: 3rem; color: var(--cm-border); margin-bottom: 15px; display:block;"></i><p style="font-size: 1rem; color: var(--cm-text-muted); font-weight: 600;">El vacío espacial... Sé el primero en comentar.</p></div>`;
             return;
-   
         }
 
         const openContainers = new Set();
@@ -353,11 +354,12 @@ function setupComentariosRealtimeListener() {
             if (el.style.display !== 'none') openContainers.add(el.id);
         });
 
-        const docsReversed = [...snapshot.docs].reverse();
-        const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
+        // ORDENAMIENTO EN MEMORIA (Reemplaza el orderBy problemático de Firestore)
+        const allComments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        allComments.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+        
         const commentMap = new Map();
-        allComments.forEach(c 
-=> commentMap.set(c.id, { ...c, replies: [] }));
+        allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
       
         const roots = [];
         allComments.forEach(c => {
@@ -367,12 +369,14 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
+        
         roots.sort((a, b) => {
             const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
             const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
             if (scoreB !== scoreA) return scoreB - scoreA;
             return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
         });
+        
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -383,8 +387,7 @@ function setupComentariosRealtimeListener() {
             let nodeHtml = '';
             const isNew = window.lastPostedCommentId === node.id;
             const hiddenClass = isHiddenRoot ? `hidden-reply-${rootId}` : '';
-            const hiddenStyle = isHiddenRoot ?
-'display: none;' : '';
+            const hiddenStyle = isHiddenRoot ? 'display: none;' : '';
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
@@ -396,7 +399,6 @@ function setupComentariosRealtimeListener() {
                     nodeHtml += `<div>
                                     <button class="toggle-respuestas-btn" onclick="toggleRespuestas('${node.id}')">
                                         <span id="text-${node.id}" data-total="${totalCount}">${textoBtn}</span>
-                  
                                     </button>
                                  </div>`;
                     nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none;">`;
@@ -441,8 +443,7 @@ function setupComentariosRealtimeListener() {
                 const targetEl = document.getElementById(`comment-${targetCommentId}`);
                 if (targetEl) {
                     let parent = targetEl.parentElement;
-                    while (parent 
-&& parent.id !== 'comentariosList') {
+                    while (parent && parent.id !== 'comentariosList') {
                         if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
                             parent.style.display = 'flex';
                             const rootId = parent.id.replace('container-', '');
@@ -470,7 +471,11 @@ function setupComentariosRealtimeListener() {
                 }
             }, 400);
         }
-    }, (error) => console.error('Error en comentarios:', error));
+    }, (error) => {
+        console.error('Error en comentarios:', error);
+        const container = document.getElementById('comentariosList');
+        if(container) container.innerHTML = `<div class="empty-comments" style="color: #ff5555; font-weight:bold;">⚠️ Error al cargar comentarios.</div>`;
+    });
 }
 
 window.eliminarComentarioSistema = async function(id) {

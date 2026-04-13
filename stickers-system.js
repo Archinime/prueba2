@@ -7,7 +7,7 @@ let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// ⚙️ CONFIGURACIÓN DE CLOUDINARY
+// CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
 const DEFAULT_STICKERS = [];
@@ -74,6 +74,10 @@ async function loadUserStickers() {
         renderUserStickers();
     } catch (e) {
         console.error("Error cargando stickers:", e);
+        const container = document.getElementById('userStickersContainer');
+        if (container) {
+            container.innerHTML = '<div class="sticker-empty" style="color: #ff5555; font-weight: bold;">⚠️ Error al cargar tu colección.</div>';
+        }
     }
 }
 

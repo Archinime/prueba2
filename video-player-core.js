@@ -36,7 +36,7 @@ class VideoPlayer {
       switchStickerTab: (tab) => this.switchStickerTab(tab)
     };
 
-    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
+    // MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
 
     // Mantener variables globales para compatibilidad con comentarios.js
@@ -64,6 +64,15 @@ class VideoPlayer {
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
+    // INICIALIZAR SISTEMAS EXTERNOS ANTES DE ESCUCHAR LOS CAMBIOS (Evita bloqueos)
+    if (typeof initComentariosSystem === 'function') {
+      initComentariosSystem(this.db, this.auth);
+    }
+    
+    if (typeof initStickersSystem === 'function') {
+      initStickersSystem(this.db, this.auth);
+    }
+
     // Sincronizar usuario con el estado central
     this.auth.onAuthStateChanged(user => {
       if (window.ArchinimeState) {
@@ -72,14 +81,6 @@ class VideoPlayer {
         this.currentUser = user;
       }
       this.updateCommentFormVisibility();
-      
-      if (typeof initComentariosSystem === 'function') {
-        initComentariosSystem(this.db, this.auth);
-      }
-      
-      if (typeof initStickersSystem === 'function') {
-        initStickersSystem(this.db, this.auth);
-      }
     });
   }
   
