@@ -1,67 +1,81 @@
 // comentarios.js
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
-// (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v13.0
+// CON SANITIZACIÓN, REINTENTOS Y PANELES FIJOS
 // ============================================
 
 let comentariosDb = null;
 let comentariosAuth = null;
 let comentariosUnsubscribe = null;
 
-// Variables globales necesarias para interacciones inline
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
+// ========== SANITIZACIÓN (usa DOMPurify si está disponible) ==========
+function sanitizeHtml(html) {
+    if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['div', 'span', 'br', 'a', 'img', 'video', 'button', 'i', 'b', 'strong', 'em', 'p'],
+            ALLOWED_ATTR: ['href', 'src', 'class', 'id', 'style', 'target', 'alt', 'title', 'data-*', 'onclick', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
+        });
+    }
+    const temp = document.createElement('div');
+    temp.textContent = html;
+    return temp.innerHTML;
+}
+
+function escapeHtmlComent(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========== INICIALIZACIÓN PRINCIPAL ==========
 function initComentariosSystem(db, auth) {
     comentariosDb = db;
     comentariosAuth = auth;
     injectCommentsCSS();
 
-    // Suscribirse al estado central para cambios de usuario
+    const tryStartListener = () => {
+        const user = getCurrentUser();
+        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
+            console.log("✅ Comentarios: todos los datos listos, iniciando listener");
+            setupComentariosRealtimeListener();
+            return true;
+        }
+        return false;
+    };
+
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', async (user) => {
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-           
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
-                    } else {
-                        ArchinimeState.set('currentUserColor', null);
-               
-                    }
+                    const color = userDoc.exists && userDoc.data().customColor ? userDoc.data().customColor : null;
+                    ArchinimeState.set('currentUserColor', color);
                 } catch(e) { console.warn(e); }
             } else {
                 ArchinimeState.set('currentUserColor', null);
             }
-
             updateComentariosUI();
-
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-  
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
+        const currentUser = ArchinimeState.get('currentUser');
+        if (currentUser) ArchinimeState.emit('currentUser', currentUser);
+        else updateComentariosUI();
     } else {
-        // Fallback: usar auth directamente si state.js no está cargado
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
             if (user) {
                 try {
-           
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        window.comentariosCurrentUserColor = userDoc.data().customColor;
-                    }
-                } 
-catch(e) {}
+                    if (userDoc.exists && userDoc.data().customColor) window.comentariosCurrentUserColor = userDoc.data().customColor;
+                } catch(e) {}
             }
             updateComentariosUI();
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
     }
 
@@ -71,14 +85,10 @@ catch(e) {}
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                 
-                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
-                        enviarComentarioTexto();
-                    }
+                    if(this.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) enviarComentarioTexto();
                 }
             });
             textarea.addEventListener('input', function() {
-      
                 autoResizeTextarea(this);
                 validarBotonPrincipal(this);
             });
@@ -86,9 +96,30 @@ catch(e) {}
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
     }, 1000);
+
     document.addEventListener('click', () => closeAllCommentMenus());
+
+    let retry = 0;
+    const interval = setInterval(() => {
+        if (tryStartListener() || retry > 30) {
+            clearInterval(interval);
+            if (retry > 30) console.error("❌ Comentarios: no se pudo iniciar después de 30 segundos");
+        }
+        retry++;
+    }, 1000);
 }
 
+window.setComentariosParams = function(animeId, season, episode) {
+    window.comentariosAnimeId = animeId;
+    window.comentariosSeason = parseInt(season);
+    window.comentariosEpisode = parseInt(episode);
+    console.log("📡 Parámetros de comentarios recibidos:", { animeId, season, episode });
+    if (comentariosDb && getCurrentUser()) {
+        setupComentariosRealtimeListener();
+    }
+};
+
+// ========== FUNCIONES DE UTILIDAD ==========
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
@@ -110,13 +141,9 @@ function injectCommentsCSS() {
             --cm-text-muted: #94a3b8;
         }
         
-        .comentario-user-info { display: flex !important;
-            align-items: center !important; gap: 12px !important; margin-bottom: 15px !important; }
-        #comentarioUserAvatar { width: 42px !important;
-            height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary); transition: all 0.3s;
-        }
-        #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important;
-            letter-spacing: 0.5px; transition: all 0.3s; }
+        .comentario-user-info { display: flex !important; align-items: center !important; gap: 12px !important; margin-bottom: 15px !important; }
+        #comentarioUserAvatar { width: 42px !important; height: 42px !important; border-radius: 50% !important; object-fit: cover !important; border: 2px solid var(--cm-neon-primary); transition: all 0.3s; }
+        #comentarioUserName { font-family: 'Orbitron', sans-serif !important; font-weight: 700 !important; font-size: 1.05rem !important; letter-spacing: 0.5px; transition: all 0.3s; }
 
         .comentario-item { 
             position: relative;
@@ -126,139 +153,73 @@ function injectCommentsCSS() {
             padding: 16px; display: flex; flex-direction: row; gap: 15px;
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
+        .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
 
-        .comentario-item.is-reply { background: rgba(10, 12, 16, 0.4); border-radius: 8px; padding: 12px 16px;
-            margin-bottom: 8px; }
+        .comentario-item.is-reply { background: rgba(10, 12, 16, 0.4); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
 
-        .comentario-avatar { flex-shrink: 0;
-        }
-        .comentario-avatar img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover;
-            border: 2px solid var(--user-color); box-shadow: 0 0 10px var(--user-color-glow); }
-        .is-reply .comentario-avatar img { width: 35px;
-            height: 35px; }
+        .comentario-avatar { flex-shrink: 0; }
+        .comentario-avatar img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--user-color); box-shadow: 0 0 10px var(--user-color-glow); }
+        .is-reply .comentario-avatar img { width: 35px; height: 35px; }
 
-        .comentario-content { flex: 1; min-width: 0; display: flex; flex-direction: column;
-        }
-        .comentario-header { display: flex; align-items: center; margin-bottom: 4px;
-        }
-        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color);
-            text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%;
-        }
-        .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;
-        }
+        .comentario-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .comentario-header { display: flex; align-items: center; margin-bottom: 4px; }
+        .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
 
-        .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px;
-        }
-        .comentario-fecha { color: var(--cm-text-muted); font-size: 0.8rem; font-weight: 600;
-        }
-        .comentario-badge-edit { font-size: 0.7rem; font-style: italic; opacity: 0.7; margin-left: 5px;
-        }
+        .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
+        .comentario-fecha { color: var(--cm-text-muted); font-size: 0.8rem; font-weight: 600; }
+        .comentario-badge-edit { font-size: 0.7rem; font-style: italic; opacity: 0.7; margin-left: 5px; }
         
-        .btn-responder-ghost { background: transparent;
-            border: none; color: var(--cm-text-muted); font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; transition: color 0.2s; text-transform: uppercase;
-            letter-spacing: 0.5px; }
-        .btn-responder-ghost:hover { color: var(--cm-neon-primary); text-shadow: 0 0 8px rgba(0,255,247,0.5);
-        }
+        .btn-responder-ghost { background: transparent; border: none; color: var(--cm-text-muted); font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-responder-ghost:hover { color: var(--cm-neon-primary); text-shadow: 0 0 8px rgba(0,255,247,0.5); }
 
-        .comentario-item.is-reply::before { content: ''; position: absolute; left: -22px; top: 25px; width: 22px;
-            height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px 0 0 2px;
-        }
-        .replies-thread { margin-left: 24px; padding-left: 20px;
-            border-left: 2px solid rgba(255, 255, 255, 0.08); margin-top: 5px; margin-bottom: 5px; display: flex; flex-direction: column;
-        }
-        .nested-reply .replies-thread { margin-left: 16px; padding-left: 14px;
-        }
-        .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px;
-        }
+        .comentario-item.is-reply::before { content: ''; position: absolute; left: -22px; top: 25px; width: 22px; height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px 0 0 2px; }
+        .replies-thread { margin-left: 24px; padding-left: 20px; border-left: 2px solid rgba(255, 255, 255, 0.08); margin-top: 5px; margin-bottom: 5px; display: flex; flex-direction: column; }
+        .nested-reply .replies-thread { margin-left: 16px; padding-left: 14px; }
+        .nested-reply .comentario-item.is-reply::before { left: -14px; width: 14px; }
 
-        .comment-options-container { position: absolute; top: 12px; right: 12px; z-index: 10;
-        }
-        .kebab-btn { background: transparent; border: none; color: #666; font-size: 1.1rem; cursor: pointer;
-            padding: 5px; transition: 0.2s; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-        }
-        .kebab-btn:hover { color: #fff; background: rgba(255,255,255,0.1);
-        }
+        .comment-options-container { position: absolute; top: 12px; right: 12px; z-index: 10; }
+        .kebab-btn { background: transparent; border: none; color: #666; font-size: 1.1rem; cursor: pointer; padding: 5px; transition: 0.2s; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        .kebab-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
         
-        .comment-dropdown { position: absolute;
-            top: 100%; right: 0; background: rgba(15, 15, 20, 0.98); border: 1px solid var(--cm-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 12px;
-            padding: 8px 0; min-width: 140px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;
-        }
-        .comment-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0);
-        }
-        .comment-dropdown-btn { background: transparent; border: none; color: #ccc; padding: 10px 18px;
-            width: 100%; text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
-            gap: 10px; }
-        .comment-dropdown-btn:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 22px;
-        }
+        .comment-dropdown { position: absolute; top: 100%; right: 0; background: rgba(15, 15, 20, 0.98); border: 1px solid var(--cm-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 12px; padding: 8px 0; min-width: 140px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; }
+        .comment-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .comment-dropdown-btn { background: transparent; border: none; color: #ccc; padding: 10px 18px; width: 100%; text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .comment-dropdown-btn:hover { background: rgba(255,255,255,0.05); color: #fff; padding-left: 22px; }
 
-        .toggle-respuestas-btn { background: transparent; border: none; color: var(--cm-text-muted); cursor: pointer;
-            font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.8rem; margin: 4px 0 12px 0; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
-        }
-        .toggle-respuestas-btn:hover { color: var(--cm-neon-primary);
-        }
-        .toggle-respuestas-btn::before { content: ''; width: 25px; height: 2px; background: rgba(255,255,255,0.1); display: inline-block;
-            border-radius: 2px; transition: 0.2s; }
-        .toggle-respuestas-btn:hover::before { background: var(--cm-neon-primary);
-            box-shadow: 0 0 8px var(--cm-neon-primary); }
+        .toggle-respuestas-btn { background: transparent; border: none; color: var(--cm-text-muted); cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.8rem; margin: 4px 0 12px 0; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .toggle-respuestas-btn:hover { color: var(--cm-neon-primary); }
+        .toggle-respuestas-btn::before { content: ''; width: 25px; height: 2px; background: rgba(255,255,255,0.1); display: inline-block; border-radius: 2px; transition: 0.2s; }
+        .toggle-respuestas-btn:hover::before { background: var(--cm-neon-primary); box-shadow: 0 0 8px var(--cm-neon-primary); }
 
-        .btn-more-replies { background: transparent;
-            border: 1px dashed rgba(255,255,255,0.2); color: var(--cm-text-muted); width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 5px;
-        }
-        .btn-more-replies:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.4);
-        }
+        .btn-more-replies { background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--cm-text-muted); width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 5px; }
+        .btn-more-replies:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.4); }
 
-        .reply-box-container { margin: 10px 0; padding: 16px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:12px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .reply-box-header { display: flex; justify-content: space-between; align-items: center; color: var(--cm-text-muted); font-size: 0.8rem;
-        }
-        .reply-box-header b { color: var(--cm-neon-primary); font-weight: 800;
-        }
-        .reply-box-close { background: rgba(255,255,255,0.05); border: none; color: #aaa; width: 28px; height: 28px;
-            border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
-        }
-        .reply-box-close:hover { background: var(--cm-neon-alert); color: #fff; transform: rotate(90deg);
-        }
-        .reply-box-body { display: flex; gap: 12px;
-        }
-        .reply-box-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-            border: 1px solid rgba(255,255,255,0.1); }
-        .reply-box-textarea { width: 100%; background: rgba(15,15,20,0.8);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; outline: none;
-            transition: 0.3s; min-height: 60px; }
-        .reply-box-textarea:focus { border-color: var(--cm-neon-primary);
-            box-shadow: inset 0 0 10px rgba(0,255,247,0.1); }
-        .reply-box-tools { display: flex; gap: 8px;
-            margin-top: 8px; }
-        .reply-box-tool-btn { background: rgba(255,255,255,0.05); border: 1px solid transparent; border-radius: 8px;
-            padding: 6px 12px; cursor: pointer; color: #fff; transition: 0.2s; }
-        .reply-box-tool-btn:hover { background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
-        .reply-box-submit { background: var(--cm-neon-primary); border: none; color: #000;
-            font-weight: 800; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.3);
-        }
-        .reply-box-submit:hover:not(.btn-disabled) { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-2px);
-        }
+        .reply-box-container { margin: 10px 0; padding: 16px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:12px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reply-box-header { display: flex; justify-content: space-between; align-items: center; color: var(--cm-text-muted); font-size: 0.8rem; }
+        .reply-box-header b { color: var(--cm-neon-primary); font-weight: 800; }
+        .reply-box-close { background: rgba(255,255,255,0.05); border: none; color: #aaa; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .reply-box-close:hover { background: var(--cm-neon-alert); color: #fff; transform: rotate(90deg); }
+        .reply-box-body { display: flex; gap: 12px; }
+        .reply-box-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .reply-box-textarea { width: 100%; background: rgba(15,15,20,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.9rem; resize: none; outline: none; transition: 0.3s; min-height: 60px; }
+        .reply-box-textarea:focus { border-color: var(--cm-neon-primary); box-shadow: inset 0 0 10px rgba(0,255,247,0.1); }
+        .reply-box-tools { display: flex; gap: 8px; margin-top: 8px; }
+        .reply-box-tool-btn { background: rgba(255,255,255,0.05); border: 1px solid transparent; border-radius: 8px; padding: 6px 12px; cursor: pointer; color: #fff; transition: 0.2s; }
+        .reply-box-tool-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .reply-box-submit { background: var(--cm-neon-primary); border: none; color: #000; font-weight: 800; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.3); }
+        .reply-box-submit:hover:not(.btn-disabled) { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-2px); }
 
-        .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block;
-            border: 1px solid rgba(255,255,255,0.1); }
-        .comentario-media { display: block; max-width: 200px; max-height: 250px;
-            object-fit: contain; }
+        .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
+        .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98);
-            } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
         @keyframes targetHighlight {
-            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary);
-                background: rgba(0, 243, 255, 0.3); }
-            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary);
-                background: rgba(0, 243, 255, 0.6); }
-            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary);
-                background: var(--cm-bg-glass); }
+            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
+            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
+            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
         }
         .comment-targeted {
             animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
@@ -266,30 +227,20 @@ function injectCommentsCSS() {
         }
 
         @media (max-width: 768px) {
-            .comentario-item { padding: 12px !important;
-                gap: 10px !important; border-radius: 10px !important; }
-            .comentario-avatar img { width: 38px !important;
-                height: 38px !important; }
-            .is-reply .comentario-avatar img { width: 30px !important;
-                height: 30px !important; }
-            .replies-thread { margin-left: 12px;
-                padding-left: 12px; }
-            .nested-reply .replies-thread { margin-left: 8px;
-                padding-left: 8px; }
-            .comentario-item.is-reply::before { left: -12px; width: 12px;
-            }
-            .comentario-texto { font-size: 0.85rem;
-            }
-            .comentario-footer { gap: 10px; margin-top: 8px;
-            }
-            .comment-options-container { top: 8px; right: 8px;
-            }
+            .comentario-item { padding: 12px !important; gap: 10px !important; border-radius: 10px !important; }
+            .comentario-avatar img { width: 38px !important; height: 38px !important; }
+            .is-reply .comentario-avatar img { width: 30px !important; height: 30px !important; }
+            .replies-thread { margin-left: 12px; padding-left: 12px; }
+            .nested-reply .replies-thread { margin-left: 8px; padding-left: 8px; }
+            .comentario-item.is-reply::before { left: -12px; width: 12px; }
+            .comentario-texto { font-size: 0.85rem; }
+            .comentario-footer { gap: 10px; margin-top: 8px; }
+            .comment-options-container { top: 8px; right: 8px; }
         }
     `;
     document.head.appendChild(style);
 }
 
-// ========== FUNCIONES QUE OBTIENEN USUARIO DESDE EL ESTADO ==========
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return window.currentUserForComent || null;
@@ -300,7 +251,6 @@ function getCurrentUserColor() {
     return window.comentariosCurrentUserColor || null;
 }
 
-// ========== RESTO DE FUNCIONES ==========
 window.toggleCommentMenu = function(id, event) {
     event.stopPropagation();
     const currentMenu = document.getElementById(`dropdown-${id}`);
@@ -332,18 +282,20 @@ function hexToRgbA(hex, alpha) {
 
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
-    
-    // EVITAR ERROR DE FIREBASE: Se quitó el .orderBy para no forzar la creación de Índices Compuestos manuales en Firestore
+    if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
+        console.warn("Comentarios: faltan parámetros, no se inicia listener");
+        return;
+    }
+    console.log("🔥 Escuchando comentarios para:", window.comentariosAnimeId, window.comentariosSeason, window.comentariosEpisode);
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', parseInt(window.comentariosSeason))
-        .where('episode', '==', parseInt(window.comentariosEpisode))
+        .where('season', '==', window.comentariosSeason)
+        .where('episode', '==', window.comentariosEpisode)
+        .orderBy('timestamp', 'desc')
         .limit(100);
-        
     comentariosUnsubscribe = commentsRef.onSnapshot((snapshot) => {
         const container = document.getElementById('comentariosList');
         if (!container) return;
-        
         if (snapshot.empty) {
             container.innerHTML = `<div class="empty-comments" style="text-align: center; padding: 40px 20px;"><i class="fas fa-ghost" style="font-size: 3rem; color: var(--cm-border); margin-bottom: 15px; display:block;"></i><p style="font-size: 1rem; color: var(--cm-text-muted); font-weight: 600;">El vacío espacial... Sé el primero en comentar.</p></div>`;
             return;
@@ -354,13 +306,10 @@ function setupComentariosRealtimeListener() {
             if (el.style.display !== 'none') openContainers.add(el.id);
         });
 
-        // ORDENAMIENTO EN MEMORIA (Reemplaza el orderBy problemático de Firestore)
-        const allComments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        allComments.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-        
+        const docsReversed = [...snapshot.docs].reverse();
+        const allComments = docsReversed.map(doc => ({ id: doc.id, ...doc.data() }));
         const commentMap = new Map();
         allComments.forEach(c => commentMap.set(c.id, { ...c, replies: [] }));
-      
         const roots = [];
         allComments.forEach(c => {
             if (c.replyToId && commentMap.has(c.replyToId)) {
@@ -369,14 +318,14 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-        
+
         roots.sort((a, b) => {
             const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
             const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
             if (scoreB !== scoreA) return scoreB - scoreA;
             return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
         });
-        
+
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -388,7 +337,6 @@ function setupComentariosRealtimeListener() {
             const isNew = window.lastPostedCommentId === node.id;
             const hiddenClass = isHiddenRoot ? `hidden-reply-${rootId}` : '';
             const hiddenStyle = isHiddenRoot ? 'display: none;' : '';
-            
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
             if (node.replies && node.replies.length > 0) {
@@ -430,7 +378,6 @@ function setupComentariosRealtimeListener() {
                 el.style.display = 'flex';
                 const rootId = id.replace('container-', '');
                 const textSpan = document.getElementById(`text-${rootId}`);
-            
                 if (textSpan) textSpan.innerText = 'Ocultar respuestas';
             }
         });
@@ -447,11 +394,9 @@ function setupComentariosRealtimeListener() {
                         if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
                             parent.style.display = 'flex';
                             const rootId = parent.id.replace('container-', '');
-    
                             const textSpan = document.getElementById(`text-${rootId}`);
                             if (textSpan) textSpan.innerText = 'Ocultar respuestas';
                         }
-                
                         if (parent.className.includes('hidden-reply-')) {
                             parent.style.display = 'block';
                             const match = parent.className.match(/hidden-reply-([^ ]+)/);
@@ -471,11 +416,7 @@ function setupComentariosRealtimeListener() {
                 }
             }, 400);
         }
-    }, (error) => {
-        console.error('Error en comentarios:', error);
-        const container = document.getElementById('comentariosList');
-        if(container) container.innerHTML = `<div class="empty-comments" style="color: #ff5555; font-weight:bold;">⚠️ Error al cargar comentarios.</div>`;
-    });
+    }, (error) => console.error('Error en comentarios:', error));
 }
 
 window.eliminarComentarioSistema = async function(id) {
@@ -499,7 +440,6 @@ window.eliminarComentarioSistema = async function(id) {
 function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let fecha = 'Justo ahora';
     if (c.timestamp?.toDate) fecha = obtenerTiempoRelativo(c.timestamp.toDate());
-    
     const currentUser = getCurrentUser();
     const isAdmin = currentUser?.email === 'archinime12@gmail.com';
     const isOwner = currentUser?.uid === c.userId;
@@ -507,10 +447,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const userName = c.userName || 'Usuario';
     const neonColor = c.customColor || getNeonColorByString(c.userId || userName);
     const neonGlow = hexToRgbA(neonColor, 0.4);
-
     let contenidoHtml = procesarTextoComentario(c.texto || '');
     let badgeEditado = c.editado ? '<span class="comentario-badge-edit">(Editado)</span>' : '';
-    
     if (c.esSticker && c.stickerUrl && !contenidoHtml.includes(c.stickerUrl)) {
         const isVideo = c.stickerUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
@@ -522,12 +460,10 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
         `;
     }
-    
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
-    const deleteMenuBtn = isAdmin ?
-        `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
+    const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
@@ -535,18 +471,13 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 ${reportMenuBtn}
                 ${editMenuBtn}
                 ${deleteMenuBtn}
-         
             </div>
         </div>
     `;
-
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
-    
-    const botonResponder = currentUser ?
-        `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
-
-    return `
+    const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    let htmlCompleto = `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
             ondblclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();"
             style="--user-color: ${neonColor}; --user-color-glow: ${neonGlow};">
@@ -558,7 +489,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             </div>
             
             <div class="comentario-content">
-     
                 <div class="comentario-header">
                     <span class="comentario-user">${escapeHtmlComent(userName)}</span>
                 </div>
@@ -570,10 +500,10 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                     ${botonResponder}
                     ${reaccionesBar}
                 </div>
-      
             </div>
         </div>
     `;
+    return sanitizeHtml(htmlCompleto);
 }
 
 window.iniciarEdicion = function(commentId) {
@@ -582,7 +512,6 @@ window.iniciarEdicion = function(commentId) {
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
-    
     const plainText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '').trim();
     textContainer.innerHTML = `
         <div class="reply-box-container" style="animation: none; margin: 10px 0 0 0; background: rgba(0,0,0,0.2);">
@@ -590,17 +519,18 @@ window.iniciarEdicion = function(commentId) {
             <div style="display:flex; gap:10px; justify-content: flex-end; margin-top: 8px;">
                 <button onclick="cancelarEdicion('${commentId}')" style="background:transparent; border:none; color:var(--cm-text-muted); cursor:pointer; font-weight:700; font-family:'Poppins', sans-serif;">Cancelar</button>
                 <button onclick="guardarEdicion('${commentId}')" class="reply-box-submit">Guardar</button>
-      
             </div>
         </div>
     `;
 };
+
 window.cancelarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer) return;
     textContainer.innerHTML = textContainer.getAttribute('data-original-html');
     textContainer.classList.remove('editing');
 };
+
 window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
@@ -619,10 +549,12 @@ window.guardarEdicion = async function(commentId) {
         }
     } catch (error) { alert("Error: " + error.message); }
 };
+
 window.reportarComentario = function(id) {
     if(!getCurrentUser()) return openLoginModalFromComent();
     showToastComent('🚩 Reportado.');
 };
+
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
@@ -638,6 +570,7 @@ window.toggleRespuestas = function(rootId) {
         }
     }
 };
+
 window.showMoreReplies = function(rootId) {
     document.querySelectorAll(`.hidden-reply-${rootId}`).forEach(el => el.style.display = 'block');
     const btn = document.getElementById(`showMore-${rootId}`);
@@ -657,7 +590,6 @@ function procesarTextoComentario(texto) {
     let html = escapeHtmlComent(texto.trim());
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
     for (const [code, emoji] of Object.entries(emojisMap)) html = html.split(code).join(emoji);
-    
     html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
     html = html.replace(stickerRegex, (match, url) => {
@@ -678,32 +610,25 @@ function procesarTextoComentario(texto) {
             }
         }
     }
-    return palabras.join('').replace(/^(<br>)+/, '').trim();
+    let resultado = palabras.join('').replace(/^(<br>)+/, '').trim();
+    return sanitizeHtml(resultado);
 }
 
 window.restaurarPanelesGlobales = function() {
-    const originalContainer = document.getElementById('comentarioFormContainer');
-    const actionsDiv = originalContainer ? originalContainer.querySelector('.comentario-actions') : null;
-    const previewEl = document.getElementById('comentarioStickerPreview');
+    // Esta función ya NO mueve los paneles, solo cierra los paneles activos
     const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
-    if (originalContainer && actionsDiv) {
-        if(previewEl) originalContainer.insertBefore(previewEl, actionsDiv);
-        if(emojiEl) originalContainer.insertBefore(emojiEl, actionsDiv);
-        if(stickerEl) originalContainer.insertBefore(stickerEl, actionsDiv);
-    }
     if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
+
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
     cancelarRespuesta(true);
     window.respondiendoA = { id: commentId, userName, userId };
-    
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (!commentEl) return;
-    
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
@@ -715,39 +640,22 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         <div class="reply-box-body">
             <img src="${currentUser.photoURL || 'invitado.avif'}" class="reply-box-avatar">
             <div style="flex: 1;">
-      
                 <textarea id="dynamicReplyText-${commentId}" class="reply-box-textarea" placeholder="Añade una respuesta pública..." maxlength="500"></textarea>
                 <div class="reply-box-tools">
                     <button type="button" class="reply-box-tool-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                     <button type="button" class="reply-box-tool-btn" onclick="toggleStickerPanelSistema()"><i class="fas fa-sticky-note"></i></button>
                 </div>
-  
-                <div id="dynamicPanelsDest-${commentId}" style="width: 100%;
-margin-top: 8px;"></div>
-                <div style="display: flex;
-justify-content: flex-end; margin-top: 10px;">
+                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                     <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="reply-box-submit btn-disabled">Responder</button>
                 </div>
             </div>
         </div>
     `;
     commentEl.parentNode.insertBefore(replyBox, commentEl.nextSibling);
-    
-    const panelDest = document.getElementById(`dynamicPanelsDest-${commentId}`);
-    if (panelDest) {
-        const p1 = document.getElementById('comentarioStickerPreview');
-        const p2 = document.getElementById('emojiPanel');
-        const p3 = document.getElementById('stickerPanelFull');
-        if(p1) panelDest.appendChild(p1);
-        if(p2) { panelDest.appendChild(p2); p2.classList.remove('active'); }
-        if(p3) { panelDest.appendChild(p3); p3.classList.remove('active'); }
-    }
-    
     const textArea = document.getElementById(`dynamicReplyText-${commentId}`);
     if(textArea) {
         textArea.focus();
-        textArea.addEventListener('input', function() { autoResizeTextarea(this);
-            validarBotonPrincipal(this); });
+        textArea.addEventListener('input', function() { autoResizeTextarea(this); validarBotonPrincipal(this); });
         textArea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -776,27 +684,20 @@ window.openStickerModal = function(url) {
                 <button onclick="closeStickerModal()" style="position:absolute;top:-50px;right:-10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;"><i class="fas fa-times"></i></button>
                 <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);">
                 <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);"></video>
-    
-            <br><button id="stickerModalStealBtn" style="margin-top:25px;background:var(--cm-neon-primary);border:none;color:#000;padding:12px 25px;border-radius:25px;font-weight:800;font-family:'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,247,0.4);transition:0.2s;">
+                <br><button id="stickerModalStealBtn" style="margin-top:25px;background:var(--cm-neon-primary);border:none;color:#000;padding:12px 25px;border-radius:25px;font-weight:800;font-family:'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,247,0.4);transition:0.2s;">
                     <i class="fas fa-mask"></i> ROBAR STICKER
                 </button>
             </div>
         `;
         document.body.appendChild(modal);
     }
-    
     const isVideo = url.match(/\.(mp4|webm)$/i);
     const imgEl = document.getElementById('stickerModalImg');
     const vidEl = document.getElementById('stickerModalVid');
-    
-    if (isVideo) { imgEl.style.display = 'none'; vidEl.src = url; vidEl.style.display = 'block';
-    }
-    else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block';
-    }
-    
+    if (isVideo) { imgEl.style.display = 'none'; vidEl.src = url; vidEl.style.display = 'block'; }
+    else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
     document.getElementById('stickerModalStealBtn').onclick = () => {
-        if(typeof window.robarStickerSistema === 'function') { window.robarStickerSistema(url);
-            closeStickerModal(); }
+        if(typeof window.robarStickerSistema === 'function') { window.robarStickerSistema(url); closeStickerModal(); }
         else alert("Inicia sesión primero.");
     };
     modal.style.display = 'flex';
@@ -810,12 +711,12 @@ window.closeStickerModal = function() {
         setTimeout(() => { modal.style.display = 'none'; document.getElementById('stickerModalVid').src = ''; }, 300);
     }
 };
+
 window.validarBotonPrincipal = function(textarea) {
     if(!textarea) return;
     const btnId = textarea.id.startsWith('dynamicReplyText') && window.respondiendoA ? `btnEnviarRespuesta-${window.respondiendoA.id}` : 'enviarComentarioBtn';
     const btn = document.getElementById(btnId);
     if(!btn) return;
-
     if(textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar) {
         btn.classList.remove('btn-disabled');
         btn.style.opacity = '1'; btn.style.cursor = 'pointer';
@@ -830,35 +731,27 @@ async function enviarComentarioTexto() {
     if (!currentUser) return openLoginModalFromComent();
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
-
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
     if (btn && btn.classList.contains('btn-disabled')) return;
-    
-    if (btn) { btn.disabled = true; btn.dataset.original = btn.innerHTML; btn.innerHTML = 'Enviando...';
-    }
-    
+    if (btn) { btn.disabled = true; btn.dataset.original = btn.innerHTML; btn.innerHTML = 'Enviando...'; }
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     textoInput.value = ''; textoInput.style.height = 'auto';
     quitarStickerPreview(); validarBotonPrincipal(textoInput);
-
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
             userId: currentUser.uid, userName: currentUser.displayName || currentUser.email.split('@')[0],
             userAvatar: currentUser.photoURL || 'invitado.avif', texto: textoFinal,
             customColor: getCurrentUserColor() || null, 
-            
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
             replyToId: null, replyToUser: null, replyToUserId: null, reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
         showToastComent('✅ Enviado');
-    } catch (error) { alert('Error: ' + error.message); if (textoInput) textoInput.value = texto;
-    }
-    finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.original;
-    } }
+    } catch (error) { alert('Error: ' + error.message); if (textoInput) textoInput.value = texto; }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.original; } }
 }
 
 window.enviarRespuestaDinamica = async function() {
@@ -868,19 +761,15 @@ window.enviarRespuestaDinamica = async function() {
     const replyContext = { ...window.respondiendoA };
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
-
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     if (!texto && !stickerUrl) return;
-
     const btn = document.getElementById(`btnEnviarRespuesta-${replyContext.id}`);
     if (btn) btn.disabled = true;
     textoInput.disabled = true;
-    
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
     quitarStickerPreview();
     restaurarPanelesGlobales();
-
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId, season: parseInt(window.comentariosSeason), episode: parseInt(window.comentariosEpisode),
@@ -888,32 +777,30 @@ window.enviarRespuestaDinamica = async function() {
             userAvatar: currentUser.photoURL || 'invitado.avif', texto: textoFinal,
             customColor: getCurrentUserColor() || null,
             esSticker: !!stickerUrl, stickerUrl: stickerUrl || null,
-   
             replyToId: replyContext.id, replyToUser: replyContext.userName, replyToUserId: replyContext.userId,
             reactions: {}, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
         cancelarRespuesta(true);
+        showToastComent('✅ Respuesta enviada');
     } catch (error) { alert('Error: ' + error.message); }
 };
+
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     const previewContainer = document.getElementById('comentarioStickerPreview');
     const previewImg = document.getElementById('previewStickerImgObj');
     const previewVid = document.getElementById('previewStickerVidObj');
     if (!previewContainer) return;
-
-    if (url.match(/\.(mp4|webm)$/i)) { previewImg.style.display = 'none'; previewVid.src = url; previewVid.style.display = 'inline-block';
-    }
-    else { previewVid.style.display = 'none'; previewImg.src = url; previewImg.style.display = 'inline-block';
-    }
-    
+    if (url.match(/\.(mp4|webm)$/i)) { previewImg.style.display = 'none'; previewVid.src = url; previewVid.style.display = 'inline-block'; }
+    else { previewVid.style.display = 'none'; previewImg.src = url; previewImg.style.display = 'inline-block'; }
     previewContainer.style.display = 'block';
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -921,6 +808,7 @@ window.quitarStickerPreview = function() {
     const targetTextarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
     if(targetTextarea) validarBotonPrincipal(targetTextarea);
 };
+
 function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -938,26 +826,23 @@ function updateComentariosUI() {
             avatar.style.borderColor = color;
             avatar.style.boxShadow = `0 0 15px ${hexToRgbA(color, 0.5)}`;
         }
-        
-        const name = document.getElementById('comentarioUserName');
-        if (name) {
-            name.innerText = currentUser.displayName || currentUser.email.split('@')[0];
-            name.style.color = color;
-            name.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
+        const nameSpan = document.getElementById('comentarioUserName');
+        if (nameSpan) {
+            nameSpan.innerText = currentUser.displayName || currentUser.email.split('@')[0];
+            nameSpan.style.color = color;
+            nameSpan.style.textShadow = `0 0 10px ${hexToRgbA(color, 0.5)}`;
         }
     }
 }
 
 function toggleEmojiPanelSistema() {
     const panel = document.getElementById('emojiPanel');
-    if (panel) { panel.classList.toggle('active'); document.getElementById('stickerPanelFull')?.classList.remove('active');
-    }
+    if (panel) { panel.classList.toggle('active'); document.getElementById('stickerPanelFull')?.classList.remove('active'); }
 }
 
 function toggleStickerPanelSistema() {
     const panel = document.getElementById('stickerPanelFull');
-    if (panel) { panel.classList.toggle('active'); document.getElementById('emojiPanel')?.classList.remove('active');
-    }
+    if (panel) { panel.classList.toggle('active'); document.getElementById('emojiPanel')?.classList.remove('active'); }
 }
 
 function agregarEmojiAlTexto(emoji) {
@@ -981,5 +866,14 @@ function showToastComent(msg) {
 }
 
 function openLoginModalFromComent() { document.getElementById('authModal')?.classList.add('show'); }
-function escapeHtmlComent(text) { const div = document.createElement('div'); div.textContent = text;
-    return div.innerHTML; }
+
+// Exponer funciones globales necesarias
+window.initComentariosSystem = initComentariosSystem;
+window.enviarComentarioTexto = enviarComentarioTexto;
+window.toggleEmojiPanelSistema = toggleEmojiPanelSistema;
+window.toggleStickerPanelSistema = toggleStickerPanelSistema;
+window.agregarEmojiAlTexto = agregarEmojiAlTexto;
+window.quitarStickerPreview = quitarStickerPreview;
+window.cancelarRespuesta = cancelarRespuesta;
+window.restaurarPanelesGlobales = restaurarPanelesGlobales;
+window.setComentariosParams = setComentariosParams;
