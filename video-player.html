@@ -62,7 +62,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
+  <script src="state.js"></script>
+  <script src="app-core.js"></script>
+
   <style>
+    /* ===== TODOS LOS ESTILOS ORIGINALES (se mantienen) ===== */
     :root {
       --primary-color: #00fff7;
       --accent-color: #ff0055;
@@ -103,10 +107,13 @@
       pointer-events: none;
     }
 
+    /* Pantalla de carga */
     #loadingScreen {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: radial-gradient(circle at center, #0a0a0f 0%, #010101 100%);
       z-index: 100000;
       display: flex;
@@ -234,6 +241,7 @@
       gap: 15px;
     }
 
+    /* TOP NAV */
     .top-nav {
       display: flex;
       justify-content: space-between;
@@ -303,6 +311,7 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
+    /* REPRODUCTOR */
     .player-wrapper {
       position: relative;
       padding-bottom: 56.25%;
@@ -324,10 +333,13 @@
       border: none;
     }
 
+    /* LOGO BLOCKER */
     .logo-blocker {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 14%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 14%;
       min-height: 45px;
       background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
       backdrop-filter: blur(6px);
@@ -345,8 +357,10 @@
     .logo-blocker::after {
       content: '';
       position: absolute;
-      bottom: 25%; left: 0;
-      width: 100%; height: 1px;
+      bottom: 25%;
+      left: 0;
+      width: 100%;
+      height: 1px;
       background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
       opacity: 0.3;
     }
@@ -392,6 +406,7 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
+    /* CONTROLES */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -446,6 +461,7 @@
 
     .btn-hidden { visibility: hidden; pointer-events: none; }
 
+    /* COMENTARIOS */
     .comentarios-section {
       margin-top: 40px;
       padding: 30px;
@@ -637,6 +653,7 @@
       font-size: 1.1rem;
     }
 
+    /* STICKERS */
     .sticker-panel-full {
       display: none;
       background: #0a0a0f;
@@ -740,6 +757,57 @@
       transform: translateY(-3px);
     }
 
+    /* ===== ESTILO MODERNO PARA STICKERS VACÍOS ===== */
+    .sticker-empty-modern {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      border: 1px dashed rgba(0, 255, 247, 0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .sticker-empty-icon {
+      font-size: 3.5rem;
+      color: var(--primary-color);
+      opacity: 0.6;
+      filter: drop-shadow(0 0 10px var(--primary-color));
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+    .sticker-empty-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .sticker-empty-desc {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    .sticker-empty-hint {
+      font-size: 0.8rem;
+      color: var(--primary-color);
+      background: rgba(0, 255, 247, 0.1);
+      padding: 6px 15px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* MODAL LOGIN */
     .auth-modal {
       position: fixed;
       top: 0; left: 0;
@@ -971,23 +1039,16 @@
 
       <div id="stickerPanelFull" class="sticker-panel-full">
         <div class="sticker-tabs">
-          <button class="sticker-tab active" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
-          <button class="sticker-tab" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
+          <button class="sticker-tab active" data-tab="mis" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
+          <button class="sticker-tab" data-tab="subir" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
         </div>
         <div id="misStickersTab" class="sticker-tab-content active">
           <div id="userStickersContainer" class="stickers-grid">
             <div class="sticker-empty">Cargando...</div>
           </div>
         </div>
-        
         <div id="subirStickersTab" class="sticker-tab-content">
-          <div id="subirStickerLoginPrompt" class="add-sticker-container" style="display:none; flex-direction:column; align-items:center;">
-            <p class="add-sticker-desc" style="color: #fff; margin-bottom: 10px;">🔒 Inicia sesión para subir stickers y usar videos</p>
-            <button class="add-sticker-btn" onclick="window.openLoginModalFromStickers()" style="padding: 10px 20px; background: var(--primary-color); border: none; border-radius: 20px; color: black; font-weight: bold; cursor: pointer;">
-              <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-            </button>
-          </div>
-          <div id="subirStickerContent" class="add-sticker-container">
+          <div class="add-sticker-container">
             <p style="color:#fff; margin-bottom: 10px;">Sube imágenes o videos (máx. 2 MB)</p>
             <label for="stickerFileInput" class="upload-sticker-label">
               <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
@@ -999,7 +1060,6 @@
             </div>
           </div>
         </div>
-        
       </div>
 
       <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="window.videoPlayer?.enviarComentario()">
@@ -1043,12 +1103,10 @@
   </div>
 </div>
 
-<script defer src="video-player-data.js?v=20250406"></script>
-<script defer src="stickers-system.js?v=20250406"></script>
-<script defer src="reacciones.js?v=20250406"></script>
-<script defer src="comentarios.js?v=20250406"></script>
-<script defer src="video-player-core.js?v=20250406"></script>
-
+<script defer src="stickers-system.js"></script>
+<script defer src="reacciones.js"></script>
+<script defer src="comentarios.js"></script>
+<script defer src="video-player-core.js"></script>
 <script src="gifs.js"></script>
 
 <script>
@@ -1094,7 +1152,6 @@
   window.addEventListener('load', () => {
     clearInterval(interval);
     updateProgress(95);
-    
     setTimeout(() => {
       updateProgress(100);
       finishLoading();
