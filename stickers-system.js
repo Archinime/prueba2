@@ -15,7 +15,7 @@ const DEFAULT_STICKERS = [];
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
-    
+
     // Suscribirse al estado central
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', user => {
@@ -51,11 +51,14 @@ function getCurrentUser() {
 async function loadUserStickers() {
     const user = getCurrentUser();
     if (!user) return;
+
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
+
         if (doc.exists && doc.data().stickers) {
             // SOLUCIÓN BUG "STICKERS FANTASMAS": Filtro súper agresivo para eliminar espacios en blanco, nulls o rutas rotas.
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
+
             // Si después de limpiar el array quedó diferente a la base de datos original, actualizamos Firebase para limpiarlo permanentemente
             if(userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({
@@ -77,7 +80,9 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
+
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
+
     if (validStickers.length === 0) {
         container.innerHTML = '<div class="sticker-empty" style="color: var(--primary-color);">No tienes stickers. ¡Sube uno o roba de los comentarios!</div>';
         return;
@@ -116,12 +121,13 @@ async function eliminarSticker(urlSticker, event) {
     const user = getCurrentUser();
     if (!user) return;
     if (!confirm('¿Eliminar este sticker de tu colección?')) return;
-    
+
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.update({
             stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker)
         });
+
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
@@ -140,9 +146,10 @@ async function subirStickerDesdePC(input) {
     
     const file = input.files[0];
     if (!file) return;
-    
+
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
+        input.value = '';
         return;
     }
 
@@ -167,21 +174,23 @@ async function subirStickerDesdePC(input) {
     const oldText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo (Puede tardar)...';
     btnSubir.style.pointerEvents = 'none';
-    
+
     try {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
+
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
         });
+
         const data = await response.json();
         
         if (data.secure_url) {
             await guardarStickerEnColeccion(data.secure_url);
             previewContainer.style.display = 'none';
-            input.value = '';
+            if (input) input.value = ''; // Limpiar el input
             showToastSticker('✅ Archivo subido y guardado exitosamente');
             switchStickerTab('mis');
         } else {
@@ -200,6 +209,7 @@ async function subirStickerDesdePC(input) {
 async function guardarStickerEnColeccion(url) {
     const user = getCurrentUser();
     if (!user) return;
+
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -210,6 +220,7 @@ async function guardarStickerEnColeccion(url) {
         await userRef.set({
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
+
         userStickersCollection.push(url);
         renderUserStickers();
     } catch (e) {
@@ -225,6 +236,7 @@ window.robarStickerSistema = async function(url) {
     }
     
     const cleanUrl = url.trim();
+
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -235,6 +247,7 @@ window.robarStickerSistema = async function(url) {
         await userRef.set({ 
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
+
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
@@ -249,17 +262,17 @@ window.robarStickerSistema = async function(url) {
 
 function updateStickersUI() {
     const user = getCurrentUser();
-    if (!user) {
-        const subirTab = document.getElementById('subirStickersTab');
-        if (subirTab) {
-            subirTab.innerHTML = `
-                <div class="add-sticker-container">
-                    <p class="add-sticker-desc">🔒 Inicia sesión para subir stickers y usar videos</p>
-                    <button class="add-sticker-btn" onclick="openLoginModalFromStickers()">
-                        <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-                    </button>
-                </div>
-            `;
+    const subirTab = document.getElementById('subirStickersTab');
+    const contentDiv = document.getElementById('subirStickerContent');
+    const loginPrompt = document.getElementById('subirStickerLoginPrompt');
+
+    if (subirTab) {
+        if (!user) {
+            if (contentDiv) contentDiv.style.display = 'none';
+            if (loginPrompt) loginPrompt.style.display = 'flex';
+        } else {
+            if (contentDiv) contentDiv.style.display = 'flex';
+            if (loginPrompt) loginPrompt.style.display = 'none';
         }
     }
 }

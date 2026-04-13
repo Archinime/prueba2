@@ -1,6 +1,5 @@
 // video-player-core.js - Versión Firestore + Estado central
 // Obtiene los enlaces desde la colección 'catalogo'
-// CORREGIDO: Notifica a comentarios.js mediante setComentariosParams
 
 class VideoPlayer {
   constructor() {
@@ -9,28 +8,18 @@ class VideoPlayer {
     this.season = this.params.get('s');
     this.episode = this.params.get('e');
     
-    // ========== NUEVO: Asignar variables globales y notificar a comentarios.js ==========
-    window.comentariosAnimeId = this.animeId;
-    window.comentariosSeason = this.season;
-    window.comentariosEpisode = this.episode;
-    
-    if (window.setComentariosParams) {
-      window.setComentariosParams(this.animeId, this.season, this.episode);
-      console.log("📢 Notificación enviada a comentarios.js", { anime: this.animeId, season: this.season, episode: this.episode });
-    }
-    
     this.auth = null;
     this.db = null;
     this.storage = null;
     this.animeData = null;
     
-    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','�7','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
+    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
     this.initFirebase();
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-    
+
     // Exponer métodos necesarios para eventos inline
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
@@ -44,11 +33,16 @@ class VideoPlayer {
       registerWithEmail: () => this.registerWithEmail(),
       loginWithGoogle: () => this.loginWithGoogle(),
       loginWithGitHub: () => this.loginWithGitHub(),
-      switchStickerTab: (tab) => this.switchStickerTab(tab),
-      uploadSticker: (file) => this.uploadSticker(file)
+      switchStickerTab: (tab) => this.switchStickerTab(tab)
     };
-    
+
+    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
+
+    // Mantener variables globales para compatibilidad con comentarios.js
+    window.comentariosAnimeId = this.animeId;
+    window.comentariosSeason = this.season;
+    window.comentariosEpisode = this.episode;
   }
   
   initFirebase() {
@@ -60,7 +54,7 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-    
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -70,6 +64,7 @@ class VideoPlayer {
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
+    // Sincronizar usuario con el estado central
     this.auth.onAuthStateChanged(user => {
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
@@ -81,6 +76,7 @@ class VideoPlayer {
       if (typeof initComentariosSystem === 'function') {
         initComentariosSystem(this.db, this.auth);
       }
+      
       if (typeof initStickersSystem === 'function') {
         initStickersSystem(this.db, this.auth);
       }
@@ -119,11 +115,6 @@ class VideoPlayer {
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
-    
-    const fileInput = document.getElementById('stickerFileInput');
-    if (fileInput) {
-      fileInput.addEventListener('change', (e) => this.uploadSticker(e.target.files[0]));
-    }
   }
   
   async loadEpisodeData() {
@@ -154,7 +145,7 @@ class VideoPlayer {
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-      
+
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -162,7 +153,6 @@ class VideoPlayer {
       
       this.setupNavigation();
       this.autoMarkAsWatched();
-      
     } catch (error) {
       console.error('Error cargando episodio:', error);
       document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
@@ -327,7 +317,7 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
-    
+
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -346,7 +336,7 @@ class VideoPlayer {
     const ta = document.getElementById('comentarioTexto'); 
     ta.value += emoji; 
     ta.focus(); 
-    this.validateSendButton(); 
+    this.validateSendButton();
   }
   toggleStickerPanel() {
     const panel = document.getElementById('stickerPanelFull');
@@ -361,14 +351,7 @@ class VideoPlayer {
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab').classList.add('active');
   }
-  async uploadSticker(file) {
-    if (!file) return;
-    if (!this.getCurrentUser()) { alert('Inicia sesión para subir stickers'); return; }
-    if (typeof subirStickerDesdePC === 'function') {
-      const fakeInput = { files: [file] };
-      await subirStickerDesdePC(fakeInput);
-    }
-  }
+
   validateSendButton() {
     const textarea = document.getElementById('comentarioTexto');
     const btn = document.getElementById('enviarComentarioBtn');
@@ -388,9 +371,9 @@ if (document.readyState === 'loading') {
   new VideoPlayer();
 }
 
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
 window.switchStickerTab = (tab) => window.videoPlayer?.switchStickerTab(tab);
-window.subirStickerDesdePC = (input) => window.videoPlayer?.uploadSticker(input.files[0]);
