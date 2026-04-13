@@ -15,7 +15,6 @@ class VideoPlayer {
     
     this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
     
-    // Mantener variables globales para compatibilidad con comentarios.js
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -25,7 +24,6 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
     
-    // Exponer métodos necesarios para eventos inline
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -42,7 +40,6 @@ class VideoPlayer {
       uploadSticker: (file) => this.uploadSticker(file)
     };
     
-    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
   }
   
@@ -65,7 +62,6 @@ class VideoPlayer {
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
-    // Sincronizar usuario con el estado central
     this.auth.onAuthStateChanged(user => {
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
@@ -380,10 +376,19 @@ class VideoPlayer {
   
   async uploadSticker(file) {
     if (!file) return;
-    if (!this.getCurrentUser()) { alert('Inicia sesión para subir stickers'); return; }
+    if (!this.getCurrentUser()) { 
+      alert('Inicia sesión para subir stickers'); 
+      return; 
+    }
     if (typeof subirStickerDesdePC === 'function') {
       const fakeInput = { files: [file] };
       await subirStickerDesdePC(fakeInput);
+      if (typeof cargarStickersUsuario === 'function') {
+        setTimeout(() => cargarStickersUsuario(), 500);
+      }
+    } else {
+      console.error("subirStickerDesdePC no está definida");
+      alert("Error: sistema de stickers no cargado correctamente.");
     }
   }
   
@@ -413,7 +418,6 @@ if (document.readyState === 'loading') {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();

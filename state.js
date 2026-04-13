@@ -6,7 +6,6 @@ window.ArchinimeState = (function() {
     comentariosAnimeId: null,
     comentariosSeason: null,
     comentariosEpisode: null,
-    // Puedes añadir más propiedades globales aquí
   };
 
   const listeners = {};
@@ -39,7 +38,6 @@ window.ArchinimeState = (function() {
     return state[key];
   }
 
-  // Inicialización: escuchar cambios de autenticación de Firebase (si ya existe)
   if (typeof firebase !== 'undefined' && firebase.auth) {
     firebase.auth().onAuthStateChanged(async (user) => {
       set('currentUser', user);
