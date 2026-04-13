@@ -61,7 +61,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
-  <!-- DOMPurify para sanitización XSS -->
+  <!-- DOMPurify para sanitización (NUEVO) -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <!-- Estado global y autenticación (NUEVO: necesario para mantener sesión) -->
@@ -336,7 +336,7 @@
       border: none;
     }
 
-    /* ===== LOGO BLOCKER ===== */
+    /* ===== LOGO BLOCKER (ADAPTADO DE VIDEO-PLAYER2) ===== */
     .logo-blocker {
       position: absolute;
       top: 0;
@@ -761,7 +761,7 @@
       transform: translateY(-3px);
     }
 
-    /* Estilo moderno para cuando no hay stickers */
+    /* Estilo moderno para cuando no hay stickers (NUEVO) */
     .sticker-empty-modern {
       grid-column: 1 / -1;
       text-align: center;
@@ -1011,8 +1011,8 @@
 
       <div id="stickerPanelFull" class="sticker-panel-full">
         <div class="sticker-tabs">
-          <button class="sticker-tab active" data-tab="mis" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
-          <button class="sticker-tab" data-tab="subir" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
+          <button class="sticker-tab active" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
+          <button class="sticker-tab" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
         </div>
         <div id="misStickersTab" class="sticker-tab-content active">
           <div id="userStickersContainer" class="stickers-grid">
@@ -1075,7 +1075,6 @@
   </div>
 </div>
 
-<!-- Scripts (el orden es importante) -->
 <script defer src="video-player-data.js?v=20250406"></script>
 <script defer src="stickers-system.js?v=20250406"></script>
 <script defer src="reacciones.js?v=20250406"></script>
@@ -1085,7 +1084,7 @@
 <script src="gifs.js"></script>
 
 <script>
-  // Cargar GIF aleatorio para la pantalla de carga
+  // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
@@ -1112,6 +1111,7 @@
     }, 800);
   }
 
+  // Progreso incremental simulado mientras carga
   let progressValue = 0;
   const interval = setInterval(() => {
     if (loadingCompleted) {
@@ -1125,16 +1125,19 @@
     }
   }, 200);
 
+  // Terminar la carga cuando todo el contenido y scripts diferidos estén listos
   window.addEventListener('load', () => {
     clearInterval(interval);
     updateProgress(95);
+    
+    // Le damos un pequeño tiempo adicional para asegurar que Firebase, comentarios y el video inicialicen.
     setTimeout(() => {
       updateProgress(100);
       finishLoading();
     }, 800);
   });
 
-  // Asegurar que el input de stickers funcione
+  // ========== CORRECCIÓN: Asegurar que el input de stickers funcione ==========
   document.addEventListener('DOMContentLoaded', function() {
     const stickerFileInput = document.getElementById('stickerFileInput');
     if (stickerFileInput) {

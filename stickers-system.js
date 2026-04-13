@@ -1,14 +1,13 @@
-// stickers-system.js
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
-// ACTUALIZADO: Usa ArchinimeState, sanitización, y estilos mejorados
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// Configuración Cloudinary
+// ⚙️ CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
 const DEFAULT_STICKERS = [];
@@ -28,6 +27,7 @@ function initStickersSystem(db, auth) {
             }
         });
     } else {
+        console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
         auth.onAuthStateChanged(user => {
             updateStickersUI();
             if (user) {
@@ -41,7 +41,8 @@ function initStickersSystem(db, auth) {
 }
 
 function getCurrentUser() {
-    return window.ArchinimeState ? ArchinimeState.get('currentUser') : null;
+    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+    return null;
 }
 
 async function loadUserStickers() {
@@ -51,7 +52,7 @@ async function loadUserStickers() {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
-            if (userStickersCollection.length !== doc.data().stickers.length) {
+            if(userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({
                     stickers: userStickersCollection
                 }, { merge: true });
@@ -73,7 +74,7 @@ function renderUserStickers() {
     if (!container) return;
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     if (validStickers.length === 0) {
-        // Estilo mejorado y centrado
+        // Estilo mejorado (ahora usa la clase .sticker-empty-modern)
         container.innerHTML = `
             <div class="sticker-empty-modern">
                 <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 10px;"></i>
@@ -106,7 +107,7 @@ window.switchStickerTab = function(tabName) {
     document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
     
-    const btn = document.querySelector(`.sticker-tab[data-tab="${tabName}"]`);
+    const btn = document.querySelector(`.sticker-tab[onclick="switchStickerTab('${tabName}')"]`);
     if (btn) btn.classList.add('active');
     
     const content = document.getElementById(`${tabName}StickersTab`);
@@ -129,7 +130,7 @@ async function eliminarSticker(urlSticker, event) {
         showToastSticker('🗑️ Sticker eliminado');
     } catch (e) {
         console.error(e);
-        alert("Error al eliminar el sticker.");
+        alert("Error al eliminar el sticker de la base de datos.");
     }
 }
 
@@ -184,15 +185,15 @@ async function subirStickerDesdePC(input) {
             await guardarStickerEnColeccion(data.secure_url);
             previewContainer.style.display = 'none';
             input.value = '';
-            showToastSticker('✅ Archivo subido y guardado');
+            showToastSticker('✅ Archivo subido y guardado exitosamente');
             switchStickerTab('mis');
         } else {
-            throw new Error(data.error ? data.error.message : 'Error desconocido');
+            throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
         }
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir el archivo: Revisa tu conexión o configuración.");
+        alert("Error al subir el archivo: Revisa tu conexión a internet o configuración.");
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
@@ -215,7 +216,7 @@ async function guardarStickerEnColeccion(url) {
         userStickersCollection.push(url);
         renderUserStickers();
     } catch (e) {
-        console.error("Error guardando URL:", e);
+        console.error("Error guardando URL en Firebase:", e);
     }
 }
 
@@ -228,7 +229,7 @@ window.robarStickerSistema = async function(url) {
     
     const cleanUrl = url.trim();
     if (userStickersCollection.includes(cleanUrl)) {
-        showToastSticker('⚠️ Ya tienes este sticker');
+        showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
     
@@ -241,10 +242,11 @@ window.robarStickerSistema = async function(url) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
         }
-        showToastSticker('✅ ¡Sticker robado y guardado!');
+
+        showToastSticker('✅ ¡Sticker robado y guardado permanentemente!');
     } catch (e) {
-        console.error("Error al robar sticker:", e);
-        alert("Error al guardar: " + e.message);
+        console.error("Error crítico al robar sticker:", e);
+        alert("Error al guardar en la base de datos. Detalle técnico: " + e.message);
     }
 };
 
@@ -270,7 +272,7 @@ function showToastSticker(msg) {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border:1px solid #00fff7; transition: all 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border: 1px solid #00fff7; transition: all 0.3s;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;
@@ -282,8 +284,3 @@ window.openLoginModalFromStickers = function() {
     const modal = document.getElementById('authModal');
     if (modal) modal.classList.add('show');
 };
-
-// Exponer funciones globales
-window.subirStickerDesdePC = subirStickerDesdePC;
-window.eliminarSticker = eliminarSticker;
-window.robarStickerSistema = window.robarStickerSistema;
