@@ -412,19 +412,43 @@
     /* ===== STAGE (ANIMACIONES FRONTALES) ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     
-    /* CAMBIO IMPORTANTE AQUI: Limitamos el contenedor de los videos / animaciones */
     #fgContainer {
       position: absolute; pointer-events: auto; display: flex; align-items: center; justify-content: center;
       right: 20px; bottom: 20px; 
-      width: 280px; /* Tamaño máximo de ancho controlado */
+      width: 280px;
       height: auto;
-      max-height: 350px; /* Altura controlada para que no crezca infinito */
+      max-height: 350px;
       overflow: hidden; background: transparent; border-radius: 10px;
       filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
       z-index: 50;
+      /* Nuevas transiciones y cursor para la interacción */
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease, filter 0.4s;
+      transform-origin: center;
+      cursor: pointer;
     }
+
+    /* Clase para ocultar con estilo el contenedor */
+    #fgContainer.poof {
+      transform: scale(0) rotate(20deg) translateZ(0);
+      opacity: 0;
+      filter: drop-shadow(0 0 30px var(--neon-pink)) brightness(1.5);
+    }
+
     #fgCanvas { width: 100%; height: 100%; display: block; object-fit: contain; }
     #fgVideo { display: none; }
+
+    /* Estilos para el sistema de partículas (Chispitas) */
+    .spark {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      animation: sparkAnim 0.6s ease-out forwards;
+    }
+    @keyframes sparkAnim {
+      0% { transform: scale(1) translate(0, 0); opacity: 1; }
+      100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
+    }
     
     .play-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 900; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
     .play-btn {
@@ -467,7 +491,6 @@
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
       .profile-card { padding: 20px; }
-      /* Achicar el contenedor de video en móviles para mayor comodidad */
       #fgContainer { width: 180px; bottom: 10px; right: 10px; }
     }
     @media (max-width: 480px) {
@@ -1252,6 +1275,7 @@
       'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
     ];
     
+    const fgContainer = document.getElementById('fgContainer');
     const fgVideo = document.getElementById('fgVideo');
     const fgCanvas = document.getElementById('fgCanvas');
     const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
@@ -1297,19 +1321,17 @@
       requestAnimationFrame(processChromaKey);
     });
     
-    // Función para iniciar componentes visuales en autoplay (los videos cargan sin sonido automáticamente)
+    // Función para iniciar componentes visuales en autoplay
     function startVisualMedia() {
-      // 1. Video de fondo (Galaxia)
       const bgVideo = document.getElementById('bg-video');
       bgVideo.muted = true;
       bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
 
-      // 2. Animación (Foreground Chroma Key)
       fgVideo.muted = true;
       fgVideo.play().catch(e => console.log('Animación bloqueada', e));
     }
 
-    // Función para iniciar la música (Requiere interacción por normas de los navegadores)
+    // Función para iniciar la música 
     function startAudioMedia() {
       if (isPlayingMedia) return;
       isPlayingMedia = true;
@@ -1319,7 +1341,7 @@
       currentAudio.volume = 0.3;
       currentAudio.onended = () => {
         isPlayingMedia = false;
-        startAudioMedia(); // Siguiente canción
+        startAudioMedia();
       };
       currentAudio.play().catch(e => {
         console.log('Música bloqueada', e);
@@ -1327,14 +1349,75 @@
       });
     }
 
-    // Evento Automático para videos e interfaz apenas el DOM esté listo
-    window.addEventListener('DOMContentLoaded', startVisualMedia);
+    // --- NUEVO: SISTEMA DE INTERACCIÓN Y CHISPAS ---
+    function createSparks(clientX, clientY) {
+      const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
+      for (let i = 0; i < 30; i++) { // 30 partículas
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        
+        // Tamaño aleatorio
+        const size = Math.random() * 6 + 3;
+        spark.style.width = size + 'px';
+        spark.style.height = size + 'px';
+        
+        // Posición inicial (centro del clic)
+        spark.style.left = clientX + 'px';
+        spark.style.top = clientY + 'px';
+        
+        // Color aleatorio
+        spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+        spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
+        
+        // Calcular trayectoria circular aleatoria
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 120 + 40; // Distancia de explosión
+        
+        spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+        spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+        
+        document.body.appendChild(spark);
+        
+        // Eliminar del DOM después de la animación
+        setTimeout(() => spark.remove(), 600);
+      }
+    }
 
-    // Evento Manual para la música (Se activa al primer click)
+    fgContainer.addEventListener('click', (e) => {
+      // Evitamos que el clic se propague al documento y reinicie otras cosas
+      e.stopPropagation();
+
+      // 1. Crear el efecto de partículas
+      createSparks(e.clientX, e.clientY);
+
+      // 2. Animar la desaparición (Poof!)
+      fgContainer.classList.add('poof');
+
+      // 3. Cambiar de video oculto tras bambalinas
+      setTimeout(() => {
+        let newAnim;
+        // Escoger un video nuevo al azar (diferente al actual, si hay más de 1)
+        do {
+          newAnim = videoList[Math.floor(Math.random() * videoList.length)];
+        } while (newAnim.id === currentAnim.id && videoList.length > 1);
+        
+        currentAnim = newAnim;
+        fgVideo.src = currentAnim.src;
+        
+        // Reproducir el nuevo video y volver a mostrar el contenedor
+        fgVideo.play().then(() => {
+          fgContainer.classList.remove('poof');
+        }).catch(err => console.log('Error cambiando anim', err));
+        
+      }, 400); // 400ms empata con la duración de la transición CSS
+    });
+
+    // Eventos iniciales
+    window.addEventListener('DOMContentLoaded', startVisualMedia);
     document.addEventListener('click', startAudioMedia, { once: true });
     document.addEventListener('touchstart', startAudioMedia, { once: true });
     
-    // Inicialización del sistema de notificaciones (si existe)
+    // Inicialización del sistema de notificaciones
     window.addEventListener('load', () => {
       if (window.startNotificationSequence) window.startNotificationSequence();
     });
