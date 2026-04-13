@@ -481,6 +481,7 @@
       align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
+    /* ====== OPTIMIZACIÓN MÓVIL: DESACTIVAR FILTROS PESADOS ====== */
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -488,8 +489,23 @@
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
       .profile-card { padding: 20px; }
-      #fgContainer { width: 180px; bottom: 10px; right: 10px; }
+      
+      #fgContainer { 
+        width: 180px; bottom: 10px; right: 10px; 
+        filter: none !important; /* Elimina el drop-shadow que causa lag en móviles */
+      }
+      
+      /* Apagar desenfoques pesados en móviles para máxima fluidez */
+      .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      /* Compensar la pérdida del blur con un fondo un poco más oscuro */
+      .cyber-nav { background: rgba(5, 5, 10, 0.98); }
+      .user-dropdown, .notif-dropdown { background: rgba(15, 15, 20, 1); }
+      .search-input { background: rgba(0, 0, 0, 0.8); }
     }
+    
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     }
@@ -802,17 +818,23 @@
         frag.appendChild(card);
       });
       gridEl.appendChild(frag);
+      
+      // ====== OPTIMIZACIÓN: Solo aplicamos el efecto Tilt si el dispositivo soporta hover (PC) ======
+      const isTouchDevice = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+      
       document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
         c.dataset.tiltInit = 'true';
-        c.addEventListener('mousemove', (e) => {
-          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
-          c.tiltRAF = requestAnimationFrame(() => {
-            const rect = c.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
-            const rotX = ((y - rect.height/2) / (rect.height/2)) * -6, rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
-            c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+        if (!isTouchDevice) {
+          c.addEventListener('mousemove', (e) => {
+            if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
+            c.tiltRAF = requestAnimationFrame(() => {
+              const rect = c.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+              const rotX = ((y - rect.height/2) / (rect.height/2)) * -6, rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
+              c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+            });
           });
-        });
-        c.addEventListener('mouseleave', () => { if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF); c.style.transform = ''; });
+          c.addEventListener('mouseleave', () => { if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF); c.style.transform = ''; });
+        }
       });
     }
 
@@ -1273,46 +1295,58 @@
     let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
     let currentAudio = null;
     let isPlayingMedia = false;
-    let isTransitioning = false; // NUEVO: Bandera para pausar cálculo y clics extra
+    let isTransitioning = false;
+    
+    // ====== OPTIMIZACIÓN: Variables para controlar los FPS del procesado ======
+    let lastFrameTime = 0;
+    const targetFPS = 30; // Limitar a 30 FPS (suficiente para anime)
+    const frameInterval = 1000 / targetFPS;
 
     // Configurar video de animación oculto para usarlo de fuente
     fgVideo.style.display = 'none';
     fgVideo.src = currentAnim.src;
 
     fgVideo.addEventListener('loadedmetadata', () => {
-      // OPTIMIZACIÓN CLAVE PARA EL LAG: Reducimos la resolución interna del canvas
-      const maxCanvasWidth = 300; // Suficiente ya que el contenedor mide ~280px
+      const maxCanvasWidth = 300; 
       const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
       fgCanvas.width = maxCanvasWidth;
       fgCanvas.height = maxCanvasWidth / ratio;
     });
 
     // Motor de Chroma Key (Pantalla Verde / Azul)
-    function processChromaKey() {
-      // OPTIMIZACIÓN: Si estamos en transición, no procesamos nada ahorrando mucho CPU
+    function processChromaKey(timestamp) {
       if (fgVideo.paused || fgVideo.ended || isTransitioning) {
         requestAnimationFrame(processChromaKey);
         return;
       }
 
-      fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
-      const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
-      const data = frameData.data;
+      // Control de FPS: Solo procesar si ha pasado el tiempo necesario
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const elapsed = timestamp - lastFrameTime;
 
-      const keyColor = currentAnim.keyColor || 'green';
-      const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+      if (elapsed > frameInterval) {
+        lastFrameTime = timestamp - (elapsed % frameInterval);
 
-      for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
+        fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+        const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+        const data = frameData.data;
 
-        if (keyColor === 'blue') {
-          if (b > r + threshold && b > g + threshold) data[i+3] = 0;
-        } else {
-          if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+        const keyColor = currentAnim.keyColor || 'green';
+        const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+
+        for (let i = 0; i < data.length; i += 4) {
+          let r = data[i], g = data[i+1], b = data[i+2];
+
+          if (keyColor === 'blue') {
+            if (b > r + threshold && b > g + threshold) data[i+3] = 0;
+          } else {
+            if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+          }
         }
+        
+        fgCtx.putImageData(frameData, 0, 0);
       }
       
-      fgCtx.putImageData(frameData, 0, 0);
       requestAnimationFrame(processChromaKey);
     }
 
@@ -1432,7 +1466,7 @@
           isTransitioning = false;
         });
 
-      }, 600); // Sincronizado con los 0.6s del CSS (antes era 400ms)
+      }, 600); 
     });
 
     // Eventos iniciales
