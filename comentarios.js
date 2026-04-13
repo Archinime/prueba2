@@ -2,7 +2,7 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.0
 // (Soporte Custom Colors & Admin Global) - CON DISEÑO ORIGINAL RESTAURADO
-// + SANITIZACIÓN CON DOMPURIFY
+// + SANITIZACIÓN CON DOMPURIFY + INICIALIZACIÓN MEJORADA
 // ============================================
 
 let comentariosDb = null;
@@ -32,28 +32,40 @@ function initComentariosSystem(db, auth) {
     comentariosAuth = auth;
     injectCommentsCSS();
 
+    // Función interna para iniciar el listener si ya tenemos todos los datos
+    const tryStartListener = () => {
+        const user = getCurrentUser();
+        if (user && window.comentariosAnimeId && window.comentariosSeason !== undefined && window.comentariosEpisode !== undefined) {
+            setupComentariosRealtimeListener();
+        }
+    };
+
     if (window.ArchinimeState) {
+        // Escuchar cambios de usuario
         ArchinimeState.on('currentUser', async (user) => {
             if (user) {
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (userDoc.exists && userDoc.data().customColor) {
-                        ArchinimeState.set('currentUserColor', userDoc.data().customColor);
-                    } else {
-                        ArchinimeState.set('currentUserColor', null);
-                    }
+                    const color = userDoc.exists && userDoc.data().customColor ? userDoc.data().customColor : null;
+                    ArchinimeState.set('currentUserColor', color);
                 } catch(e) { console.warn(e); }
             } else {
                 ArchinimeState.set('currentUserColor', null);
             }
-
             updateComentariosUI();
-
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
+        // Si ya hay usuario al cargar, el evento no se dispara, así que lo forzamos
+        const currentUser = ArchinimeState.get('currentUser');
+        if (currentUser) {
+            // Simular el evento manualmente
+            ArchinimeState.emit('currentUser', currentUser);
+        } else {
+            // Si no hay usuario, también actualizamos la UI
+            updateComentariosUI();
+        }
     } else {
+        // Fallback: usar auth directamente
         auth.onAuthStateChanged(async (user) => {
             window.currentUserForComent = user;
             window.comentariosCurrentUserColor = null;
@@ -66,12 +78,11 @@ function initComentariosSystem(db, auth) {
                 } catch(e) {}
             }
             updateComentariosUI();
-            if (window.comentariosAnimeId && window.comentariosSeason && window.comentariosEpisode) {
-                setupComentariosRealtimeListener();
-            }
+            tryStartListener();
         });
     }
 
+    // Configurar eventos del textarea principal después de un pequeño retraso
     setTimeout(() => {
         const textarea = document.getElementById('comentarioTexto');
         if (textarea) {
@@ -95,6 +106,17 @@ function initComentariosSystem(db, auth) {
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
+// Función pública para actualizar los parámetros del anime desde video-player-core.js
+window.setComentariosParams = function(animeId, season, episode) {
+    window.comentariosAnimeId = animeId;
+    window.comentariosSeason = parseInt(season);
+    window.comentariosEpisode = parseInt(episode);
+    // Si ya hay usuario y DB lista, reiniciamos el listener
+    if (comentariosDb && getCurrentUser()) {
+        setupComentariosRealtimeListener();
+    }
+};
+
 function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight) + 'px';
@@ -104,7 +126,7 @@ function injectCommentsCSS() {
     if (document.getElementById('archinime-comments-css')) return;
     const style = document.createElement('style');
     style.id = 'archinime-comments-css';
-    style.innerHTML = `...`; // (el mismo CSS que en tu archivo, no lo repito por brevedad)
+    style.innerHTML = `...`; // (mismo CSS que tenías, no lo repito por brevedad)
     document.head.appendChild(style);
 }
 
@@ -150,10 +172,16 @@ function hexToRgbA(hex, alpha) {
 function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
     
+    // Verificar que los parámetros estén definidos
+    if (!window.comentariosAnimeId || window.comentariosSeason === undefined || window.comentariosEpisode === undefined) {
+        console.warn("Comentarios: faltan parámetros del anime");
+        return;
+    }
+    
     const commentsRef = comentariosDb.collection('comments')
         .where('animeId', '==', window.comentariosAnimeId)
-        .where('season', '==', parseInt(window.comentariosSeason))
-        .where('episode', '==', parseInt(window.comentariosEpisode))
+        .where('season', '==', window.comentariosSeason)
+        .where('episode', '==', window.comentariosEpisode)
         .orderBy('timestamp', 'desc') 
         .limit(100);
         

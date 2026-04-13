@@ -1,5 +1,6 @@
 // video-player-core.js - Versión Firestore + Estado central
 // Obtiene los enlaces desde la colección 'catalogo'
+// + LLAMADA A setComentariosParams PARA INICIALIZAR COMENTARIOS
 
 class VideoPlayer {
   constructor() {
@@ -7,6 +8,11 @@ class VideoPlayer {
     this.animeId = this.params.get('anime');
     this.season = this.params.get('s');
     this.episode = this.params.get('e');
+    
+    // *** NUEVO: Notificar a comentarios.js los parámetros ***
+    if (window.setComentariosParams) {
+      window.setComentariosParams(this.animeId, this.season, this.episode);
+    }
     
     this.auth = null;
     this.db = null;
@@ -37,7 +43,6 @@ class VideoPlayer {
       uploadSticker: (file) => this.uploadSticker(file)
     };
     
-    // 🔧 MANTENER COMPATIBILIDAD: window.videoPlayer apunta a los mismos métodos
     window.videoPlayer = window.videoPlayerMethods;
     
     // Mantener variables globales para compatibilidad con comentarios.js
