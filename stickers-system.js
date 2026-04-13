@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
-// CORREGIDO: Persistencia, carga inicial y previews
+// CORREGIDO: Subida funcional, preview, actualización inmediata
 // ============================================
 
 let stickersDb = null;
@@ -26,16 +26,13 @@ function initStickersSystem(db, auth) {
         }
     };
 
-    // Escuchar cambios de usuario desde el estado central
     if (window.ArchinimeState) {
         ArchinimeState.on('currentUser', loadIfUserExists);
-        // IMPORTANTE: Si ya hay usuario, cargar inmediatamente
         const currentUser = ArchinimeState.get('currentUser');
         if (currentUser) {
             loadIfUserExists(currentUser);
         }
     } else {
-        // Fallback
         auth.onAuthStateChanged(loadIfUserExists);
     }
 }
@@ -53,10 +50,7 @@ async function loadUserStickers() {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
 
         if (doc.exists && doc.data().stickers) {
-            // Limpieza agresiva de URLs inválidas
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
-            
-            // Si había elementos vacíos, limpiar en Firestore
             if (userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({
                     stickers: userStickersCollection
@@ -122,6 +116,11 @@ window.switchStickerTab = function(tabName) {
     
     const content = document.getElementById(`${tabName}StickersTab`);
     if (content) content.classList.add('active');
+    
+    // Si cambiamos a la pestaña "mis", recargar stickers por si acaso
+    if (tabName === 'mis') {
+        loadUserStickers();
+    }
 };
 
 async function eliminarSticker(urlSticker, event) {
@@ -155,12 +154,14 @@ async function subirStickerDesdePC(input) {
     const file = input.files[0];
     if (!file) return;
 
+    // Validar tamaño (2MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         input.value = '';
         return;
     }
 
+    // Mostrar preview del archivo seleccionado
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -175,9 +176,9 @@ async function subirStickerDesdePC(input) {
         previewImg.src = URL.createObjectURL(file);
         previewImg.style.display = 'inline-block';
     }
-    
     previewContainer.style.display = 'block';
     
+    // Cambiar texto del botón de subida (el label)
     const btnSubir = document.querySelector('.upload-sticker-label');
     const oldText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
@@ -196,18 +197,23 @@ async function subirStickerDesdePC(input) {
         const data = await response.json();
         
         if (data.secure_url) {
+            // Guardar en Firestore
             await guardarStickerEnColeccion(data.secure_url);
+            // Limpiar preview y input
             previewContainer.style.display = 'none';
             input.value = '';
             showToastSticker('✅ Sticker subido y guardado');
+            // Cambiar a la pestaña "mis" y recargar stickers
             switchStickerTab('mis');
+            // Forzar recarga de la lista
+            await loadUserStickers();
         } else {
-            throw new Error(data.error ? data.error.message : 'Error desconocido');
+            throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
         }
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir: " + error.message);
+        alert("Error al subir el archivo: " + error.message);
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
@@ -229,7 +235,10 @@ async function guardarStickerEnColeccion(url) {
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
 
-        userStickersCollection.push(url);
+        // Actualizar colección local
+        if (!userStickersCollection.includes(url)) {
+            userStickersCollection.push(url);
+        }
         renderUserStickers();
     } catch (e) {
         console.error("Error guardando URL:", e);
@@ -257,7 +266,6 @@ window.robarStickerSistema = async function(url) {
             stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) 
         }, { merge: true });
 
-        // Actualizar colección local y UI solo después de éxito
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
