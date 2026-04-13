@@ -11,6 +11,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Cargar state.js si existe, para unificar estado -->
+  <script src="state.js"></script>
 
   <style>
     :root {
@@ -150,7 +152,7 @@
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -167,36 +169,66 @@
         return neonColors[Math.abs(hash) % neonColors.length];
     }
 
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        document.getElementById('userUid').value = user.uid; // Asigna el UID
-        document.getElementById('displayName').value = user.displayName || user.email.split('@')[0];
-        document.getElementById('avatarImg').src = user.photoURL || 'invitado.avif';
-        newAvatarUrl = user.photoURL;
-
-        try {
-          const doc = await db.collection('users').doc(user.uid).get();
-          if (doc.exists) {
-              if (doc.data().customColor) {
-                  document.getElementById('nameColor').value = doc.data().customColor;
-              } else {
-                  document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
-              }
-            
-              if (doc.data().lastProfileUpdate) {
-                  lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
-              }
-          } else {
-              document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
-          }
-        } catch(e) { console.error("Error obteniendo datos: ", e); }
-      } else {
-        window.location.href = 'index.html';
+    // Función para sincronizar con el estado central si existe
+    function syncWithGlobalState(user) {
+      if (window.ArchinimeState) {
+        ArchinimeState.set('currentUser', user);
+        if (user) {
+          db.collection('users').doc(user.uid).get().then(doc => {
+            if (doc.exists && doc.data().customColor) {
+              ArchinimeState.set('currentUserColor', doc.data().customColor);
+            }
+          }).catch(e => console.warn(e));
+        } else {
+          ArchinimeState.set('currentUserColor', null);
+        }
       }
-    });
+    }
 
-    // NUEVO: Función para copiar ID
+    // Escuchar cambios de autenticación (usar state si existe, si no, directo)
+    if (window.ArchinimeState) {
+      ArchinimeState.on('currentUser', async (user) => {
+        if (user) {
+          currentUser = user;
+          cargarDatosUsuario(user);
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    } else {
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          cargarDatosUsuario(user);
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    }
+
+    async function cargarDatosUsuario(user) {
+      document.getElementById('userUid').value = user.uid;
+      document.getElementById('displayName').value = user.displayName || user.email.split('@')[0];
+      document.getElementById('avatarImg').src = user.photoURL || 'invitado.avif';
+      newAvatarUrl = user.photoURL;
+
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          if (doc.data().customColor) {
+            document.getElementById('nameColor').value = doc.data().customColor;
+          } else {
+            document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
+          }
+          if (doc.data().lastProfileUpdate) {
+            lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
+          }
+        } else {
+          document.getElementById('nameColor').value = getNeonColorByString(user.uid || user.displayName || user.email);
+        }
+      } catch(e) { console.error("Error obteniendo datos: ", e); }
+    }
+
     function copiarUID() {
       const uidInput = document.getElementById('userUid');
       if (uidInput.value) {
@@ -275,6 +307,8 @@
           customColor: newColor,
           lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() 
         }, { merge: true });
+        
+        // Actualizar comentarios históricos
         statusMsg.style.color = '#fff';
         statusMsg.innerText = 'Actualizando comentarios históricos...';
         
@@ -293,6 +327,12 @@
         });
         if (ops > 0) {
           await batch.commit();
+        }
+
+        // Sincronizar con estado global si existe
+        if (window.ArchinimeState) {
+          ArchinimeState.set('currentUser', currentUser); // fuerza actualización
+          ArchinimeState.set('currentUserColor', newColor);
         }
 
         lastProfileUpdate = Date.now();
