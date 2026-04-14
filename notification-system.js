@@ -1,4 +1,4 @@
-// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + DISEÑO DE RESPUESTAS
+// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 let notificationQueue = [];
 let notificationsHistory = [];
@@ -234,6 +234,8 @@ function listenForReplies(uid) {
         .limit(20)
         .onSnapshot(snapshot => {
             let hasNew = false;
+            let shouldShowPopup = false;
+            
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const data = change.doc.data();
@@ -250,8 +252,9 @@ function listenForReplies(uid) {
                     
                     // Extraer el texto original al que se responde (Requiere guardar este dato en BD)
                     let originalText = data.replyToText || data.textoOriginal || "";
+                    let timestampMs = data.timestamp?.toMillis() || Date.now();
          
-                    notificationsHistory.unshift({
+                    const newNotif = {
                         notifId, 
                         type: 'RESPUESTA', 
                         animeId: data.animeId,
@@ -261,13 +264,32 @@ function listenForReplies(uid) {
                         blockName: 'Foro',
                         epTitle: `"${cleanText.substring(0,60)}${cleanText.length>60?'...':''}"`,
                         originalText: originalText ? `"${originalText.substring(0,50)}${originalText.length>50?'...':''}"` : null,
-                        date: data.timestamp?.toMillis() || Date.now(),
+                        date: timestampMs,
                         seen: false,
                         isFinal: false,
                         url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
-                    });
+                    };
                     
+                    notificationsHistory.unshift(newNotif);
                     hasNew = true;
+
+                    // LÓGICA DE POPUPS PARA RESPUESTAS
+                    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
+                    const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
+                    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+
+                    if (!seenNotifIds.includes(notifId)) {
+                        seenNotifIds.push(notifId);
+                        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
+                        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
+
+                        // Mostrar el popup si no es la primera visita, el comentario es reciente y no pasamos el límite
+                        if (!isFirstVisitGlobal && timestampMs > thirtyDaysAgo && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
+                            notificationQueue.push(newNotif);
+                            popupsShownCount++;
+                            shouldShowPopup = true;
+                        }
+                    }
                 }
             });
 
@@ -276,6 +298,11 @@ function listenForReplies(uid) {
                 saveHistoryToStorage();
                 renderNotificationList();
                 if (!isMenuOpen) updateBellBadge();
+            }
+
+            // Si hay popups nuevos en cola, arrancar la secuencia
+            if (shouldShowPopup && notificationQueue.length === 1) {
+                showNextPopup();
             }
         }, error => console.error("Error replies:", error));
 }
