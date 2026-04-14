@@ -46,8 +46,14 @@ function initStickersSystem(db, auth) {
     }
 }
 
+// CORREGIDO: Múltiples fallbacks para garantizar que encuentre la sesión abierta
 function getCurrentUser() {
-    return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
+    if (typeof window.videoPlayer !== 'undefined' && window.videoPlayer.getCurrentUser) {
+        return window.videoPlayer.getCurrentUser();
+    }
+    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
+    if (stickersAuth) return stickersAuth.currentUser;
+    return null;
 }
 
 async function loadUserStickers() {
@@ -56,8 +62,10 @@ async function loadUserStickers() {
 
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
+
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
+
             if (userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({ stickers: userStickersCollection }, { merge: true });
             }
@@ -66,6 +74,7 @@ async function loadUserStickers() {
             await stickersDb.collection('userStickers').doc(user.uid).set({ stickers: userStickersCollection }, { merge: true });
         }
         renderUserStickers();
+
     } catch (e) {
         console.error("Error cargando stickers:", e);
         const container = document.getElementById('userStickersContainer');
@@ -78,6 +87,7 @@ function renderUserStickers() {
     if (!container) return;
 
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
+
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
@@ -120,6 +130,7 @@ async function eliminarSticker(urlSticker, event) {
     event.stopPropagation();
     const user = getCurrentUser();
     if (!user) return;
+
     if (!confirm('¿Eliminar este sticker?')) return;
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
@@ -187,13 +198,12 @@ window.subirStickerDesdePC = async function(inputElement) {
             method: 'POST',
             body: formData
         });
-        
         const data = await response.json();
 
         if (data.secure_url) {
             // Guardar URL en Firestore
             await guardarStickerEnColeccion(data.secure_url);
-            
+
             // Limpiar preview y campos
             previewContainer.style.display = 'none';
             inputElement.value = '';
@@ -238,7 +248,7 @@ async function guardarStickerEnColeccion(url) {
 
 window.robarStickerSistema = async function(url) {
     const user = getCurrentUser();
-    
+
     if (!user) {
         openLoginModalFromStickers();
         return;
@@ -257,6 +267,7 @@ window.robarStickerSistema = async function(url) {
             renderUserStickers();
         }
         showToastSticker('✅ ¡Sticker robado y guardado!');
+
     } catch (e) {
         console.error('Error al robar sticker:', e);
         alert('Error al guardar: ' + e.message);

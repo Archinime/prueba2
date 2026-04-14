@@ -24,7 +24,9 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
 
+    // MÉTODOS EXPUESTOS GLOBALMENTE
     window.videoPlayerMethods = {
+      getCurrentUser: () => this.getCurrentUser(), // EXPUESTO PARA LOS STICKERS Y COMENTARIOS
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
       insertEmoji: (e) => this.insertEmoji(e),
@@ -149,6 +151,7 @@ class VideoPlayer {
       
       this.setupNavigation();
       this.autoMarkAsWatched();
+
     } catch (error) {
       console.error('Error cargando episodio:', error);
       document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
@@ -159,6 +162,7 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
+
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
     btn.innerText = label;
     btn.onclick = () => {
@@ -174,6 +178,7 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
+
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -226,9 +231,11 @@ class VideoPlayer {
         }
       });
     });
+
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+
     if (idx > 0) {
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
@@ -245,6 +252,7 @@ class VideoPlayer {
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
     const user = this.getCurrentUser();
+
     if (user) {
       try {
         const docRef = this.db.collection('watchHistory').doc(user.uid);
@@ -335,11 +343,19 @@ class VideoPlayer {
     }
   }
   
+  // CORREGIDO: Inserción inteligente dependiendo de si se está respondiendo o no.
   insertEmoji(emoji) { 
-    const ta = document.getElementById('comentarioTexto');
+    let ta = document.getElementById('comentarioTexto');
+    if (window.respondiendoA) {
+        ta = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
+    }
+
     if(ta){
-      ta.value += emoji; 
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, start) + emoji + ta.value.substring(end);
       ta.focus(); 
+      ta.dispatchEvent(new Event('input'));
       this.validateSendButton();
     }
   }
@@ -366,13 +382,30 @@ class VideoPlayer {
     }
   }
 
+  // CORREGIDO: Valida correctamente según el área de texto activa.
   validateSendButton() {
-    const textarea = document.getElementById('comentarioTexto');
-    const btn = document.getElementById('enviarComentarioBtn');
+    let textarea = document.getElementById('comentarioTexto');
+    let btn = document.getElementById('enviarComentarioBtn');
+    
+    if (window.respondiendoA) {
+        textarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
+        btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
+    }
+
     if (textarea && btn) {
       const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-      btn.disabled = !hasContent;
-      btn.style.opacity = hasContent ? '1' : '0.5';
+      
+      if (hasContent) {
+          btn.disabled = false;
+          btn.classList.remove('btn-disabled');
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+      } else {
+          btn.disabled = true;
+          btn.classList.add('btn-disabled');
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+      }
     }
   }
   
@@ -398,4 +431,3 @@ window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
-// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.
