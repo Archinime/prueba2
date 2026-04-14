@@ -1,13 +1,12 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE ARRAY UNION)
-// CORREGIDO: Subida funcional, preview, actualización inmediata
+// CORREGIDO: Subida de stickers funcionando
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';
 const DEFAULT_STICKERS = [];
@@ -117,7 +116,6 @@ window.switchStickerTab = function(tabName) {
     const content = document.getElementById(`${tabName}StickersTab`);
     if (content) content.classList.add('active');
     
-    // Si cambiamos a la pestaña "mis", recargar stickers por si acaso
     if (tabName === 'mis') {
         loadUserStickers();
     }
@@ -144,7 +142,8 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-async function subirStickerDesdePC(input) {
+// ========== FUNCIÓN GLOBAL DE SUBIDA CORREGIDA ==========
+window.subirStickerDesdePC = async function(input) {
     const user = getCurrentUser();
     if (!user) {
         openLoginModalFromStickers();
@@ -154,14 +153,13 @@ async function subirStickerDesdePC(input) {
     const file = input.files[0];
     if (!file) return;
 
-    // Validar tamaño (2MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         input.value = '';
         return;
     }
 
-    // Mostrar preview del archivo seleccionado
+    // Mostrar preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -178,7 +176,6 @@ async function subirStickerDesdePC(input) {
     }
     previewContainer.style.display = 'block';
     
-    // Cambiar texto del botón de subida (el label)
     const btnSubir = document.querySelector('.upload-sticker-label');
     const oldText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
@@ -197,28 +194,26 @@ async function subirStickerDesdePC(input) {
         const data = await response.json();
         
         if (data.secure_url) {
-            // Guardar en Firestore
             await guardarStickerEnColeccion(data.secure_url);
-            // Limpiar preview y input
             previewContainer.style.display = 'none';
             input.value = '';
             showToastSticker('✅ Sticker subido y guardado');
-            // Cambiar a la pestaña "mis" y recargar stickers
-            switchStickerTab('mis');
-            // Forzar recarga de la lista
+            // Cambiar a pestaña "Mis Stickers" y recargar
+            window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            throw new Error(data.error ? data.error.message : 'Error desconocido al subir');
+            throw new Error(data.error ? data.error.message : 'Error desconocido');
         }
         
     } catch (error) {
         console.error("Error de subida:", error);
-        alert("Error al subir el archivo: " + error.message);
+        alert("Error al subir: " + error.message);
+        previewContainer.style.display = 'none';
     } finally {
         btnSubir.innerHTML = oldText;
         btnSubir.style.pointerEvents = 'auto';
     }
-}
+};
 
 async function guardarStickerEnColeccion(url) {
     const user = getCurrentUser();
@@ -235,10 +230,7 @@ async function guardarStickerEnColeccion(url) {
             stickers: firebase.firestore.FieldValue.arrayUnion(url)
         }, { merge: true });
 
-        // Actualizar colección local
-        if (!userStickersCollection.includes(url)) {
-            userStickersCollection.push(url);
-        }
+        userStickersCollection.push(url);
         renderUserStickers();
     } catch (e) {
         console.error("Error guardando URL:", e);
@@ -313,5 +305,4 @@ window.openLoginModalFromStickers = function() {
     if (modal) modal.classList.add('show');
 };
 
-// Exponer función global para que la use el HTML
 window.cargarStickersUsuario = loadUserStickers;

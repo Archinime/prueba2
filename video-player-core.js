@@ -380,14 +380,14 @@ class VideoPlayer {
       alert('Inicia sesión para subir stickers'); 
       return; 
     }
-    if (typeof subirStickerDesdePC === 'function') {
+    if (typeof window.subirStickerDesdePC === 'function') {
       const fakeInput = { files: [file] };
-      await subirStickerDesdePC(fakeInput);
+      await window.subirStickerDesdePC(fakeInput);
       if (typeof cargarStickersUsuario === 'function') {
         setTimeout(() => cargarStickersUsuario(), 500);
       }
     } else {
-      console.error("subirStickerDesdePC no está definida");
+      console.error("window.subirStickerDesdePC no está definida");
       alert("Error: sistema de stickers no cargado correctamente.");
     }
   }

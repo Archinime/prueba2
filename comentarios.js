@@ -9,7 +9,6 @@ let comentariosAuth = null;
 let comentariosUnsubscribe = null;
 let comentariosInicializados = false;
 
-// Variables globales
 window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
@@ -172,7 +171,7 @@ function injectCommentsCSS() {
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        /* ===== PREVIEW STICKER EN FORMULARIO ===== */
+        /* PREVIEW STICKER */
         .comentario-sticker-preview {
             margin: 12px 0;
             padding: 8px;
@@ -773,7 +772,7 @@ window.closeStickerModal = function() {
     }
 };
 
-// ========== FUNCIONES CORREGIDAS: BOTÓN Y PREVIEW ==========
+// ========== FUNCIONES CORREGIDAS ==========
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
