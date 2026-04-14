@@ -1,21 +1,24 @@
 {
-  "name": "Archinime",
+  "name": "Archinime OS",
   "short_name": "Archinime",
-  "description": "Ver anime online en alta calidad.",
-  "start_url": "index.html",
+  "description": "Sumérgete en la experiencia definitiva de anime. Interfaz Cyberpunk, sonido envolvente y calidad HD.",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#8c52ff",
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#00f3ff",
   "icons": [
     {
-      "src": "Logo_Archinime.avif",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/avif"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "Logo_Archinime.avif",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/avif"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

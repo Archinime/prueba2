@@ -161,25 +161,33 @@ window.logout = async () => {
   }
 };
 
-// ========== FUNCIÓN PARA MOSTRAR/MODAL DE AUTENTICACIÓN ==========
+// ========== MODALES DE INTERFAZ ==========
 window.showAuthModal = () => {
   const modal = document.getElementById('authModal');
-  if (modal) modal.classList.add('show');
+  if (modal) modal.classList.add('show'); [cite: 30]
 };
 
 window.closeAuthModal = () => {
   const modal = document.getElementById('authModal');
-  if (modal) modal.classList.remove('show');
+  if (modal) modal.classList.remove('show'); [cite: 31]
   const errorEl = document.getElementById('authError');
-  if (errorEl) errorEl.innerText = '';
+  if (errorEl) errorEl.innerText = ''; [cite: 32]
 };
 
+// ========== REGISTRO DEL SERVICE WORKER (PWA) ==========
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js') [cite: 32]
+            .then(reg => console.log('Cyber-Core PWA activa en:', reg.scope))
+            .catch(err => console.error('Error registrando PWA:', err));
+    });
+}
+
 // ========== INICIALIZACIÓN ADICIONAL ==========
-// Si el documento ya está cargado, ejecutar; si no, esperar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ app-core.js cargado y listo');
+    console.log('✅ app-core.js cargado y listo'); [cite: 34]
   });
 } else {
-  console.log('✅ app-core.js cargado y listo');
+  console.log('✅ app-core.js cargado y listo'); [cite: 35]
 }
