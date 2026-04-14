@@ -24,9 +24,9 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
 
-    // MÉTODOS EXPUESTOS GLOBALMENTE
+    // EXPONEMOS LOS MÉTODOS, INCLUYENDO getCurrentUser
     window.videoPlayerMethods = {
-      getCurrentUser: () => this.getCurrentUser(), // EXPUESTO PARA LOS STICKERS Y COMENTARIOS
+      getCurrentUser: () => this.getCurrentUser(), 
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
       insertEmoji: (e) => this.insertEmoji(e),
@@ -343,7 +343,6 @@ class VideoPlayer {
     }
   }
   
-  // CORREGIDO: Inserción inteligente dependiendo de si se está respondiendo o no.
   insertEmoji(emoji) { 
     let ta = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
@@ -382,7 +381,6 @@ class VideoPlayer {
     }
   }
 
-  // CORREGIDO: Valida correctamente según el área de texto activa.
   validateSendButton() {
     let textarea = document.getElementById('comentarioTexto');
     let btn = document.getElementById('enviarComentarioBtn');
@@ -419,14 +417,12 @@ class VideoPlayer {
   }
 }
 
-// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();

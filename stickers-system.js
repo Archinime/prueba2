@@ -7,12 +7,11 @@ let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY - VERIFICA TUS DATOS
+// CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
 const DEFAULT_STICKERS = [];
 
-// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
     if (typeof DOMPurify !== 'undefined') {
         return DOMPurify.sanitize(html, {
@@ -20,7 +19,7 @@ function cleanStickerHTML(html) {
             ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
         });
     }
-    return html; // Fallback básico
+    return html;
 }
 
 function initStickersSystem(db, auth) {
@@ -46,7 +45,7 @@ function initStickersSystem(db, auth) {
     }
 }
 
-// CORREGIDO: Múltiples fallbacks para garantizar que encuentre la sesión abierta
+// CORRECCIÓN PRINCIPAL: Múltiples formas de verificar que estás logueado
 function getCurrentUser() {
     if (typeof window.videoPlayer !== 'undefined' && window.videoPlayer.getCurrentUser) {
         return window.videoPlayer.getCurrentUser();
@@ -144,27 +143,24 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN GLOBAL DE SUBIDA NATIVA CORREGIDA ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     
     if (!user) {
         openLoginModalFromStickers();
-        inputElement.value = ''; // Limpiar input
+        inputElement.value = ''; 
         return;
     }
 
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validar tamaño (2 MB máx)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
-    // Mostrar preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -181,19 +177,16 @@ window.subirStickerDesdePC = async function(inputElement) {
     }
     previewContainer.style.display = 'block';
 
-    // Cambiar texto del botón
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Cloudinary...';
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        // Preparar FormData para Cloudinary
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
 
-        // Subir a Cloudinary
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
@@ -201,15 +194,12 @@ window.subirStickerDesdePC = async function(inputElement) {
         const data = await response.json();
 
         if (data.secure_url) {
-            // Guardar URL en Firestore
             await guardarStickerEnColeccion(data.secure_url);
 
-            // Limpiar preview y campos
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
-            // Cambiar a pestaña "Mis Stickers" y recargar
             window.switchStickerTab('mis');
             await loadUserStickers();
             

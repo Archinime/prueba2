@@ -1,7 +1,6 @@
 // comentarios.js
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
-// CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
 // ============================================
 
 let comentariosDb = null;
@@ -13,7 +12,6 @@ window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
-// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL (DOMPurify) ---
 function archinimeClean(html, isSticker = false) {
     if (typeof DOMPurify !== 'undefined') {
         const config = isSticker 
@@ -21,7 +19,6 @@ function archinimeClean(html, isSticker = false) {
             : { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'span', 'br', 'img'], ALLOWED_ATTR: ['src', 'class', 'style', 'alt'] };
         return DOMPurify.sanitize(html, config);
     }
-    // Fallback de seguridad si falla la carga de la librería
     return html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
 }
 
@@ -184,32 +181,15 @@ function injectCommentsCSS() {
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        /* PREVIEW STICKER */
-        .comentario-sticker-preview {
-            margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden;
-        }
-        .preview-sticker-wrapper {
-            position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-neon-primary);
-        }
-        .preview-sticker-wrapper img,
-        .preview-sticker-wrapper video {
-            width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto;
-        }
-        .remove-sticker-btn {
-            position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s;
-        }
-        .remove-sticker-btn:hover {
-            transform: scale(1.1); background: #ff3366;
-        }
+        .comentario-sticker-preview { margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden; }
+        .preview-sticker-wrapper { position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-neon-primary); }
+        .preview-sticker-wrapper img, .preview-sticker-wrapper video { width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto; }
+        .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
+        .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
-
-        @keyframes targetHighlight {
-            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
-            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
-            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
-        }
+        @keyframes targetHighlight { 0% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); } 100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); } }
         .comment-targeted { animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important; border-color: var(--cm-neon-primary) !important; }
 
         @media (max-width: 768px) {
@@ -223,14 +203,13 @@ function injectCommentsCSS() {
             .comentario-footer { gap: 10px; margin-top: 8px; }
             .comment-options-container { top: 8px; right: 8px; }
             .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
-            .preview-sticker-wrapper img,
-            .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
+            .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
         }
     `;
     document.head.appendChild(style);
 }
 
-// CORREGIDO: Múltiples fallbacks
+// CORRECCIÓN: Conectado a la sesión del videoPlayer
 function getCurrentUser() {
     if (typeof window.videoPlayer !== 'undefined' && window.videoPlayer.getCurrentUser) {
         return window.videoPlayer.getCurrentUser();
@@ -769,11 +748,13 @@ window.closeStickerModal = function() {
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
+    
     if (textarea.id && textarea.id.startsWith('dynamicReplyText') && window.respondiendoA) {
         btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
     } else {
         btn = document.getElementById('enviarComentarioBtn');
     }
+    
     if (!btn) return;
 
     const hasText = textarea.value.trim().length > 0;
@@ -803,6 +784,7 @@ async function enviarComentarioTexto() {
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
+    
     if ((!texto && !stickerUrl) || (btn && btn.disabled)) return;
 
     const originalTexto = texto;
@@ -852,8 +834,6 @@ async function enviarComentarioTexto() {
         }
         showToastComent('❌ Error: ' + error.message);
     } finally {
-        // CORREGIDO: Nunca forzamos disable=false a ciegas.
-        // Recuperamos el contenido HTML y revalidamos para que aplique su estado real.
         if (btn) {
             btn.innerHTML = btn.dataset.original;
             delete btn.dataset.original;
