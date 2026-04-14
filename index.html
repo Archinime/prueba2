@@ -126,17 +126,25 @@
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
     /* Fondo y overlay */
-    #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
-      filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
+    #bg-video { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
+      z-index: -5; opacity: 0;
+      filter: contrast(1.2) brightness(0.6) saturate(1.1); 
+      transition: opacity 1.2s ease;
       background: url('galaxia-morado1.avif') no-repeat center center / cover; 
-      transform: translateZ(0); will-change: opacity; }
+      transform: translateZ(0); will-change: opacity;
+    }
     #bg-video.loaded { opacity: 1; }
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    #overlay { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
-      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); }
-    #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); 
+    }
+    #scanlines { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
-      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); }
+      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); 
+    }
 
     /* Pantalla de carga */
     #loadingScreen {
@@ -632,8 +640,9 @@
   </div>
 </div>
 
+<!-- ========== SCRIPTS ========== -->
+<!-- 1. Inicialización de Firebase -->
 <script>
-  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
     authDomain: "login-admin-archinime.firebaseapp.com",
@@ -642,7 +651,9 @@
     messagingSenderId: "938164660242",
     appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
   };
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   const auth = firebase.auth();
   const db = firebase.firestore();
   window.db = db;
@@ -650,47 +661,82 @@
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
   const providerGitHub = new firebase.auth.GithubAuthProvider();
+</script>
 
-  // ========== LISTAS DE ANIMACIONES Y MÚSICA (incluidas aquí) ==========
-  const videoList = [
-    { id: 'hola', src: 'hola.mp4', preset: { threshold: 0.25, diff: 0, soft: 100 } },
-    { id: 'rem',  src: 'rem.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
-    { id: 'animacionnavidad1', src: 'animacionnavidad1.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-    { id: 'animacionnavidad2', src: 'animacionnavidad2.mp4', preset: { threshold: 0.06, diff: 8, soft: 60 }, keyColor: 'green' },
-    { id: 'animacionnavidad3', src: 'animacionnavidad3.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-    { id: 'animacionnavidad4', src: 'animacionnavidad4.mp4', preset: { threshold: 0.10, diff: 0, soft: 100 }, keyColor: 'green' },
-    { id: 'animacionnavidad5', src: 'animacionnavidad5.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' },
-    { id: 'animacionnavidad6', src: 'animacionnavidad6.mp4', preset: { threshold: 0.12, diff: 0, soft: 100 }, keyColor: 'blue' }
-  ];
+<!-- 2. Archivos externos de datos (listas de videos y música) -->
+<script src="animaciones.js"></script>
+<script src="musica_fondo.js"></script>
 
-  const musicListGlobal = [
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Battlecry%20(Heart%20of%20Courage)%20(Lyrics).mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Centuries.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Go%20Go%20Go%20Go!.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20How%20Do%20You%20Do%20(Remix)%20✕.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Monster%20%5BNMV%5D.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20PLAY%20x%20Unity%20x%20Faded%20%20Alan%20Walker%20(Mashup%20%20Switching%20Vocals)%20Lyrics.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Sweet%20Little%20Bumblebee%20(lyric%20video).mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Take%20A%20Hint.mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Thunder%20(Gabry%20Ponte%2C%20LUM!X%2C%20Prezioso)%20-%20(Lyrics).mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20When%20You%20Leave%20(Numa%20Numa).mp3',
-    'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/Nightcore%20-%20Yo%20y%20los%20que%20tuvieron%20etapa%20Vocaloid%20cuando%20suena%20😼✨.mp3',
-  ];
+<!-- 3. Otros scripts (notificaciones, gifs, etc.) -->
+<script src="notification-system.js"></script>
+<script src="gifs.js"></script>
 
-  // ========== LÓGICA DE CARGA DE ANIMES (PAGINACIÓN INFINITA REAL) ==========
-  let lastVisibleAnime = null;
-  let isFetchingAnimes = false;
-  let hasMoreAnimes = true;
-  const ANIMES_PER_PAGE = 20;
+<!-- 4. Lógica principal (paginación, autenticación, chroma key, música, etc.) -->
+<script>
+  // ========== GIF ALEATORIO ==========
+  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    const imgGif = document.getElementById('personaje-gif');
+    if (imgGif) imgGif.src = gifElegido;
+  }
+
+  // ========== PANTALLA DE CARGA ==========
+  let loadingCompleted = false;
+  const loadingScreen = document.getElementById('loadingScreen');
+  const percentEl = document.getElementById('loadingPercentage');
+  const lineEl = document.getElementById('loaderLine');
+  function updateProgress(percent) {
+    const p = Math.min(99, Math.max(0, Math.floor(percent)));
+    if (percentEl) percentEl.innerText = p + '%';
+    if (lineEl) lineEl.style.width = p + '%';
+  }
+  function finishLoading() {
+    if (loadingCompleted) return;
+    loadingCompleted = true;
+    updateProgress(100);
+    percentEl.innerText = "SISTEMA LISTO";
+    setTimeout(() => {
+      loadingScreen.classList.add('hidden');
+      document.body.style.overflow = '';
+    }, 800);
+  }
+  let progressValue = 0;
+  const interval = setInterval(() => {
+    if (loadingCompleted) { clearInterval(interval); return; }
+    if (progressValue < 85) {
+      progressValue += Math.random() * 8;
+      if (progressValue > 85) progressValue = 85;
+      updateProgress(progressValue);
+    }
+  }, 200);
+  window.addEventListener('firstAnimesLoaded', () => {
+    clearInterval(interval);
+    updateProgress(100);
+    finishLoading();
+  });
+  setTimeout(() => {
+    if (!loadingCompleted) finishLoading();
+  }, 8000);
+
+  // ========== RATINGS ==========
   let firestoreRatings = new Map();
-  let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-  let firstLoadCompleted = false;
+  async function loadRatings() {
+    try {
+      const snapshot = await db.collection('animeRatings').get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (typeof data.avg === 'number') {
+          firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
+        }
+      });
+    } catch (e) { console.warn('Error cargando ratings:', e); }
+  }
+  loadRatings();
 
+  // ========== FUNCIONES AUXILIARES ==========
   function normalizeText(s) {
     return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
-
   function getDisplayRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) {
@@ -700,17 +746,14 @@
     if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) return anime.rating.toFixed(1);
     return '—';
   }
-
   function getNumericRating(anime) {
     const animeId = parseInt(anime.id);
-    if (firestoreRatings.has(animeId)) {
-      const avg = firestoreRatings.get(animeId).avg;
-      if (typeof avg === 'number') return avg;
-    }
+    if (firestoreRatings.has(animeId)) return firestoreRatings.get(animeId).avg;
     if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
     return 0;
   }
 
+  // ========== RENDERIZADO DE ANIMES ==========
   function renderAnimes(animes, append = false) {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -731,7 +774,7 @@
       frag.appendChild(card);
     });
     grid.appendChild(frag);
-    
+    // Efecto tilt solo en desktop
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (!isTouch) {
       document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
@@ -754,7 +797,6 @@
       });
     }
   }
-
   function mostrarNoResultados() {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -762,9 +804,15 @@
       <i class="fas fa-satellite-dish" style="font-size:3rem; color:var(--neon-cyan);"></i>
       <h2 style="font-family:Orbitron; margin:20px 0;">Sin Resultados</h2>
       <p>Prueba con otros filtros o busca por alias.</p>
-      <button onclick="window.reiniciarPaginacion()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
+      <button onclick="resetearFiltrosGlobal()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
     </div>`;
   }
+
+  // ========== PAGINACIÓN CON CURSOR (INFINITE SCROLL REAL) ==========
+  let lastVisibleAnime = null;
+  let isFetchingAnimes = false;
+  let hasMoreAnimes = true;
+  const ANIMES_PER_PAGE = 20;
 
   async function cargarAnimesPaginado(reset = false) {
     if (reset) {
@@ -774,63 +822,50 @@
       document.getElementById('grid').innerHTML = '';
     }
     if (isFetchingAnimes || !hasMoreAnimes) return;
-    
     isFetchingAnimes = true;
-    
     try {
-      let query = db.collection('catalogo')
-                    .orderBy('title')
-                    .limit(ANIMES_PER_PAGE);
-
+      let query = db.collection('catalogo').orderBy('title').limit(ANIMES_PER_PAGE);
       if (lastVisibleAnime && !reset) {
         query = query.startAfter(lastVisibleAnime);
       }
-
       const snapshot = await query.get();
-
       if (snapshot.empty) {
         hasMoreAnimes = false;
         return;
       }
-
       lastVisibleAnime = snapshot.docs[snapshot.docs.length - 1];
       const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
       renderAnimes(animes, !reset);
-      
-      if (!firstLoadCompleted) {
-        firstLoadCompleted = true;
+      if (reset) {
         const event = new CustomEvent('firstAnimesLoaded');
         window.dispatchEvent(event);
       }
     } catch (error) {
-      console.error("Error en paginación:", error);
+      console.error('Error en paginación:', error);
       document.getElementById('grid').innerHTML = `<div style="text-align:center; padding:40px; color:red;">Error al cargar animes: ${error.message}</div>`;
     } finally {
       isFetchingAnimes = false;
     }
   }
 
-  window.filtrarAnimes = async function(filtros) {
-    currentFilters = { ...filtros };
-    lastVisibleAnime = null;
-    hasMoreAnimes = true;
-    isFetchingAnimes = false;
-    const grid = document.getElementById('grid');
-    if (grid) grid.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Filtrando...</div>';
-    
+  // ========== FILTROS ==========
+  let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+  let debounceTimer = null;
+
+  async function aplicarFiltros() {
+    const hasActive = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+    if (!hasActive) {
+      cargarAnimesPaginado(true);
+      return;
+    }
+    document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Filtrando...</div>';
     try {
       let query = db.collection('catalogo');
-      if (currentFilters.genre) {
-        query = query.where('genres', 'array-contains', currentFilters.genre);
-      }
+      if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
       query = query.orderBy('title');
       const snapshot = await query.limit(200).get();
       let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      if (currentFilters.demographic) {
-        animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
-      }
+      if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
       if (currentFilters.search) {
         const searchTerm = normalizeText(currentFilters.search);
         animes = animes.filter(a => {
@@ -847,60 +882,47 @@
           return true;
         });
       }
-      
       renderAnimes(animes, false);
       if (animes.length === 0) mostrarNoResultados();
-      hasMoreAnimes = false;
-    } catch (err) {
-      console.error('Error en filtros:', err);
-      if (grid) grid.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
+    } catch (e) {
+      console.error('Error en filtros:', e);
+      document.getElementById('grid').innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
     }
-  };
+  }
 
-  window.reiniciarPaginacion = function() {
-    const searchInput = document.getElementById('search');
-    const genreSelect = document.getElementById('genre-select');
-    const demographicSelect = document.getElementById('demographic-select');
-    const ratingSelect = document.getElementById('rating-select');
-    if (searchInput) searchInput.value = '';
-    if (genreSelect) genreSelect.value = '';
-    if (demographicSelect) demographicSelect.value = '';
-    if (ratingSelect) ratingSelect.value = '';
-    
+  function debouncedAplicarFiltros() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => aplicarFiltros(), 300);
+  }
+
+  const searchInput = document.getElementById('search');
+  const genreSelect = document.getElementById('genre-select');
+  const demographicSelect = document.getElementById('demographic-select');
+  const ratingSelect = document.getElementById('rating-select');
+
+  searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedAplicarFiltros(); });
+  genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; aplicarFiltros(); });
+  demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; aplicarFiltros(); });
+  ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; aplicarFiltros(); });
+
+  window.resetearFiltrosGlobal = function() {
+    searchInput.value = '';
+    genreSelect.value = '';
+    demographicSelect.value = '';
+    ratingSelect.value = '';
     currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-    lastVisibleAnime = null;
-    hasMoreAnimes = true;
-    isFetchingAnimes = false;
     cargarAnimesPaginado(true);
   };
 
-  function onScroll() {
-    const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    if (hasActiveFilters) return;
-    
-    const scrollPosition = window.innerHeight + window.scrollY;
-    const threshold = document.body.offsetHeight - 500;
-    if (scrollPosition >= threshold && !isFetchingAnimes && hasMoreAnimes) {
+  // Infinite scroll (solo cuando no hay filtros activos)
+  window.addEventListener('scroll', () => {
+    const hasActive = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+    if (!hasActive && !isFetchingAnimes && hasMoreAnimes && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
       cargarAnimesPaginado(false);
     }
-  }
-  window.addEventListener('scroll', onScroll);
+  });
 
-  async function initRatings() {
-    try {
-      const snapshot = await db.collection('animeRatings').get();
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (typeof data.avg === 'number') {
-          firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
-        }
-      });
-    } catch (e) {
-      console.warn('Error cargando ratings:', e);
-    }
-  }
-
-  // ========== AUTENTICACIÓN Y PERFIL (resumido pero funcional) ==========
+  // ========== AUTENTICACIÓN Y PERFIL ==========
   let currentUser = null;
   let newAvatarUrl = null;
   let lastProfileUpdate = 0;
@@ -977,18 +999,13 @@
     statusMsg.innerText = '';
     try {
       await currentUser.updateProfile({ displayName: newName, photoURL: newAvatarUrl });
-      await db.collection('users').doc(currentUser.uid).set({
-        customColor: newColor,
-        lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      await db.collection('users').doc(currentUser.uid).set({ customColor: newColor, lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       statusMsg.style.color = '#fff';
       statusMsg.innerText = 'Actualizando comentarios históricos...';
       const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
       const snapshot = await commentsRef.get();
       const batch = db.batch();
-      snapshot.forEach(doc => {
-        batch.update(doc.ref, { userName: newName, userAvatar: newAvatarUrl, customColor: newColor });
-      });
+      snapshot.forEach(doc => { batch.update(doc.ref, { userName: newName, userAvatar: newAvatarUrl, customColor: newColor }); });
       if (snapshot.size > 0) await batch.commit();
       lastProfileUpdate = Date.now();
       statusMsg.style.color = '#00fff7';
@@ -1013,7 +1030,7 @@
     }
   }
 
-  // Tabs y modales
+  // Tabs y modales de autenticación
   document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -1040,11 +1057,9 @@
     const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
     if (user) {
       const photoURL = user.photoURL || 'invitado.avif';
-      avatarBtn.src = photoURL;
-      dropdownAvatar.src = photoURL;
+      avatarBtn.src = photoURL; dropdownAvatar.src = photoURL;
       dropdownName.innerText = user.displayName || user.email.split('@')[0];
-      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
-      loginItem.onclick = logoutUser;
+      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = logoutUser;
       db.collection('users').doc(user.uid).get().then(doc => {
         let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
         avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`;
@@ -1054,11 +1069,9 @@
     } else {
       avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif';
       dropdownName.innerText = 'Invitado';
-      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
-      loginItem.onclick = showAuthModal;
+      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = showAuthModal;
       avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none';
-      dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
-      dropdownAvatar.style.boxShadow = 'none';
+      dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none';
       dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none';
     }
   }
@@ -1081,7 +1094,7 @@
       const select = document.getElementById(id); if (!select) return;
       const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTriggerText(trigger, select); select.parentNode.insertBefore(trigger, select);
       trigger.addEventListener('click', () => {
-         if (isMobile) {
+        if (isMobile) {
           const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
           const popup = document.createElement('div'); popup.className = 'select-popup';
           const header = document.createElement('div'); header.className = 'select-popup-header';
@@ -1094,11 +1107,9 @@
           overlay.appendChild(popup); document.body.appendChild(overlay); overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); } }); disableBodyScroll();
           setTimeout(() => overlay.classList.add('active'), 10);
         } else {
-          const existing = document.querySelector('.custom-select-dropdown');
-          if (existing) existing.remove();
+          const existing = document.querySelector('.custom-select-dropdown'); if (existing) existing.remove();
           const rect = trigger.getBoundingClientRect(), dropdown = document.createElement('div'); dropdown.className = 'custom-select-dropdown';
-          dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
-          dropdown.style.left = (rect.left + window.scrollX) + 'px'; dropdown.style.minWidth = rect.width + 'px';
+          dropdown.style.top = (rect.bottom + window.scrollY) + 'px'; dropdown.style.left = (rect.left + window.scrollX) + 'px'; dropdown.style.minWidth = rect.width + 'px';
           Array.from(select.options).forEach(opt => {
             const optDiv = document.createElement('div'); optDiv.className = 'custom-select-option'; optDiv.textContent = opt.textContent;
             if (opt.value === select.value) { optDiv.style.background = 'rgba(0, 243, 255, 0.15)'; optDiv.style.color = 'var(--neon-cyan)'; }
@@ -1113,21 +1124,6 @@
     });
   })();
 
-  // ========== FILTROS UI ==========
-  const searchInput = document.getElementById('search');
-  const genreSelect = document.getElementById('genre-select');
-  const demographicSelect = document.getElementById('demographic-select');
-  const ratingSelect = document.getElementById('rating-select');
-  let currentFiltersUI = { search: '', genre: '', demographic: '', rating: '' };
-  let debounceTimer = null;
-  function aplicarFiltrosUI() { if (typeof window.filtrarAnimes === 'function') window.filtrarAnimes(currentFiltersUI); }
-  function debouncedAplicarFiltros() { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => aplicarFiltrosUI(), 300); }
-  if (searchInput) searchInput.addEventListener('input', e => { currentFiltersUI.search = e.target.value; debouncedAplicarFiltros(); });
-  if (genreSelect) genreSelect.addEventListener('change', e => { currentFiltersUI.genre = e.target.value; aplicarFiltrosUI(); });
-  if (demographicSelect) demographicSelect.addEventListener('change', e => { currentFiltersUI.demographic = e.target.value; aplicarFiltrosUI(); });
-  if (ratingSelect) ratingSelect.addEventListener('change', e => { currentFiltersUI.rating = e.target.value; aplicarFiltrosUI(); });
-  window.resetearFiltros = function() { if (typeof window.reiniciarPaginacion === 'function') window.reiniciarPaginacion(); else location.reload(); };
-
   // ========== ANIMACIONES FRONTALES (CHROMA KEY) Y MÚSICA ==========
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
@@ -1137,6 +1133,7 @@
   let currentAudio = null;
   let isPlayingMedia = false;
   let isTransitioning = false;
+
   fgVideo.style.display = 'none';
   fgVideo.src = currentAnim.src;
   fgVideo.addEventListener('loadedmetadata', () => {
@@ -1145,8 +1142,12 @@
     fgCanvas.width = maxCanvasWidth;
     fgCanvas.height = maxCanvasWidth / ratio;
   });
+
   function processChromaKey() {
-    if (fgVideo.paused || fgVideo.ended || isTransitioning) { requestAnimationFrame(processChromaKey); return; }
+    if (fgVideo.paused || fgVideo.ended || isTransitioning) {
+      requestAnimationFrame(processChromaKey);
+      return;
+    }
     fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
     const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
     const data = frameData.data;
@@ -1154,13 +1155,17 @@
     const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
     for (let i = 0; i < data.length; i += 4) {
       let r = data[i], g = data[i+1], b = data[i+2];
-      if (keyColor === 'blue') { if (b > r + threshold && b > g + threshold) data[i+3] = 0; }
-      else { if (g > r + threshold && g > b + threshold) data[i+3] = 0; }
+      if (keyColor === 'blue') {
+        if (b > r + threshold && b > g + threshold) data[i+3] = 0;
+      } else {
+        if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+      }
     }
     fgCtx.putImageData(frameData, 0, 0);
     requestAnimationFrame(processChromaKey);
   }
   fgVideo.addEventListener('play', () => { requestAnimationFrame(processChromaKey); });
+
   function startVisualMedia() {
     const bgVideo = document.getElementById('bg-video');
     bgVideo.muted = true;
@@ -1177,6 +1182,7 @@
     currentAudio.onended = () => { isPlayingMedia = false; startAudioMedia(); };
     currentAudio.play().catch(e => { console.log('Música bloqueada', e); isPlayingMedia = false; });
   }
+
   function createSparks(clientX, clientY) {
     const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
     for (let i = 0; i < 30; i++) {
@@ -1197,6 +1203,7 @@
       setTimeout(() => spark.remove(), 600);
     }
   }
+
   fgContainer.addEventListener('click', (e) => {
     e.stopPropagation();
     if (isTransitioning) return;
@@ -1211,33 +1218,14 @@
       fgVideo.play().then(() => { isTransitioning = false; fgContainer.classList.remove('poof'); }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
     }, 600);
   });
+
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   document.addEventListener('click', startAudioMedia, { once: true });
   document.addEventListener('touchstart', startAudioMedia, { once: true });
 
-  // ========== PANTALLA DE CARGA ==========
-  let loadingCompleted = false;
-  const loadingScreen = document.getElementById('loadingScreen');
-  const percentEl = document.getElementById('loadingPercentage');
-  const lineEl = document.getElementById('loaderLine');
-  function updateProgress(percent) { const p = Math.min(99, Math.max(0, Math.floor(percent))); if (percentEl) percentEl.innerText = p + '%'; if (lineEl) lineEl.style.width = p + '%'; }
-  function finishLoading() { if (loadingCompleted) return; loadingCompleted = true; updateProgress(100); percentEl.innerText = "SISTEMA LISTO"; setTimeout(() => { loadingScreen.classList.add('hidden'); document.body.style.overflow = ''; }, 800); }
-  let progressValue = 0;
-  const interval = setInterval(() => { if (loadingCompleted) { clearInterval(interval); return; } if (progressValue < 85) { progressValue += Math.random() * 8; if (progressValue > 85) progressValue = 85; updateProgress(progressValue); } }, 200);
-  window.addEventListener('firstAnimesLoaded', () => { clearInterval(interval); updateProgress(100); finishLoading(); });
-  setTimeout(() => { if (!loadingCompleted) finishLoading(); }, 8000);
-
-  // ========== GIF ALEATORIO ==========
-  const listaDeGifs = ['chica_corriendo.gif']; // si tienes más, agrégalos
-  if (listaDeGifs.length > 0) {
-    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    const imgGif = document.getElementById('personaje-gif');
-    if (imgGif) imgGif.src = gifElegido;
-  }
-
-  // ========== INICIALIZAR RATINGS Y PRIMERA CARGA ==========
-  initRatings().then(() => { cargarAnimesPaginado(true); }).catch(err => { console.error("Error inicial:", err); cargarAnimesPaginado(true); });
+  // Inicializar notificaciones y carga de animes
+  window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
+  cargarAnimesPaginado(true);
 </script>
-
 </body>
 </html>
