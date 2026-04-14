@@ -13,6 +13,18 @@ window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
+// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL (DOMPurify) ---
+function archinimeClean(html, isSticker = false) {
+    if (typeof DOMPurify !== 'undefined') {
+        const config = isSticker 
+            ? { ALLOWED_TAGS: ['img'], ALLOWED_ATTR: ['src', 'class', 'alt', 'style'] }
+            : { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'span', 'br', 'img'], ALLOWED_ATTR: ['src', 'class', 'style', 'alt'] };
+        return DOMPurify.sanitize(html, config);
+    }
+    // Fallback de seguridad si falla la carga de la librería
+    return html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
+}
+
 function initComentariosSystem(db, auth) {
     if (comentariosInicializados) return;
     comentariosInicializados = true;
