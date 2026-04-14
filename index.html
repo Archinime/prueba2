@@ -34,6 +34,7 @@
         metaTag.name = "theme-color";
         document.head.appendChild(metaTag);
       }
+ 
       const hexToRgb = (hex) => {
         const bigint = parseInt(hex.slice(1), 16);
         return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
@@ -41,6 +42,7 @@
       const rgbToHex = (r, g, b) => "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2,'0')).join('');
       const lerp = (start, end, t) => start + (end - start) * t;
       let startTimestamp = null, lastUpdate = 0;
+  
       function step(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
@@ -86,15 +88,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase (versión compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-  <script src="dompurify-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<script src="dompurify-config.js"></script>
 
-  <!-- ESTILOS (igual que original) -->
   <style>
     /* ===== ESTILOS ORIGINALES COMPLETOS ===== */
     :root {
@@ -674,15 +674,8 @@
     </div>
   </div>
 
-  <!-- SCRIPTS EXTERNOS NECESARIOS -->
-  <script src="notification-system.js"></script>
-  <script src="gifs.js"></script>
-  <script src="animaciones.js"></script>
-  <script src="musica_fondo.js"></script>
-
-  <!-- LÓGICA PRINCIPAL (TODO EN UN SOLO BLOQUE PARA EVITAR FALLOS) -->
   <script>
-    // ==================== CONFIGURACIÓN DE FIREBASE ====================
+    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -697,14 +690,21 @@
     const db = firebase.firestore();
     const providerGoogle = new firebase.auth.GoogleAuthProvider();
     const providerGitHub = new firebase.auth.GithubAuthProvider();
+  </script>
 
-    // ==================== GIF DE CARGA ALEATORIO ====================
+  <script src="notification-system.js"></script>
+  <script src="gifs.js"></script>
+  
+  <script src="animaciones.js"></script>
+  <script src="musica_fondo.js"></script>
+
+  <script>
     if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
       const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
       document.getElementById('personaje-gif').src = gifElegido;
     }
 
-    // ==================== SISTEMA DE CARGA CON PROGRESO ====================
+    // ========== LÓGICA DE CARGA REAL CON PROGRESO ==========
     let loadingCompleted = false;
     const loadingScreen = document.getElementById('loadingScreen');
     const percentEl = document.getElementById('loadingPercentage');
@@ -783,8 +783,7 @@
     }).catch(err => {
       finishLoading();
     });
-
-    // ==================== FUNCIONES AUXILIARES ====================
+    // ========== RESTO DE LA LÓGICA ORIGINAL ==========
     function normalizeText(s) {
       return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -824,8 +823,9 @@
       });
       gridEl.appendChild(frag);
       
-      // Efecto tilt solo en dispositivos sin touch (PC)
+      // ====== OPTIMIZACIÓN: Solo aplicamos el efecto Tilt si el dispositivo soporta hover (PC) ======
       const isTouchDevice = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+      
       document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
         c.dataset.tiltInit = 'true';
         if (!isTouchDevice) {
@@ -859,7 +859,6 @@
       cargarAnimesPaginado(true);
     }
 
-    // ==================== FILTROS Y PAGINACIÓN ====================
     let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
     let isLoading = false;
     let hasMore = true;
@@ -869,7 +868,6 @@
     const genreSelect = document.getElementById('genre-select');
     const demographicSelect = document.getElementById('demographic-select');
     const ratingSelect = document.getElementById('rating-select');
-
     async function aplicarFiltros() {
       const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
       if (!hasActiveFilters) {
@@ -970,7 +968,7 @@
     });
     window.resetearFiltros = resetearFiltros;
 
-    // ==================== AUTENTICACIÓN Y PERFIL ====================
+    // ========== AUTENTICACIÓN Y PERFIL ==========
     let currentUser = null;
     let newAvatarUrl = null;
     let lastProfileUpdate = 0;
@@ -981,18 +979,6 @@
       let hash = 0;
       for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
       return neonColors[Math.abs(hash) % neonColors.length];
-    }
-
-    function disableBodyScroll() { 
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.paddingRight = scrollbarWidth + 'px';
-      document.body.classList.add('modal-open'); 
-      document.documentElement.classList.add('modal-open');
-    }
-    function enableBodyScroll() { 
-      document.body.style.paddingRight = '';
-      document.body.classList.remove('modal-open'); 
-      document.documentElement.classList.remove('modal-open'); 
     }
 
     function showProfileModal() {
@@ -1112,7 +1098,7 @@
       }
     }
 
-    // ==================== LOGIN / REGISTRO ====================
+    // ========== LOGICA DE TABS PARA LOGIN/REGISTRO ==========
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -1131,11 +1117,13 @@
       document.getElementById('authModal').classList.add('show'); 
       disableBodyScroll();
     }
+    
     function closeAuthModal() { 
       document.getElementById('authModal').classList.remove('show'); 
       enableBodyScroll();
       document.getElementById('authError').innerText = ''; 
     }
+    
     async function loginWithEmail() { 
       const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
       try { 
@@ -1145,6 +1133,7 @@
         document.getElementById('authError').innerText = err.message;
       } 
     }
+    
     async function registerWithEmail() { 
       const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value;
       if (pass !== confirm) { 
@@ -1158,6 +1147,7 @@
         document.getElementById('authError').innerText = err.message;
       } 
     }
+    
     async function loginWithGoogle() { 
       try { 
         await auth.signInWithPopup(providerGoogle);
@@ -1166,6 +1156,7 @@
         document.getElementById('authError').innerText = err.message;
       } 
     }
+    
     async function loginWithGitHub() { 
       try { 
         await auth.signInWithPopup(providerGitHub);
@@ -1174,9 +1165,11 @@
         document.getElementById('authError').innerText = err.message;
       } 
     }
+    
     function logoutUser() { 
       auth.signOut().then(() => location.reload());
     }
+    
     function updateUserUI(user) {
       currentUser = user;
       const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
@@ -1204,16 +1197,31 @@
         dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none';
       }
     }
+    
     document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
     const userAvatarBtn = document.getElementById('userAvatarBtn'), userDropdown = document.getElementById('userDropdown');
     userAvatarBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
     document.addEventListener('click', e => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    
     auth.onAuthStateChanged(updateUserUI);
     window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
     window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
     window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
 
-    // ==================== SELECTS PERSONALIZADOS ====================
+    // ========== SELECTS PERSONALIZADOS Y SCROLL ==========
+    function disableBodyScroll() { 
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = scrollbarWidth + 'px';
+      document.body.classList.add('modal-open'); 
+      document.documentElement.classList.add('modal-open');
+    }
+    
+    function enableBodyScroll() { 
+      document.body.style.paddingRight = '';
+      document.body.classList.remove('modal-open'); 
+      document.documentElement.classList.remove('modal-open'); 
+    }
+
     (function() {
       const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobile = window.matchMedia('(max-width: 768px)').matches;
       function updateTriggerText(trigger, selectEl) { trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.options[0].textContent; }
@@ -1254,20 +1262,27 @@
       });
     })();
 
-    // ==================== ANIMACIONES (CHROMA KEY) Y MÚSICA ====================
+    // =========================================================================
+    // LÓGICA CONJUNTA: ANIMACIONES (CHROMA KEY), MÚSICA Y VIDEO DE FONDO
+    // =========================================================================
+
     const fgContainer = document.getElementById('fgContainer');
     const fgVideo = document.getElementById('fgVideo');
     const fgCanvas = document.getElementById('fgCanvas');
     const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
 
+    // videoList y musicListGlobal ahora provienen de animaciones.js y musica_fondo.js
     let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
     let currentAudio = null;
     let isPlayingMedia = false;
     let isTransitioning = false;
+    
+    // ====== OPTIMIZACIÓN: Variables para controlar los FPS del procesado ======
     let lastFrameTime = 0;
-    const targetFPS = 30;
+    const targetFPS = 30; // Limitar a 30 FPS (suficiente para anime)
     const frameInterval = 1000 / targetFPS;
 
+    // Configurar video de animación oculto para usarlo de fuente
     fgVideo.style.display = 'none';
     fgVideo.src = currentAnim.src;
 
@@ -1278,30 +1293,40 @@
       fgCanvas.height = maxCanvasWidth / ratio;
     });
 
+    // Motor de Chroma Key (Pantalla Verde / Azul)
     function processChromaKey(timestamp) {
       if (fgVideo.paused || fgVideo.ended || isTransitioning) {
         requestAnimationFrame(processChromaKey);
         return;
       }
+
+      // Control de FPS: Solo procesar si ha pasado el tiempo necesario
       if (!lastFrameTime) lastFrameTime = timestamp;
       const elapsed = timestamp - lastFrameTime;
+
       if (elapsed > frameInterval) {
         lastFrameTime = timestamp - (elapsed % frameInterval);
+
         fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
         const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
         const data = frameData.data;
+
         const keyColor = currentAnim.keyColor || 'green';
         const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+
         for (let i = 0; i < data.length; i += 4) {
           let r = data[i], g = data[i+1], b = data[i+2];
+
           if (keyColor === 'blue') {
             if (b > r + threshold && b > g + threshold) data[i+3] = 0;
           } else {
             if (g > r + threshold && g > b + threshold) data[i+3] = 0;
           }
         }
+        
         fgCtx.putImageData(frameData, 0, 0);
       }
+      
       requestAnimationFrame(processChromaKey);
     }
 
@@ -1309,81 +1334,131 @@
       requestAnimationFrame(processChromaKey);
     });
 
+    // Función para iniciar componentes visuales en autoplay
     function startVisualMedia() {
       const bgVideo = document.getElementById('bg-video');
+
       bgVideo.muted = true;
       bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
+
       fgVideo.muted = true;
       fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+
     }
 
+    // Función para iniciar la música 
     function startAudioMedia() {
       if (isPlayingMedia) return;
+
       isPlayingMedia = true;
+
       const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
       currentAudio = new Audio(track);
       currentAudio.volume = 0.3;
+
       currentAudio.onended = () => {
         isPlayingMedia = false;
         startAudioMedia();
       };
+
       currentAudio.play().catch(e => {
         console.log('Música bloqueada', e);
         isPlayingMedia = false;
       });
+
     }
 
+    // --- NUEVO: SISTEMA DE INTERACCIÓN Y CHISPAS ---
     function createSparks(clientX, clientY) {
       const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
-      for (let i = 0; i < 30; i++) {
+
+      for (let i = 0; i < 30; i++) { // 30 partículas
         const spark = document.createElement('div');
+
         spark.className = 'spark';
+        
+        // Tamaño aleatorio
         const size = Math.random() * 6 + 3;
+
         spark.style.width = size + 'px';
         spark.style.height = size + 'px';
+
+        // Posición inicial (centro del clic)
         spark.style.left = clientX + 'px';
+
         spark.style.top = clientY + 'px';
+        
+        // Color aleatorio
         spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+
         spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
+
+        // Calcular trayectoria circular aleatoria
         const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * 120 + 40;
+
+        const distance = Math.random() * 120 + 40; // Distancia de explosión
+        
         spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+
         spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+        
         document.body.appendChild(spark);
+        
+        // Eliminar del DOM después de la animación
         setTimeout(() => spark.remove(), 600);
+
       }
     }
 
     fgContainer.addEventListener('click', (e) => {
+      // Evitamos que el clic se propague al documento y reinicie otras cosas
       e.stopPropagation();
+      
+      // Prevenir clics múltiples mientras ya hay una animación en curso
       if (isTransitioning) return;
+
+      // 1. Crear el efecto de partículas
       createSparks(e.clientX, e.clientY);
+
+      // 2. Animar la desaparición (Poof!) suavemente y pausar proceso para evitar lag
       isTransitioning = true;
       fgContainer.classList.add('poof');
+
+      // 3. Cambiar de video oculto tras bambalinas
       setTimeout(() => {
+        
         let newAnim;
+        // Escoger un video nuevo al azar (diferente al actual, si hay más de 1)
         do {
           newAnim = videoList[Math.floor(Math.random() * videoList.length)];
         } while (newAnim.id === currentAnim.id && videoList.length > 1);
+        
         currentAnim = newAnim;
         fgVideo.src = currentAnim.src;
+        
+  
+        // Reproducir el nuevo video y volver a mostrar el contenedor
         fgVideo.play().then(() => {
-          isTransitioning = false;
+          isTransitioning = false; // Reactivamos el chroma key
           fgContainer.classList.remove('poof');
         }).catch(err => {
           console.log('Error cambiando anim', err);
           isTransitioning = false;
         });
-      }, 600);
+
+      }, 600); 
     });
 
+    // Eventos iniciales
     window.addEventListener('DOMContentLoaded', startVisualMedia);
     document.addEventListener('click', startAudioMedia, { once: true });
     document.addEventListener('touchstart', startAudioMedia, { once: true });
 
+    // Inicialización del sistema de notificaciones
     window.addEventListener('load', () => {
       if (window.startNotificationSequence) window.startNotificationSequence();
     });
+
   </script>
 </body>
 </html>
