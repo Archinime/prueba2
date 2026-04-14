@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v5.1";
+      const APP_VERSION = "2025-04-06-v5.2";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -128,17 +128,25 @@
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
     /* Fondo y overlay */
-    #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
-      filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
+    #bg-video { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
+      z-index: -5; opacity: 0;
+      filter: contrast(1.2) brightness(0.6) saturate(1.1); 
+      transition: opacity 1.2s ease;
       background: url('galaxia-morado1.avif') no-repeat center center / cover; 
-      transform: translateZ(0); will-change: opacity; }
+      transform: translateZ(0); will-change: opacity;
+    }
     #bg-video.loaded { opacity: 1; }
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    #overlay { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
-      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); }
-    #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); 
+    }
+    #scanlines { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
-      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); }
+      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); 
+    }
 
     /* Pantalla de carga */
     #loadingScreen {
@@ -499,6 +507,7 @@
 
 <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
   <source src="galaxia.mp4" type="video/mp4">
+  Tu navegador no soporta video HTML5.
 </video>
 <div id="overlay" aria-hidden="true"></div>
 <div id="scanlines"></div>
@@ -634,9 +643,8 @@
 </div>
 
 <!-- Scripts -->
-<!-- Primero inicializamos Firebase y exponemos db globalmente -->
+<!-- 1. Inicialización de Firebase -->
 <script>
-  // Configuración de Firebase (la misma que usas)
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
     authDomain: "login-admin-archinime.firebaseapp.com",
@@ -650,25 +658,21 @@
   }
   const auth = firebase.auth();
   const db = firebase.firestore();
-  // Exponer globalmente para otros scripts
   window.db = db;
   window.auth = auth;
-  
-  // Persistencia local
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 </script>
 
-<!-- Ahora cargamos los demás scripts (app-core.js, notificaciones, etc.) -->
+<!-- 2. Otros scripts (app-core, notificaciones, gifs, animaciones, música) -->
 <script src="app-core.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 
-<!-- Finalmente, el loader de animes (versión corregida) -->
+<!-- 3. Sistema de paginación y renderizado de animes -->
 <script>
   (function() {
-    // Verificar que db esté disponible
     if (!window.db) {
       console.error("Firestore no disponible");
       document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px; color:red;">Error: No se pudo conectar a la base de datos.</div>';
@@ -855,7 +859,7 @@
         
         window.renderAnimes(animes, false);
         if (animes.length === 0) mostrarNoResultados();
-        hasMoreAnimes = false; // deshabilitar scroll mientras hay filtros
+        hasMoreAnimes = false;
       } catch (err) {
         console.error('Error en filtros:', err);
         if (grid) grid.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
@@ -908,19 +912,19 @@
       }
     }
 
-    // Iniciar todo
     initRatings().then(() => {
       cargarAnimesPaginado(true);
     }).catch(err => {
       console.error("Error inicial:", err);
-      cargarAnimesPaginado(true); // intentar cargar de todas formas
+      cargarAnimesPaginado(true);
     });
   })();
 </script>
 
+<!-- 4. Pantalla de carga, filtros UI, selects personalizados y control del video de fondo -->
 <script>
-  // ========== PANTALLA DE CARGA ==========
   (function() {
+    // ========== PANTALLA DE CARGA ==========
     let loadingCompleted = false;
     const loadingScreen = document.getElementById('loadingScreen');
     const percentEl = document.getElementById('loadingPercentage');
@@ -957,10 +961,38 @@
     setTimeout(() => {
       if (!loadingCompleted) finishLoading();
     }, 8000);
-  })();
 
-  // ========== FILTROS Y SELECTS PERSONALIZADOS ==========
-  (function() {
+    // ========== VIDEO DE FONDO (reproducción garantizada) ==========
+    const bgVideo = document.getElementById('bg-video');
+    if (bgVideo) {
+      // Intentar reproducir automáticamente (silenciado)
+      const playVideo = () => {
+        bgVideo.play().then(() => {
+          bgVideo.classList.add('loaded');
+          console.log("Video de fondo reproduciéndose");
+        }).catch(e => {
+          console.log("Autoplay bloqueado, se reproducirá al primer clic", e);
+          // Si falla, lo intentamos con cualquier interacción del usuario
+          const tryOnUserInteraction = () => {
+            bgVideo.play().then(() => {
+              bgVideo.classList.add('loaded');
+              document.removeEventListener('click', tryOnUserInteraction);
+              document.removeEventListener('touchstart', tryOnUserInteraction);
+            }).catch(err => console.warn("No se pudo reproducir el video:", err));
+          };
+          document.addEventListener('click', tryOnUserInteraction);
+          document.addEventListener('touchstart', tryOnUserInteraction);
+        });
+      };
+      // Esperar a que el video esté listo
+      if (bgVideo.readyState >= 2) {
+        playVideo();
+      } else {
+        bgVideo.addEventListener('loadeddata', playVideo);
+      }
+    }
+
+    // ========== FILTROS UI ==========
     const searchInput = document.getElementById('search');
     const genreSelect = document.getElementById('genre-select');
     const demographicSelect = document.getElementById('demographic-select');
@@ -1013,7 +1045,7 @@
       }
     };
 
-    // Selects personalizados
+    // ========== SELECTS PERSONALIZADOS ==========
     const selects = ['genre-select', 'demographic-select', 'rating-select'];
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     function updateTriggerText(trigger, selectEl) {
@@ -1102,26 +1134,21 @@
         }
       });
     });
+
+    // ========== GIF ALEATORIO ==========
+    if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+      const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+      const imgGif = document.getElementById('personaje-gif');
+      if (imgGif) imgGif.src = gifElegido;
+    }
+
+    // ========== INICIAR NOTIFICACIONES SI EXISTEN ==========
+    if (window.startNotificationSequence) window.startNotificationSequence();
+
+    // ========== ANIMACIONES Y MÚSICA (si están definidas en los scripts externos) ==========
+    if (typeof startVisualMedia === 'function') startVisualMedia();
+    // La música se inicia con interacción del usuario (ya está en musica_fondo.js)
   })();
-
-  // ========== GIF ALEATORIO ==========
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    const imgGif = document.getElementById('personaje-gif');
-    if (imgGif) imgGif.src = gifElegido;
-  }
-
-  // ========== INICIAR NOTIFICACIONES SI EXISTEN ==========
-  if (window.startNotificationSequence) window.startNotificationSequence();
-
-  // ========== ANIMACIONES Y MÚSICA ==========
-  if (typeof startVisualMedia === 'function') startVisualMedia();
-  document.addEventListener('click', () => {
-    if (typeof startAudioMedia === 'function') startAudioMedia();
-  }, { once: true });
-  document.addEventListener('touchstart', () => {
-    if (typeof startAudioMedia === 'function') startAudioMedia();
-  }, { once: true });
 </script>
 </body>
 </html>
