@@ -1,4 +1,5 @@
-// notification-system.js - CORREGIDO: Notificaciones de respuestas para ADMIN y cualquier usuario
+// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -10,9 +11,11 @@ let popupsShownCount = 0;
 const MAX_POPUPS = 5;
 
 let firstVisitInitialized = false;
+
+// BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
 
-// Funciones de scroll (por si no existen)
+// FIX: FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -27,10 +30,9 @@ if (typeof disableBodyScroll !== 'function') {
   };
 }
 
-// Obtener usuario actual (desde estado global o fallback)
+// Obtener usuario actual desde el estado central o fallback
 function getCurrentUser() {
-  if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
-  if (window.currentUser) return window.currentUser;
+  if (window.ArchinimeState) return ArchinimeState.get('currentUser');
   return null;
 }
 
@@ -51,34 +53,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     listenForCatalogUpdates();
 
-    // Suscribirse al estado central o a auth directamente
-    const checkUserAndSubscribe = (user) => {
-        if (user) {
-            console.log(`👤 Usuario autenticado: ${user.email} (${user.uid})`);
-            syncNotificationsWithCloud(user.uid);
-            listenForReplies(user.uid);
-        } else if (repliesUnsubscribe) {
-            console.log("👤 Usuario desconectado, cancelando suscripción a respuestas");
-            repliesUnsubscribe();
-            repliesUnsubscribe = null;
-        }
-    };
-
+    // Suscribirse al estado central para cambios de usuario
     if (window.ArchinimeState) {
-        window.ArchinimeState.on('currentUser', checkUserAndSubscribe);
-        // Si ya hay usuario, llamar inmediatamente
-        const current = window.ArchinimeState.get('currentUser');
-        if (current) checkUserAndSubscribe(current);
+        ArchinimeState.on('currentUser', async user => {
+            if (user) {
+                await syncNotificationsWithCloud(user.uid);
+                listenForReplies(user.uid);
+            } else if (repliesUnsubscribe) {
+                repliesUnsubscribe();
+            }
+        });
     } else if (typeof auth !== 'undefined') {
+        // Fallback: usar auth directamente
         console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
-        auth.onAuthStateChanged(checkUserAndSubscribe);
-    } else {
-        console.error("No se pudo inicializar el sistema de notificaciones: auth no definido");
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                await syncNotificationsWithCloud(user.uid);
+                listenForReplies(user.uid);
+            } else if (repliesUnsubscribe) repliesUnsubscribe();
+        });
     }
 });
 
-// ========== PRIMERA VISITA ==========
+// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
 async function initFirstVisitNotifications() {
+    // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -95,6 +94,7 @@ async function initFirstVisitNotifications() {
     notificationQueue = [];
     popupsShownCount = 0;
     try {
+        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
             .limit(MAX_POPUPS)
@@ -219,14 +219,8 @@ async function syncNotificationsWithCloud(uid) {
     } catch (e) { console.error("Error sync notif:", e); }
 }
 
-// ========== ESCUCHAR RESPUESTAS A COMENTARIOS (CORREGIDO) ==========
 function listenForReplies(uid) {
-    if (repliesUnsubscribe) {
-        repliesUnsubscribe();
-        repliesUnsubscribe = null;
-    }
-    console.log(`👂 Escuchando respuestas para usuario: ${uid}`);
-    // Escuchamos comentarios donde 'replyToUserId' sea igual al uid del usuario actual
+    if (repliesUnsubscribe) repliesUnsubscribe();
     repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -236,22 +230,18 @@ function listenForReplies(uid) {
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const data = change.doc.data();
-                    // No notificar si la respuesta es del mismo usuario (autorespuesta)
                     if (data.userId === uid) return;
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
           
                     if (notificationsHistory.some(n => n.notifId === notifId)) return;
-                    
                     let rawText = data.texto || "";
                     let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
-                    
-                    const newReplyNotif = {
-                        notifId,
-                        type: 'RESPUESTA',
-                        animeId: data.animeId,
-                        title: `¡${data.userName || 'Alguien'} te respondió!`,
+         
+                    notificationsHistory.unshift({
+                        notifId, type: 'RESPUESTA', animeId: data.animeId,
+                        title: `¡${data.userName} te respondió!`,
                         img: data.userAvatar || 'invitado.avif',
                         seasonCover: data.userAvatar || 'invitado.avif',
                         blockName: 'Foro',
@@ -260,11 +250,8 @@ function listenForReplies(uid) {
                         seen: false,
                         isFinal: false,
                         url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
-                    };
-                    
-                    notificationsHistory.unshift(newReplyNotif);
+                    });
                     hasNew = true;
-                    console.log(`💬 Nueva respuesta para ${uid}: de ${data.userName} en ${data.animeId}`);
                 }
             });
             if (hasNew) {
@@ -272,18 +259,8 @@ function listenForReplies(uid) {
                 saveHistoryToStorage();
                 renderNotificationList();
                 if (!isMenuOpen) updateBellBadge();
-                // Mostrar popup de respuesta si está dentro del límite
-                if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
-                    const lastReply = notificationsHistory.find(n => n.type === 'RESPUESTA' && !n.popupShown);
-                    if (lastReply && !lastReply.popupShown) {
-                        lastReply.popupShown = true;
-                        notificationQueue.push(lastReply);
-                        popupsShownCount++;
-                        showNextPopup();
-                    }
-                }
             }
-        }, error => console.error("Error en listener de respuestas:", error));
+        }, error => console.error("Error replies:", error));
 }
 
 function listenForCatalogUpdates() {
@@ -383,7 +360,6 @@ function createPopupHTML(notif) {
     let badgeColor = "#bc13fe";
     if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
     else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
-    else if (notif.type === "RESPUESTA") badgeColor = "#00f3ff";
     modal.innerHTML = `
         <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
           <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
@@ -391,7 +367,7 @@ function createPopupHTML(notif) {
             <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
           </div>
           <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
-            <p class="event-desc">${notif.type === 'RESPUESTA' ? 'Alguien respondió a tu comentario.' : '¡Ya disponible en la plataforma! Disfruta del estreno.'}</p>
+            <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
             <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
           </div>
         </div>`;
@@ -419,9 +395,12 @@ function goToAnimeFromPopup(animeId, notifId) {
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
+// FIX: Se quitó el bloqueo de body scroll al abrir el menú de notificaciones
+// Esto evita tirones, lag, o desencuadre en móviles al hacer scroll.
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
+    
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
@@ -430,6 +409,7 @@ function toggleNotifMenu() {
     }
 }
 
+// FIX: También quitamos el desbloqueo de scroll cuando el menú se cierra por un clic afuera
 document.addEventListener('click', (e) => {
     const wrapper = document.querySelector('.notif-wrapper');
     const menu = document.getElementById('notifMenu');
@@ -469,6 +449,7 @@ function renderNotificationList() {
                 e.stopPropagation();
                 markAllAsRead();
             };
+            
             btn.style.cssText = `
                 background: rgba(0,243,255,0.1);
                 border: 1px solid var(--neon-cyan);
