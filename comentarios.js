@@ -750,7 +750,7 @@ window.prepararRespuesta = function(commentId, userName, userId, encodedTextoOri
     cancelarRespuesta(true);
     let textoOriginal = '';
     try { if (encodedTextoOriginal) textoOriginal = decodeURIComponent(encodedTextoOriginal); } catch(e){}
-window.respondiendoA = { id: commentId, userName, userId, texto: textoOriginal };
+    window.respondiendoA = { id: commentId, userName, userId, texto: textoOriginal };
     
     const commentEl = document.getElementById(`comment-${commentId}`);
     if (!commentEl) return;
