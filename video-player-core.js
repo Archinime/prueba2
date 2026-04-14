@@ -24,9 +24,7 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
 
-    // EXPONEMOS LOS MÉTODOS, INCLUYENDO getCurrentUser
     window.videoPlayerMethods = {
-      getCurrentUser: () => this.getCurrentUser(), 
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
       insertEmoji: (e) => this.insertEmoji(e),
@@ -162,7 +160,6 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
-
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
     btn.innerText = label;
     btn.onclick = () => {
@@ -251,8 +248,8 @@ class VideoPlayer {
     const sNum = parseInt(this.season);
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
+    
     const user = this.getCurrentUser();
-
     if (user) {
       try {
         const docRef = this.db.collection('watchHistory').doc(user.uid);
@@ -260,6 +257,7 @@ class VideoPlayer {
         let data = doc.exists ? doc.data() : {};
         let animeData = data[aId] || {};
         let seasonData = animeData[sNum] || [];
+        
         if (!seasonData.includes(eNum)) {
           seasonData.push(eNum);
           animeData[sNum] = seasonData;
@@ -343,19 +341,17 @@ class VideoPlayer {
     }
   }
   
+  // FIX: Se enruta al cuadro dinámico si existe usando agregarEmojiAlTexto
   insertEmoji(emoji) { 
-    let ta = document.getElementById('comentarioTexto');
-    if (window.respondiendoA) {
-        ta = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
-    }
-
-    if(ta){
-      const start = ta.selectionStart;
-      const end = ta.selectionEnd;
-      ta.value = ta.value.substring(0, start) + emoji + ta.value.substring(end);
-      ta.focus(); 
-      ta.dispatchEvent(new Event('input'));
-      this.validateSendButton();
+    if (typeof window.agregarEmojiAlTexto === 'function') {
+        window.agregarEmojiAlTexto(emoji);
+    } else {
+        const ta = document.getElementById('comentarioTexto');
+        if(ta){
+            ta.value += emoji; 
+            ta.focus(); 
+            this.validateSendButton();
+        }
     }
   }
   
@@ -382,28 +378,12 @@ class VideoPlayer {
   }
 
   validateSendButton() {
-    let textarea = document.getElementById('comentarioTexto');
-    let btn = document.getElementById('enviarComentarioBtn');
-    
-    if (window.respondiendoA) {
-        textarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
-        btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
-    }
-
+    const textarea = document.getElementById('comentarioTexto');
+    const btn = document.getElementById('enviarComentarioBtn');
     if (textarea && btn) {
       const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-      
-      if (hasContent) {
-          btn.disabled = false;
-          btn.classList.remove('btn-disabled');
-          btn.style.opacity = '1';
-          btn.style.cursor = 'pointer';
-      } else {
-          btn.disabled = true;
-          btn.classList.add('btn-disabled');
-          btn.style.opacity = '0.5';
-          btn.style.cursor = 'not-allowed';
-      }
+      btn.disabled = !hasContent;
+      btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
   
@@ -412,17 +392,21 @@ class VideoPlayer {
   }
   
   quitarStickerPreview() { 
-    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
+    if (typeof quitarStickerPreview === 'function') { 
+        quitarStickerPreview();
+    } 
     this.validateSendButton();
   }
 }
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();

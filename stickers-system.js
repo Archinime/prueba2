@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE)
-// CORREGIDO Y ACTUALIZADO: Subida nativa sin conflictos
+// CORREGIDO: Manejo de estado de autenticación y lógica de subida.
 // ============================================
 
 let stickersDb = null;
@@ -9,9 +9,10 @@ let userStickersCollection = [];
 
 // CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
+const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debe existir en Cloudinary (modo unsigned)
 const DEFAULT_STICKERS = [];
 
+// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
     if (typeof DOMPurify !== 'undefined') {
         return DOMPurify.sanitize(html, {
@@ -19,7 +20,7 @@ function cleanStickerHTML(html) {
             ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
         });
     }
-    return html;
+    return html; 
 }
 
 function initStickersSystem(db, auth) {
@@ -45,13 +46,11 @@ function initStickersSystem(db, auth) {
     }
 }
 
-// CORRECCIÓN PRINCIPAL: Múltiples formas de verificar que estás logueado
+// FIX: Función robusta para atrapar la autenticación del usuario desde cualquier script
 function getCurrentUser() {
-    if (typeof window.videoPlayer !== 'undefined' && window.videoPlayer.getCurrentUser) {
-        return window.videoPlayer.getCurrentUser();
-    }
-    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
-    if (stickersAuth) return stickersAuth.currentUser;
+    if (window.ArchinimeState && ArchinimeState.get('currentUser')) return ArchinimeState.get('currentUser');
+    if (window.currentUserForComent) return window.currentUserForComent;
+    if (window.videoPlayer && typeof window.videoPlayer.getCurrentUser === 'function') return window.videoPlayer.getCurrentUser();
     return null;
 }
 
@@ -61,10 +60,9 @@ async function loadUserStickers() {
 
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
-
+        
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
-
             if (userStickersCollection.length !== doc.data().stickers.length) {
                 await stickersDb.collection('userStickers').doc(user.uid).set({ stickers: userStickersCollection }, { merge: true });
             }
@@ -86,7 +84,7 @@ function renderUserStickers() {
     if (!container) return;
 
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-
+    
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
@@ -112,6 +110,7 @@ function renderUserStickers() {
             </div>
         `;
     });
+
     container.innerHTML = html;
 }
 
@@ -134,6 +133,7 @@ async function eliminarSticker(urlSticker, event) {
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.update({ stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker) });
+        
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
@@ -143,12 +143,13 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
+// FIX: Subida de archivos con control y validación de auth sólida
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     
     if (!user) {
         openLoginModalFromStickers();
-        inputElement.value = ''; 
+        inputElement.value = '';
         return;
     }
 
@@ -195,14 +196,12 @@ window.subirStickerDesdePC = async function(inputElement) {
 
         if (data.secure_url) {
             await guardarStickerEnColeccion(data.secure_url);
-
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
             window.switchStickerTab('mis');
             await loadUserStickers();
-            
         } else {
             throw new Error(data.error ? data.error.message : 'Error desconocido de Cloudinary');
         }
@@ -236,15 +235,16 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
+// FIX: Ahora sí pasará la autenticación y dejará robar el sticker
 window.robarStickerSistema = async function(url) {
     const user = getCurrentUser();
-
+    
     if (!user) {
         openLoginModalFromStickers();
         return;
     }
+    
     const cleanUrl = url.trim();
-
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -252,12 +252,12 @@ window.robarStickerSistema = async function(url) {
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.set({ stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) }, { merge: true });
+        
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
         }
         showToastSticker('✅ ¡Sticker robado y guardado!');
-
     } catch (e) {
         console.error('Error al robar sticker:', e);
         alert('Error al guardar: ' + e.message);
