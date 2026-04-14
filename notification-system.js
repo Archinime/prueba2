@@ -1,21 +1,16 @@
-// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO
-// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// notification-system.js - Sistema completo de notificaciones (comentarios, respuestas, catálogo)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
 
-// LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
 const MAX_POPUPS = 5;
 
 let firstVisitInitialized = false;
-
-// BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
 
-// FIX: FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -30,9 +25,9 @@ if (typeof disableBodyScroll !== 'function') {
   };
 }
 
-// Obtener usuario actual desde el estado central o fallback
 function getCurrentUser() {
-  if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+  if (window.currentUser !== undefined) return window.currentUser;
+  if (window.auth && window.auth.currentUser) return window.auth.currentUser;
   return null;
 }
 
@@ -53,9 +48,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     listenForCatalogUpdates();
 
-    // Suscribirse al estado central para cambios de usuario
-    if (window.ArchinimeState) {
-        ArchinimeState.on('currentUser', async user => {
+    // Escuchar cambios de usuario (usando auth directamente o variable global)
+    if (typeof auth !== 'undefined') {
+        auth.onAuthStateChanged(async user => {
             if (user) {
                 await syncNotificationsWithCloud(user.uid);
                 listenForReplies(user.uid);
@@ -63,21 +58,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 repliesUnsubscribe();
             }
         });
-    } else if (typeof auth !== 'undefined') {
-        // Fallback: usar auth directamente
-        console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
-        auth.onAuthStateChanged(async user => {
-            if (user) {
-                await syncNotificationsWithCloud(user.uid);
-                listenForReplies(user.uid);
-            } else if (repliesUnsubscribe) repliesUnsubscribe();
-        });
+    } else if (window.currentUser !== undefined) {
+        const user = getCurrentUser();
+        if (user) {
+            await syncNotificationsWithCloud(user.uid);
+            listenForReplies(user.uid);
+        }
     }
 });
 
-// ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
 async function initFirstVisitNotifications() {
-    // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -94,7 +84,6 @@ async function initFirstVisitNotifications() {
     notificationQueue = [];
     popupsShownCount = 0;
     try {
-        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
             .limit(MAX_POPUPS)
@@ -173,7 +162,7 @@ function saveHistoryToStorage() {
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
     const user = getCurrentUser();
-    if (user) {
+    if (user && user.uid) {
         db.collection('users').doc(user.uid).set({
             notifHistory: notificationsHistory,
             seenNotifIds: seenNotifIds
@@ -395,8 +384,6 @@ function goToAnimeFromPopup(animeId, notifId) {
     window.location.href = `anime-detail.html?id=${animeId}`;
 }
 
-// FIX: Se quitó el bloqueo de body scroll al abrir el menú de notificaciones
-// Esto evita tirones, lag, o desencuadre en móviles al hacer scroll.
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
@@ -409,7 +396,6 @@ function toggleNotifMenu() {
     }
 }
 
-// FIX: También quitamos el desbloqueo de scroll cuando el menú se cierra por un clic afuera
 document.addEventListener('click', (e) => {
     const wrapper = document.querySelector('.notif-wrapper');
     const menu = document.getElementById('notifMenu');
