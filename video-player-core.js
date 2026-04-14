@@ -23,7 +23,7 @@ class VideoPlayer {
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-    
+
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -36,10 +36,9 @@ class VideoPlayer {
       registerWithEmail: () => this.registerWithEmail(),
       loginWithGoogle: () => this.loginWithGoogle(),
       loginWithGitHub: () => this.loginWithGitHub(),
-      switchStickerTab: (tab) => this.switchStickerTab(tab),
-      uploadSticker: (file) => this.uploadSticker(file)
+      switchStickerTab: (tab) => this.switchStickerTab(tab)
     };
-    
+
     window.videoPlayer = window.videoPlayerMethods;
   }
   
@@ -52,7 +51,7 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-    
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -112,11 +111,6 @@ class VideoPlayer {
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
-    
-    const fileInput = document.getElementById('stickerFileInput');
-    if (fileInput) {
-      fileInput.addEventListener('change', (e) => this.uploadSticker(e.target.files[0]));
-    }
   }
   
   async loadEpisodeData() {
@@ -147,7 +141,7 @@ class VideoPlayer {
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-      
+
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -165,7 +159,6 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
-    
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
     btn.innerText = label;
     btn.onclick = () => {
@@ -181,7 +174,6 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
-    
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -234,11 +226,9 @@ class VideoPlayer {
         }
       });
     });
-    
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-    
     if (idx > 0) {
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
@@ -255,7 +245,6 @@ class VideoPlayer {
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
     const user = this.getCurrentUser();
-    
     if (user) {
       try {
         const docRef = this.db.collection('watchHistory').doc(user.uid);
@@ -324,7 +313,7 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
-    
+
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -347,7 +336,7 @@ class VideoPlayer {
   }
   
   insertEmoji(emoji) { 
-    const ta = document.getElementById('comentarioTexto'); 
+    const ta = document.getElementById('comentarioTexto');
     if(ta){
       ta.value += emoji; 
       ta.focus(); 
@@ -359,8 +348,7 @@ class VideoPlayer {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) {
       panel.classList.toggle('active');
-      document.getElementById('emojiPanel')?.classList.remove('active'); 
-      
+      document.getElementById('emojiPanel')?.classList.remove('active');
       if (panel.classList.contains('active') && typeof cargarStickersUsuario === 'function') {
         cargarStickersUsuario();
       }
@@ -368,33 +356,16 @@ class VideoPlayer {
   }
   
   switchStickerTab(tabId) {
-    document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.sticker-tab[data-tab="${tabId}"]`)?.classList.add('active');
-    document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
-  }
-  
-  // ========== MÉTODO CORREGIDO PARA SUBIR STICKER ==========
-  async uploadSticker(file) {
-    if (!file) return;
-    if (!this.getCurrentUser()) { 
-      alert('Inicia sesión para subir stickers'); 
-      return; 
-    }
-    if (typeof window.subirStickerDesdePC === 'function') {
-      // Crear un objeto input simulado para reutilizar la función global
-      const fakeInput = { files: [file] };
-      await window.subirStickerDesdePC(fakeInput);
-      // Recargar stickers después de subir
-      if (typeof cargarStickersUsuario === 'function') {
-        setTimeout(() => cargarStickersUsuario(), 500);
-      }
+    if (typeof window.switchStickerTab === 'function') {
+      window.switchStickerTab(tabId);
     } else {
-      console.error("window.subirStickerDesdePC no está definida");
-      alert("Error: sistema de stickers no cargado correctamente. Recarga la página.");
+      document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.sticker-tab[data-tab="${tabId}"]`)?.classList.add('active');
+      document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
     }
   }
-  
+
   validateSendButton() {
     const textarea = document.getElementById('comentarioTexto');
     const btn = document.getElementById('enviarComentarioBtn');
@@ -422,10 +393,9 @@ if (document.readyState === 'loading') {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad con comentarios y stickers
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
-window.switchStickerTab = (tab) => window.videoPlayer?.switchStickerTab(tab);
-window.subirStickerDesdePC = (input) => window.videoPlayer?.uploadSticker(input.files[0]);
+// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.
