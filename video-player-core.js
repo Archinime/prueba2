@@ -135,7 +135,7 @@ class VideoPlayer {
         return;
       }
       
-      document.title = `Ver ${episodeData.title || `Episodio ${this.episode}`} - Archinime`;
+      document.title = `Ver ${episodeData.title || \`Episodio \${this.episode}\`} - Archinime`;
       document.getElementById('epTitle').innerText = episodeData.title || `Episodio ${this.episode}`;
       
       const initialLink = episodeData.link || episodeData.link2;
@@ -341,16 +341,16 @@ class VideoPlayer {
     }
   }
   
-  // FIX: Se enruta al cuadro dinámico si existe usando agregarEmojiAlTexto
+  // CORRECCIÓN: Delegar correctamente si hay un panel de respuesta abierto
   insertEmoji(emoji) { 
     if (typeof window.agregarEmojiAlTexto === 'function') {
         window.agregarEmojiAlTexto(emoji);
     } else {
         const ta = document.getElementById('comentarioTexto');
         if(ta){
-            ta.value += emoji; 
-            ta.focus(); 
-            this.validateSendButton();
+          ta.value += emoji; 
+          ta.focus(); 
+          this.validateSendButton();
         }
     }
   }
@@ -392,9 +392,7 @@ class VideoPlayer {
   }
   
   quitarStickerPreview() { 
-    if (typeof quitarStickerPreview === 'function') { 
-        quitarStickerPreview();
-    } 
+    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
     this.validateSendButton();
   }
 }
@@ -411,3 +409,4 @@ window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
+// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.

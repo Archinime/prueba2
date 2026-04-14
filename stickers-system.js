@@ -1,27 +1,16 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE)
-// CORREGIDO: Manejo de estado de autenticación y lógica de subida.
+// CORREGIDO Y ACTUALIZADO: Subida nativa sin conflictos
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY
+// CONFIGURACIÓN DE CLOUDINARY - VERIFICA TUS DATOS
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debe existir en Cloudinary (modo unsigned)
+const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
 const DEFAULT_STICKERS = [];
-
-// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
-function cleanStickerHTML(html) {
-    if (typeof DOMPurify !== 'undefined') {
-        return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['img', 'div', 'span'],
-            ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
-        });
-    }
-    return html; 
-}
 
 function initStickersSystem(db, auth) {
     stickersDb = db;
@@ -46,9 +35,9 @@ function initStickersSystem(db, auth) {
     }
 }
 
-// FIX: Función robusta para atrapar la autenticación del usuario desde cualquier script
+// CORRECCIÓN: Función robusta para no perder la autenticación
 function getCurrentUser() {
-    if (window.ArchinimeState && ArchinimeState.get('currentUser')) return ArchinimeState.get('currentUser');
+    if (window.ArchinimeState && window.ArchinimeState.get('currentUser')) return window.ArchinimeState.get('currentUser');
     if (window.currentUserForComent) return window.currentUserForComent;
     if (window.videoPlayer && typeof window.videoPlayer.getCurrentUser === 'function') return window.videoPlayer.getCurrentUser();
     return null;
@@ -60,7 +49,7 @@ async function loadUserStickers() {
 
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
-        
+
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
             if (userStickersCollection.length !== doc.data().stickers.length) {
@@ -84,13 +73,14 @@ function renderUserStickers() {
     if (!container) return;
 
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-    
+
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
                 <div class="sticker-empty-icon"><i class="fas fa-sticky-note"></i></div>
                 <div class="sticker-empty-title">SIN STICKERS</div>
                 <div class="sticker-empty-desc">Sube imágenes o vídeos, o roba de otros comentarios.</div>
+           
                 <div class="sticker-empty-hint"><i class="fas fa-upload"></i> Ve a la pestaña "SUBIR"</div>
             </div>
         `;
@@ -105,6 +95,7 @@ function renderUserStickers() {
             : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
         html += `
             <div class="sticker-item">
+                
                 ${tagMedia}
                 <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)">✖</button>
             </div>
@@ -133,7 +124,6 @@ async function eliminarSticker(urlSticker, event) {
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.update({ stickers: firebase.firestore.FieldValue.arrayRemove(urlSticker) });
-        
         userStickersCollection = userStickersCollection.filter(url => url !== urlSticker);
         renderUserStickers();
         showToastSticker('🗑️ Sticker eliminado');
@@ -143,25 +133,27 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// FIX: Subida de archivos con control y validación de auth sólida
+// ========== FUNCIÓN GLOBAL DE SUBIDA NATIVA CORREGIDA ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
-    
     if (!user) {
         openLoginModalFromStickers();
         inputElement.value = '';
+        // Limpiar input
         return;
     }
 
     const file = inputElement.files[0];
     if (!file) return;
 
+    // Validar tamaño (2 MB máx)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
+    // Mostrar preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -178,16 +170,19 @@ window.subirStickerDesdePC = async function(inputElement) {
     }
     previewContainer.style.display = 'block';
 
+    // Cambiar texto del botón
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Cloudinary...';
     btnSubir.style.pointerEvents = 'none';
 
     try {
+        // Preparar FormData para Cloudinary
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
 
+        // Subir a Cloudinary
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
@@ -195,13 +190,17 @@ window.subirStickerDesdePC = async function(inputElement) {
         const data = await response.json();
 
         if (data.secure_url) {
+            // Guardar URL en Firestore
             await guardarStickerEnColeccion(data.secure_url);
+            // Limpiar preview y campos
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
+            // Cambiar a pestaña "Mis Stickers" y recargar
             window.switchStickerTab('mis');
             await loadUserStickers();
+            
         } else {
             throw new Error(data.error ? data.error.message : 'Error desconocido de Cloudinary');
         }
@@ -235,15 +234,12 @@ async function guardarStickerEnColeccion(url) {
     }
 }
 
-// FIX: Ahora sí pasará la autenticación y dejará robar el sticker
 window.robarStickerSistema = async function(url) {
     const user = getCurrentUser();
-    
     if (!user) {
         openLoginModalFromStickers();
         return;
     }
-    
     const cleanUrl = url.trim();
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
@@ -252,7 +248,6 @@ window.robarStickerSistema = async function(url) {
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.set({ stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) }, { merge: true });
-        
         if (!userStickersCollection.includes(cleanUrl)) {
             userStickersCollection.push(cleanUrl);
             renderUserStickers();
