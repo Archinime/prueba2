@@ -94,11 +94,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <script src="dompurify-config.js"></script>
 
-  <!-- ========== SCRIPTS EXTERNOS NUEVOS (MODULARIZACIÓN) ========== -->
-  <script src="js/app-core.js"></script>
-  <script src="js/anime-loader.js"></script>
-
-  <!-- Estilos (igual que original) -->
+  <!-- ESTILOS (igual que original) -->
   <style>
     /* ===== ESTILOS ORIGINALES COMPLETOS ===== */
     :root {
@@ -678,106 +674,716 @@
     </div>
   </div>
 
-  <!-- Scripts adicionales (originales) -->
+  <!-- SCRIPTS EXTERNOS NECESARIOS -->
   <script src="notification-system.js"></script>
   <script src="gifs.js"></script>
   <script src="animaciones.js"></script>
   <script src="musica_fondo.js"></script>
 
-  <!-- Inicialización y carga restante (lo que no se movió a los módulos) -->
+  <!-- LÓGICA PRINCIPAL (TODO EN UN SOLO BLOQUE PARA EVITAR FALLOS) -->
   <script>
-    (function() {
-      // Selección aleatoria de GIF de carga
-      if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-        const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-        document.getElementById('personaje-gif').src = gifElegido;
-      }
+    // ==================== CONFIGURACIÓN DE FIREBASE ====================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const providerGoogle = new firebase.auth.GoogleAuthProvider();
+    const providerGitHub = new firebase.auth.GithubAuthProvider();
 
-      // Sistema de carga real con progreso
-      let loadingCompleted = false;
-      const loadingScreen = document.getElementById('loadingScreen');
-      const percentEl = document.getElementById('loadingPercentage');
-      const lineEl = document.getElementById('loaderLine');
-      function updateProgress(percent) {
-        const p = Math.min(99, Math.max(0, Math.floor(percent)));
-        if (percentEl) percentEl.innerText = p + '%';
-        if (lineEl) lineEl.style.width = p + '%';
-      }
+    // ==================== GIF DE CARGA ALEATORIO ====================
+    if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+      const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+      document.getElementById('personaje-gif').src = gifElegido;
+    }
 
-      function finishLoading() {
-        if (loadingCompleted) return;
-        loadingCompleted = true;
+    // ==================== SISTEMA DE CARGA CON PROGRESO ====================
+    let loadingCompleted = false;
+    const loadingScreen = document.getElementById('loadingScreen');
+    const percentEl = document.getElementById('loadingPercentage');
+    const lineEl = document.getElementById('loaderLine');
+    function updateProgress(percent) {
+      const p = Math.min(99, Math.max(0, Math.floor(percent)));
+      if (percentEl) percentEl.innerText = p + '%';
+      if (lineEl) lineEl.style.width = p + '%';
+    }
+
+    function finishLoading() {
+      if (loadingCompleted) return;
+      loadingCompleted = true;
+      updateProgress(100);
+      percentEl.innerText = "SISTEMA LISTO";
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 800);
+    }
+
+    // Promesas de carga crítica
+    const loadPromises = [];
+    const firestoreRatings = new Map();
+    const ratingsPromise = db.collection('animeRatings').get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (typeof data.avg === 'number') firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
+      });
+    }).catch(e => console.warn('Error cargando ratings:', e));
+    loadPromises.push(ratingsPromise);
+
+    let allAnimes = [];
+    let shuffledAnimes = [];
+    let currentShufflePage = 0;
+    const ITEMS_PER_PAGE = 20;
+    const animesPromise = db.collection('catalogo').orderBy('title').limit(50).get().then(snapshot => {
+      allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      shuffledAnimes = [...allAnimes];
+      for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
+      }
+      const firstPage = shuffledAnimes.slice(0, ITEMS_PER_PAGE);
+      renderAnimes(firstPage, false);
+    }).catch(e => console.warn('Error cargando animes iniciales:', e));
+    loadPromises.push(animesPromise);
+
+    const bgVideo = document.getElementById('bg-video');
+    const videoPromise = new Promise((resolve) => {
+      if (bgVideo.readyState >= 2) resolve();
+      else bgVideo.addEventListener('loadeddata', resolve, { once: true });
+      setTimeout(resolve, 2000);
+    });
+    loadPromises.push(videoPromise);
+
+    let progressValue = 0;
+    const interval = setInterval(() => {
+      if (loadingCompleted) {
+        clearInterval(interval);
+        return;
+      }
+      if (progressValue < 85) {
+        progressValue += Math.random() * 8;
+        if (progressValue > 85) progressValue = 85;
+        updateProgress(progressValue);
+      }
+    }, 200);
+    Promise.all(loadPromises).then(() => {
+      clearInterval(interval);
+      updateProgress(95);
+      setTimeout(() => {
         updateProgress(100);
-        percentEl.innerText = "SISTEMA LISTO";
-        setTimeout(() => {
-          loadingScreen.classList.add('hidden');
-          document.body.style.overflow = '';
-        }, 800);
+        finishLoading();
+      }, 300);
+    }).catch(err => {
+      finishLoading();
+    });
+
+    // ==================== FUNCIONES AUXILIARES ====================
+    function normalizeText(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function getDisplayRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const ratingObj = firestoreRatings.get(animeId);
+        if (ratingObj && typeof ratingObj.avg === 'number') return ratingObj.avg.toFixed(1);
       }
+      if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) return anime.rating.toFixed(1);
+      return '—';
+    }
 
-      // Promesas de carga
-      const loadPromises = [];
+    function getNumericRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const avg = firestoreRatings.get(animeId).avg;
+        if (typeof avg === 'number') return avg;
+      }
+      if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
+      return 0;
+    }
 
-      // Esperar a que los módulos externos hayan cargado sus datos (las variables globales se setean en anime-loader.js)
-      const checkAnimesReady = new Promise((resolve) => {
-        const interval = setInterval(() => {
-          if (typeof window.allAnimes !== 'undefined' && window.allAnimes.length > 0) {
-            clearInterval(interval);
-            resolve();
+    function renderAnimes(animes, append = true) {
+      if (!append) gridEl.innerHTML = '';
+      if (!animes.length && !append) { mostrarNoResultados(); return; }
+      const frag = document.createDocumentFragment();
+      animes.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = a.id;
+        card.setAttribute('onclick', `location='anime-detail.html?id=${a.id}'`);
+        const rating = getDisplayRating(a);
+        card.innerHTML = `<img src="${a.img}" alt="${a.title}" loading="lazy"><div class="info"><strong>${a.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
+        frag.appendChild(card);
+      });
+      gridEl.appendChild(frag);
+      
+      // Efecto tilt solo en dispositivos sin touch (PC)
+      const isTouchDevice = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+      document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
+        c.dataset.tiltInit = 'true';
+        if (!isTouchDevice) {
+          c.addEventListener('mousemove', (e) => {
+            if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
+            c.tiltRAF = requestAnimationFrame(() => {
+              const rect = c.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+              const rotX = ((y - rect.height/2) / (rect.height/2)) * -6, rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
+              c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+            });
+          });
+          c.addEventListener('mouseleave', () => { if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF); c.style.transform = ''; });
+        }
+      });
+    }
+
+    function mostrarNoResultados() {
+      gridEl.innerHTML = `<div class="cyber-no-results" style="grid-column:1/-1; display:flex; flex-direction:column; align-items:center; padding:60px; background:rgba(10,12,16,0.7); border:1px solid var(--neon-purple); border-radius:16px;">
+        <i class="fas fa-satellite-dish" style="font-size:3rem; color:var(--neon-cyan);"></i><h2 style="font-family:Orbitron; margin:20px 0;">Sin Resultados</h2>
+        <p>Prueba con otros filtros o busca por alias.</p><button onclick="resetearFiltros()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
+      </div>`;
+    }
+
+    function resetearFiltros() {
+      document.getElementById('search').value = '';
+      document.getElementById('genre-select').value = '';
+      document.getElementById('demographic-select').value = '';
+      document.getElementById('rating-select').value = '';
+      currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+      currentShufflePage = 0;
+      cargarAnimesPaginado(true);
+    }
+
+    // ==================== FILTROS Y PAGINACIÓN ====================
+    let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    let isLoading = false;
+    let hasMore = true;
+    let debounceTimer = null;
+    const gridEl = document.getElementById('grid');
+    const searchInput = document.getElementById('search');
+    const genreSelect = document.getElementById('genre-select');
+    const demographicSelect = document.getElementById('demographic-select');
+    const ratingSelect = document.getElementById('rating-select');
+
+    async function aplicarFiltros() {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters) {
+        cargarAnimesPaginado(true);
+        return;
+      }
+      gridEl.innerHTML = '';
+      isLoading = true;
+      try {
+        let query = db.collection('catalogo');
+        if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
+        query = query.orderBy('title');
+        const snapshot = await query.limit(200).get();
+        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
+        if (currentFilters.search) {
+          const searchTermNormalized = normalizeText(currentFilters.search);
+          animes = animes.filter(a => {
+            const titles = [a.title, ...(a.aliases || [])];
+            return titles.some(t => normalizeText(t).startsWith(searchTermNormalized));
+          });
+        }
+        if (currentFilters.rating) {
+          animes = animes.filter(a => {
+            const r = getNumericRating(a);
+            if (currentFilters.rating === 'excellent') return r >= 4.8;
+            if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+            if (currentFilters.rating === 'regular') return r < 4.6;
+            return true;
+          });
+        }
+        renderAnimes(animes, false);
+        if (animes.length === 0) mostrarNoResultados();
+      } catch (e) {
+        console.error('Error en filtros:', e);
+        gridEl.innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    async function cargarAnimesPaginado(reset = true) {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (hasActiveFilters) return;
+      if (isLoading) return;
+      if (reset) {
+        currentShufflePage = 0;
+        gridEl.innerHTML = '';
+        hasMore = true;
+      }
+      if (!reset && !hasMore) return;
+      isLoading = true;
+      try {
+        if (allAnimes.length === 0) {
+          const snapshot = await db.collection('catalogo').orderBy('title').get();
+          allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          shuffledAnimes = [...allAnimes];
+          for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
           }
-        }, 50);
-        setTimeout(resolve, 5000);
-      });
-      loadPromises.push(checkAnimesReady);
-
-      const bgVideo = document.getElementById('bg-video');
-      const videoPromise = new Promise((resolve) => {
-        if (bgVideo.readyState >= 2) resolve();
-        else bgVideo.addEventListener('loadeddata', resolve, { once: true });
-        setTimeout(resolve, 2000);
-      });
-      loadPromises.push(videoPromise);
-
-      let progressValue = 0;
-      const interval = setInterval(() => {
-        if (loadingCompleted) {
-          clearInterval(interval);
+        }
+        const start = currentShufflePage * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageAnimes = shuffledAnimes.slice(start, end);
+        if (pageAnimes.length === 0) {
+          hasMore = false;
+          if (reset && allAnimes.length === 0) mostrarNoResultados();
+          isLoading = false;
           return;
         }
-        if (progressValue < 85) {
-          progressValue += Math.random() * 8;
-          if (progressValue > 85) progressValue = 85;
-          updateProgress(progressValue);
-        }
-      }, 200);
-      Promise.all(loadPromises).then(() => {
-        clearInterval(interval);
-        updateProgress(95);
-        setTimeout(() => {
-          updateProgress(100);
-          finishLoading();
-        }, 300);
-      }).catch(err => {
-        finishLoading();
-      });
-
-      // Inicializar los selects personalizados (definido en anime-loader.js)
-      if (typeof window.initCustomSelects === 'function') {
-        window.initCustomSelects();
+        renderAnimes(pageAnimes, !reset);
+        currentShufflePage++;
+        if (end >= shuffledAnimes.length) hasMore = false;
+      } catch (e) {
+        console.error('Error en paginación aleatoria:', e);
+        gridEl.innerHTML = `<div class="error-message">Error al cargar: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
       }
+    }
 
-      // Iniciar animaciones de video y música (definido en animaciones.js y musica_fondo.js)
-      if (typeof startVisualMedia === 'function') startVisualMedia();
-      document.addEventListener('click', () => {
-        if (typeof startAudioMedia === 'function') startAudioMedia();
-      }, { once: true });
-      document.addEventListener('touchstart', () => {
-        if (typeof startAudioMedia === 'function') startAudioMedia();
-      }, { once: true });
+    function debouncedAplicarFiltros() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => aplicarFiltros(), 300);
+    }
 
-      // Iniciar notificaciones
-      if (window.startNotificationSequence) window.startNotificationSequence();
+    searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedAplicarFiltros(); });
+    genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; aplicarFiltros(); });
+    demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; aplicarFiltros(); });
+    ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; aplicarFiltros(); });
+
+    window.addEventListener('scroll', () => {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        cargarAnimesPaginado(false);
+      }
+    });
+    window.resetearFiltros = resetearFiltros;
+
+    // ==================== AUTENTICACIÓN Y PERFIL ====================
+    let currentUser = null;
+    let newAvatarUrl = null;
+    let lastProfileUpdate = 0;
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
+    const CLOUDINARY_PRESET = 'stickers_archinime';
+    function getNeonColorFallback(str) {
+      const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return neonColors[Math.abs(hash) % neonColors.length];
+    }
+
+    function disableBodyScroll() { 
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = scrollbarWidth + 'px';
+      document.body.classList.add('modal-open'); 
+      document.documentElement.classList.add('modal-open');
+    }
+    function enableBodyScroll() { 
+      document.body.style.paddingRight = '';
+      document.body.classList.remove('modal-open'); 
+      document.documentElement.classList.remove('modal-open'); 
+    }
+
+    function showProfileModal() {
+      if (!currentUser) { 
+        showAuthModal();
+        document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; 
+        return;
+      }
+      document.getElementById('profileAvatar').src = currentUser.photoURL || 'invitado.avif';
+      newAvatarUrl = currentUser.photoURL;
+      document.getElementById('profileUid').value = currentUser.uid;
+      document.getElementById('profileDisplayName').value = currentUser.displayName || currentUser.email.split('@')[0];
+      db.collection('users').doc(currentUser.uid).get().then(doc => {
+        let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(currentUser.uid || currentUser.displayName || currentUser.email);
+        document.getElementById('profileNameColor').value = color;
+        if (doc.exists && doc.data().lastProfileUpdate) lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
+      });
+      document.getElementById('profileModal').classList.add('show');
+      disableBodyScroll();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.remove('show');
+      enableBodyScroll();
+    }
+
+    function copiarUID() {
+      const uidInput = document.getElementById('profileUid');
+      if (uidInput.value) {
+        navigator.clipboard.writeText(uidInput.value);
+        const statusMsg = document.getElementById('profileStatusMsg');
+        statusMsg.style.color = '#00fff7';
+        statusMsg.innerText = '¡ID copiado al portapapeles!';
+        setTimeout(() => { if(statusMsg.innerText.includes('copiado')) statusMsg.innerText = ''; }, 3000);
+      }
+    }
+
+    document.getElementById('profileAvatarInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('La imagen es muy pesada. Máximo 2 MB.'); e.target.value = ''; return; }
+      const btnLabel = document.querySelector('#profileModal .profile-upload-btn');
+      btnLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.secure_url) {
+          newAvatarUrl = data.secure_url;
+          document.getElementById('profileAvatar').src = newAvatarUrl;
+        }
+      } catch (err) { alert("Error subiendo la imagen."); }
+      finally { btnLabel.innerHTML = '<i class="fas fa-upload"></i> Subir nuevo avatar'; }
+    });
+
+    async function guardarCambiosPerfil() {
+      if (!currentUser) return;
+      const saveBtn = document.getElementById('profileSaveBtn');
+      const statusMsg = document.getElementById('profileStatusMsg');
+      const newName = document.getElementById('profileDisplayName').value.trim();
+      const newColor = document.getElementById('profileNameColor').value;
+      if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return; }
+      
+      const isAdmin = currentUser.email === 'archinime12@gmail.com';
+      const now = Date.now();
+      const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
+      if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
+        const daysLeft = Math.ceil((fiveDaysMs - (now - lastProfileUpdate)) / (1000 * 60 * 60 * 24));
+        statusMsg.style.color = '#ff0055';
+        statusMsg.innerText = `⏳ Has cambiado tu perfil recientemente. Vuelve a intentarlo en ${daysLeft} días.`;
+        return;
+      }
+      
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'GUARDANDO...';
+      statusMsg.innerText = '';
+      
+      try {
+        await currentUser.updateProfile({ displayName: newName, photoURL: newAvatarUrl });
+        await db.collection('users').doc(currentUser.uid).set({
+          customColor: newColor,
+          lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        statusMsg.style.color = '#fff';
+        statusMsg.innerText = 'Actualizando comentarios históricos...';
+        
+        const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
+        const snapshot = await commentsRef.get();
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+          batch.update(doc.ref, { userName: newName, userAvatar: newAvatarUrl, customColor: newColor });
+        });
+        if (snapshot.size > 0) await batch.commit();
+        
+        lastProfileUpdate = Date.now();
+        statusMsg.style.color = '#00fff7';
+        statusMsg.innerText = '¡Cambios guardados exitosamente!';
+        document.getElementById('userAvatarBtn').src = newAvatarUrl || 'invitado.avif';
+        document.getElementById('dropdownAvatar').src = newAvatarUrl || 'invitado.avif';
+        document.getElementById('dropdownName').innerText = newName;
+        const color = newColor;
+        document.getElementById('userAvatarBtn').style.borderColor = color;
+        document.getElementById('userAvatarBtn').style.boxShadow = `0 0 15px ${color}`;
+        document.getElementById('dropdownAvatar').style.borderColor = color;
+        document.getElementById('dropdownAvatar').style.boxShadow = `0 0 15px ${color}`;
+        document.getElementById('dropdownName').style.color = color;
+        document.getElementById('dropdownName').style.textShadow = `0 0 8px ${color}`;
+      } catch (err) {
+        console.error(err);
+        statusMsg.style.color = '#ff0055';
+        statusMsg.innerText = 'Error al guardar los cambios.';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'GUARDAR CAMBIOS';
+      }
+    }
+
+    // ==================== LOGIN / REGISTRO ====================
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-tab');
+        if (target === 'login') {
+          document.getElementById('authLoginForm').style.display = 'flex';
+          document.getElementById('authRegisterForm').style.display = 'none';
+        } else {
+          document.getElementById('authLoginForm').style.display = 'none';
+          document.getElementById('authRegisterForm').style.display = 'flex';
+        }
+      });
+    });
+    function showAuthModal() { 
+      document.getElementById('authModal').classList.add('show'); 
+      disableBodyScroll();
+    }
+    function closeAuthModal() { 
+      document.getElementById('authModal').classList.remove('show'); 
+      enableBodyScroll();
+      document.getElementById('authError').innerText = ''; 
+    }
+    async function loginWithEmail() { 
+      const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+      try { 
+        await auth.signInWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    async function registerWithEmail() { 
+      const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value;
+      if (pass !== confirm) { 
+        document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
+        return;
+      } 
+      try { 
+        await auth.createUserWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    async function loginWithGoogle() { 
+      try { 
+        await auth.signInWithPopup(providerGoogle);
+        closeAuthModal(); 
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    async function loginWithGitHub() { 
+      try { 
+        await auth.signInWithPopup(providerGitHub);
+        closeAuthModal(); 
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    function logoutUser() { 
+      auth.signOut().then(() => location.reload());
+    }
+    function updateUserUI(user) {
+      currentUser = user;
+      const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
+      if (user) {
+        const photoURL = user.photoURL || 'invitado.avif';
+        avatarBtn.src = photoURL;
+        dropdownAvatar.src = photoURL;
+        dropdownName.innerText = user.displayName || user.email.split('@')[0];
+        loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
+        loginItem.onclick = logoutUser;
+        db.collection('users').doc(user.uid).get().then(doc => {
+          let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
+          avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`;
+          dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
+          dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`;
+        });
+      } else {
+        avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif';
+        dropdownName.innerText = 'Invitado';
+        loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
+        loginItem.onclick = showAuthModal;
+        avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none';
+        dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
+        dropdownAvatar.style.boxShadow = 'none';
+        dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none';
+      }
+    }
+    document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
+    const userAvatarBtn = document.getElementById('userAvatarBtn'), userDropdown = document.getElementById('userDropdown');
+    userAvatarBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
+    document.addEventListener('click', e => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    auth.onAuthStateChanged(updateUserUI);
+    window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
+    window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
+    window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
+
+    // ==================== SELECTS PERSONALIZADOS ====================
+    (function() {
+      const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobile = window.matchMedia('(max-width: 768px)').matches;
+      function updateTriggerText(trigger, selectEl) { trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.options[0].textContent; }
+      selects.forEach(id => {
+        const select = document.getElementById(id); if (!select) return;
+        const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTriggerText(trigger, select); select.parentNode.insertBefore(trigger, select);
+        trigger.addEventListener('click', () => {
+           if (isMobile) {
+            const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
+            const popup = document.createElement('div'); popup.className = 'select-popup';
+            const header = document.createElement('div'); header.className = 'select-popup-header';
+            header.textContent = select.getAttribute('aria-label') || 'Seleccionar'; popup.appendChild(header);
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div'); optDiv.className = 'select-popup-option'; if (opt.value === select.value) optDiv.classList.add('selected'); optDiv.textContent = opt.textContent;
+              optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); });
+              popup.appendChild(optDiv);
+            });
+            overlay.appendChild(popup); document.body.appendChild(overlay); overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); } }); disableBodyScroll();
+            setTimeout(() => overlay.classList.add('active'), 10);
+          } else {
+            const existing = document.querySelector('.custom-select-dropdown');
+            if (existing) existing.remove();
+            const rect = trigger.getBoundingClientRect(), dropdown = document.createElement('div'); dropdown.className = 'custom-select-dropdown';
+            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.left = (rect.left + window.scrollX) + 'px'; dropdown.style.minWidth = rect.width + 'px';
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div'); optDiv.className = 'custom-select-option'; optDiv.textContent = opt.textContent;
+              if (opt.value === select.value) { optDiv.style.background = 'rgba(0, 243, 255, 0.15)'; optDiv.style.color = 'var(--neon-cyan)'; }
+              optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); dropdown.remove(); });
+              dropdown.appendChild(optDiv);
+            });
+            document.body.appendChild(dropdown);
+            const closeDropdown = e => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove();
+            document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
+            setTimeout(() => { document.addEventListener('click', closeDropdown); document.addEventListener('scroll', closeDropdown, { passive: true }); }, 10);
+          }
+        });
+      });
     })();
+
+    // ==================== ANIMACIONES (CHROMA KEY) Y MÚSICA ====================
+    const fgContainer = document.getElementById('fgContainer');
+    const fgVideo = document.getElementById('fgVideo');
+    const fgCanvas = document.getElementById('fgCanvas');
+    const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
+
+    let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
+    let currentAudio = null;
+    let isPlayingMedia = false;
+    let isTransitioning = false;
+    let lastFrameTime = 0;
+    const targetFPS = 30;
+    const frameInterval = 1000 / targetFPS;
+
+    fgVideo.style.display = 'none';
+    fgVideo.src = currentAnim.src;
+
+    fgVideo.addEventListener('loadedmetadata', () => {
+      const maxCanvasWidth = 300; 
+      const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
+      fgCanvas.width = maxCanvasWidth;
+      fgCanvas.height = maxCanvasWidth / ratio;
+    });
+
+    function processChromaKey(timestamp) {
+      if (fgVideo.paused || fgVideo.ended || isTransitioning) {
+        requestAnimationFrame(processChromaKey);
+        return;
+      }
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed > frameInterval) {
+        lastFrameTime = timestamp - (elapsed % frameInterval);
+        fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+        const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+        const data = frameData.data;
+        const keyColor = currentAnim.keyColor || 'green';
+        const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+        for (let i = 0; i < data.length; i += 4) {
+          let r = data[i], g = data[i+1], b = data[i+2];
+          if (keyColor === 'blue') {
+            if (b > r + threshold && b > g + threshold) data[i+3] = 0;
+          } else {
+            if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+          }
+        }
+        fgCtx.putImageData(frameData, 0, 0);
+      }
+      requestAnimationFrame(processChromaKey);
+    }
+
+    fgVideo.addEventListener('play', () => {
+      requestAnimationFrame(processChromaKey);
+    });
+
+    function startVisualMedia() {
+      const bgVideo = document.getElementById('bg-video');
+      bgVideo.muted = true;
+      bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
+      fgVideo.muted = true;
+      fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+    }
+
+    function startAudioMedia() {
+      if (isPlayingMedia) return;
+      isPlayingMedia = true;
+      const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
+      currentAudio = new Audio(track);
+      currentAudio.volume = 0.3;
+      currentAudio.onended = () => {
+        isPlayingMedia = false;
+        startAudioMedia();
+      };
+      currentAudio.play().catch(e => {
+        console.log('Música bloqueada', e);
+        isPlayingMedia = false;
+      });
+    }
+
+    function createSparks(clientX, clientY) {
+      const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
+      for (let i = 0; i < 30; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        const size = Math.random() * 6 + 3;
+        spark.style.width = size + 'px';
+        spark.style.height = size + 'px';
+        spark.style.left = clientX + 'px';
+        spark.style.top = clientY + 'px';
+        spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+        spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 120 + 40;
+        spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+        spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 600);
+      }
+    }
+
+    fgContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isTransitioning) return;
+      createSparks(e.clientX, e.clientY);
+      isTransitioning = true;
+      fgContainer.classList.add('poof');
+      setTimeout(() => {
+        let newAnim;
+        do {
+          newAnim = videoList[Math.floor(Math.random() * videoList.length)];
+        } while (newAnim.id === currentAnim.id && videoList.length > 1);
+        currentAnim = newAnim;
+        fgVideo.src = currentAnim.src;
+        fgVideo.play().then(() => {
+          isTransitioning = false;
+          fgContainer.classList.remove('poof');
+        }).catch(err => {
+          console.log('Error cambiando anim', err);
+          isTransitioning = false;
+        });
+      }, 600);
+    });
+
+    window.addEventListener('DOMContentLoaded', startVisualMedia);
+    document.addEventListener('click', startAudioMedia, { once: true });
+    document.addEventListener('touchstart', startAudioMedia, { once: true });
+
+    window.addEventListener('load', () => {
+      if (window.startNotificationSequence) window.startNotificationSequence();
+    });
   </script>
 </body>
 </html>
