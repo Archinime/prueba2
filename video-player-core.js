@@ -374,6 +374,7 @@ class VideoPlayer {
     document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
   }
   
+  // ========== MÉTODO CORREGIDO PARA SUBIR STICKER ==========
   async uploadSticker(file) {
     if (!file) return;
     if (!this.getCurrentUser()) { 
@@ -381,14 +382,16 @@ class VideoPlayer {
       return; 
     }
     if (typeof window.subirStickerDesdePC === 'function') {
+      // Crear un objeto input simulado para reutilizar la función global
       const fakeInput = { files: [file] };
       await window.subirStickerDesdePC(fakeInput);
+      // Recargar stickers después de subir
       if (typeof cargarStickersUsuario === 'function') {
         setTimeout(() => cargarStickersUsuario(), 500);
       }
     } else {
       console.error("window.subirStickerDesdePC no está definida");
-      alert("Error: sistema de stickers no cargado correctamente.");
+      alert("Error: sistema de stickers no cargado correctamente. Recarga la página.");
     }
   }
   
@@ -412,12 +415,14 @@ class VideoPlayer {
   }
 }
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
+// Funciones globales para compatibilidad con comentarios y stickers
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
