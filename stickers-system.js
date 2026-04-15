@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// CORREGIDO: Migración a Catbox.moe para enlaces directos (Hotlinking)
+// SISTEMA DE STICKERS (FIREBASE STORAGE + FIRESTORE)
+// CORREGIDO: Uso de Firebase Storage nativo para evitar errores CORS (Failed to fetch)
 // ============================================
 
 let stickersDb = null;
@@ -86,7 +86,6 @@ function renderUserStickers() {
     
     let html = '';
     validStickers.forEach(url => {
-        // Expresión regular mejorada
         const isVideo = url.match(/\.(mp4|webm)(\?.*)?$/i);
         const tagMedia = isVideo
             ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
@@ -128,7 +127,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA MIGRADA A CATBOX ==========
+// ========== FUNCIÓN DE SUBIDA MIGRADA A FIREBASE STORAGE ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -168,21 +167,19 @@ window.subirStickerDesdePC = async function(inputElement) {
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        const formData = new FormData();
-        formData.append('reqtype', 'fileupload');
-        formData.append('fileToUpload', file);
+        // Obtenemos la referencia de Firebase Storage
+        const storageRef = firebase.storage().ref();
+        
+        // Creamos una ruta organizada por usuario para que los archivos no se mezclen
+        const fileRef = storageRef.child(`stickers_usuarios/${user.uid}/sticker_${Date.now()}_${file.name}`);
 
-        // Subida a Catbox (Permite hotlinking directo y no requiere API Key)
-        const uploadRes = await fetch('https://catbox.moe/user/api.php', {
-            method: 'POST',
-            body: formData
-        });
+        // Subimos el archivo a tu Firebase
+        const snapshot = await fileRef.put(file);
+        
+        // Obtenemos el enlace de descarga directo
+        const fileUrl = await snapshot.ref.getDownloadURL();
 
-        if (!uploadRes.ok) throw new Error('No se pudo conectar con el servidor.');
-
-        const fileUrl = await uploadRes.text(); // Catbox devuelve directamente el enlace en texto
-
-        if (fileUrl && fileUrl.startsWith('http')) {
+        if (fileUrl) {
             await guardarStickerEnColeccion(fileUrl);
             previewContainer.style.display = 'none';
             inputElement.value = '';
@@ -191,11 +188,18 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            throw new Error('Respuesta inválida del servidor.');
+            throw new Error('No se pudo obtener el enlace del archivo.');
         }
     } catch (error) {
         console.error('Error en subida:', error);
-        alert('Error al subir el archivo.\nDetalle: ' + error.message);
+        
+        let mensajeError = error.message;
+        // Si el error es de permisos, avisamos al usuario
+        if (error.code === 'storage/unauthorized') {
+            mensajeError = "No tienes permisos para subir archivos. Verifica las reglas de Firebase Storage.";
+        }
+
+        alert('Error al subir el archivo.\nDetalle: ' + mensajeError);
         previewContainer.style.display = 'none';
         inputElement.value = '';
     } finally {
