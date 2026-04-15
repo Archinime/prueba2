@@ -1,13 +1,12 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
-// CORREGIDO Y ACTUALIZADO: Subida nativa sin conflictos
+// ACTUALIZADO: Subida a GoFile sin API Key
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE GOFILE - NO REQUIERE API KEY NI PRESET
 const DEFAULT_STICKERS = [];
 
 // --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
@@ -18,7 +17,7 @@ function cleanStickerHTML(html) {
             ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
         });
     }
-    return html; // Fallback básico
+    return html;
 }
 
 function initStickersSystem(db, auth) {
@@ -75,7 +74,6 @@ function renderUserStickers() {
     if (!container) return;
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     if (validStickers.length === 0) {
-        // ÍCONO DE STICKER CAMBIADO AQUÍ
         container.innerHTML = `
             <div class="sticker-empty-modern">
                 <div class="sticker-empty-icon">🖼️</div>
@@ -130,7 +128,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA MODIFICADA PARA GOFILE ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA GOFILE ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -142,13 +140,14 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // MANTENEMOS EL LÍMITE DE 2 MB (NO SE CAMBIA NADA AQUÍ)
+    // Validación de tamaño (se mantiene exactamente igual)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
+    // Preview local (sin cambios)
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -171,26 +170,32 @@ window.subirStickerDesdePC = async function(inputElement) {
     btnSubir.style.pointerEvents = 'none';
     
     try {
-        // 1. Obtener un servidor de subida de GoFile
-        const serverResponse = await fetch('https://api.gofile.io/getServer');
-        const serverData = await serverResponse.json();
-        if (serverData.status !== 'ok') throw new Error('No se pudo obtener servidor de GoFile');
-        const server = serverData.data.server;
+        // 1. Obtener un servidor óptimo (la API es pública y no requiere clave)
+        const serverRes = await fetch('https://api.gofile.io/servers');
+        const serverData = await serverRes.json();
+        if (serverData.status !== 'ok' || !serverData.data.servers.length) {
+            throw new Error('No se pudo obtener un servidor de GoFile.');
+        }
+        // Seleccionar el primer servidor disponible (suele funcionar bien)
+        const server = serverData.data.servers[0].name;
 
-        // 2. Preparar FormData con el archivo
+        // 2. Subir el archivo al servidor elegido
         const formData = new FormData();
         formData.append('file', file);
 
-        // 3. Subir archivo a GoFile
-        const uploadResponse = await fetch(`https://${server}.gofile.io/uploadFile`, {
+        const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
             method: 'POST',
             body: formData
         });
-        const uploadData = await uploadResponse.json();
+        const uploadData = await uploadRes.json();
 
         if (uploadData.status === 'ok') {
-            const fileUrl = uploadData.data.downloadPage; // URL de la página de descarga
+            // GoFile devuelve la URL de descarga en data.downloadPage
+            const fileUrl = uploadData.data.downloadPage;
+            
+            // Guardar en Firestore (función existente, sin cambios)
             await guardarStickerEnColeccion(fileUrl);
+            
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
@@ -198,15 +203,19 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
+            // Mostrar mensaje de error específico si GoFile lo proporciona
             throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
     } catch (error) {
         console.error('Error en subida:', error);
-        let mensaje = 'Error al subir el archivo.';
-        if (error.message.includes('getServer')) {
-            mensaje = 'No se pudo conectar con GoFile. Intenta de nuevo en unos segundos.';
-        } else if (error.message.includes('uploadFile')) {
-            mensaje = 'Error al procesar el archivo. Asegúrate de que no esté dañado.';
+        // Mensaje amigable para el usuario
+        let mensaje = 'Error al subir el archivo. ';
+        if (error.message.includes('servidor')) {
+            mensaje += 'No se pudo contactar con GoFile. Inténtalo de nuevo.';
+        } else if (error.message.includes('Failed to fetch')) {
+            mensaje += 'Problema de conexión. Revisa tu internet.';
+        } else {
+            mensaje += error.message;
         }
         alert(mensaje);
         previewContainer.style.display = 'none';
