@@ -89,7 +89,7 @@ function initComentariosSystem(db, auth) {
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '🖼️';
     }, 1000);
-
+    
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
@@ -342,6 +342,7 @@ function setupComentariosRealtimeListener() {
 
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+
                 if (level === 0) {
                     const totalCount = countAllReplies(node);
                     const textoBtn = totalCount === 1 ? 'Ver 1 respuesta' : `Ver ${totalCount} respuestas`;
@@ -350,11 +351,13 @@ function setupComentariosRealtimeListener() {
                                         <span id="text-${node.id}" data-total="${totalCount}">${textoBtn}</span>
                                     </button>
                                  </div>`;
+
                     nodeHtml += `<div class="replies-thread" id="container-${node.id}" style="display: none;">`;
                     node.replies.forEach((reply, index) => {
                         const isHidden = index >= 5;
                         nodeHtml += renderNode(reply, level + 1, isHidden, node.id);
                     });
+
                     if (node.replies.length > 5) {
                         const remaining = node.replies.length - 5;
                         nodeHtml += `<button id="showMore-${node.id}" onclick="showMoreReplies('${node.id}')" class="btn-more-replies">Cargar ${remaining} respuestas más...</button>`;
@@ -388,6 +391,7 @@ function setupComentariosRealtimeListener() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const targetCommentId = urlParams.get('targetComment');
+
         if (targetCommentId && !window.hasScrolledToTarget) {
             setTimeout(() => {
                 const targetEl = document.getElementById(`comment-${targetCommentId}`);
@@ -430,6 +434,7 @@ function setupComentariosRealtimeListener() {
 
 window.eliminarComentarioSistema = async function(id) {
     if (!confirm("¿Seguro que quieres eliminar este comentario?\nSe borrarán también todas las respuestas vinculadas permanentemente.")) return;
+
     try {
         async function borrarHilo(commentId) {
             const replies = await comentariosDb.collection('comments').where('replyToId', '==', commentId).get();
@@ -468,7 +473,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
             <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;"
             onclick="openStickerModal('${c.stickerUrl}')">
                 <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;"
-                onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
+            onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
             </div>
         `;
     }
@@ -476,8 +481,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
-    const deleteMenuBtn = isAdmin ?
-    `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
+    const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
@@ -492,8 +496,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     
-    const botonResponder = currentUser ?
-    `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
@@ -526,6 +529,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
 window.iniciarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer || textContainer.classList.contains('editing')) return;
+
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
@@ -553,9 +557,11 @@ window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
     const nuevoTexto = input.value.trim();
+
     try {
         const docRef = comentariosDb.collection('comments').doc(commentId);
         const doc = await docRef.get();
+
         if(doc.exists) {
             const data = doc.data();
             let textoFinal = nuevoTexto;
@@ -577,6 +583,7 @@ window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
     if(!container) return;
+
     if (container.style.display === 'none') {
         container.style.display = 'flex';
         if (textSpan) textSpan.innerText = 'Ocultar respuestas';
@@ -607,15 +614,18 @@ function procesarTextoComentario(texto) {
     if (!texto) return '';
     let html = escapeHtmlComent(texto.trim());
     const emojisMap = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
+    
     for (const [code, emoji] of Object.entries(emojisMap)) html = html.split(code).join(emoji);
     
     html = html.replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
     const stickerRegex = /\[Sticker\]\(([^)]+)\)/g;
+
     html = html.replace(stickerRegex, (match, url) => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `<div class="comentario-media-wrapper"><${tag} src="${url}" class="comentario-media" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}></div>`;
     });
+
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
         let palabra = palabras[i];
@@ -654,6 +664,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
     cancelarRespuesta(true);
+    
     window.respondiendoA = { id: commentId, userName, userId };
     
     const commentEl = document.getElementById(`comment-${commentId}`);
@@ -662,7 +673,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
-    // ÍCONO DE STICKER CAMBIADO AQUÍ
     replyBox.innerHTML = `
         <div class="reply-box-header">
             <span>Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span>
@@ -670,6 +680,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
         </div>
         <div class="reply-box-body">
             <img src="${currentUser.photoURL || 'invitado.avif'}" class="reply-box-avatar">
+           
             <div style="flex: 1;">
                 <textarea id="dynamicReplyText-${commentId}" class="reply-box-textarea" placeholder="Añade una respuesta pública..." maxlength="500"></textarea>
                 <div class="reply-box-tools">
@@ -724,6 +735,7 @@ window.openStickerModal = function(url) {
                 <button onclick="closeStickerModal()" style="position:absolute;top:-50px;right:-10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;"><i class="fas fa-times"></i></button>
                 <img id="stickerModalImg" src="" style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);">
                 <video id="stickerModalVid" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);"></video>
+    
                 <br><button id="stickerModalStealBtn" style="margin-top:25px;background:var(--cm-neon-primary);border:none;color:#000;padding:12px 25px;border-radius:25px;font-weight:800;font-family:'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,247,0.4);transition:0.2s;">
                     <i class="fas fa-mask"></i> ROBAR STICKER
                 </button>
@@ -758,15 +770,18 @@ window.closeStickerModal = function() {
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
+    
     if (textarea.id && textarea.id.startsWith('dynamicReplyText') && window.respondiendoA) {
         btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
     } else {
         btn = document.getElementById('enviarComentarioBtn');
     }
     if (!btn) return;
+
     const hasText = textarea.value.trim().length > 0;
     const hasSticker = !!window.stickerSeleccionadoParaEnviar;
     const enabled = hasText || hasSticker;
+
     if (enabled) {
         btn.disabled = false;
         btn.classList.remove('btn-disabled');
@@ -790,10 +805,12 @@ async function enviarComentarioTexto() {
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
+
     if ((!texto && !stickerUrl) || (btn && btn.disabled)) return;
 
     const originalTexto = texto;
     const originalSticker = stickerUrl;
+
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
@@ -801,6 +818,7 @@ async function enviarComentarioTexto() {
     }
     
     let textoFinal = texto + (stickerUrl ? ((texto ? '\n' : '') + `[Sticker](${stickerUrl})`) : '');
+
     textoInput.value = '';
     textoInput.style.height = 'auto';
     quitarStickerPreview();
@@ -825,6 +843,7 @@ async function enviarComentarioTexto() {
             reactions: {},
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+
         window.lastPostedCommentId = docRef.id;
         showToastComent('✅ Comentario enviado');
     } catch (error) {
@@ -851,6 +870,7 @@ function mostrarPreviewSticker(url) {
     const previewVid = document.getElementById('previewStickerVidObj');
     if (!previewContainer) return;
     const isVideo = url.match(/\.(mp4|webm)$/i);
+
     if (isVideo) {
         previewImg.style.display = 'none';
         previewVid.src = url;
@@ -869,6 +889,7 @@ window.seleccionarStickerParaEnviar = function(url) {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
     let targetTextarea = document.getElementById('comentarioTexto');
+
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
     }
@@ -879,10 +900,12 @@ window.quitarStickerPreview = function() {
     window.stickerSeleccionadoParaEnviar = null;
     const previewContainer = document.getElementById('comentarioStickerPreview');
     if (previewContainer) previewContainer.style.display = 'none';
+
     const img = document.getElementById('previewStickerImgObj');
     const vid = document.getElementById('previewStickerVidObj');
     if (img) img.src = '';
     if (vid) vid.src = '';
+
     let targetTextarea = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
@@ -913,6 +936,7 @@ window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
     if (!window.respondiendoA) return;
+
     const replyContext = { ...window.respondiendoA };
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
@@ -947,6 +971,7 @@ window.enviarRespuestaDinamica = async function() {
             reactions: {},
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+
         window.lastPostedCommentId = docRef.id;
 
         if (replyContext.userId && replyContext.userId !== currentUser.uid) {
@@ -960,6 +985,7 @@ window.enviarRespuestaDinamica = async function() {
 
         cancelarRespuesta(true);
         showToastComent('✅ Respuesta enviada');
+
     } catch (error) {
         alert('Error: ' + error.message);
     } finally {
@@ -972,14 +998,17 @@ function updateComentariosUI() {
     const currentUser = getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
     const formContainer = document.getElementById('comentarioFormContainer');
+
     if (!currentUser) {
         if (loginMsg) loginMsg.style.display = 'block';
         if (formContainer) formContainer.style.display = 'none';
     } else {
         if (loginMsg) loginMsg.style.display = 'none';
         if (formContainer) formContainer.style.display = 'block';
+
         const avatar = document.getElementById('comentarioUserAvatar');
         const color = getCurrentUserColor() || getNeonColorByString(currentUser.uid || currentUser.email);
+        
         if (avatar) {
             avatar.src = currentUser.photoURL || 'invitado.avif';
             avatar.style.borderColor = color;
@@ -998,12 +1027,13 @@ function updateComentariosUI() {
 function toggleStickerPanelSistema() {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) { 
-        panel.classList.toggle('active'); 
+        panel.classList.toggle('active');
     }
 }
 
 function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
+
     if (!toast) {
         toast = document.createElement('div'); toast.id = 'toastComent';
         toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:10000;font-weight:bold;border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);';

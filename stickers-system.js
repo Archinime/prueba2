@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS (GOFILE + FIRESTORE)
-// ACTUALIZADO: Subida a GoFile con previsualización de enlaces directos
+// SISTEMA DE STICKERS (CATBOX + FIRESTORE)
+// ACTUALIZADO: Subida a Catbox sin API Key para Links Directos
 // ============================================
 
 let stickersDb = null;
@@ -50,8 +50,10 @@ function getCurrentUser() {
 async function loadUserStickers() {
     const user = getCurrentUser();
     if (!user) return;
+
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
+
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
             if (userStickersCollection.length !== doc.data().stickers.length) {
@@ -62,6 +64,7 @@ async function loadUserStickers() {
             await stickersDb.collection('userStickers').doc(user.uid).set({ stickers: userStickersCollection }, { merge: true });
         }
         renderUserStickers();
+
     } catch (e) {
         console.error("Error cargando stickers:", e);
         const container = document.getElementById('userStickersContainer');
@@ -69,34 +72,19 @@ async function loadUserStickers() {
     }
 }
 
-// 🆕 NUEVO: Función helper para obtener el link directo de GoFile
-async function getGoFileDirectLink(contentId) {
-    try {
-        const response = await fetch(`https://api.gofile.io/contents/${contentId}`);
-        const data = await response.json();
-        if (data.status === 'ok' && data.data && data.data.children) {
-            const fileKey = Object.keys(data.data.children)[0];
-            return data.data.children[fileKey].link; // Este es el enlace directo
-        }
-        return null;
-    } catch (error) {
-        console.error('Error al obtener el enlace directo de GoFile:', error);
-        return null;
-    }
-}
-
-// 🆕 MODIFICADO: Ahora es async y obtiene enlaces directos para GoFile
-async function renderUserStickers() {
+function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
+
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-    
+
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
                 <div class="sticker-empty-icon">🖼️</div>
                 <div class="sticker-empty-title">SIN STICKERS</div>
                 <div class="sticker-empty-desc">Sube imágenes o vídeos, o roba de otros comentarios.</div>
+             
                 <div class="sticker-empty-hint"><i class="fas fa-upload"></i> Ve a la pestaña "SUBIR"</div>
             </div>
         `;
@@ -104,28 +92,20 @@ async function renderUserStickers() {
     }
     
     let html = '';
-    for (const url of validStickers) {
-        let displayUrl = url;
 
-        // 🆕 NUEVO: Si es un enlace de GoFile, obtenemos el directo para la previsualización
-        if (url.includes('gofile.io/d/')) {
-            const contentId = url.split('/d/')[1];
-            const directLink = await getGoFileDirectLink(contentId);
-            displayUrl = directLink || url; // Usa el directo o el original si falla
-        }
-
-        const isVideo = displayUrl.match(/\.(mp4|webm)$/i);
+    validStickers.forEach(url => {
+        const isVideo = url.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo
-            ? `<video src="${displayUrl}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
-            : `<img src="${displayUrl}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
-        
+            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
+            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
         html += `
             <div class="sticker-item">
                 ${tagMedia}
                 <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)">✖</button>
             </div>
         `;
-    }
+    });
+
     container.innerHTML = html;
 }
 
@@ -143,6 +123,7 @@ async function eliminarSticker(urlSticker, event) {
     event.stopPropagation();
     const user = getCurrentUser();
     if (!user) return;
+
     if (!confirm('¿Eliminar este sticker?')) return;
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
@@ -156,9 +137,10 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA GOFILE ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA CATBOX.MOE ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
+
     if (!user) {
         openLoginModalFromStickers();
         inputElement.value = '';
@@ -180,7 +162,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
     const isVideo = file.type.startsWith('video/');
-    
+
     if (isVideo) {
         previewImg.style.display = 'none';
         previewVid.src = URL.createObjectURL(file);
@@ -194,36 +176,31 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a GoFile...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a servidor...';
     btnSubir.style.pointerEvents = 'none';
-    
+
     try {
-        // 1. Obtener un servidor óptimo (la API es pública y no requiere clave)
-        const serverRes = await fetch('https://api.gofile.io/servers');
-        const serverData = await serverRes.json();
-        if (serverData.status !== 'ok' || !serverData.data.servers.length) {
-            throw new Error('No se pudo obtener un servidor de GoFile.');
-        }
-        // Seleccionar el primer servidor disponible (suele funcionar bien)
-        const server = serverData.data.servers[0].name;
-
-        // 2. Subir el archivo al servidor elegido
+        // Solución: Usar Catbox.moe para obtener el link directo
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', file);
 
-        const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
+        const uploadRes = await fetch('https://catbox.moe/user/api.php', {
             method: 'POST',
             body: formData
         });
-        const uploadData = await uploadRes.json();
 
-        if (uploadData.status === 'ok') {
-            // GoFile devuelve la URL de descarga en data.downloadPage
-            const fileUrl = uploadData.data.downloadPage;
-            
+        if (!uploadRes.ok) {
+            throw new Error('Error al conectar con el servidor.');
+        }
+
+        // Catbox devuelve la URL directa en formato texto
+        const fileUrl = await uploadRes.text();
+
+        if (fileUrl.startsWith('http')) {
             // Guardar en Firestore (función existente, sin cambios)
-            await guardarStickerEnColeccion(fileUrl);
-            
+            await guardarStickerEnColeccion(fileUrl.trim());
+
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
@@ -231,17 +208,15 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            // Mostrar mensaje de error específico si GoFile lo proporciona
-            throw new Error(uploadData.message || 'Error desconocido de GoFile');
+            throw new Error(fileUrl || 'Error desconocido al subir el archivo.');
         }
     } catch (error) {
         console.error('Error en subida:', error);
+
         // Mensaje amigable para el usuario
-        let mensaje = 'Error al subir el archivo. ';
-        if (error.message.includes('servidor')) {
-            mensaje += 'No se pudo contactar con GoFile. Inténtalo de nuevo.';
-        } else if (error.message.includes('Failed to fetch')) {
-            mensaje += 'Problema de conexión. Revisa tu internet.';
+        let mensaje = 'Error al subir el archivo.\n';
+        if (error.message.includes('Failed to fetch')) {
+            mensaje += 'Problema de conexión.\nRevisa tu internet.';
         } else {
             mensaje += error.message;
         }
@@ -257,6 +232,7 @@ window.subirStickerDesdePC = async function(inputElement) {
 async function guardarStickerEnColeccion(url) {
     const user = getCurrentUser();
     if (!user) return;
+
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -266,6 +242,7 @@ async function guardarStickerEnColeccion(url) {
         await userRef.set({ stickers: firebase.firestore.FieldValue.arrayUnion(url) }, { merge: true });
         userStickersCollection.push(url);
         renderUserStickers();
+
     } catch (e) {
         console.error('Error guardando URL:', e);
         throw e;
@@ -279,6 +256,7 @@ window.robarStickerSistema = async function(url) {
         return;
     }
     const cleanUrl = url.trim();
+
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -291,6 +269,7 @@ window.robarStickerSistema = async function(url) {
             renderUserStickers();
         }
         showToastSticker('✅ ¡Sticker robado y guardado!');
+
     } catch (e) {
         console.error('Error al robar sticker:', e);
         alert('Error al guardar: ' + e.message);
@@ -299,9 +278,11 @@ window.robarStickerSistema = async function(url) {
 
 function updateStickersUI() {
     const user = getCurrentUser();
+
     const subirTab = document.getElementById('subirStickersTab');
     const contentDiv = document.querySelector('#subirStickersTab .add-sticker-container');
     const loginPrompt = document.getElementById('subirStickerLoginPrompt');
+
     if (subirTab && contentDiv) {
         if (!user) {
             contentDiv.style.display = 'none';
@@ -315,6 +296,7 @@ function updateStickersUI() {
 
 function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
+
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
