@@ -1,7 +1,7 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
 // CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
-// (VERSIÓN SIN PANEL DE EMOJIS)
+// (VERSIÓN SIN PANEL DE EMOJIS Y CON ICONOS 🖼️ ACTUALIZADOS)
 // ============================================
 
 let comentariosDb = null;
@@ -85,8 +85,9 @@ function initComentariosSystem(db, auth) {
                 validarBotonPrincipal(this);
             });
         }
+        // ÍCONO DE STICKER CAMBIADO AQUÍ
         const stickerBtn = document.querySelector('.sticker-btn');
-        if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
+        if (stickerBtn) stickerBtn.innerHTML = '🖼️';
     }, 1000);
 
     document.addEventListener('click', () => closeAllCommentMenus());
@@ -661,6 +662,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
+    // ÍCONO DE STICKER CAMBIADO AQUÍ
     replyBox.innerHTML = `
         <div class="reply-box-header">
             <span>Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span>
@@ -671,7 +673,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
             <div style="flex: 1;">
                 <textarea id="dynamicReplyText-${commentId}" class="reply-box-textarea" placeholder="Añade una respuesta pública..." maxlength="500"></textarea>
                 <div class="reply-box-tools">
-                    <button type="button" class="reply-box-tool-btn" onclick="toggleStickerPanelSistema()"><i class="fas fa-sticky-note"></i></button>
+                    <button type="button" class="reply-box-tool-btn" onclick="toggleStickerPanelSistema()">🖼️</button>
                 </div>
                 <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 8px;"></div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
@@ -753,7 +755,6 @@ window.closeStickerModal = function() {
     }
 };
 
-// ========== FUNCIONES CORREGIDAS ==========
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
@@ -889,7 +890,6 @@ window.quitarStickerPreview = function() {
     if (targetTextarea) validarBotonPrincipal(targetTextarea);
 };
 
-// === NUEVA FUNCIÓN DE NOTIFICACIONES ADAPTADA ===
 async function crearNotificacionDeRespuesta(idUsuarioDestino, idAnime, nombreAnime, textoComentario) {
     try {
         const currentUser = getCurrentUser();
@@ -908,7 +908,6 @@ async function crearNotificacionDeRespuesta(idUsuarioDestino, idAnime, nombreAni
         console.warn("No se pudo crear la notificación (posible restricción de reglas):", error);
     }
 }
-// ===============================================
 
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
@@ -950,7 +949,6 @@ window.enviarRespuestaDinamica = async function() {
         });
         window.lastPostedCommentId = docRef.id;
 
-        // LLAMADA A LA FUNCIÓN DE NOTIFICACIÓN
         if (replyContext.userId && replyContext.userId !== currentUser.uid) {
             await crearNotificacionDeRespuesta(
                 replyContext.userId, 

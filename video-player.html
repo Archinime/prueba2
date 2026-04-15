@@ -889,7 +889,7 @@
       font-weight: 600;
     }
 
-    /* ===== ESTILOS PARA PREVIEW DE STICKER EN EL FORMULARIO (AGREGADO) ===== */
+    /* ===== ESTILOS PARA PREVIEW DE STICKER EN EL FORMULARIO ===== */
     .comentario-sticker-preview {
       margin: 12px 0;
       padding: 8px;
@@ -945,34 +945,33 @@
       background: #ff3366;
     }
 
+    /* ======================================================= */
+    /* AJUSTES MÓVILES PARA LOS STICKERS Y SUS TAMAÑOS        */
+    /* ======================================================= */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
-      .options {
-        overflow-x: auto;
-        white-space: nowrap;
-        max-width: 60%;
-      }
-      .controls {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto;
-        gap: 10px;
-      }
+      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; }
+      .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
       #prevBtn { grid-column: 1; grid-row: 1; }
       #nextBtn { grid-column: 2; grid-row: 1; }
       #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; }
 
-      .logo-blocker {
-        height: 20%;
-        min-height: 60px;
-        padding-top: 4%;
-      }
+      .logo-blocker { height: 20%; min-height: 60px; padding-top: 4%; }
       .comentarios-section { padding: 20px 15px; }
       .comentario-form-container { padding: 18px; }
       .sticker-btn { padding: 12px; }
-      .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
+      
+      /* Hacemos los stickers más grandes en móvil dividiendo en solo 2 columnas */
+      .stickers-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      /* Aumentamos también la vista previa en móvil para que se vea bien */
+      .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img,
-      .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
+      .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
     }
   </style>
 </head>
@@ -1052,7 +1051,7 @@
       <div class="comentario-input-wrapper">
         <textarea id="comentarioTexto" placeholder="Escribe un comentario... (Presiona Enter para enviar)" maxlength="500"></textarea>
         <button type="button" class="sticker-btn" onclick="window.videoPlayer?.toggleStickerPanel()">
-          <i class="fas fa-sticky-note"></i>
+          🖼️
         </button>
       </div>
 
