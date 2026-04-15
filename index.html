@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.0";
+      const APP_VERSION = "2025-04-06-v4.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -34,6 +34,7 @@
         metaTag.name = "theme-color";
         document.head.appendChild(metaTag);
       }
+ 
       const hexToRgb = (hex) => {
         const bigint = parseInt(hex.slice(1), 16);
         return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
@@ -41,6 +42,7 @@
       const rgbToHex = (r, g, b) => "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2,'0')).join('');
       const lerp = (start, end, t) => start + (end - start) * t;
       let startTimestamp = null, lastUpdate = 0;
+  
       function step(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
@@ -86,14 +88,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen igual) ===== */
+    /* ===== ESTILOS ORIGINALES COMPLETOS ===== */
     :root {
       --neon-cyan: #00f3ff;
       --neon-purple: #bc13fe;
@@ -126,27 +128,19 @@
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
     /* Fondo y overlay */
-    #bg-video { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
-      z-index: -5; opacity: 0;
-      filter: contrast(1.2) brightness(0.6) saturate(1.1); 
-      transition: opacity 1.2s ease;
+    #bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -5; opacity: 0;
+      filter: contrast(1.2) brightness(0.6) saturate(1.1); transition: opacity 1.2s ease;
       background: url('galaxia-morado1.avif') no-repeat center center / cover; 
-      transform: translateZ(0); will-change: opacity;
-    }
+      transform: translateZ(0); will-change: opacity; }
     #bg-video.loaded { opacity: 1; }
-    #overlay { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(ellipse at 30% 40%, rgba(188, 19, 254, 0.12) 0%, rgba(0,0,0,0.85) 90%);
-      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); 
-    }
-    #scanlines { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -4; pointer-events: none; transition: opacity 0.8s ease; transform: translateZ(0); }
+    #scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 6px);
-      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); 
-    }
+      z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0); }
 
-    /* Pantalla de carga */
+    /* ===== PANTALLA DE CARGA MEJORADA ===== */
     #loadingScreen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(circle at center, #0a0a0f 0%, #010101 100%);
@@ -197,7 +191,7 @@
     }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Navbar y demás estilos (resumidos por brevedad, pero completos) */
+    /* ===== NAVBAR ===== */
     .cyber-nav {
       position: sticky; top: 0; z-index: 1000; background: rgba(5, 5, 10, 0.85);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px 3%;
@@ -218,6 +212,7 @@
       .nav-actions { order: 2; }
       .search-wrapper { order: 3; width: 100%; margin-top: 4px; }
     }
+
     .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; will-change: transform; }
     .nav-logo:hover { transform: scale(1.02); }
     .nav-logo img { height: 44px; width: 44px; object-fit: contain; border-radius: 12px; box-shadow: 0 0 12px rgba(188, 19, 254, 0.5); transition: all 0.3s; }
@@ -227,6 +222,7 @@
       background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite; transform: translateZ(0); }
     @media (max-width: 480px) { .nav-logo-text { font-size: 1.2rem; } .nav-logo img { height: 36px; width: 36px; } }
     @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
     .search-wrapper { position: relative; width: 100%; }
     .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
@@ -235,6 +231,7 @@
     .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
       box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
     .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
+
     .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
     .cyber-btn-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
       border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center;
@@ -245,6 +242,7 @@
     @media (max-width: 480px) { .cyber-btn-icon { width: 38px; height: 38px; font-size: 1rem; } }
     #installBtn { display: none; }
     .install-pulse { animation: pulseBorder 1.5s infinite; }
+
     .user-menu { position: relative; display: flex; align-items: center; }
     #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
       cursor: pointer; transition: 0.2s; background: #111; display: block; will-change: transform; }
@@ -262,15 +260,19 @@
     .user-dropdown-item { padding: 14px 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
       gap: 12px; color: #ddd; font-weight: 500; border-radius: 0 0 16px 16px; transform: translateZ(0); }
     .user-dropdown-item:hover { background: rgba(188, 19, 254, 0.15); color: white; padding-left: 22px; }
+
+    /* Notificaciones */
     .notif-wrapper { position: relative; display: flex; align-items: center; }
     .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--neon-pink); min-width: 18px; height: 18px;
       padding: 0 4px; font-size: 10px; border-radius: 30px; box-shadow: 0 0 8px var(--neon-pink); border: 1px solid white;
       color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; transform: translateZ(0); }
+    
     .notif-dropdown { position: absolute; top: 60px; right: 0; width: 380px; max-width: 90vw;
       background: rgba(15, 15, 20, 0.98); border: 1px solid var(--neon-purple); border-radius: 20px;
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth);
       z-index: 2000; overflow: hidden; max-height: 70vh; display: flex; flex-direction: column; will-change: transform, opacity; }
+    
     @media (max-width: 768px) {
       .notif-dropdown { position: fixed; top: 70px; left: 5vw !important; right: 5vw !important; width: 90vw !important; max-width: none;
         transform: translateY(-15px) translateZ(0); max-height: 70vh; border-radius: 20px;
@@ -278,14 +280,17 @@
       .notif-dropdown.active { transform: translateY(0) translateZ(0); }
       .notif-list { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
     }
+    
     .notif-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) translateZ(0); }
     .notif-header { padding: 15px; background: linear-gradient(135deg, rgba(188, 19, 254, 0.2), transparent);
       color: var(--neon-cyan); font-family: 'Orbitron'; font-size: 0.9rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
       letter-spacing: 2px; flex-shrink: 0; position: relative; }
+      
     .notif-close-mobile { display: none; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
       background: transparent; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; transition: 0.2s; }
     .notif-close-mobile:hover { color: var(--neon-pink); }
     @media (max-width: 768px) { .notif-close-mobile { display: block; } }
+
     .notif-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
     .notif-item { display: flex; gap: 15px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
       transition: background 0.2s; cursor: pointer; align-items: center; width: 100%; box-sizing: border-box; transform: translateZ(0); }
@@ -298,6 +303,8 @@
     .n-type { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
+
+    /* Selects personalizados */
     .controls-container { padding: 20px 3%; display: flex; gap: 20px; flex-wrap: nowrap; justify-content: center;
       background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent); margin-bottom: 20px; position: relative; }
     .controls-container select { display: none; }
@@ -325,6 +332,8 @@
     .select-popup-option:last-child { border-bottom: none; }
     .select-popup-option:hover, .select-popup-option.selected { background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan); }
     @keyframes dropdownFade { from { opacity: 0; transform: scaleY(0.9); } to { opacity: 1; transform: scaleY(1); } }
+
+    /* Grid y Cards */
     .container { max-width: 1600px; margin: 0 auto; padding: 10px 20px 80px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 28px; }
     .card { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 2/3; cursor: pointer; transition: all 0.35s var(--transition-smooth);
@@ -345,6 +354,8 @@
     .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
     .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
       letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+
+    /* Modal de autenticación */
     .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
@@ -370,6 +381,8 @@
     .provider-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 40px; display: flex;
       align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; will-change: transform; }
     .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
+
+    /* Modal de opciones de perfil */
     .profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 10002; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.3s; padding: 20px; }
     .profile-modal.show { opacity: 1; pointer-events: auto; }
@@ -396,7 +409,10 @@
     .profile-save-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,243,255,0.5); transform: translateY(-2px); }
     .profile-save-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
     .profile-status { text-align: center; margin-top: 15px; font-size: 0.9rem; }
+
+    /* ===== STAGE (ANIMACIONES FRONTALES OPTIMIZADAS) ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
+    
     #fgContainer {
       position: absolute;
       pointer-events: auto; display: flex; align-items: center; justify-content: center;
@@ -412,13 +428,17 @@
       transform-origin: center bottom;
       cursor: pointer;
     }
+
     #fgContainer.poof {
       transform: scale(0.8) translateY(40px) translateZ(0);
       opacity: 0;
       filter: drop-shadow(0 0 10px var(--neon-pink)) brightness(1.2);
     }
+
     #fgCanvas { width: 100%; height: 100%; display: block; object-fit: contain; }
     #fgVideo { display: none; }
+
+    /* Estilos para el sistema de partículas (Chispitas) */
     .spark {
       position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999;
       animation: sparkAnim 0.6s ease-out forwards;
@@ -427,6 +447,7 @@
       0% { transform: scale(1) translate(0, 0); opacity: 1; }
       100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
     }
+    
     .play-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 900; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
     .play-btn {
       padding: 15px 40px; border-radius: 4px; border: 1px solid var(--neon-cyan);
@@ -435,6 +456,8 @@
       cursor: pointer; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); transition: 0.3s; text-transform: uppercase;
     }
     .play-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 40px rgba(0, 243, 255, 0.6); transform: scale(1.05); }
+
+    /* Event Modal */
     #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.4s; padding: 20px; will-change: opacity; }
     #eventModal.show { opacity: 1; pointer-events: auto; }
@@ -457,6 +480,8 @@
     .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex;
       align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
+
+    /* ====== OPTIMIZACIÓN MÓVIL: DESACTIVAR FILTROS PESADOS ====== */
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -464,18 +489,27 @@
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
       .profile-card { padding: 20px; }
-      #fgContainer { width: 180px; bottom: 10px; right: 10px; filter: none !important; }
+      
+      #fgContainer { 
+        width: 180px; bottom: 10px; right: 10px; 
+        filter: none !important; /* Elimina el drop-shadow que causa lag en móviles */
+      }
+      
+      /* Apagar desenfoques pesados en móviles para máxima fluidez */
       .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
       }
+      /* Compensar la pérdida del blur con un fondo un poco más oscuro */
       .cyber-nav { background: rgba(5, 5, 10, 0.98); }
       .user-dropdown, .notif-dropdown { background: rgba(15, 15, 20, 1); }
       .search-input { background: rgba(0, 0, 0, 0.8); }
     }
+    
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     }
+
     @keyframes pulseText { 0%,100% { opacity: 0.8; } 50% { opacity: 0.4; } }
     @keyframes loadLine { to { width: 280px; } }
     @keyframes borderFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
@@ -484,748 +518,946 @@
 </head>
 <body>
 
-<div id="loadingScreen">
-  <div class="loader-content">
-    <div class="gif-wrapper">
-      <div class="gif-inner">
-        <img id="personaje-gif" src="chica_corriendo.gif" alt="Cargando sistema">
-      </div>
-    </div>
-    <div class="loader-title">ARCHINIME</div>
-    <div class="loader-percentage" id="loadingPercentage">0%</div>
-    <div class="loader-line-container">
-      <div class="loader-line" id="loaderLine"></div>
-    </div>
-    <div class="loader-sub">
-      <span><i class="fas fa-database"></i> Conectando a la red</span>
-      <span><i class="fas fa-sync-alt fa-spin"></i> Sincronizando datos</span>
-    </div>
-  </div>
-</div>
-
-<video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
-  <source src="galaxia.mp4" type="video/mp4">
-  Tu navegador no soporta video HTML5.
-</video>
-<div id="overlay" aria-hidden="true"></div>
-<div id="scanlines"></div>
-<audio id="bg-music"></audio> 
-
-<nav class="cyber-nav">
-  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
-    <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime" decoding="async">
-    <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
-  </a>
-  <div class="search-wrapper">
-    <input id="search" class="search-input" placeholder="Buscar anime, género o alias..." aria-label="Buscar anime">
-    <i class="fas fa-search search-icon"></i>
-  </div>
-  <div class="nav-actions header-actions">
-    <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
-    <div class="notif-wrapper">
-      <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
-      <div id="notifMenu" class="notif-dropdown">
-         <div class="notif-header">
-           <i class="fas fa-bell"></i> NOTIFICACIONES
-           <button class="notif-close-mobile" onclick="toggleNotifMenu()" title="Cerrar"><i class="fas fa-times"></i></button>
+  <div id="loadingScreen">
+    <div class="loader-content">
+      <div class="gif-wrapper">
+        <div class="gif-inner">
+          <img id="personaje-gif" src="chica_corriendo.gif" alt="Cargando sistema">
         </div>
-        <div id="notifList" class="notif-list"><div class="empty-notif" style="padding:20px; text-align:center;">Buscando señal...</div></div>
+      </div>
+      <div class="loader-title">ARCHINIME</div>
+      <div class="loader-percentage" id="loadingPercentage">0%</div>
+      <div class="loader-line-container">
+        <div class="loader-line" id="loaderLine"></div>
+      </div>
+      <div class="loader-sub">
+        <span><i class="fas fa-database"></i> Conectando a la red</span>
+        <span><i class="fas fa-sync-alt fa-spin"></i> Sincronizando datos</span>
       </div>
     </div>
-    <div class="user-menu">
-      <img id="userAvatarBtn" src="invitado.avif" alt="Usuario" decoding="async">
-      <div id="userDropdown" class="user-dropdown">
-        <div class="user-dropdown-header" id="profileDropdownBtn" title="Configurar cuenta">
-          <img id="dropdownAvatar" src="invitado.avif" decoding="async">
-          <div><div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div><div style="font-size: 0.7rem; color: #aaa;"><i class="fas fa-cog"></i> Opciones</div></div>
+  </div>
+
+  <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
+    <source src="galaxia.mp4" type="video/mp4">
+  </video>
+  <div id="overlay" aria-hidden="true"></div>
+  <div id="scanlines"></div>
+  <audio id="bg-music"></audio> 
+
+  <nav class="cyber-nav">
+    <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
+      <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime" decoding="async">
+      <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
+    </a>
+    <div class="search-wrapper">
+      <input id="search" class="search-input" placeholder="Buscar anime, género o alias..." aria-label="Buscar anime">
+      <i class="fas fa-search search-icon"></i>
+    </div>
+    <div class="nav-actions header-actions">
+      <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
+      <div class="notif-wrapper">
+        <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
+        <div id="notifMenu" class="notif-dropdown">
+           <div class="notif-header">
+             <i class="fas fa-bell"></i> NOTIFICACIONES
+             <button class="notif-close-mobile" onclick="toggleNotifMenu()" title="Cerrar"><i class="fas fa-times"></i></button>
+          </div>
+          <div id="notifList" class="notif-list"><div class="empty-notif" style="padding:20px; text-align:center;">Buscando señal...</div></div>
         </div>
-        <div id="userDropdownItems"><div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div></div>
       </div>
-    </div>
-    <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
-      <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
-    </button>
-  </div>
-</nav>
-
-<div id="authModal" class="auth-modal">
-  <div class="auth-card">
-    <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
-      <div class="auth-tab" data-tab="register">Registrarse</div>
-    </div>
-    <div id="authLoginForm" class="auth-form">
-      <input type="email" id="loginEmail" placeholder="Correo electrónico">
-      <input type="password" id="loginPassword" placeholder="Contraseña">
-      <button onclick="loginWithEmail()">Iniciar sesión</button>
-    </div>
-    <div id="authRegisterForm" class="auth-form" style="display:none;">
-      <input type="email" id="registerEmail" placeholder="Correo electrónico">
-      <input type="password" id="registerPassword" placeholder="Contraseña">
-      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
-      <button onclick="registerWithEmail()">Registrarse</button>
-    </div>
-    <div class="auth-providers">
-      <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
-      <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
-    </div>
-    <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
-  </div>
-</div>
-
-<div id="profileModal" class="profile-modal">
-  <div class="profile-card">
-    <div class="profile-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></div>
-    <h2 style="font-family: 'Orbitron'; text-align: center; color: var(--neon-cyan); margin-bottom: 20px;">CONFIGURACIÓN</h2>
-    <div class="profile-avatar">
-      <img id="profileAvatar" src="invitado.avif" alt="Avatar">
-      <label class="profile-upload-btn" for="profileAvatarInput">
-        <i class="fas fa-upload"></i> Subir nuevo avatar
-      </label>
-      <input type="file" id="profileAvatarInput" accept="image/*" style="display: none;">
-    </div>
-    <div class="profile-field">
-      <label>ID Único de Cuenta</label>
-      <div style="display: flex; gap: 10px;">
-        <input type="text" id="profileUid" readonly style="color: #aaa; background: rgba(0,0,0,0.6); cursor: not-allowed; border-color: rgba(255,255,255,0.1);">
-        <button class="profile-upload-btn" onclick="copiarUID()" style="margin: 0; padding: 0 15px; font-size: 1rem; border-radius: 10px;" title="Copiar ID"><i class="fas fa-copy"></i></button>
+      <div class="user-menu">
+        <img id="userAvatarBtn" src="invitado.avif" alt="Usuario" decoding="async">
+        <div id="userDropdown" class="user-dropdown">
+          <div class="user-dropdown-header" id="profileDropdownBtn" title="Configurar cuenta">
+            <img id="dropdownAvatar" src="invitado.avif" decoding="async">
+            <div><div id="dropdownName" style="color: var(--neon-cyan);">Invitado</div><div style="font-size: 0.7rem; color: #aaa;"><i class="fas fa-cog"></i> Opciones</div></div>
+          </div>
+          <div id="userDropdownItems"><div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div></div>
+        </div>
       </div>
-      <span style="font-size: 0.8rem; color: #888; margin-top: 5px; display: inline-block;">Este ID es único y no puede cambiarse.</span>
+      <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
+        <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
+      </button>
     </div>
-    <div class="profile-field">
-      <label>Nombre Público</label>
-      <input type="text" id="profileDisplayName" placeholder="Ej: CyberNinja99">
-    </div>
-    <div class="profile-field">
-      <label>Color de Nombre (Afecta comentarios y tu Avatar)</label>
-      <div class="color-picker-wrapper">
-        <input type="color" id="profileNameColor" class="color-picker" value="#00fff7">
-        <span style="font-size: 0.85rem; color: #aaa;">Elige tu color neón representativo</span>
+  </nav>
+
+  <div id="authModal" class="auth-modal">
+    <div class="auth-card">
+      <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+        <div class="auth-tab" data-tab="register">Registrarse</div>
       </div>
+      <div id="authLoginForm" class="auth-form">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="loginWithEmail()">Iniciar sesión</button>
+      </div>
+      <div id="authRegisterForm" class="auth-form" style="display:none;">
+        <input type="email" id="registerEmail" placeholder="Correo electrónico">
+        <input type="password" id="registerPassword" placeholder="Contraseña">
+        <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
+        <button onclick="registerWithEmail()">Registrarse</button>
+      </div>
+      <div class="auth-providers">
+        <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
+        <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
+      </div>
+      <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
     </div>
-    <button id="profileSaveBtn" class="profile-save-btn" onclick="guardarCambiosPerfil()">GUARDAR CAMBIOS</button>
-    <div id="profileStatusMsg" class="profile-status"></div>
   </div>
-</div>
 
-<div class="controls-container controls" id="controls">
-  <select id="genre-select">
-      <option value="">🎭 Todos los géneros</option>
-      <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
-      <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
-      <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
-      <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
-  </select>
-  <select id="demographic-select">
-    <option value="">👥 Todas las demografías</option>
-    <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
-  </select>
-  <select id="rating-select">
-    <option value="">⭐ RANKING GLOBAL</option>
-    <option value="excellent">🏆 S-TIER (4.8+)</option>
-    <option value="good">🔥 A-TIER (4.6+)</option>
-    <option value="regular">📀 B-TIER (&lt;4.5)</option>
-  </select>
-</div>
-
-<main class="container">
-  <div class="grid" id="grid"></div>
-</main>
-
-<div class="stage" aria-hidden="true">
-  <div id="fgContainer" aria-label="Vídeo frontal">
-    <canvas id="fgCanvas"></canvas>
-    <video id="fgVideo" muted loop playsinline></video>
+  <div id="profileModal" class="profile-modal">
+    <div class="profile-card">
+      <div class="profile-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></div>
+      <h2 style="font-family: 'Orbitron'; text-align: center; color: var(--neon-cyan); margin-bottom: 20px;">CONFIGURACIÓN</h2>
+      <div class="profile-avatar">
+        <img id="profileAvatar" src="invitado.avif" alt="Avatar">
+        <label class="profile-upload-btn" for="profileAvatarInput">
+          <i class="fas fa-upload"></i> Subir nuevo avatar
+        </label>
+        <input type="file" id="profileAvatarInput" accept="image/*" style="display: none;">
+      </div>
+      <div class="profile-field">
+        <label>ID Único de Cuenta</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="profileUid" readonly style="color: #aaa; background: rgba(0,0,0,0.6); cursor: not-allowed; border-color: rgba(255,255,255,0.1);">
+          <button class="profile-upload-btn" onclick="copiarUID()" style="margin: 0; padding: 0 15px; font-size: 1rem; border-radius: 10px;" title="Copiar ID"><i class="fas fa-copy"></i></button>
+        </div>
+        <span style="font-size: 0.8rem; color: #888; margin-top: 5px; display: inline-block;">Este ID es único y no puede cambiarse.</span>
+      </div>
+      <div class="profile-field">
+        <label>Nombre Público</label>
+        <input type="text" id="profileDisplayName" placeholder="Ej: CyberNinja99">
+      </div>
+      <div class="profile-field">
+        <label>Color de Nombre (Afecta comentarios y tu Avatar)</label>
+        <div class="color-picker-wrapper">
+          <input type="color" id="profileNameColor" class="color-picker" value="#00fff7">
+          <span style="font-size: 0.85rem; color: #aaa;">Elige tu color neón representativo</span>
+        </div>
+      </div>
+      <button id="profileSaveBtn" class="profile-save-btn" onclick="guardarCambiosPerfil()">GUARDAR CAMBIOS</button>
+      <div id="profileStatusMsg" class="profile-status"></div>
+    </div>
   </div>
-</div>
 
-<!-- ========== SCRIPTS ========== -->
-<!-- 1. Inicialización de Firebase -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
-    authDomain: "login-admin-archinime.firebaseapp.com",
-    projectId: "login-admin-archinime",
-    storageBucket: "login-admin-archinime.firebasestorage.app",
-    messagingSenderId: "938164660242",
-    appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
-  };
-  if (!firebase.apps.length) {
+  <div class="controls-container controls" id="controls">
+    <select id="genre-select">
+        <option value="">🎭 Todos los géneros</option>
+        <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
+        <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
+        <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
+        <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
+    </select>
+    <select id="demographic-select">
+      <option value="">👥 Todas las demografías</option>
+      <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
+    </select>
+    <select id="rating-select">
+      <option value="">⭐ RANKING GLOBAL</option>
+      <option value="excellent">🏆 S-TIER (4.8+)</option>
+      <option value="good">🔥 A-TIER (4.6+)</option>
+      <option value="regular">📀 B-TIER (&lt;4.5)</option>
+    </select>
+  </div>
+
+  <main class="container">
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="stage" aria-hidden="true">
+    <div id="fgContainer" aria-label="Vídeo frontal">
+      <canvas id="fgCanvas"></canvas>
+      <video id="fgVideo" muted loop playsinline></video>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
     firebase.initializeApp(firebaseConfig);
-  }
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  window.db = db;
-  window.auth = auth;
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  const providerGoogle = new firebase.auth.GoogleAuthProvider();
-  const providerGitHub = new firebase.auth.GithubAuthProvider();
-</script>
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const providerGoogle = new firebase.auth.GoogleAuthProvider();
+    const providerGitHub = new firebase.auth.GithubAuthProvider();
+  </script>
 
-<!-- 2. Archivos externos de datos (listas de videos y música) -->
-<script src="animaciones.js"></script>
-<script src="musica_fondo.js"></script>
+  <script src="notification-system.js"></script>
+  <script src="gifs.js"></script>
+  
+  <script src="animaciones.js"></script>
+  <script src="musica_fondo.js"></script>
 
-<!-- 3. Otros scripts (notificaciones, gifs, etc.) -->
-<script src="notification-system.js"></script>
-<script src="gifs.js"></script>
-
-<!-- 4. Lógica principal (paginación, autenticación, chroma key, música, etc.) -->
-<script>
-  // ========== GIF ALEATORIO ==========
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    const imgGif = document.getElementById('personaje-gif');
-    if (imgGif) imgGif.src = gifElegido;
-  }
-
-  // ========== PANTALLA DE CARGA ==========
-  let loadingCompleted = false;
-  const loadingScreen = document.getElementById('loadingScreen');
-  const percentEl = document.getElementById('loadingPercentage');
-  const lineEl = document.getElementById('loaderLine');
-  function updateProgress(percent) {
-    const p = Math.min(99, Math.max(0, Math.floor(percent)));
-    if (percentEl) percentEl.innerText = p + '%';
-    if (lineEl) lineEl.style.width = p + '%';
-  }
-  function finishLoading() {
-    if (loadingCompleted) return;
-    loadingCompleted = true;
-    updateProgress(100);
-    percentEl.innerText = "SISTEMA LISTO";
-    setTimeout(() => {
-      loadingScreen.classList.add('hidden');
-      document.body.style.overflow = '';
-    }, 800);
-  }
-  let progressValue = 0;
-  const interval = setInterval(() => {
-    if (loadingCompleted) { clearInterval(interval); return; }
-    if (progressValue < 85) {
-      progressValue += Math.random() * 8;
-      if (progressValue > 85) progressValue = 85;
-      updateProgress(progressValue);
+  <script>
+    if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+      const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+      document.getElementById('personaje-gif').src = gifElegido;
     }
-  }, 200);
-  window.addEventListener('firstAnimesLoaded', () => {
-    clearInterval(interval);
-    updateProgress(100);
-    finishLoading();
-  });
-  setTimeout(() => {
-    if (!loadingCompleted) finishLoading();
-  }, 8000);
 
-  // ========== RATINGS ==========
-  let firestoreRatings = new Map();
-  async function loadRatings() {
-    try {
-      const snapshot = await db.collection('animeRatings').get();
+    // ========== LÓGICA DE CARGA REAL CON PROGRESO ==========
+    let loadingCompleted = false;
+    const loadingScreen = document.getElementById('loadingScreen');
+    const percentEl = document.getElementById('loadingPercentage');
+    const lineEl = document.getElementById('loaderLine');
+    function updateProgress(percent) {
+      const p = Math.min(99, Math.max(0, Math.floor(percent)));
+      if (percentEl) percentEl.innerText = p + '%';
+      if (lineEl) lineEl.style.width = p + '%';
+    }
+
+    function finishLoading() {
+      if (loadingCompleted) return;
+      loadingCompleted = true;
+      updateProgress(100);
+      percentEl.innerText = "SISTEMA LISTO";
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 800);
+    }
+
+    // Promesas de carga crítica
+    const loadPromises = [];
+    const firestoreRatings = new Map();
+    const ratingsPromise = db.collection('animeRatings').get().then(snapshot => {
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (typeof data.avg === 'number') {
-          firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
-        }
+        if (typeof data.avg === 'number') firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
       });
-    } catch (e) { console.warn('Error cargando ratings:', e); }
-  }
-  loadRatings();
+    }).catch(e => console.warn('Error cargando ratings:', e));
+    loadPromises.push(ratingsPromise);
 
-  // ========== FUNCIONES AUXILIARES ==========
-  function normalizeText(s) {
-    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  }
-  function getDisplayRating(anime) {
-    const animeId = parseInt(anime.id);
-    if (firestoreRatings.has(animeId)) {
-      const ratingObj = firestoreRatings.get(animeId);
-      if (ratingObj && typeof ratingObj.avg === 'number') return ratingObj.avg.toFixed(1);
-    }
-    if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) return anime.rating.toFixed(1);
-    return '—';
-  }
-  function getNumericRating(anime) {
-    const animeId = parseInt(anime.id);
-    if (firestoreRatings.has(animeId)) return firestoreRatings.get(animeId).avg;
-    if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
-    return 0;
-  }
-
-  // ========== RENDERIZADO DE ANIMES ==========
-  function renderAnimes(animes, append = false) {
-    const grid = document.getElementById('grid');
-    if (!grid) return;
-    if (!append) grid.innerHTML = '';
-    if (!animes.length && !append) {
-      mostrarNoResultados();
-      return;
-    }
-    const frag = document.createDocumentFragment();
-    animes.forEach(anime => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.id = anime.id;
-      card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
-      const rating = getDisplayRating(anime);
-      const imgUrl = anime.img || 'placeholder.webp';
-      card.innerHTML = `<img src="${imgUrl}" alt="${anime.title}" loading="lazy"><div class="info"><strong>${anime.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
-      frag.appendChild(card);
-    });
-    grid.appendChild(frag);
-    // Efecto tilt solo en desktop
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (!isTouch) {
-      document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
-        c.dataset.tiltInit = 'true';
-        c.addEventListener('mousemove', (e) => {
-          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
-          c.tiltRAF = requestAnimationFrame(() => {
-            const rect = c.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const rotX = ((y - rect.height/2) / (rect.height/2)) * -6;
-            const rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
-            c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-          });
-        });
-        c.addEventListener('mouseleave', () => {
-          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
-          c.style.transform = '';
-        });
-      });
-    }
-  }
-  function mostrarNoResultados() {
-    const grid = document.getElementById('grid');
-    if (!grid) return;
-    grid.innerHTML = `<div class="cyber-no-results" style="grid-column:1/-1; display:flex; flex-direction:column; align-items:center; padding:60px; background:rgba(10,12,16,0.7); border:1px solid var(--neon-purple); border-radius:16px;">
-      <i class="fas fa-satellite-dish" style="font-size:3rem; color:var(--neon-cyan);"></i>
-      <h2 style="font-family:Orbitron; margin:20px 0;">Sin Resultados</h2>
-      <p>Prueba con otros filtros o busca por alias.</p>
-      <button onclick="resetearFiltrosGlobal()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
-    </div>`;
-  }
-
-  // ========== PAGINACIÓN CON CURSOR (INFINITE SCROLL REAL) ==========
-  let lastVisibleAnime = null;
-  let isFetchingAnimes = false;
-  let hasMoreAnimes = true;
-  const ANIMES_PER_PAGE = 20;
-
-  async function cargarAnimesPaginado(reset = false) {
-    if (reset) {
-      lastVisibleAnime = null;
-      hasMoreAnimes = true;
-      isFetchingAnimes = false;
-      document.getElementById('grid').innerHTML = '';
-    }
-    if (isFetchingAnimes || !hasMoreAnimes) return;
-    isFetchingAnimes = true;
-    try {
-      let query = db.collection('catalogo').orderBy('title').limit(ANIMES_PER_PAGE);
-      if (lastVisibleAnime && !reset) {
-        query = query.startAfter(lastVisibleAnime);
+    let allAnimes = [];
+    let shuffledAnimes = [];
+    let currentShufflePage = 0;
+    const ITEMS_PER_PAGE = 20;
+    const animesPromise = db.collection('catalogo').orderBy('title').limit(50).get().then(snapshot => {
+      allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      shuffledAnimes = [...allAnimes];
+      for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
       }
-      const snapshot = await query.get();
-      if (snapshot.empty) {
-        hasMoreAnimes = false;
+      const firstPage = shuffledAnimes.slice(0, ITEMS_PER_PAGE);
+      renderAnimes(firstPage, false);
+    }).catch(e => console.warn('Error cargando animes iniciales:', e));
+    loadPromises.push(animesPromise);
+
+    const bgVideo = document.getElementById('bg-video');
+    const videoPromise = new Promise((resolve) => {
+      if (bgVideo.readyState >= 2) resolve();
+      else bgVideo.addEventListener('loadeddata', resolve, { once: true });
+      setTimeout(resolve, 2000);
+    });
+    loadPromises.push(videoPromise);
+
+    let progressValue = 0;
+    const interval = setInterval(() => {
+      if (loadingCompleted) {
+        clearInterval(interval);
         return;
       }
-      lastVisibleAnime = snapshot.docs[snapshot.docs.length - 1];
-      const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderAnimes(animes, !reset);
-      if (reset) {
-        const event = new CustomEvent('firstAnimesLoaded');
-        window.dispatchEvent(event);
+      if (progressValue < 85) {
+        progressValue += Math.random() * 8;
+        if (progressValue > 85) progressValue = 85;
+        updateProgress(progressValue);
       }
-    } catch (error) {
-      console.error('Error en paginación:', error);
-      document.getElementById('grid').innerHTML = `<div style="text-align:center; padding:40px; color:red;">Error al cargar animes: ${error.message}</div>`;
-    } finally {
-      isFetchingAnimes = false;
-    }
-  }
-
-  // ========== FILTROS ==========
-  let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-  let debounceTimer = null;
-
-  async function aplicarFiltros() {
-    const hasActive = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    if (!hasActive) {
-      cargarAnimesPaginado(true);
-      return;
-    }
-    document.getElementById('grid').innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Filtrando...</div>';
-    try {
-      let query = db.collection('catalogo');
-      if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
-      query = query.orderBy('title');
-      const snapshot = await query.limit(200).get();
-      let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
-      if (currentFilters.search) {
-        const searchTerm = normalizeText(currentFilters.search);
-        animes = animes.filter(a => {
-          const titles = [a.title, ...(a.aliases || [])];
-          return titles.some(t => normalizeText(t).startsWith(searchTerm));
-        });
-      }
-      if (currentFilters.rating) {
-        animes = animes.filter(a => {
-          const r = getNumericRating(a);
-          if (currentFilters.rating === 'excellent') return r >= 4.8;
-          if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
-          if (currentFilters.rating === 'regular') return r < 4.6;
-          return true;
-        });
-      }
-      renderAnimes(animes, false);
-      if (animes.length === 0) mostrarNoResultados();
-    } catch (e) {
-      console.error('Error en filtros:', e);
-      document.getElementById('grid').innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
-    }
-  }
-
-  function debouncedAplicarFiltros() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => aplicarFiltros(), 300);
-  }
-
-  const searchInput = document.getElementById('search');
-  const genreSelect = document.getElementById('genre-select');
-  const demographicSelect = document.getElementById('demographic-select');
-  const ratingSelect = document.getElementById('rating-select');
-
-  searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedAplicarFiltros(); });
-  genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; aplicarFiltros(); });
-  demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; aplicarFiltros(); });
-  ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; aplicarFiltros(); });
-
-  window.resetearFiltrosGlobal = function() {
-    searchInput.value = '';
-    genreSelect.value = '';
-    demographicSelect.value = '';
-    ratingSelect.value = '';
-    currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-    cargarAnimesPaginado(true);
-  };
-
-  // Infinite scroll (solo cuando no hay filtros activos)
-  window.addEventListener('scroll', () => {
-    const hasActive = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    if (!hasActive && !isFetchingAnimes && hasMoreAnimes && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-      cargarAnimesPaginado(false);
-    }
-  });
-
-  // ========== AUTENTICACIÓN Y PERFIL ==========
-  let currentUser = null;
-  let newAvatarUrl = null;
-  let lastProfileUpdate = 0;
-  const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-  const CLOUDINARY_PRESET = 'stickers_archinime';
-  function getNeonColorFallback(str) {
-    const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    return neonColors[Math.abs(hash) % neonColors.length];
-  }
-  function showProfileModal() {
-    if (!currentUser) { showAuthModal(); document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; return; }
-    document.getElementById('profileAvatar').src = currentUser.photoURL || 'invitado.avif';
-    newAvatarUrl = currentUser.photoURL;
-    document.getElementById('profileUid').value = currentUser.uid;
-    document.getElementById('profileDisplayName').value = currentUser.displayName || currentUser.email.split('@')[0];
-    db.collection('users').doc(currentUser.uid).get().then(doc => {
-      let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(currentUser.uid || currentUser.displayName || currentUser.email);
-      document.getElementById('profileNameColor').value = color;
-      if (doc.exists && doc.data().lastProfileUpdate) lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
+    }, 200);
+    Promise.all(loadPromises).then(() => {
+      clearInterval(interval);
+      updateProgress(95);
+      setTimeout(() => {
+        updateProgress(100);
+        finishLoading();
+      }, 300);
+    }).catch(err => {
+      finishLoading();
     });
-    document.getElementById('profileModal').classList.add('show');
-    disableBodyScroll();
-  }
-  function closeProfileModal() { document.getElementById('profileModal').classList.remove('show'); enableBodyScroll(); }
-  function copiarUID() {
-    const uidInput = document.getElementById('profileUid');
-    if (uidInput.value) {
-      navigator.clipboard.writeText(uidInput.value);
-      const statusMsg = document.getElementById('profileStatusMsg');
-      statusMsg.style.color = '#00fff7';
-      statusMsg.innerText = '¡ID copiado al portapapeles!';
-      setTimeout(() => { if(statusMsg.innerText.includes('copiado')) statusMsg.innerText = ''; }, 3000);
+    // ========== RESTO DE LA LÓGICA ORIGINAL ==========
+    function normalizeText(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-  }
-  document.getElementById('profileAvatarInput').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert('La imagen es muy pesada. Máximo 2 MB.'); e.target.value = ''; return; }
-    const btnLabel = document.querySelector('#profileModal .profile-upload-btn');
-    btnLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', CLOUDINARY_PRESET);
-      const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.secure_url) {
-        newAvatarUrl = data.secure_url;
-        document.getElementById('profileAvatar').src = newAvatarUrl;
-      }
-    } catch (err) { alert("Error subiendo la imagen."); }
-    finally { btnLabel.innerHTML = '<i class="fas fa-upload"></i> Subir nuevo avatar'; }
-  });
-  async function guardarCambiosPerfil() {
-    if (!currentUser) return;
-    const saveBtn = document.getElementById('profileSaveBtn');
-    const statusMsg = document.getElementById('profileStatusMsg');
-    const newName = document.getElementById('profileDisplayName').value.trim();
-    const newColor = document.getElementById('profileNameColor').value;
-    if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return; }
-    const isAdmin = currentUser.email === 'archinime12@gmail.com';
-    const now = Date.now();
-    const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
-    if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
-      const daysLeft = Math.ceil((fiveDaysMs - (now - lastProfileUpdate)) / (1000 * 60 * 60 * 24));
-      statusMsg.style.color = '#ff0055';
-      statusMsg.innerText = `⏳ Has cambiado tu perfil recientemente. Vuelve a intentarlo en ${daysLeft} días.`;
-      return;
-    }
-    saveBtn.disabled = true;
-    saveBtn.innerText = 'GUARDANDO...';
-    statusMsg.innerText = '';
-    try {
-      await currentUser.updateProfile({ displayName: newName, photoURL: newAvatarUrl });
-      await db.collection('users').doc(currentUser.uid).set({ customColor: newColor, lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      statusMsg.style.color = '#fff';
-      statusMsg.innerText = 'Actualizando comentarios históricos...';
-      const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
-      const snapshot = await commentsRef.get();
-      const batch = db.batch();
-      snapshot.forEach(doc => { batch.update(doc.ref, { userName: newName, userAvatar: newAvatarUrl, customColor: newColor }); });
-      if (snapshot.size > 0) await batch.commit();
-      lastProfileUpdate = Date.now();
-      statusMsg.style.color = '#00fff7';
-      statusMsg.innerText = '¡Cambios guardados exitosamente!';
-      document.getElementById('userAvatarBtn').src = newAvatarUrl || 'invitado.avif';
-      document.getElementById('dropdownAvatar').src = newAvatarUrl || 'invitado.avif';
-      document.getElementById('dropdownName').innerText = newName;
-      const color = newColor;
-      document.getElementById('userAvatarBtn').style.borderColor = color;
-      document.getElementById('userAvatarBtn').style.boxShadow = `0 0 15px ${color}`;
-      document.getElementById('dropdownAvatar').style.borderColor = color;
-      document.getElementById('dropdownAvatar').style.boxShadow = `0 0 15px ${color}`;
-      document.getElementById('dropdownName').style.color = color;
-      document.getElementById('dropdownName').style.textShadow = `0 0 8px ${color}`;
-    } catch (err) {
-      console.error(err);
-      statusMsg.style.color = '#ff0055';
-      statusMsg.innerText = 'Error al guardar los cambios.';
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.innerText = 'GUARDAR CAMBIOS';
-    }
-  }
 
-  // Tabs y modales de autenticación
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const target = tab.getAttribute('data-tab');
-      if (target === 'login') {
-        document.getElementById('authLoginForm').style.display = 'flex';
-        document.getElementById('authRegisterForm').style.display = 'none';
-      } else {
-        document.getElementById('authLoginForm').style.display = 'none';
-        document.getElementById('authRegisterForm').style.display = 'flex';
+    function getDisplayRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const ratingObj = firestoreRatings.get(animeId);
+        if (ratingObj && typeof ratingObj.avg === 'number') return ratingObj.avg.toFixed(1);
       }
-    });
-  });
-  function showAuthModal() { document.getElementById('authModal').classList.add('show'); disableBodyScroll(); }
-  function closeAuthModal() { document.getElementById('authModal').classList.remove('show'); enableBodyScroll(); document.getElementById('authError').innerText = ''; }
-  async function loginWithEmail() { const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value; try { await auth.signInWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function registerWithEmail() { const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value; if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; } try { await auth.createUserWithEmailAndPassword(email, pass); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  async function loginWithGitHub() { try { await auth.signInWithPopup(providerGitHub); closeAuthModal(); } catch (err) { document.getElementById('authError').innerText = err.message; } }
-  function logoutUser() { auth.signOut().then(() => location.reload()); }
-  function updateUserUI(user) {
-    currentUser = user;
-    const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
-    if (user) {
-      const photoURL = user.photoURL || 'invitado.avif';
-      avatarBtn.src = photoURL; dropdownAvatar.src = photoURL;
-      dropdownName.innerText = user.displayName || user.email.split('@')[0];
-      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = logoutUser;
-      db.collection('users').doc(user.uid).get().then(doc => {
-        let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
-        avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`;
-        dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
-        dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`;
+      if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) return anime.rating.toFixed(1);
+      return '—';
+    }
+
+    function getNumericRating(anime) {
+      const animeId = parseInt(anime.id);
+      if (firestoreRatings.has(animeId)) {
+        const avg = firestoreRatings.get(animeId).avg;
+        if (typeof avg === 'number') return avg;
+      }
+      if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
+      return 0;
+    }
+
+    function renderAnimes(animes, append = true) {
+      if (!append) gridEl.innerHTML = '';
+      if (!animes.length && !append) { mostrarNoResultados(); return; }
+      const frag = document.createDocumentFragment();
+      animes.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = a.id;
+        card.setAttribute('onclick', `location='anime-detail.html?id=${a.id}'`);
+        const rating = getDisplayRating(a);
+        card.innerHTML = `<img src="${a.img}" alt="${a.title}" loading="lazy"><div class="info"><strong>${a.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
+        frag.appendChild(card);
       });
-    } else {
-      avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif';
-      dropdownName.innerText = 'Invitado';
-      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = showAuthModal;
-      avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none';
-      dropdownAvatar.style.borderColor = 'var(--neon-cyan)'; dropdownAvatar.style.boxShadow = 'none';
-      dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none';
+      gridEl.appendChild(frag);
+      
+      // ====== OPTIMIZACIÓN: Solo aplicamos el efecto Tilt si el dispositivo soporta hover (PC) ======
+      const isTouchDevice = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+      
+      document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
+        c.dataset.tiltInit = 'true';
+        if (!isTouchDevice) {
+          c.addEventListener('mousemove', (e) => {
+            if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
+            c.tiltRAF = requestAnimationFrame(() => {
+              const rect = c.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+              const rotX = ((y - rect.height/2) / (rect.height/2)) * -6, rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
+              c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+            });
+          });
+          c.addEventListener('mouseleave', () => { if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF); c.style.transform = ''; });
+        }
+      });
     }
-  }
-  document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
-  const userAvatarBtn = document.getElementById('userAvatarBtn'), userDropdown = document.getElementById('userDropdown');
-  userAvatarBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
-  document.addEventListener('click', e => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
-  auth.onAuthStateChanged(updateUserUI);
-  window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
-  window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
-  window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
 
-  // ========== SELECTS PERSONALIZADOS ==========
-  function disableBodyScroll() { const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth; document.body.style.paddingRight = scrollbarWidth + 'px'; document.body.classList.add('modal-open'); document.documentElement.classList.add('modal-open'); }
-  function enableBodyScroll() { document.body.style.paddingRight = ''; document.body.classList.remove('modal-open'); document.documentElement.classList.remove('modal-open'); }
-  (function() {
-    const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobile = window.matchMedia('(max-width: 768px)').matches;
-    function updateTriggerText(trigger, selectEl) { trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.options[0].textContent; }
-    selects.forEach(id => {
-      const select = document.getElementById(id); if (!select) return;
-      const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTriggerText(trigger, select); select.parentNode.insertBefore(trigger, select);
-      trigger.addEventListener('click', () => {
-        if (isMobile) {
-          const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
-          const popup = document.createElement('div'); popup.className = 'select-popup';
-          const header = document.createElement('div'); header.className = 'select-popup-header';
-          header.textContent = select.getAttribute('aria-label') || 'Seleccionar'; popup.appendChild(header);
-          Array.from(select.options).forEach(opt => {
-            const optDiv = document.createElement('div'); optDiv.className = 'select-popup-option'; if (opt.value === select.value) optDiv.classList.add('selected'); optDiv.textContent = opt.textContent;
-            optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); });
-            popup.appendChild(optDiv);
+    function mostrarNoResultados() {
+      gridEl.innerHTML = `<div class="cyber-no-results" style="grid-column:1/-1; display:flex; flex-direction:column; align-items:center; padding:60px; background:rgba(10,12,16,0.7); border:1px solid var(--neon-purple); border-radius:16px;">
+        <i class="fas fa-satellite-dish" style="font-size:3rem; color:var(--neon-cyan);"></i><h2 style="font-family:Orbitron; margin:20px 0;">Sin Resultados</h2>
+        <p>Prueba con otros filtros o busca por alias.</p><button onclick="resetearFiltros()" style="margin-top:20px; background:transparent; border:2px solid var(--neon-pink); color:#fff; padding:12px 30px; border-radius:8px; cursor:pointer;">Restaurar Radares</button>
+      </div>`;
+    }
+
+    function resetearFiltros() {
+      document.getElementById('search').value = '';
+      document.getElementById('genre-select').value = '';
+      document.getElementById('demographic-select').value = '';
+      document.getElementById('rating-select').value = '';
+      currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+      currentShufflePage = 0;
+      cargarAnimesPaginado(true);
+    }
+
+    let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    let isLoading = false;
+    let hasMore = true;
+    let debounceTimer = null;
+    const gridEl = document.getElementById('grid');
+    const searchInput = document.getElementById('search');
+    const genreSelect = document.getElementById('genre-select');
+    const demographicSelect = document.getElementById('demographic-select');
+    const ratingSelect = document.getElementById('rating-select');
+    async function aplicarFiltros() {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters) {
+        cargarAnimesPaginado(true);
+        return;
+      }
+      gridEl.innerHTML = '';
+      isLoading = true;
+      try {
+        let query = db.collection('catalogo');
+        if (currentFilters.genre) query = query.where('genres', 'array-contains', currentFilters.genre);
+        query = query.orderBy('title');
+        const snapshot = await query.limit(200).get();
+        let animes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
+        if (currentFilters.search) {
+          const searchTermNormalized = normalizeText(currentFilters.search);
+          animes = animes.filter(a => {
+            const titles = [a.title, ...(a.aliases || [])];
+            return titles.some(t => normalizeText(t).startsWith(searchTermNormalized));
           });
-          overlay.appendChild(popup); document.body.appendChild(overlay); overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); } }); disableBodyScroll();
-          setTimeout(() => overlay.classList.add('active'), 10);
+        }
+        if (currentFilters.rating) {
+          animes = animes.filter(a => {
+            const r = getNumericRating(a);
+            if (currentFilters.rating === 'excellent') return r >= 4.8;
+            if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+            if (currentFilters.rating === 'regular') return r < 4.6;
+            return true;
+          });
+        }
+        renderAnimes(animes, false);
+        if (animes.length === 0) mostrarNoResultados();
+      } catch (e) {
+        console.error('Error en filtros:', e);
+        gridEl.innerHTML = `<div class="error-message">Error: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    async function cargarAnimesPaginado(reset = true) {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (hasActiveFilters) return;
+      if (isLoading) return;
+      if (reset) {
+        currentShufflePage = 0;
+        gridEl.innerHTML = '';
+        hasMore = true;
+      }
+      if (!reset && !hasMore) return;
+      isLoading = true;
+      try {
+        if (allAnimes.length === 0) {
+          const snapshot = await db.collection('catalogo').orderBy('title').get();
+          allAnimes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          shuffledAnimes = [...allAnimes];
+          for (let i = shuffledAnimes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledAnimes[i], shuffledAnimes[j]] = [shuffledAnimes[j], shuffledAnimes[i]];
+          }
+        }
+        const start = currentShufflePage * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageAnimes = shuffledAnimes.slice(start, end);
+        if (pageAnimes.length === 0) {
+          hasMore = false;
+          if (reset && allAnimes.length === 0) mostrarNoResultados();
+          isLoading = false;
+          return;
+        }
+        renderAnimes(pageAnimes, !reset);
+        currentShufflePage++;
+        if (end >= shuffledAnimes.length) hasMore = false;
+      } catch (e) {
+        console.error('Error en paginación aleatoria:', e);
+        gridEl.innerHTML = `<div class="error-message">Error al cargar: ${e.message}</div>`;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    function debouncedAplicarFiltros() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => aplicarFiltros(), 300);
+    }
+
+    searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedAplicarFiltros(); });
+    genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; aplicarFiltros(); });
+    demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; aplicarFiltros(); });
+    ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; aplicarFiltros(); });
+
+    window.addEventListener('scroll', () => {
+      const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+      if (!hasActiveFilters && !isLoading && hasMore && window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        cargarAnimesPaginado(false);
+      }
+    });
+    window.resetearFiltros = resetearFiltros;
+
+    // ========== AUTENTICACIÓN Y PERFIL ==========
+    let currentUser = null;
+    let newAvatarUrl = null;
+    let lastProfileUpdate = 0;
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
+    const CLOUDINARY_PRESET = 'stickers_archinime';
+    function getNeonColorFallback(str) {
+      const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return neonColors[Math.abs(hash) % neonColors.length];
+    }
+
+    function showProfileModal() {
+      if (!currentUser) { 
+        showAuthModal();
+        document.getElementById('authError').innerText = "⚠️ Inicia sesión para configurar tu perfil."; 
+        return;
+      }
+      document.getElementById('profileAvatar').src = currentUser.photoURL || 'invitado.avif';
+      newAvatarUrl = currentUser.photoURL;
+      document.getElementById('profileUid').value = currentUser.uid;
+      document.getElementById('profileDisplayName').value = currentUser.displayName || currentUser.email.split('@')[0];
+      db.collection('users').doc(currentUser.uid).get().then(doc => {
+        let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(currentUser.uid || currentUser.displayName || currentUser.email);
+        document.getElementById('profileNameColor').value = color;
+        if (doc.exists && doc.data().lastProfileUpdate) lastProfileUpdate = doc.data().lastProfileUpdate.toMillis();
+      });
+      document.getElementById('profileModal').classList.add('show');
+      disableBodyScroll();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.remove('show');
+      enableBodyScroll();
+    }
+
+    function copiarUID() {
+      const uidInput = document.getElementById('profileUid');
+      if (uidInput.value) {
+        navigator.clipboard.writeText(uidInput.value);
+        const statusMsg = document.getElementById('profileStatusMsg');
+        statusMsg.style.color = '#00fff7';
+        statusMsg.innerText = '¡ID copiado al portapapeles!';
+        setTimeout(() => { if(statusMsg.innerText.includes('copiado')) statusMsg.innerText = ''; }, 3000);
+      }
+    }
+
+    document.getElementById('profileAvatarInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('La imagen es muy pesada. Máximo 2 MB.'); e.target.value = ''; return; }
+      const btnLabel = document.querySelector('#profileModal .profile-upload-btn');
+      btnLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.secure_url) {
+          newAvatarUrl = data.secure_url;
+          document.getElementById('profileAvatar').src = newAvatarUrl;
+        }
+      } catch (err) { alert("Error subiendo la imagen."); }
+      finally { btnLabel.innerHTML = '<i class="fas fa-upload"></i> Subir nuevo avatar'; }
+    });
+
+    async function guardarCambiosPerfil() {
+      if (!currentUser) return;
+      const saveBtn = document.getElementById('profileSaveBtn');
+      const statusMsg = document.getElementById('profileStatusMsg');
+      const newName = document.getElementById('profileDisplayName').value.trim();
+      const newColor = document.getElementById('profileNameColor').value;
+      if (!newName) { statusMsg.style.color = '#ff0055'; statusMsg.innerText = 'El nombre no puede estar vacío.'; return; }
+      
+      const isAdmin = currentUser.email === 'archinime12@gmail.com';
+      const now = Date.now();
+      const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
+      if (!isAdmin && lastProfileUpdate > 0 && (now - lastProfileUpdate < fiveDaysMs)) {
+        const daysLeft = Math.ceil((fiveDaysMs - (now - lastProfileUpdate)) / (1000 * 60 * 60 * 24));
+        statusMsg.style.color = '#ff0055';
+        statusMsg.innerText = `⏳ Has cambiado tu perfil recientemente. Vuelve a intentarlo en ${daysLeft} días.`;
+        return;
+      }
+      
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'GUARDANDO...';
+      statusMsg.innerText = '';
+      
+      try {
+        await currentUser.updateProfile({ displayName: newName, photoURL: newAvatarUrl });
+        await db.collection('users').doc(currentUser.uid).set({
+          customColor: newColor,
+          lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        statusMsg.style.color = '#fff';
+        statusMsg.innerText = 'Actualizando comentarios históricos...';
+        
+        const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
+        const snapshot = await commentsRef.get();
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+          batch.update(doc.ref, { userName: newName, userAvatar: newAvatarUrl, customColor: newColor });
+        });
+        if (snapshot.size > 0) await batch.commit();
+        
+        lastProfileUpdate = Date.now();
+        statusMsg.style.color = '#00fff7';
+        statusMsg.innerText = '¡Cambios guardados exitosamente!';
+        document.getElementById('userAvatarBtn').src = newAvatarUrl || 'invitado.avif';
+        document.getElementById('dropdownAvatar').src = newAvatarUrl || 'invitado.avif';
+        document.getElementById('dropdownName').innerText = newName;
+        const color = newColor;
+        document.getElementById('userAvatarBtn').style.borderColor = color;
+        document.getElementById('userAvatarBtn').style.boxShadow = `0 0 15px ${color}`;
+        document.getElementById('dropdownAvatar').style.borderColor = color;
+        document.getElementById('dropdownAvatar').style.boxShadow = `0 0 15px ${color}`;
+        document.getElementById('dropdownName').style.color = color;
+        document.getElementById('dropdownName').style.textShadow = `0 0 8px ${color}`;
+      } catch (err) {
+        console.error(err);
+        statusMsg.style.color = '#ff0055';
+        statusMsg.innerText = 'Error al guardar los cambios.';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'GUARDAR CAMBIOS';
+      }
+    }
+
+    // ========== LOGICA DE TABS PARA LOGIN/REGISTRO ==========
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-tab');
+        if (target === 'login') {
+          document.getElementById('authLoginForm').style.display = 'flex';
+          document.getElementById('authRegisterForm').style.display = 'none';
         } else {
-          const existing = document.querySelector('.custom-select-dropdown'); if (existing) existing.remove();
-          const rect = trigger.getBoundingClientRect(), dropdown = document.createElement('div'); dropdown.className = 'custom-select-dropdown';
-          dropdown.style.top = (rect.bottom + window.scrollY) + 'px'; dropdown.style.left = (rect.left + window.scrollX) + 'px'; dropdown.style.minWidth = rect.width + 'px';
-          Array.from(select.options).forEach(opt => {
-            const optDiv = document.createElement('div'); optDiv.className = 'custom-select-option'; optDiv.textContent = opt.textContent;
-            if (opt.value === select.value) { optDiv.style.background = 'rgba(0, 243, 255, 0.15)'; optDiv.style.color = 'var(--neon-cyan)'; }
-            optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); dropdown.remove(); });
-            dropdown.appendChild(optDiv);
-          });
-          document.body.appendChild(dropdown);
-          const closeDropdown = e => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove(); document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
-          setTimeout(() => { document.addEventListener('click', closeDropdown); document.addEventListener('scroll', closeDropdown, { passive: true }); }, 10);
+          document.getElementById('authLoginForm').style.display = 'none';
+          document.getElementById('authRegisterForm').style.display = 'flex';
         }
       });
     });
-  })();
-
-  // ========== ANIMACIONES FRONTALES (CHROMA KEY) Y MÚSICA ==========
-  const fgContainer = document.getElementById('fgContainer');
-  const fgVideo = document.getElementById('fgVideo');
-  const fgCanvas = document.getElementById('fgCanvas');
-  const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
-  let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
-  let currentAudio = null;
-  let isPlayingMedia = false;
-  let isTransitioning = false;
-
-  fgVideo.style.display = 'none';
-  fgVideo.src = currentAnim.src;
-  fgVideo.addEventListener('loadedmetadata', () => {
-    const maxCanvasWidth = 300;
-    const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
-    fgCanvas.width = maxCanvasWidth;
-    fgCanvas.height = maxCanvasWidth / ratio;
-  });
-
-  function processChromaKey() {
-    if (fgVideo.paused || fgVideo.ended || isTransitioning) {
-      requestAnimationFrame(processChromaKey);
-      return;
+    function showAuthModal() { 
+      document.getElementById('authModal').classList.add('show'); 
+      disableBodyScroll();
     }
-    fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
-    const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
-    const data = frameData.data;
-    const keyColor = currentAnim.keyColor || 'green';
-    const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
-    for (let i = 0; i < data.length; i += 4) {
-      let r = data[i], g = data[i+1], b = data[i+2];
-      if (keyColor === 'blue') {
-        if (b > r + threshold && b > g + threshold) data[i+3] = 0;
+    
+    function closeAuthModal() { 
+      document.getElementById('authModal').classList.remove('show'); 
+      enableBodyScroll();
+      document.getElementById('authError').innerText = ''; 
+    }
+    
+    async function loginWithEmail() { 
+      const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+      try { 
+        await auth.signInWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    
+    async function registerWithEmail() { 
+      const email = document.getElementById('registerEmail').value, pass = document.getElementById('registerPassword').value, confirm = document.getElementById('registerConfirm').value;
+      if (pass !== confirm) { 
+        document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
+        return;
+      } 
+      try { 
+        await auth.createUserWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    
+    async function loginWithGoogle() { 
+      try { 
+        await auth.signInWithPopup(providerGoogle);
+        closeAuthModal(); 
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    
+    async function loginWithGitHub() { 
+      try { 
+        await auth.signInWithPopup(providerGitHub);
+        closeAuthModal(); 
+      } catch (err) { 
+        document.getElementById('authError').innerText = err.message;
+      } 
+    }
+    
+    function logoutUser() { 
+      auth.signOut().then(() => location.reload());
+    }
+    
+    function updateUserUI(user) {
+      currentUser = user;
+      const avatarBtn = document.getElementById('userAvatarBtn'), dropdownAvatar = document.getElementById('dropdownAvatar'), dropdownName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
+      if (user) {
+        const photoURL = user.photoURL || 'invitado.avif';
+        avatarBtn.src = photoURL;
+        dropdownAvatar.src = photoURL;
+        dropdownName.innerText = user.displayName || user.email.split('@')[0];
+        loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
+        loginItem.onclick = logoutUser;
+        db.collection('users').doc(user.uid).get().then(doc => {
+          let color = (doc.exists && doc.data().customColor) ? doc.data().customColor : getNeonColorFallback(user.uid || user.displayName || user.email);
+          avatarBtn.style.borderColor = color; avatarBtn.style.boxShadow = `0 0 15px ${color}`;
+          dropdownAvatar.style.borderColor = color; dropdownAvatar.style.boxShadow = `0 0 15px ${color}`;
+          dropdownName.style.color = color; dropdownName.style.textShadow = `0 0 8px ${color}`;
+        });
       } else {
-        if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+        avatarBtn.src = 'invitado.avif'; dropdownAvatar.src = 'invitado.avif';
+        dropdownName.innerText = 'Invitado';
+        loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
+        loginItem.onclick = showAuthModal;
+        avatarBtn.style.borderColor = 'var(--neon-cyan)'; avatarBtn.style.boxShadow = 'none';
+        dropdownAvatar.style.borderColor = 'var(--neon-cyan)';
+        dropdownAvatar.style.boxShadow = 'none';
+        dropdownName.style.color = 'var(--neon-cyan)'; dropdownName.style.textShadow = 'none';
       }
     }
-    fgCtx.putImageData(frameData, 0, 0);
-    requestAnimationFrame(processChromaKey);
-  }
-  fgVideo.addEventListener('play', () => { requestAnimationFrame(processChromaKey); });
+    
+    document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
+    const userAvatarBtn = document.getElementById('userAvatarBtn'), userDropdown = document.getElementById('userDropdown');
+    userAvatarBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('active'); });
+    document.addEventListener('click', e => { if (!userAvatarBtn.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.remove('active'); });
+    
+    auth.onAuthStateChanged(updateUserUI);
+    window.loginWithEmail = loginWithEmail; window.registerWithEmail = registerWithEmail; window.loginWithGoogle = loginWithGoogle;
+    window.loginWithGitHub = loginWithGitHub; window.showAuthModal = showAuthModal; window.closeAuthModal = closeAuthModal;
+    window.guardarCambiosPerfil = guardarCambiosPerfil; window.closeProfileModal = closeProfileModal; window.copiarUID = copiarUID;
 
-  function startVisualMedia() {
-    const bgVideo = document.getElementById('bg-video');
-    bgVideo.muted = true;
-    bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
-    fgVideo.muted = true;
-    fgVideo.play().catch(e => console.log('Animación bloqueada', e));
-  }
-  function startAudioMedia() {
-    if (isPlayingMedia) return;
-    isPlayingMedia = true;
-    const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
-    currentAudio = new Audio(track);
-    currentAudio.volume = 0.3;
-    currentAudio.onended = () => { isPlayingMedia = false; startAudioMedia(); };
-    currentAudio.play().catch(e => { console.log('Música bloqueada', e); isPlayingMedia = false; });
-  }
-
-  function createSparks(clientX, clientY) {
-    const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
-    for (let i = 0; i < 30; i++) {
-      const spark = document.createElement('div');
-      spark.className = 'spark';
-      const size = Math.random() * 6 + 3;
-      spark.style.width = size + 'px';
-      spark.style.height = size + 'px';
-      spark.style.left = clientX + 'px';
-      spark.style.top = clientY + 'px';
-      spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
-      spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
-      const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * 120 + 40;
-      spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
-      spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
-      document.body.appendChild(spark);
-      setTimeout(() => spark.remove(), 600);
+    // ========== SELECTS PERSONALIZADOS Y SCROLL ==========
+    function disableBodyScroll() { 
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = scrollbarWidth + 'px';
+      document.body.classList.add('modal-open'); 
+      document.documentElement.classList.add('modal-open');
     }
-  }
+    
+    function enableBodyScroll() { 
+      document.body.style.paddingRight = '';
+      document.body.classList.remove('modal-open'); 
+      document.documentElement.classList.remove('modal-open'); 
+    }
 
-  fgContainer.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (isTransitioning) return;
-    createSparks(e.clientX, e.clientY);
-    isTransitioning = true;
-    fgContainer.classList.add('poof');
-    setTimeout(() => {
-      let newAnim;
-      do { newAnim = videoList[Math.floor(Math.random() * videoList.length)]; } while (newAnim.id === currentAnim.id && videoList.length > 1);
-      currentAnim = newAnim;
-      fgVideo.src = currentAnim.src;
-      fgVideo.play().then(() => { isTransitioning = false; fgContainer.classList.remove('poof'); }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
-    }, 600);
-  });
+    (function() {
+      const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobile = window.matchMedia('(max-width: 768px)').matches;
+      function updateTriggerText(trigger, selectEl) { trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.options[0].textContent; }
+      selects.forEach(id => {
+        const select = document.getElementById(id); if (!select) return;
+        const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTriggerText(trigger, select); select.parentNode.insertBefore(trigger, select);
+        trigger.addEventListener('click', () => {
+           if (isMobile) {
+            const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
+            const popup = document.createElement('div'); popup.className = 'select-popup';
+            const header = document.createElement('div'); header.className = 'select-popup-header';
+            header.textContent = select.getAttribute('aria-label') || 'Seleccionar'; popup.appendChild(header);
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div'); optDiv.className = 'select-popup-option'; if (opt.value === select.value) optDiv.classList.add('selected'); optDiv.textContent = opt.textContent;
+              optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); });
+              popup.appendChild(optDiv);
+            });
+            overlay.appendChild(popup); document.body.appendChild(overlay); overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('active'); enableBodyScroll(); setTimeout(() => overlay.remove(), 300); } }); disableBodyScroll();
+            setTimeout(() => overlay.classList.add('active'), 10);
+          } else {
+            const existing = document.querySelector('.custom-select-dropdown');
+            if (existing) existing.remove();
+            const rect = trigger.getBoundingClientRect(), dropdown = document.createElement('div'); dropdown.className = 'custom-select-dropdown';
+            dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdown.style.left = (rect.left + window.scrollX) + 'px'; dropdown.style.minWidth = rect.width + 'px';
+            Array.from(select.options).forEach(opt => {
+              const optDiv = document.createElement('div'); optDiv.className = 'custom-select-option'; optDiv.textContent = opt.textContent;
+              if (opt.value === select.value) { optDiv.style.background = 'rgba(0, 243, 255, 0.15)'; optDiv.style.color = 'var(--neon-cyan)'; }
+              optDiv.addEventListener('click', () => { select.value = opt.value; select.dispatchEvent(new Event('change')); updateTriggerText(trigger, select); dropdown.remove(); });
+              dropdown.appendChild(optDiv);
+            });
+            document.body.appendChild(dropdown);
+            const closeDropdown = e => { if (!dropdown.contains(e.target) && e.target !== trigger) { dropdown.remove();
+            document.removeEventListener('click', closeDropdown); document.removeEventListener('scroll', closeDropdown); } };
+            setTimeout(() => { document.addEventListener('click', closeDropdown); document.addEventListener('scroll', closeDropdown, { passive: true }); }, 10);
+          }
+        });
+      });
+    })();
 
-  window.addEventListener('DOMContentLoaded', startVisualMedia);
-  document.addEventListener('click', startAudioMedia, { once: true });
-  document.addEventListener('touchstart', startAudioMedia, { once: true });
+    // =========================================================================
+    // LÓGICA CONJUNTA: ANIMACIONES (CHROMA KEY), MÚSICA Y VIDEO DE FONDO
+    // =========================================================================
 
-  // Inicializar notificaciones y carga de animes
-  window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
-  cargarAnimesPaginado(true);
-</script>
+    const fgContainer = document.getElementById('fgContainer');
+    const fgVideo = document.getElementById('fgVideo');
+    const fgCanvas = document.getElementById('fgCanvas');
+    const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
+
+    // videoList y musicListGlobal ahora provienen de animaciones.js y musica_fondo.js
+    let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
+    let currentAudio = null;
+    let isPlayingMedia = false;
+    let isTransitioning = false;
+    
+    // ====== OPTIMIZACIÓN: Variables para controlar los FPS del procesado ======
+    let lastFrameTime = 0;
+    const targetFPS = 30; // Limitar a 30 FPS (suficiente para anime)
+    const frameInterval = 1000 / targetFPS;
+
+    // Configurar video de animación oculto para usarlo de fuente
+    fgVideo.style.display = 'none';
+    fgVideo.src = currentAnim.src;
+
+    fgVideo.addEventListener('loadedmetadata', () => {
+      const maxCanvasWidth = 300; 
+      const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
+      fgCanvas.width = maxCanvasWidth;
+      fgCanvas.height = maxCanvasWidth / ratio;
+    });
+
+    // Motor de Chroma Key (Pantalla Verde / Azul)
+    function processChromaKey(timestamp) {
+      if (fgVideo.paused || fgVideo.ended || isTransitioning) {
+        requestAnimationFrame(processChromaKey);
+        return;
+      }
+
+      // Control de FPS: Solo procesar si ha pasado el tiempo necesario
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const elapsed = timestamp - lastFrameTime;
+
+      if (elapsed > frameInterval) {
+        lastFrameTime = timestamp - (elapsed % frameInterval);
+
+        fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+        const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+        const data = frameData.data;
+
+        const keyColor = currentAnim.keyColor || 'green';
+        const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+
+        for (let i = 0; i < data.length; i += 4) {
+          let r = data[i], g = data[i+1], b = data[i+2];
+
+          if (keyColor === 'blue') {
+            if (b > r + threshold && b > g + threshold) data[i+3] = 0;
+          } else {
+            if (g > r + threshold && g > b + threshold) data[i+3] = 0;
+          }
+        }
+        
+        fgCtx.putImageData(frameData, 0, 0);
+      }
+      
+      requestAnimationFrame(processChromaKey);
+    }
+
+    fgVideo.addEventListener('play', () => {
+      requestAnimationFrame(processChromaKey);
+    });
+
+    // Función para iniciar componentes visuales en autoplay
+    function startVisualMedia() {
+      const bgVideo = document.getElementById('bg-video');
+
+      bgVideo.muted = true;
+      bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
+
+      fgVideo.muted = true;
+      fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+
+    }
+
+    // Función para iniciar la música 
+    function startAudioMedia() {
+      if (isPlayingMedia) return;
+
+      isPlayingMedia = true;
+
+      const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
+      currentAudio = new Audio(track);
+      currentAudio.volume = 0.3;
+
+      currentAudio.onended = () => {
+        isPlayingMedia = false;
+        startAudioMedia();
+      };
+
+      currentAudio.play().catch(e => {
+        console.log('Música bloqueada', e);
+        isPlayingMedia = false;
+      });
+
+    }
+
+    // --- NUEVO: SISTEMA DE INTERACCIÓN Y CHISPAS ---
+    function createSparks(clientX, clientY) {
+      const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
+
+      for (let i = 0; i < 30; i++) { // 30 partículas
+        const spark = document.createElement('div');
+
+        spark.className = 'spark';
+        
+        // Tamaño aleatorio
+        const size = Math.random() * 6 + 3;
+
+        spark.style.width = size + 'px';
+        spark.style.height = size + 'px';
+
+        // Posición inicial (centro del clic)
+        spark.style.left = clientX + 'px';
+
+        spark.style.top = clientY + 'px';
+        
+        // Color aleatorio
+        spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+
+        spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
+
+        // Calcular trayectoria circular aleatoria
+        const angle = Math.random() * Math.PI * 2;
+
+        const distance = Math.random() * 120 + 40; // Distancia de explosión
+        
+        spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+
+        spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+        
+        document.body.appendChild(spark);
+        
+        // Eliminar del DOM después de la animación
+        setTimeout(() => spark.remove(), 600);
+
+      }
+    }
+
+    fgContainer.addEventListener('click', (e) => {
+      // Evitamos que el clic se propague al documento y reinicie otras cosas
+      e.stopPropagation();
+      
+      // Prevenir clics múltiples mientras ya hay una animación en curso
+      if (isTransitioning) return;
+
+      // 1. Crear el efecto de partículas
+      createSparks(e.clientX, e.clientY);
+
+      // 2. Animar la desaparición (Poof!) suavemente y pausar proceso para evitar lag
+      isTransitioning = true;
+      fgContainer.classList.add('poof');
+
+      // 3. Cambiar de video oculto tras bambalinas
+      setTimeout(() => {
+        
+        let newAnim;
+        // Escoger un video nuevo al azar (diferente al actual, si hay más de 1)
+        do {
+          newAnim = videoList[Math.floor(Math.random() * videoList.length)];
+        } while (newAnim.id === currentAnim.id && videoList.length > 1);
+        
+        currentAnim = newAnim;
+        fgVideo.src = currentAnim.src;
+        
+  
+        // Reproducir el nuevo video y volver a mostrar el contenedor
+        fgVideo.play().then(() => {
+          isTransitioning = false; // Reactivamos el chroma key
+          fgContainer.classList.remove('poof');
+        }).catch(err => {
+          console.log('Error cambiando anim', err);
+          isTransitioning = false;
+        });
+
+      }, 600); 
+    });
+
+    // Eventos iniciales
+    window.addEventListener('DOMContentLoaded', startVisualMedia);
+    document.addEventListener('click', startAudioMedia, { once: true });
+    document.addEventListener('touchstart', startAudioMedia, { once: true });
+
+    // Inicialización del sistema de notificaciones
+    window.addEventListener('load', () => {
+      if (window.startNotificationSequence) window.startNotificationSequence();
+    });
+
+  </script>
 </body>
 </html>
