@@ -1,5 +1,6 @@
 // video-player-core.js - Versión Firestore + Estado central
 // Obtiene los enlaces desde la colección 'catalogo'
+// CORREGIDO: Delega el emoji y botón a comentarios.js
 
 class VideoPlayer {
   constructor() {
@@ -23,7 +24,7 @@ class VideoPlayer {
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-
+    
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -51,7 +52,7 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-
+    
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -135,13 +136,13 @@ class VideoPlayer {
         return;
       }
       
-      document.title = `Ver ${episodeData.title || \`Episodio \${this.episode}\`} - Archinime`;
+      document.title = `Ver ${episodeData.title || `Episodio ${this.episode}`} - Archinime`;
       document.getElementById('epTitle').innerText = episodeData.title || `Episodio ${this.episode}`;
       
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-
+      
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -149,7 +150,6 @@ class VideoPlayer {
       
       this.setupNavigation();
       this.autoMarkAsWatched();
-
     } catch (error) {
       console.error('Error cargando episodio:', error);
       document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
@@ -175,7 +175,6 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
-
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -228,11 +227,10 @@ class VideoPlayer {
         }
       });
     });
-
+    
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-
     if (idx > 0) {
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
@@ -248,7 +246,6 @@ class VideoPlayer {
     const sNum = parseInt(this.season);
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
-    
     const user = this.getCurrentUser();
     if (user) {
       try {
@@ -257,7 +254,6 @@ class VideoPlayer {
         let data = doc.exists ? doc.data() : {};
         let animeData = data[aId] || {};
         let seasonData = animeData[sNum] || [];
-        
         if (!seasonData.includes(eNum)) {
           seasonData.push(eNum);
           animeData[sNum] = seasonData;
@@ -319,7 +315,7 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
-
+    
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -341,7 +337,7 @@ class VideoPlayer {
     }
   }
   
-  // CORRECCIÓN: Delegar correctamente si hay un panel de respuesta abierto
+  // FIX: Delega la inserción de emojis a comentarios.js para que detecte la ventana correcta
   insertEmoji(emoji) { 
     if (typeof window.agregarEmojiAlTexto === 'function') {
         window.agregarEmojiAlTexto(emoji);
@@ -377,13 +373,20 @@ class VideoPlayer {
     }
   }
 
+  // FIX: Delega la validación a comentarios.js para los botones dinámicos
   validateSendButton() {
-    const textarea = document.getElementById('comentarioTexto');
-    const btn = document.getElementById('enviarComentarioBtn');
-    if (textarea && btn) {
-      const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-      btn.disabled = !hasContent;
-      btn.style.opacity = hasContent ? '1' : '0.5';
+    if (typeof window.validarBotonPrincipal === 'function') {
+        const taId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
+        const ta = document.getElementById(taId);
+        if (ta) window.validarBotonPrincipal(ta);
+    } else {
+        const textarea = document.getElementById('comentarioTexto');
+        const btn = document.getElementById('enviarComentarioBtn');
+        if (textarea && btn) {
+          const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
+          btn.disabled = !hasContent;
+          btn.style.opacity = hasContent ? '1' : '0.5';
+        }
     }
   }
   
@@ -392,7 +395,9 @@ class VideoPlayer {
   }
   
   quitarStickerPreview() { 
-    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
+    if (typeof quitarStickerPreview === 'function') { 
+        quitarStickerPreview();
+    } 
     this.validateSendButton();
   }
 }
