@@ -1,7 +1,7 @@
-// comentarios.js
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
-// CORREGIDO: Bloqueo visual del botón, enrutamiento correcto y getCurrentUser global
+// CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
+// (VERSIÓN SIN PANEL DE EMOJIS)
 // ============================================
 
 let comentariosDb = null;
@@ -13,6 +13,7 @@ window.stickerSeleccionadoParaEnviar = null;
 window.respondiendoA = null;
 window.lastPostedCommentId = null;
 
+// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL (DOMPurify) ---
 function archinimeClean(html, isSticker = false) {
     if (typeof DOMPurify !== 'undefined') {
         const config = isSticker 
@@ -20,6 +21,7 @@ function archinimeClean(html, isSticker = false) {
             : { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'span', 'br', 'img'], ALLOWED_ATTR: ['src', 'class', 'style', 'alt'] };
         return DOMPurify.sanitize(html, config);
     }
+    // Fallback de seguridad si falla la carga de la librería
     return html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
 }
 
@@ -82,9 +84,6 @@ function initComentariosSystem(db, auth) {
                 autoResizeTextarea(this);
                 validarBotonPrincipal(this);
             });
-            
-            // Forzamos la validación inicial del botón por si recargan la página
-            validarBotonPrincipal(textarea);
         }
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
@@ -183,22 +182,35 @@ function injectCommentsCSS() {
         .reply-box-submit { background: var(--cm-neon-primary); border: none; color: #000; font-weight: 800; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,247,0.3); }
         .reply-box-submit:hover:not(.btn-disabled) { background: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-2px); }
 
-        /* Icono de bloqueado cuando no se puede enviar */
-        .btn-disabled { opacity: 0.5; cursor: not-allowed !important; }
-
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        .comentario-sticker-preview { margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden; }
-        .preview-sticker-wrapper { position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-neon-primary); }
-        .preview-sticker-wrapper img, .preview-sticker-wrapper video { width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto; }
-        .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
-        .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
+        /* PREVIEW STICKER */
+        .comentario-sticker-preview {
+            margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden;
+        }
+        .preview-sticker-wrapper {
+            position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-neon-primary);
+        }
+        .preview-sticker-wrapper img,
+        .preview-sticker-wrapper video {
+            width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto;
+        }
+        .remove-sticker-btn {
+            position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s;
+        }
+        .remove-sticker-btn:hover {
+            transform: scale(1.1); background: #ff3366;
+        }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
-        @keyframes targetHighlight { 0% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); } 100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); } }
+        @keyframes targetHighlight {
+            0%   { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: rgba(0, 243, 255, 0.3); }
+            50%  { box-shadow: 0 0 30px 10px var(--cm-neon-primary); background: rgba(0, 243, 255, 0.6); }
+            100% { box-shadow: 0 0 0 0 var(--cm-neon-primary); background: var(--cm-bg-glass); }
+        }
         .comment-targeted { animation: targetHighlight 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important; border-color: var(--cm-neon-primary) !important; }
 
         @media (max-width: 768px) {
@@ -212,20 +224,16 @@ function injectCommentsCSS() {
             .comentario-footer { gap: 10px; margin-top: 8px; }
             .comment-options-container { top: 8px; right: 8px; }
             .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
-            .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
+            .preview-sticker-wrapper img,
+            .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
         }
     `;
     document.head.appendChild(style);
 }
 
-// BULLETPROOF USER CHECKER
 function getCurrentUser() {
-    if (window.ArchinimeState && window.ArchinimeState.get('currentUser')) return window.ArchinimeState.get('currentUser');
-    if (window.currentUser) return window.currentUser;
-    if (window.currentUserForComent) return window.currentUserForComent;
-    if (comentariosAuth && comentariosAuth.currentUser) return comentariosAuth.currentUser;
-    if (typeof firebase !== 'undefined' && firebase.auth) return firebase.auth().currentUser;
-    return null;
+    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+    return window.currentUserForComent || null;
 }
 
 function getCurrentUserColor() {
@@ -330,6 +338,7 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
+
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 if (level === 0) {
@@ -466,7 +475,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const newFxClass = isNew ? 'new-comment-fx' : '';
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
-    const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
+    const deleteMenuBtn = isAdmin ?
+    `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
@@ -481,7 +491,8 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     
-    const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    const botonResponder = currentUser ?
+    `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
@@ -500,7 +511,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
                 </div>
                 
                 <div class="comentario-texto" data-raw="${encodeURIComponent(c.texto || '')}">${contenidoHtml}</div>
-                
+               
                 <div class="comentario-footer">
                     <span class="comentario-fecha">${fecha}${badgeEditado}</span>
                     ${botonResponder}
@@ -625,24 +636,19 @@ window.restaurarPanelesGlobales = function() {
     const sendBtn = document.getElementById('enviarComentarioBtn'); 
     
     const previewEl = document.getElementById('comentarioStickerPreview');
-    const emojiEl = document.getElementById('emojiPanel');
     const stickerEl = document.getElementById('stickerPanelFull');
 
     if (originalContainer && sendBtn) {
         if(previewEl) originalContainer.insertBefore(previewEl, sendBtn);
-        if(emojiEl) originalContainer.insertBefore(emojiEl, sendBtn);
         if(stickerEl) originalContainer.insertBefore(stickerEl, sendBtn);
     } else if (originalContainer) {
         if(previewEl) originalContainer.appendChild(previewEl);
-        if(emojiEl) originalContainer.appendChild(emojiEl);
         if(stickerEl) originalContainer.appendChild(stickerEl);
     }
     
-    if(emojiEl) emojiEl.classList.remove('active');
     if(stickerEl) stickerEl.classList.remove('active');
 };
 
-// ==================== RUTAS CORRECTAS PARA LA ZONA DE RESPUESTAS ====================
 window.prepararRespuesta = function(commentId, userName, userId) {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
@@ -665,7 +671,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
             <div style="flex: 1;">
                 <textarea id="dynamicReplyText-${commentId}" class="reply-box-textarea" placeholder="Añade una respuesta pública..." maxlength="500"></textarea>
                 <div class="reply-box-tools">
-                    <button type="button" class="reply-box-tool-btn" onclick="toggleEmojiPanelSistema()">😊</button>
                     <button type="button" class="reply-box-tool-btn" onclick="toggleStickerPanelSistema()"><i class="fas fa-sticky-note"></i></button>
                 </div>
                 <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 8px;"></div>
@@ -680,10 +685,8 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const panelDest = document.getElementById(`dynamicPanelsDest-${commentId}`);
     if (panelDest) {
         const p1 = document.getElementById('comentarioStickerPreview');
-        const p2 = document.getElementById('emojiPanel');
         const p3 = document.getElementById('stickerPanelFull');
         if(p1) panelDest.appendChild(p1);
-        if(p2) { panelDest.appendChild(p2); p2.classList.remove('active'); }
         if(p3) { panelDest.appendChild(p3); p3.classList.remove('active'); }
     }
     
@@ -697,9 +700,6 @@ window.prepararRespuesta = function(commentId, userName, userId) {
                 if(!document.getElementById(`btnEnviarRespuesta-${commentId}`).classList.contains('btn-disabled')) enviarRespuestaDinamica();
             }
         });
-        
-        // Forzamos la validación para mostrar el candado si está vacío
-        validarBotonPrincipal(textArea);
     }
 };
 
@@ -738,18 +738,8 @@ window.openStickerModal = function(url) {
     else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
     
     document.getElementById('stickerModalStealBtn').onclick = () => {
-        const user = getCurrentUser();
-        if (!user) {
-            openLoginModalFromComent();
-            closeStickerModal();
-            return;
-        }
-        if(typeof window.robarStickerSistema === 'function') { 
-            window.robarStickerSistema(url);
-            closeStickerModal(); 
-        } else {
-            alert("El sistema de stickers no está cargado.");
-        }
+        if(typeof window.robarStickerSistema === 'function') { window.robarStickerSistema(url); closeStickerModal(); }
+        else alert("Inicia sesión primero.");
     };
     modal.style.display = 'flex';
     setTimeout(() => modal.style.opacity = '1', 10);
@@ -763,7 +753,7 @@ window.closeStickerModal = function() {
     }
 };
 
-// ==================== CORRECCIÓN DEL BOTÓN (BLOQUEO) ====================
+// ========== FUNCIONES CORREGIDAS ==========
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
@@ -773,11 +763,9 @@ window.validarBotonPrincipal = function(textarea) {
         btn = document.getElementById('enviarComentarioBtn');
     }
     if (!btn) return;
-    
     const hasText = textarea.value.trim().length > 0;
     const hasSticker = !!window.stickerSeleccionadoParaEnviar;
     const enabled = hasText || hasSticker;
-    
     if (enabled) {
         btn.disabled = false;
         btn.classList.remove('btn-disabled');
@@ -786,13 +774,12 @@ window.validarBotonPrincipal = function(textarea) {
     } else {
         btn.disabled = true;
         btn.classList.add('btn-disabled');
-        // Aquí no forzamos el opacity si tu CSS ya lo hace, pero por seguridad:
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
     }
 };
 
-window.enviarComentarioTexto = async function() {
+async function enviarComentarioTexto() {
     const currentUser = getCurrentUser();
     if (!currentUser) return openLoginModalFromComent();
     
@@ -802,12 +789,10 @@ window.enviarComentarioTexto = async function() {
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
-    
     if ((!texto && !stickerUrl) || (btn && btn.disabled)) return;
 
     const originalTexto = texto;
     const originalSticker = stickerUrl;
-    
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
@@ -818,9 +803,9 @@ window.enviarComentarioTexto = async function() {
     textoInput.value = '';
     textoInput.style.height = 'auto';
     quitarStickerPreview();
-    document.getElementById('emojiPanel')?.classList.remove('active');
     document.getElementById('stickerPanelFull')?.classList.remove('active');
     
+    validarBotonPrincipal(textoInput);
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
@@ -849,15 +834,15 @@ window.enviarComentarioTexto = async function() {
             mostrarPreviewSticker(originalSticker);
         }
         showToastComent('❌ Error: ' + error.message);
+        validarBotonPrincipal(textoInput);
     } finally {
         if (btn) {
+            btn.disabled = false;
             btn.innerHTML = btn.dataset.original;
             delete btn.dataset.original;
         }
-        // FORZAR LA VALIDACIÓN AQUÍ PARA QUE SE QUEDE EL ICONO DE CANDADO TRAS ENVIAR
-        validarBotonPrincipal(document.getElementById('comentarioTexto'));
     }
-};
+}
 
 function mostrarPreviewSticker(url) {
     const previewContainer = document.getElementById('comentarioStickerPreview');
@@ -877,13 +862,11 @@ function mostrarPreviewSticker(url) {
     previewContainer.style.display = 'block';
 }
 
-// ==================== ENRUTAMIENTO DIRECTO (EMOJIS/STICKERS A RESPUESTAS) ====================
 window.seleccionarStickerParaEnviar = function(url) {
     window.stickerSeleccionadoParaEnviar = url;
     mostrarPreviewSticker(url);
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
-    
     let targetTextarea = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
@@ -899,7 +882,6 @@ window.quitarStickerPreview = function() {
     const vid = document.getElementById('previewStickerVidObj');
     if (img) img.src = '';
     if (vid) vid.src = '';
-    
     let targetTextarea = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
@@ -907,18 +889,7 @@ window.quitarStickerPreview = function() {
     if (targetTextarea) validarBotonPrincipal(targetTextarea);
 };
 
-window.agregarEmojiAlTexto = function(emoji) {
-    const textarea = document.getElementById(window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto');
-    if (textarea) {
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
-        textarea.focus();
-        textarea.dispatchEvent(new Event('input'));
-        validarBotonPrincipal(textarea);
-    }
-};
-
+// === NUEVA FUNCIÓN DE NOTIFICACIONES ADAPTADA ===
 async function crearNotificacionDeRespuesta(idUsuarioDestino, idAnime, nombreAnime, textoComentario) {
     try {
         const currentUser = getCurrentUser();
@@ -937,6 +908,7 @@ async function crearNotificacionDeRespuesta(idUsuarioDestino, idAnime, nombreAni
         console.warn("No se pudo crear la notificación (posible restricción de reglas):", error);
     }
 }
+// ===============================================
 
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
@@ -978,6 +950,7 @@ window.enviarRespuestaDinamica = async function() {
         });
         window.lastPostedCommentId = docRef.id;
 
+        // LLAMADA A LA FUNCIÓN DE NOTIFICACIÓN
         if (replyContext.userId && replyContext.userId !== currentUser.uid) {
             await crearNotificacionDeRespuesta(
                 replyContext.userId, 
@@ -992,13 +965,8 @@ window.enviarRespuestaDinamica = async function() {
     } catch (error) {
         alert('Error: ' + error.message);
     } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.classList.remove('btn-disabled');
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-        }
-        if (textoInput) textoInput.disabled = false;
+        if (btn) btn.disabled = false;
+        textoInput.disabled = false;
     }
 };
 
@@ -1029,19 +997,10 @@ function updateComentariosUI() {
     }
 }
 
-function toggleEmojiPanelSistema() {
-    const panel = document.getElementById('emojiPanel');
-    if (panel) { 
-        panel.classList.toggle('active'); 
-        document.getElementById('stickerPanelFull')?.classList.remove('active');
-    }
-}
-
 function toggleStickerPanelSistema() {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) { 
         panel.classList.toggle('active'); 
-        document.getElementById('emojiPanel')?.classList.remove('active');
     }
 }
 
@@ -1057,8 +1016,7 @@ function showToastComent(msg) {
 }
 
 function openLoginModalFromComent() { 
-    if (typeof window.showAuthModal === 'function') { window.showAuthModal(); }
-    else if (document.getElementById('authModal')) { document.getElementById('authModal').classList.add('show'); }
+    document.getElementById('authModal')?.classList.add('show');
 }
 
 function escapeHtmlComent(text) { 

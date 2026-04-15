@@ -1,4 +1,5 @@
 // video-player-core.js - Versión Firestore + Estado central
+// Obtiene los enlaces desde la colección 'catalogo'
 
 class VideoPlayer {
   constructor() {
@@ -12,8 +13,6 @@ class VideoPlayer {
     this.storage = null;
     this.animeData = null;
     
-    this.emojiList = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','💤','💩','👻','💀','👽','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💖','💗','💓','💕','💞','🔥','✨','⭐','🌟','💫','💥','💢','💦','💧','🎉','🎊','🎈'];
-    
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -22,11 +21,9 @@ class VideoPlayer {
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-    
+
     window.videoPlayerMethods = {
-      toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
-      insertEmoji: (e) => this.insertEmoji(e),
       enviarComentario: () => this.enviarComentario(),
       quitarStickerPreview: () => this.quitarStickerPreview(),
       openLoginModal: () => this.openLoginModal(),
@@ -50,6 +47,7 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -60,6 +58,11 @@ class VideoPlayer {
     this.storage = firebase.storage();
     
     this.auth.onAuthStateChanged(user => {
+      if (window.ArchinimeState) {
+        window.ArchinimeState.set('currentUser', user);
+      } else {
+        this.currentUser = user;
+      }
       this.updateCommentFormVisibility();
       
       if (typeof initComentariosSystem === 'function') {
@@ -73,23 +76,14 @@ class VideoPlayer {
   }
   
   getCurrentUser() {
-    if (window.ArchinimeState && window.ArchinimeState.get('currentUser')) return window.ArchinimeState.get('currentUser');
-    if (window.currentUser) return window.currentUser;
-    if (this.auth && this.auth.currentUser) return this.auth.currentUser;
-    return null;
+    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
+    return this.currentUser;
   }
   
   initUI() {
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) {
       backLink.href = `anime-detail.html?id=${this.animeId}`;
-    }
-    
-    const emojiPanel = document.getElementById('emojiPanel');
-    if (emojiPanel) {
-      emojiPanel.innerHTML = this.emojiList.map(e => 
-        `<div class="emoji-option" onclick="window.videoPlayer?.insertEmoji('${e}')">${e}</div>`
-      ).join('');
     }
     
     const textarea = document.getElementById('comentarioTexto');
@@ -136,7 +130,7 @@ class VideoPlayer {
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-      
+
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -144,6 +138,7 @@ class VideoPlayer {
       
       this.setupNavigation();
       this.autoMarkAsWatched();
+
     } catch (error) {
       console.error('Error cargando episodio:', error);
       document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
@@ -154,8 +149,10 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
+
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
     btn.innerText = label;
+
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -169,6 +166,7 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
+
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -221,9 +219,11 @@ class VideoPlayer {
         }
       });
     });
+
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+
     if (idx > 0) {
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
@@ -240,6 +240,7 @@ class VideoPlayer {
     const eNum = parseInt(this.episode);
     if (!aId || isNaN(sNum) || isNaN(eNum)) return;
     const user = this.getCurrentUser();
+
     if (user) {
       try {
         const docRef = this.db.collection('watchHistory').doc(user.uid);
@@ -260,16 +261,47 @@ class VideoPlayer {
   }
   
   setupAuthUI() {
-    // Si estás usando el modal global de app-core, puede que esto sea redundante, pero se mantiene la lógica.
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
+        document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
+      });
+    });
   }
   
-  openLoginModal() { if(typeof window.showAuthModal === 'function') window.showAuthModal(); }
-  closeAuthModal() { if(typeof window.closeAuthModal === 'function') window.closeAuthModal(); }
+  openLoginModal() { document.getElementById('authModal').classList.add('show'); }
+  closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
   
-  async loginWithEmail() { if(typeof window.loginWithEmail === 'function') window.loginWithEmail(); }
-  async registerWithEmail() { if(typeof window.registerWithEmail === 'function') window.registerWithEmail(); }
-  async loginWithGoogle() { if(typeof window.loginWithGoogle === 'function') window.loginWithGoogle(); }
-  async loginWithGitHub() { if(typeof window.loginWithGitHub === 'function') window.loginWithGitHub(); }
+  async loginWithEmail() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPassword').value;
+    try { await this.auth.signInWithEmailAndPassword(email, pass); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
+  }
+  
+  async registerWithEmail() {
+    const email = document.getElementById('registerEmail').value;
+    const pass = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerConfirm').value;
+    if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; }
+    try { await this.auth.createUserWithEmailAndPassword(email, pass); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
+  }
+  
+  async loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
+  }
+  
+  async loginWithGitHub() {
+    const provider = new firebase.auth.GithubAuthProvider();
+    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
+    catch (e) { document.getElementById('authError').innerText = e.message; }
+  }
   
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
@@ -277,6 +309,7 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
+
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -290,36 +323,12 @@ class VideoPlayer {
     }
   }
   
-  toggleEmojiPanel() { 
-    const panel = document.getElementById('emojiPanel');
-    if (panel) {
-      panel.classList.toggle('active'); 
-      document.getElementById('stickerPanelFull')?.classList.remove('active');
-    }
-  }
-  
-  // SOLUCIÓN: DELEGAR A COMENTARIOS.JS PARA QUE SE INSERTE DONDE TOCA
-  insertEmoji(emoji) { 
-    if (typeof window.agregarEmojiAlTexto === 'function') {
-      window.agregarEmojiAlTexto(emoji);
-    } else {
-      // Fallback si falla comentarios.js
-      const ta = document.getElementById('comentarioTexto');
-      if(ta){
-        ta.value += emoji; 
-        ta.focus(); 
-        this.validateSendButton();
-      }
-    }
-  }
-  
   toggleStickerPanel() {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) {
       panel.classList.toggle('active');
-      document.getElementById('emojiPanel')?.classList.remove('active');
-      if (panel.classList.contains('active') && typeof window.cargarStickersUsuario === 'function') {
-        window.cargarStickersUsuario();
+      if (panel.classList.contains('active') && typeof cargarStickersUsuario === 'function') {
+        cargarStickersUsuario();
       }
     }
   }
@@ -336,41 +345,33 @@ class VideoPlayer {
   }
 
   validateSendButton() {
-    if (typeof window.validarBotonPrincipal === 'function') {
-        let textarea = document.getElementById('comentarioTexto');
-        if (window.respondiendoA) {
-            textarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
-        }
-        if (textarea) window.validarBotonPrincipal(textarea);
-    } else {
-        const textarea = document.getElementById('comentarioTexto');
-        const btn = document.getElementById('enviarComentarioBtn');
-        if (textarea && btn) {
-          const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-          btn.disabled = !hasContent;
-          btn.style.opacity = hasContent ? '1' : '0.5';
-        }
+    const textarea = document.getElementById('comentarioTexto');
+    const btn = document.getElementById('enviarComentarioBtn');
+    if (textarea && btn) {
+      const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
+      btn.disabled = !hasContent;
+      btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
   
   enviarComentario() { 
-    if (typeof window.enviarComentarioTexto === 'function') window.enviarComentarioTexto();
+    if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto();
   }
   
   quitarStickerPreview() { 
-    if (typeof window.quitarStickerPreview === 'function') { window.quitarStickerPreview(); } 
+    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
     this.validateSendButton();
   }
 }
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
-window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
-// Rutear el emoji correctamente al textArea correcto
-window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
+// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.

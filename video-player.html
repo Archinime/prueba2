@@ -67,7 +67,6 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== TODOS LOS ESTILOS ORIGINALES (se mantienen) ===== */
     :root {
       --primary-color: #00fff7;
       --accent-color: #ff0055;
@@ -568,7 +567,7 @@
       box-shadow: 0 0 15px rgba(0, 243, 255, 0.2) inset;
     }
 
-    .emoji-btn, .sticker-btn {
+    .sticker-btn {
       background: rgba(0, 0, 0, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 14px;
@@ -581,40 +580,11 @@
       align-items: center;
       justify-content: center;
     }
-    .emoji-btn:hover, .sticker-btn:hover {
+    .sticker-btn:hover {
       background: rgba(0, 255, 247, 0.2);
       border-color: var(--primary-color);
       color: var(--primary-color);
       transform: translateY(-3px);
-    }
-
-    .emoji-panel {
-      display: none;
-      background: #0a0a0f;
-      border: 1px solid var(--primary-color);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 10px;
-      max-height: 250px;
-      overflow-y: auto;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    }
-    .emoji-panel.active { display: flex; }
-    .emoji-option {
-      font-size: 1.8rem;
-      cursor: pointer;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 10px;
-      width: 50px;
-      text-align: center;
-      transition: transform 0.2s;
-    }
-    .emoji-option:hover {
-      transform: scale(1.4);
-      background: rgba(255, 255, 255, 0.1);
     }
 
     .enviar-comentario-btn {
@@ -999,7 +969,7 @@
       }
       .comentarios-section { padding: 20px 15px; }
       .comentario-form-container { padding: 18px; }
-      .emoji-btn, .sticker-btn { padding: 12px; }
+      .sticker-btn { padding: 12px; }
       .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
       .preview-sticker-wrapper img,
       .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
@@ -1081,7 +1051,6 @@
 
       <div class="comentario-input-wrapper">
         <textarea id="comentarioTexto" placeholder="Escribe un comentario... (Presiona Enter para enviar)" maxlength="500"></textarea>
-        <button type="button" class="emoji-btn" onclick="window.videoPlayer?.toggleEmojiPanel()">😊</button>
         <button type="button" class="sticker-btn" onclick="window.videoPlayer?.toggleStickerPanel()">
           <i class="fas fa-sticky-note"></i>
         </button>
@@ -1094,8 +1063,6 @@
           <button class="remove-sticker-btn" onclick="window.videoPlayer?.quitarStickerPreview()" title="Quitar sticker">✖</button>
         </div>
       </div>
-
-      <div id="emojiPanel" class="emoji-panel"></div>
 
       <div id="stickerPanelFull" class="sticker-panel-full">
         <div class="sticker-tabs">
