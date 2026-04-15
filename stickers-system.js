@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
-// ACTUALIZADO: Subida a GoFile sin API Key
+// ACTUALIZADO: Subida a GoFile con previsualización de enlaces directos
 // ============================================
 
 let stickersDb = null;
@@ -69,10 +69,28 @@ async function loadUserStickers() {
     }
 }
 
-function renderUserStickers() {
+// 🆕 NUEVO: Función helper para obtener el link directo de GoFile
+async function getGoFileDirectLink(contentId) {
+    try {
+        const response = await fetch(`https://api.gofile.io/contents/${contentId}`);
+        const data = await response.json();
+        if (data.status === 'ok' && data.data && data.data.children) {
+            const fileKey = Object.keys(data.data.children)[0];
+            return data.data.children[fileKey].link; // Este es el enlace directo
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al obtener el enlace directo de GoFile:', error);
+        return null;
+    }
+}
+
+// 🆕 MODIFICADO: Ahora es async y obtiene enlaces directos para GoFile
+async function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
+    
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
@@ -86,18 +104,28 @@ function renderUserStickers() {
     }
     
     let html = '';
-    validStickers.forEach(url => {
-        const isVideo = url.match(/\.(mp4|webm)$/i);
+    for (const url of validStickers) {
+        let displayUrl = url;
+
+        // 🆕 NUEVO: Si es un enlace de GoFile, obtenemos el directo para la previsualización
+        if (url.includes('gofile.io/d/')) {
+            const contentId = url.split('/d/')[1];
+            const directLink = await getGoFileDirectLink(contentId);
+            displayUrl = directLink || url; // Usa el directo o el original si falla
+        }
+
+        const isVideo = displayUrl.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo
-            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
-            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
+            ? `<video src="${displayUrl}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
+            : `<img src="${displayUrl}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
+        
         html += `
             <div class="sticker-item">
                 ${tagMedia}
                 <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)">✖</button>
             </div>
         `;
-    });
+    }
     container.innerHTML = html;
 }
 
