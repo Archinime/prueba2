@@ -1,11 +1,10 @@
-// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS
+// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS REDISEÑADOS
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
 let repliesUnsubscribe = null;
 let catalogoUnsubscribe = null;
-
 // LÍMITE DE POPUPS: MÁXIMO 5 VENTANAS EMERGENTES POR SESIÓN
 let popupsShownCount = 0;
 const MAX_POPUPS = 5;
@@ -13,7 +12,6 @@ let firstVisitInitialized = false;
 
 // BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
-
 // FIX: FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
@@ -92,20 +90,16 @@ async function initFirstVisitNotifications() {
 
     notificationQueue = [];
     popupsShownCount = 0;
-
     try {
         // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
             .limit(MAX_POPUPS)
             .get();
-
         const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log(`📦 Primeros ${animes.length} animes más recientes para popups iniciales`);
-
         for (const anime of animes) {
             if (!anime.updateType || anime.updateType === 'Ninguna') continue;
-
             let lastUpdateMs = anime.lastUpdate;
             if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
                 lastUpdateMs = anime.lastUpdate.toMillis();
@@ -116,7 +110,6 @@ async function initFirstVisitNotifications() {
             }
 
             const notifId = `${anime.id}_${lastUpdateMs}`;
-
             if (notificationsHistory.some(n => n.notifId === notifId)) continue;
 
             const newNotif = {
@@ -133,7 +126,6 @@ async function initFirstVisitNotifications() {
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
-
             notificationsHistory.unshift(newNotif);
             if (notificationsHistory.length > 50) notificationsHistory.pop();
 
@@ -177,7 +169,6 @@ function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
-
     const user = getCurrentUser();
     if (user) {
         db.collection('users').doc(user.uid).set({
@@ -194,7 +185,6 @@ async function syncNotificationsWithCloud(uid) {
 
         if (doc.exists) {
             const data = doc.data();
-
             if (data.seenNotifIds) {
                 let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                 let merged = Array.from(new Set([...localSeen, ...data.seenNotifIds])).slice(-1000);
@@ -232,26 +222,38 @@ function listenForReplies(uid) {
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
         .limit(20)
-        .onSnapshot(snapshot => {
+        .onSnapshot(async snapshot => {
             let hasNew = false;
             let shouldShowPopup = false;
             
-            snapshot.docChanges().forEach(change => {
+            // Usamos un bucle for...of para poder usar await y obtener el comentario original
+            for (const change of snapshot.docChanges()) {
                 if (change.type === 'added') {
                     const data = change.doc.data();
-                    if (data.userId === uid) return;
+                    if (data.userId === uid) continue;
                     
                     const docId = change.doc.id;
                     const notifId = `reply_${docId}`;
           
-                    if (notificationsHistory.some(n => n.notifId === notifId)) return;
+                    if (notificationsHistory.some(n => n.notifId === notifId)) continue;
                     
                     let rawText = data.texto || "";
                     let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
                     
-                    // Extraer el texto original al que se responde (Requiere guardar este dato en BD)
+                    // Extraer el texto original al que se responde (Búsqueda en Firestore si no existe en data)
                     let originalText = data.replyToText || data.textoOriginal || "";
+                    
+                    if (!originalText && data.replyToId) {
+                        try {
+                            const parentDoc = await db.collection('comments').doc(data.replyToId).get();
+                            if (parentDoc.exists) {
+                                let pText = parentDoc.data().texto || "";
+                                originalText = pText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+                            }
+                        } catch(e) { console.error("Error obteniendo comentario padre:", e); }
+                    }
+
                     let timestampMs = data.timestamp?.toMillis() || Date.now();
          
                     const newNotif = {
@@ -262,8 +264,8 @@ function listenForReplies(uid) {
                         img: data.userAvatar || 'invitado.avif',
                         seasonCover: data.userAvatar || 'invitado.avif',
                         blockName: 'Foro',
-                        epTitle: `"${cleanText.substring(0,60)}${cleanText.length>60?'...':''}"`,
-                        originalText: originalText ? `"${originalText.substring(0,50)}${originalText.length>50?'...':''}"` : null,
+                        epTitle: `"${cleanText.substring(0,80)}${cleanText.length>80?'...':''}"`,
+                        originalText: originalText ? `"${originalText.substring(0,60)}${originalText.length>60?'...':''}"` : `"Comentario original no disponible"`,
                         date: timestampMs,
                         seen: false,
                         isFinal: false,
@@ -277,7 +279,7 @@ function listenForReplies(uid) {
                     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
                     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-
+                    
                     if (!seenNotifIds.includes(notifId)) {
                         seenNotifIds.push(notifId);
                         if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
@@ -291,8 +293,8 @@ function listenForReplies(uid) {
                         }
                     }
                 }
-            });
-
+            }
+            
             if (hasNew) {
                 notificationsHistory = notificationsHistory.slice(0, 50);
                 saveHistoryToStorage();
@@ -320,7 +322,7 @@ function listenForCatalogUpdates() {
                         procesarActualizacionCatalogo(anime);
                     }
                 }
-             });
+            });
         }, error => console.error('❌ Error escuchando catálogo:', error));
 }
 
@@ -342,14 +344,12 @@ function procesarActualizacionCatalogo(anime) {
     const notifId = `${anime.id}_${lastUpdateMs}`;
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) return;
-
     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
     const markAsSeen = isFirstVisitGlobal;
     
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
     localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-
     if (notificationsHistory.some(n => n.notifId === notifId)) return;
     
     const newNotif = {
@@ -368,7 +368,6 @@ function procesarActualizacionCatalogo(anime) {
     if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
     
     const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
-
     if (shouldEnqueuePopup) {
         notificationQueue.push(newNotif);
         popupsShownCount++;
@@ -380,7 +379,6 @@ function procesarActualizacionCatalogo(anime) {
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
-
     if (shouldEnqueuePopup && notificationQueue.length === 1) {
         showNextPopup();
     }
@@ -404,38 +402,47 @@ function createPopupHTML(notif) {
 
     // RENDERIZADO CONDICIONAL: RESPUESTA VS ANIME
     if (notif.type === 'RESPUESTA') {
+        // DISEÑO EXCLUSIVO Y MEJORADO PARA RESPUESTAS A COMENTARIOS
         modal.innerHTML = `
-            <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);">
-              <button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-              
-              <div class="event-visuals" style="height: 160px; background: radial-gradient(circle, rgba(0,243,255,0.15) 0%, #000 80%); display: flex; align-items: center; justify-content: center;">
-                <div class="visual-bg" style="background-image: url('${notif.img}'); opacity: 0.2; filter: blur(20px);"></div>
-                
-                <div class="covers-container" style="align-items: center; justify-content: center; width: 100%; padding-bottom: 0;">
-                    <img src="${notif.img}" alt="Avatar Usuario" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--neon-cyan); object-fit: cover; box-shadow: 0 0 25px var(--neon-cyan); transform: none; position: relative; z-index: 5;">
+            <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
+              <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
+
+              <div style="background: linear-gradient(135deg, rgba(0,243,255,0.1) 0%, transparent 100%); padding: 25px 20px 15px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; align-items: center; gap: 15px; position: relative;">
+                <div style="position: relative; flex-shrink: 0;">
+                    <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
+                    <div style="position: absolute; bottom: -2px; right: -2px; background: #0a0a0f; border-radius: 50%; padding: 4px; border: 1px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
+                        <i class="fas fa-reply" style="color: var(--neon-cyan); font-size: 0.65rem;"></i>
+                    </div>
                 </div>
-                <div class="event-type-badge" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px var(--neon-cyan); left: 50%; transform: translateX(-50%); top: 15px;"><i class="fas fa-reply"></i> NUEVA RESPUESTA</div>
+                <div style="flex: 1; text-align: left; padding-right: 20px; overflow: hidden;">
+                    <div style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px;">NUEVA RESPUESTA</div>
+                    <h2 style="font-size: 1.05rem; color: #fff; margin: 0; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${notif.title}</h2>
+                </div>
               </div>
               
-              <div class="event-info" style="padding: 20px 25px; text-align: left;">
-                <h2 class="event-title" style="font-size: 1.1rem; text-align: center; color: var(--neon-cyan); margin-bottom: 15px;">${notif.title}</h2>
+              <div style="padding: 20px; text-align: left;">
                 
-                <div style="background: rgba(255,255,255,0.03); border-left: 3px solid #555; padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
-                    <i class="fas fa-quote-left" style="position: absolute; top: 8px; right: 12px; font-size: 1.5rem; color: rgba(255,255,255,0.05);"></i>
-                    <span style="font-size: 0.8rem; color: #888; font-style: italic; display: block; padding-right: 20px;">
-                        ${notif.originalText ? notif.originalText : "Respuesta a tu comentario..."}
+                <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.15); padding: 12px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
+                    <i class="fas fa-quote-left" style="position: absolute; top: 10px; right: 15px; font-size: 1.2rem; color: rgba(255,255,255,0.03);"></i>
+                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tu comentario</div>
+                    <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">
+                        ${notif.originalText}
                     </span>
                 </div>
 
-                <p class="event-desc" style="color: #fff; font-size: 0.95rem; font-style: normal; margin-bottom: 25px; text-align: center;">
-                    ${notif.epTitle}
-                </p>
+                <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">
+                        ${notif.epTitle}
+                    </p>
+                </div>
                 
-                <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-comments"></i> VER CONVERSACIÓN</button>
+                <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 0 25px rgba(0,243,255,0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 0 15px rgba(0,243,255,0.3)';">
+                    <i class="fas fa-comments"></i> VER CONVERSACIÓN
+                </button>
               </div>
             </div>`;
     } else {
-        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME
+        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (INTACTO)
         let infoString = "";
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -482,7 +489,6 @@ function goToAnimeFromPopup(animeId, notifId) {
     
     notificationQueue = [];
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    
     // Si la notificación contiene una URL exacta (ej. comentarios), se utiliza esa
     if (targetNotif && targetNotif.url) {
         window.location.href = targetNotif.url;
@@ -494,7 +500,6 @@ function goToAnimeFromPopup(animeId, notifId) {
 function toggleNotifMenu() {
     const menu = document.getElementById('notifMenu');
     isMenuOpen = !isMenuOpen;
-
     if (isMenuOpen) {
         menu.classList.add('active');
         renderNotificationList();
@@ -530,7 +535,6 @@ function markAllAsRead() {
 
 function renderNotificationList() {
     const container = document.getElementById('notifList');
-
     if (!container) return;
     requestAnimationFrame(() => {
         const header = document.querySelector('#notifMenu .notif-header');
@@ -539,7 +543,7 @@ function renderNotificationList() {
             btn.className = 'mark-all-btn';
             btn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todo';
             btn.title = 'Marcar todas las notificaciones como vistas';
-            
+     
             btn.onclick = (e) => {
                 e.stopPropagation();
                 markAllAsRead();
@@ -558,7 +562,6 @@ function renderNotificationList() {
                 margin-left: 10px;
                 ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
             `;
-
             btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
             btn.onmouseleave = () => { btn.style.background = 'rgba(0,243,255,0.1)'; btn.style.transform = 'scale(1)'; };
             header.appendChild(btn);
@@ -570,7 +573,6 @@ function renderNotificationList() {
         }
         const visible = notificationsHistory.slice(0, 30);
         const fragment = document.createDocumentFragment();
-
         visible.forEach(item => {
             const div = document.createElement('div');
             div.className = 'notif-item';
@@ -608,7 +610,6 @@ function renderNotificationList() {
 
 function updateBellBadge() {
     const unread = notificationsHistory.filter(n => !n.seen).length;
-
     const badge = document.getElementById('notifBadge');
     if (badge) {
         badge.style.display = unread ? 'flex' : 'none';
@@ -618,7 +619,6 @@ function updateBellBadge() {
 
 function markAsRead(notifId) {
     const target = notificationsHistory.find(n => n.notifId === notifId);
-
     if (target && !target.seen) {
         target.seen = true;
         saveHistoryToStorage();
