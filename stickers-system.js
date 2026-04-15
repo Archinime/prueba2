@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS (TELEGRAPH + FIRESTORE)
-// ACTUALIZADO: Subida sin API Key (Soporta CORS y Links Directos)
+// SISTEMA DE STICKERS (CATBOX + FIRESTORE)
+// CORREGIDO: Migración a Catbox.moe para enlaces directos (Hotlinking)
 // ============================================
 
 let stickersDb = null;
@@ -23,7 +23,6 @@ function cleanStickerHTML(html) {
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
-
     const loadIfUserExists = (user) => {
         updateStickersUI();
         if (user) {
@@ -50,10 +49,8 @@ function getCurrentUser() {
 async function loadUserStickers() {
     const user = getCurrentUser();
     if (!user) return;
-
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
-
         if (doc.exists && doc.data().stickers) {
             userStickersCollection = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
             if (userStickersCollection.length !== doc.data().stickers.length) {
@@ -64,7 +61,6 @@ async function loadUserStickers() {
             await stickersDb.collection('userStickers').doc(user.uid).set({ stickers: userStickersCollection }, { merge: true });
         }
         renderUserStickers();
-
     } catch (e) {
         console.error("Error cargando stickers:", e);
         const container = document.getElementById('userStickersContainer');
@@ -75,16 +71,13 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
-
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
-
     if (validStickers.length === 0) {
         container.innerHTML = `
             <div class="sticker-empty-modern">
                 <div class="sticker-empty-icon">🖼️</div>
                 <div class="sticker-empty-title">SIN STICKERS</div>
                 <div class="sticker-empty-desc">Sube imágenes o vídeos, o roba de otros comentarios.</div>
-             
                 <div class="sticker-empty-hint"><i class="fas fa-upload"></i> Ve a la pestaña "SUBIR"</div>
             </div>
         `;
@@ -92,9 +85,9 @@ function renderUserStickers() {
     }
     
     let html = '';
-
     validStickers.forEach(url => {
-        const isVideo = url.match(/\.(mp4|webm)$/i);
+        // Expresión regular mejorada
+        const isVideo = url.match(/\.(mp4|webm)(\?.*)?$/i);
         const tagMedia = isVideo
             ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
             : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
@@ -105,7 +98,6 @@ function renderUserStickers() {
             </div>
         `;
     });
-
     container.innerHTML = html;
 }
 
@@ -123,7 +115,6 @@ async function eliminarSticker(urlSticker, event) {
     event.stopPropagation();
     const user = getCurrentUser();
     if (!user) return;
-
     if (!confirm('¿Eliminar este sticker?')) return;
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
@@ -137,10 +128,9 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA TELEGRAPH ==========
+// ========== FUNCIÓN DE SUBIDA MIGRADA A CATBOX ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
-
     if (!user) {
         openLoginModalFromStickers();
         inputElement.value = '';
@@ -150,14 +140,12 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validación de tamaño (2 MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
-    // Preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -176,55 +164,38 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo al servidor...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo sticker...';
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        // Usamos Telegraph para asegurar compatibilidad CORS y obtener link directo
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', file);
 
-        const uploadRes = await fetch('https://telegra.ph/upload', {
+        // Subida a Catbox (Permite hotlinking directo y no requiere API Key)
+        const uploadRes = await fetch('https://catbox.moe/user/api.php', {
             method: 'POST',
             body: formData
         });
 
-        if (!uploadRes.ok) {
-            throw new Error('Error al conectar con los servidores de subida.');
-        }
+        if (!uploadRes.ok) throw new Error('No se pudo conectar con el servidor.');
 
-        const uploadData = await uploadRes.json();
+        const fileUrl = await uploadRes.text(); // Catbox devuelve directamente el enlace en texto
 
-        // Telegraph devuelve un array con un objeto que tiene la propiedad "src"
-        if (uploadData && uploadData[0] && uploadData[0].src) {
-            // El servidor devuelve una ruta relativa, le añadimos el dominio principal
-            const fileUrl = 'https://telegra.ph' + uploadData[0].src;
-
-            // Guardar en Firestore
+        if (fileUrl && fileUrl.startsWith('http')) {
             await guardarStickerEnColeccion(fileUrl);
-
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
             window.switchStickerTab('mis');
             await loadUserStickers();
-        } else if (uploadData.error) {
-            throw new Error(uploadData.error);
         } else {
-            throw new Error('Respuesta desconocida del servidor.');
+            throw new Error('Respuesta inválida del servidor.');
         }
     } catch (error) {
         console.error('Error en subida:', error);
-
-        // Mensaje amigable para el usuario
-        let mensaje = 'Error al subir el archivo.\n';
-        if (error.message.includes('Failed to fetch')) {
-            mensaje += 'Problema de conexión o el servidor bloqueó la subida (CORS).\nRevisa tu internet o intenta con otro archivo.';
-        } else {
-            mensaje += error.message;
-        }
-        alert(mensaje);
+        alert('Error al subir el archivo.\nDetalle: ' + error.message);
         previewContainer.style.display = 'none';
         inputElement.value = '';
     } finally {
@@ -236,7 +207,6 @@ window.subirStickerDesdePC = async function(inputElement) {
 async function guardarStickerEnColeccion(url) {
     const user = getCurrentUser();
     if (!user) return;
-
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -246,7 +216,6 @@ async function guardarStickerEnColeccion(url) {
         await userRef.set({ stickers: firebase.firestore.FieldValue.arrayUnion(url) }, { merge: true });
         userStickersCollection.push(url);
         renderUserStickers();
-
     } catch (e) {
         console.error('Error guardando URL:', e);
         throw e;
@@ -260,7 +229,6 @@ window.robarStickerSistema = async function(url) {
         return;
     }
     const cleanUrl = url.trim();
-
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -273,7 +241,6 @@ window.robarStickerSistema = async function(url) {
             renderUserStickers();
         }
         showToastSticker('✅ ¡Sticker robado y guardado!');
-
     } catch (e) {
         console.error('Error al robar sticker:', e);
         alert('Error al guardar: ' + e.message);
@@ -282,11 +249,9 @@ window.robarStickerSistema = async function(url) {
 
 function updateStickersUI() {
     const user = getCurrentUser();
-
     const subirTab = document.getElementById('subirStickersTab');
     const contentDiv = document.querySelector('#subirStickersTab .add-sticker-container');
     const loginPrompt = document.getElementById('subirStickerLoginPrompt');
-
     if (subirTab && contentDiv) {
         if (!user) {
             contentDiv.style.display = 'none';
@@ -300,7 +265,6 @@ function updateStickersUI() {
 
 function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
-
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
