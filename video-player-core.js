@@ -1,5 +1,4 @@
 // video-player-core.js - Versión Firestore + Estado central
-// Obtiene los enlaces desde la colección 'catalogo'
 
 class VideoPlayer {
   constructor() {
@@ -23,7 +22,7 @@ class VideoPlayer {
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-
+    
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -51,7 +50,6 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -62,11 +60,6 @@ class VideoPlayer {
     this.storage = firebase.storage();
     
     this.auth.onAuthStateChanged(user => {
-      if (window.ArchinimeState) {
-        window.ArchinimeState.set('currentUser', user);
-      } else {
-        this.currentUser = user;
-      }
       this.updateCommentFormVisibility();
       
       if (typeof initComentariosSystem === 'function') {
@@ -80,8 +73,10 @@ class VideoPlayer {
   }
   
   getCurrentUser() {
-    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
-    return this.currentUser;
+    if (window.ArchinimeState && window.ArchinimeState.get('currentUser')) return window.ArchinimeState.get('currentUser');
+    if (window.currentUser) return window.currentUser;
+    if (this.auth && this.auth.currentUser) return this.auth.currentUser;
+    return null;
   }
   
   initUI() {
@@ -141,7 +136,7 @@ class VideoPlayer {
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-
+      
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -265,47 +260,16 @@ class VideoPlayer {
   }
   
   setupAuthUI() {
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
-        document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
-      });
-    });
+    // Si estás usando el modal global de app-core, puede que esto sea redundante, pero se mantiene la lógica.
   }
   
-  openLoginModal() { document.getElementById('authModal').classList.add('show'); }
-  closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
+  openLoginModal() { if(typeof window.showAuthModal === 'function') window.showAuthModal(); }
+  closeAuthModal() { if(typeof window.closeAuthModal === 'function') window.closeAuthModal(); }
   
-  async loginWithEmail() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
-    try { await this.auth.signInWithEmailAndPassword(email, pass); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
-  }
-  
-  async registerWithEmail() {
-    const email = document.getElementById('registerEmail').value;
-    const pass = document.getElementById('registerPassword').value;
-    const confirm = document.getElementById('registerConfirm').value;
-    if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; }
-    try { await this.auth.createUserWithEmailAndPassword(email, pass); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
-  }
-  
-  async loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
-  }
-  
-  async loginWithGitHub() {
-    const provider = new firebase.auth.GithubAuthProvider();
-    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
-  }
+  async loginWithEmail() { if(typeof window.loginWithEmail === 'function') window.loginWithEmail(); }
+  async registerWithEmail() { if(typeof window.registerWithEmail === 'function') window.registerWithEmail(); }
+  async loginWithGoogle() { if(typeof window.loginWithGoogle === 'function') window.loginWithGoogle(); }
+  async loginWithGitHub() { if(typeof window.loginWithGitHub === 'function') window.loginWithGitHub(); }
   
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
@@ -313,7 +277,6 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
-
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -335,12 +298,18 @@ class VideoPlayer {
     }
   }
   
+  // SOLUCIÓN: DELEGAR A COMENTARIOS.JS PARA QUE SE INSERTE DONDE TOCA
   insertEmoji(emoji) { 
-    const ta = document.getElementById('comentarioTexto');
-    if(ta){
-      ta.value += emoji; 
-      ta.focus(); 
-      this.validateSendButton();
+    if (typeof window.agregarEmojiAlTexto === 'function') {
+      window.agregarEmojiAlTexto(emoji);
+    } else {
+      // Fallback si falla comentarios.js
+      const ta = document.getElementById('comentarioTexto');
+      if(ta){
+        ta.value += emoji; 
+        ta.focus(); 
+        this.validateSendButton();
+      }
     }
   }
   
@@ -349,8 +318,8 @@ class VideoPlayer {
     if (panel) {
       panel.classList.toggle('active');
       document.getElementById('emojiPanel')?.classList.remove('active');
-      if (panel.classList.contains('active') && typeof cargarStickersUsuario === 'function') {
-        cargarStickersUsuario();
+      if (panel.classList.contains('active') && typeof window.cargarStickersUsuario === 'function') {
+        window.cargarStickersUsuario();
       }
     }
   }
@@ -367,35 +336,41 @@ class VideoPlayer {
   }
 
   validateSendButton() {
-    const textarea = document.getElementById('comentarioTexto');
-    const btn = document.getElementById('enviarComentarioBtn');
-    if (textarea && btn) {
-      const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-      btn.disabled = !hasContent;
-      btn.style.opacity = hasContent ? '1' : '0.5';
+    if (typeof window.validarBotonPrincipal === 'function') {
+        let textarea = document.getElementById('comentarioTexto');
+        if (window.respondiendoA) {
+            textarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
+        }
+        if (textarea) window.validarBotonPrincipal(textarea);
+    } else {
+        const textarea = document.getElementById('comentarioTexto');
+        const btn = document.getElementById('enviarComentarioBtn');
+        if (textarea && btn) {
+          const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
+          btn.disabled = !hasContent;
+          btn.style.opacity = hasContent ? '1' : '0.5';
+        }
     }
   }
   
   enviarComentario() { 
-    if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto();
+    if (typeof window.enviarComentarioTexto === 'function') window.enviarComentarioTexto();
   }
   
   quitarStickerPreview() { 
-    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
+    if (typeof window.quitarStickerPreview === 'function') { window.quitarStickerPreview(); } 
     this.validateSendButton();
   }
 }
 
-// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
+// Rutear el emoji correctamente al textArea correcto
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
-// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.

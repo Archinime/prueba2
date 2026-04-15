@@ -1,18 +1,16 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE)
-// CORREGIDO Y ACTUALIZADO: Subida nativa sin conflictos
+// CORREGIDO: Verificación global de usuario a prueba de fallos
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY - VERIFICA TUS DATOS
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
+const CLOUDINARY_PRESET = 'stickers_archinime';  
 const DEFAULT_STICKERS = [];
 
-// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
     if (typeof DOMPurify !== 'undefined') {
         return DOMPurify.sanitize(html, {
@@ -20,7 +18,7 @@ function cleanStickerHTML(html) {
             ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
         });
     }
-    return html; // Fallback básico
+    return html; 
 }
 
 function initStickersSystem(db, auth) {
@@ -46,14 +44,18 @@ function initStickersSystem(db, auth) {
     }
 }
 
+// BULLETPROOF USER CHECKER
 function getCurrentUser() {
-    return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
+    if (window.ArchinimeState && window.ArchinimeState.get('currentUser')) return window.ArchinimeState.get('currentUser');
+    if (window.currentUser) return window.currentUser;
+    if (stickersAuth && stickersAuth.currentUser) return stickersAuth.currentUser;
+    if (typeof firebase !== 'undefined' && firebase.auth) return firebase.auth().currentUser;
+    return null;
 }
 
 async function loadUserStickers() {
     const user = getCurrentUser();
     if (!user) return;
-
     try {
         const doc = await stickersDb.collection('userStickers').doc(user.uid).get();
         if (doc.exists && doc.data().stickers) {
@@ -76,7 +78,6 @@ async function loadUserStickers() {
 function renderUserStickers() {
     const container = document.getElementById('userStickersContainer');
     if (!container) return;
-
     const validStickers = userStickersCollection.filter(url => url && typeof url === 'string' && url.trim() !== '');
     if (validStickers.length === 0) {
         container.innerHTML = `
@@ -133,32 +134,27 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN GLOBAL DE SUBIDA NATIVA CORREGIDA ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
-    
     if (!user) {
-        openLoginModalFromStickers();
-        inputElement.value = ''; // Limpiar input
+        window.openLoginModalFromStickers();
+        inputElement.value = '';
         return;
     }
 
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validar tamaño (2 MB máx)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
-    // Mostrar preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
     const isVideo = file.type.startsWith('video/');
-
     if (isVideo) {
         previewImg.style.display = 'none';
         previewVid.src = URL.createObjectURL(file);
@@ -170,39 +166,25 @@ window.subirStickerDesdePC = async function(inputElement) {
     }
     previewContainer.style.display = 'block';
 
-    // Cambiar texto del botón
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
     btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Cloudinary...';
     btnSubir.style.pointerEvents = 'none';
-
     try {
-        // Preparar FormData para Cloudinary
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
 
-        // Subir a Cloudinary
-        const response = await fetch(CLOUDINARY_URL, {
-            method: 'POST',
-            body: formData
-        });
-        
+        const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
         const data = await response.json();
 
         if (data.secure_url) {
-            // Guardar URL en Firestore
             await guardarStickerEnColeccion(data.secure_url);
-            
-            // Limpiar preview y campos
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
-            
-            // Cambiar a pestaña "Mis Stickers" y recargar
             window.switchStickerTab('mis');
             await loadUserStickers();
-            
         } else {
             throw new Error(data.error ? data.error.message : 'Error desconocido de Cloudinary');
         }
@@ -220,7 +202,6 @@ window.subirStickerDesdePC = async function(inputElement) {
 async function guardarStickerEnColeccion(url) {
     const user = getCurrentUser();
     if (!user) return;
-
     if (userStickersCollection.includes(url)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -238,13 +219,11 @@ async function guardarStickerEnColeccion(url) {
 
 window.robarStickerSistema = async function(url) {
     const user = getCurrentUser();
-    
     if (!user) {
-        openLoginModalFromStickers();
+        window.openLoginModalFromStickers();
         return;
     }
     const cleanUrl = url.trim();
-
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
@@ -268,7 +247,6 @@ function updateStickersUI() {
     const subirTab = document.getElementById('subirStickersTab');
     const contentDiv = document.querySelector('#subirStickersTab .add-sticker-container');
     const loginPrompt = document.getElementById('subirStickerLoginPrompt');
-
     if (subirTab && contentDiv) {
         if (!user) {
             contentDiv.style.display = 'none';
@@ -294,8 +272,8 @@ function showToastSticker(msg) {
 }
 
 window.openLoginModalFromStickers = function() {
-    const modal = document.getElementById('authModal');
-    if (modal) modal.classList.add('show');
+    if(typeof window.showAuthModal === 'function') window.showAuthModal();
+    else if(document.getElementById('authModal')) document.getElementById('authModal').classList.add('show');
 };
 
 window.cargarStickersUsuario = loadUserStickers;
