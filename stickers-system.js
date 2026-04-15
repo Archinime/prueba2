@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// ACTUALIZADO: Subida a Catbox sin API Key para Links Directos
+// SISTEMA DE STICKERS (TELEGRAPH + FIRESTORE)
+// ACTUALIZADO: Subida sin API Key (Soporta CORS y Links Directos)
 // ============================================
 
 let stickersDb = null;
@@ -137,7 +137,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA CATBOX.MOE ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA TELEGRAPH ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
 
@@ -150,14 +150,14 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validación de tamaño (se mantiene exactamente igual)
+    // Validación de tamaño (2 MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
-    // Preview local (sin cambios)
+    // Preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -176,30 +176,32 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a servidor...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo al servidor...';
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        // Solución: Usar Catbox.moe para obtener el link directo
+        // Usamos Telegraph para asegurar compatibilidad CORS y obtener link directo
         const formData = new FormData();
-        formData.append('reqtype', 'fileupload');
-        formData.append('fileToUpload', file);
+        formData.append('file', file);
 
-        const uploadRes = await fetch('https://catbox.moe/user/api.php', {
+        const uploadRes = await fetch('https://telegra.ph/upload', {
             method: 'POST',
             body: formData
         });
 
         if (!uploadRes.ok) {
-            throw new Error('Error al conectar con el servidor.');
+            throw new Error('Error al conectar con los servidores de subida.');
         }
 
-        // Catbox devuelve la URL directa en formato texto
-        const fileUrl = await uploadRes.text();
+        const uploadData = await uploadRes.json();
 
-        if (fileUrl.startsWith('http')) {
-            // Guardar en Firestore (función existente, sin cambios)
-            await guardarStickerEnColeccion(fileUrl.trim());
+        // Telegraph devuelve un array con un objeto que tiene la propiedad "src"
+        if (uploadData && uploadData[0] && uploadData[0].src) {
+            // El servidor devuelve una ruta relativa, le añadimos el dominio principal
+            const fileUrl = 'https://telegra.ph' + uploadData[0].src;
+
+            // Guardar en Firestore
+            await guardarStickerEnColeccion(fileUrl);
 
             previewContainer.style.display = 'none';
             inputElement.value = '';
@@ -207,8 +209,10 @@ window.subirStickerDesdePC = async function(inputElement) {
             
             window.switchStickerTab('mis');
             await loadUserStickers();
+        } else if (uploadData.error) {
+            throw new Error(uploadData.error);
         } else {
-            throw new Error(fileUrl || 'Error desconocido al subir el archivo.');
+            throw new Error('Respuesta desconocida del servidor.');
         }
     } catch (error) {
         console.error('Error en subida:', error);
@@ -216,7 +220,7 @@ window.subirStickerDesdePC = async function(inputElement) {
         // Mensaje amigable para el usuario
         let mensaje = 'Error al subir el archivo.\n';
         if (error.message.includes('Failed to fetch')) {
-            mensaje += 'Problema de conexión.\nRevisa tu internet.';
+            mensaje += 'Problema de conexión o el servidor bloqueó la subida (CORS).\nRevisa tu internet o intenta con otro archivo.';
         } else {
             mensaje += error.message;
         }

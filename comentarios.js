@@ -1,7 +1,5 @@
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
-// CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
-// (VERSIÓN SIN PANEL DE EMOJIS Y CON ICONOS 🖼️ ACTUALIZADOS)
 // ============================================
 
 let comentariosDb = null;
@@ -21,7 +19,7 @@ function archinimeClean(html, isSticker = false) {
             : { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'span', 'br', 'img'], ALLOWED_ATTR: ['src', 'class', 'style', 'alt'] };
         return DOMPurify.sanitize(html, config);
     }
-    // Fallback de seguridad si falla la carga de la librería
+    // Fallback de seguridad
     return html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
 }
 
@@ -85,7 +83,6 @@ function initComentariosSystem(db, auth) {
                 validarBotonPrincipal(this);
             });
         }
-        // ÍCONO DE STICKER CAMBIADO AQUÍ
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '🖼️';
     }, 1000);
