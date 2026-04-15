@@ -1,15 +1,14 @@
 // ============================================
 // SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE)
-// CORREGIDO Y ACTUALIZADO: Sincronización de Auth y Subida Nativa
 // ============================================
 
 let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY - VERIFICA TUS DATOS
+// CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
+const CLOUDINARY_PRESET = 'stickers_archinime'; 
 const DEFAULT_STICKERS = [];
 
 function initStickersSystem(db, auth) {
@@ -34,11 +33,20 @@ function initStickersSystem(db, auth) {
     }
 }
 
-// FIX: Obtenemos el usuario de múltiples fuentes para asegurar que no falle
+// LECTURA INFALIBLE DEL ESTADO DE SESIÓN
 function getCurrentUser() {
-    return (window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null) || 
-           (stickersAuth ? stickersAuth.currentUser : null) || 
-           (window.firebase && firebase.auth ? firebase.auth().currentUser : null);
+    // 1. Revisa la variable global inyectada directamente por Firebase
+    if (typeof window.currentUserGlobal !== 'undefined' && window.currentUserGlobal !== null) {
+        return window.currentUserGlobal;
+    }
+    // 2. Fallback de emergencia a Firebase Auth
+    if (window.firebase && firebase.auth().currentUser) {
+        return firebase.auth().currentUser;
+    }
+    // Si sigue siendo undefined, significa que Firebase aún está cargando la sesión.
+    if (typeof window.currentUserGlobal === 'undefined') return undefined; 
+    
+    return null; // Definitivamente no hay sesión iniciada
 }
 
 async function loadUserStickers() {
@@ -122,24 +130,38 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN GLOBAL DE SUBIDA NATIVA CORREGIDA ==========
-window.subirStickerDesdePC = async function(inputElement) {
+// ========== FUNCIÓN DE SUBIDA BLINDADA ==========
+window.subirStickerDesdePC = async function(eventOrInput) {
+    // Detectamos de dónde viene el evento de manera segura
+    const inputElement = eventOrInput.target ? eventOrInput.target : eventOrInput;
+    const file = inputElement.files ? inputElement.files[0] : null;
+    
+    if (!file) return;
+
     const user = getCurrentUser();
-    if (!user) {
-        openLoginModalFromStickers();
-        inputElement.value = ''; // Limpiar input
+    
+    // Verificamos si Firebase todavía está intentando loguear en segundo plano
+    if (user === undefined) {
+        showToastSticker('⏳ Sincronizando tu sesión, intenta en 1 segundo...');
+        inputElement.value = ''; 
         return;
     }
 
-    const file = inputElement.files[0];
-    if (!file) return;
+    if (user === null) {
+        showToastSticker('⚠️ Inicia sesión primero para subir');
+        openLoginModalFromStickers();
+        inputElement.value = ''; 
+        return;
+    }
 
     // Validar tamaño (2 MB máx)
     if (file.size > 2 * 1024 * 1024) {
-        alert('El archivo es muy pesado. Máximo 2 MB.');
+        showToastSticker('⚠️ El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
+
+    showToastSticker('⏳ Analizando archivo seleccionado...');
 
     // Mostrar preview local
     const previewContainer = document.getElementById('stickerPreview');
@@ -165,28 +187,25 @@ window.subirStickerDesdePC = async function(inputElement) {
     btnSubir.style.pointerEvents = 'none';
 
     try {
-        // Preparar FormData para Cloudinary
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
 
-        // Subir a Cloudinary
         const response = await fetch(CLOUDINARY_URL, {
             method: 'POST',
             body: formData
         });
+        
         const data = await response.json();
 
         if (data.secure_url) {
-            // Guardar URL en Firestore
             await guardarStickerEnColeccion(data.secure_url);
             
-            // Limpiar preview y campos
             previewContainer.style.display = 'none';
-            inputElement.value = '';
+            inputElement.value = ''; // Limpiamos para poder subir el mismo archivo después si queremos
+            
             showToastSticker('✅ Sticker subido exitosamente');
             
-            // Cambiar a pestaña "Mis Stickers" y recargar
             window.switchStickerTab('mis');
             await loadUserStickers();
             
@@ -195,6 +214,7 @@ window.subirStickerDesdePC = async function(inputElement) {
         }
     } catch (error) {
         console.error('Error en subida:', error);
+        showToastSticker('❌ Error de conexión al subir');
         alert('Error al subir: ' + error.message + '\n\nVerifica que el preset "' + CLOUDINARY_PRESET + '" exista y esté configurado como "unsigned" en tu Cloudinary.');
         previewContainer.style.display = 'none';
         inputElement.value = '';
@@ -224,15 +244,25 @@ async function guardarStickerEnColeccion(url) {
 
 window.robarStickerSistema = async function(url) {
     const user = getCurrentUser();
-    if (!user) {
+    
+    // Si la sesión aún no cargó completamente
+    if (user === undefined) {
+        showToastSticker('⏳ Cargando sesión, por favor intenta en un segundo...');
+        return;
+    }
+
+    if (user === null) {
+        showToastSticker('⚠️ Inicia sesión primero para guardar el sticker');
         openLoginModalFromStickers();
         return;
     }
+    
     const cleanUrl = url.trim();
     if (userStickersCollection.includes(cleanUrl)) {
         showToastSticker('⚠️ Este sticker ya lo tienes');
         return;
     }
+    
     try {
         const userRef = stickersDb.collection('userStickers').doc(user.uid);
         await userRef.set({ stickers: firebase.firestore.FieldValue.arrayUnion(cleanUrl) }, { merge: true });
@@ -243,7 +273,7 @@ window.robarStickerSistema = async function(url) {
         showToastSticker('✅ ¡Sticker robado y guardado!');
     } catch (e) {
         console.error('Error al robar sticker:', e);
-        alert('Error al guardar: ' + e.message);
+        showToastSticker('❌ Error al guardar');
     }
 };
 
@@ -268,12 +298,12 @@ function showToastSticker(msg) {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toastSticker';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border:1px solid #00fff7;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:999999;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border:1px solid #00fff7; text-align:center; min-width:280px; transition: 0.3s ease-in-out;';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg;
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2500);
+    setTimeout(() => toast.style.display = 'none', 3000);
 }
 
 window.openLoginModalFromStickers = function() {

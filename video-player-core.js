@@ -1,6 +1,4 @@
-// video-player-core.js - Versión Firestore + Estado central
-// Obtiene los enlaces desde la colección 'catalogo'
-// CORREGIDO: Delega el emoji y botón a comentarios.js
+// video-player-core.js - Versión Firestore + Estado centralizado y sincronizado
 
 class VideoPlayer {
   constructor() {
@@ -56,13 +54,17 @@ class VideoPlayer {
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     
     this.auth = firebase.auth();
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
+    // ANCLAJE GLOBAL DE SESIÓN PARA EVITAR DESINCRONIZACIÓN EN OTRAS PESTAÑAS
+    window.currentUserGlobal = undefined; 
+
     this.auth.onAuthStateChanged(user => {
+      window.currentUserGlobal = user; // Sincronización inmediata para stickers y comentarios
+      
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
       } else {
@@ -81,6 +83,7 @@ class VideoPlayer {
   }
   
   getCurrentUser() {
+    if (window.currentUserGlobal !== undefined) return window.currentUserGlobal;
     if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
     return this.currentUser;
   }
@@ -337,7 +340,6 @@ class VideoPlayer {
     }
   }
   
-  // FIX: Delega la inserción de emojis a comentarios.js para que detecte la ventana correcta
   insertEmoji(emoji) { 
     if (typeof window.agregarEmojiAlTexto === 'function') {
         window.agregarEmojiAlTexto(emoji);
@@ -373,7 +375,6 @@ class VideoPlayer {
     }
   }
 
-  // FIX: Delega la validación a comentarios.js para los botones dinámicos
   validateSendButton() {
     if (typeof window.validarBotonPrincipal === 'function') {
         const taId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
@@ -414,4 +415,3 @@ window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
-// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.
