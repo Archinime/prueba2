@@ -1,7 +1,7 @@
 // comentarios.js
 // ============================================
 // SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
-// CORREGIDO: Redireccionamiento y lectura infalible de sesión
+// CORREGIDO: Botón de enviar, preview de stickers, validaciones
 // ============================================
 
 let comentariosDb = null;
@@ -75,10 +75,8 @@ function initComentariosSystem(db, auth) {
         }
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '<i class="fas fa-sticky-note"></i>';
-        
-        if (textarea) validarBotonPrincipal(textarea);
     }, 1000);
-
+    
     document.addEventListener('click', () => closeAllCommentMenus());
 }
 
@@ -114,6 +112,7 @@ function injectCommentsCSS() {
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .comentario-item:hover { background: var(--cm-bg-glass-hover); border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+
         .comentario-item.is-reply { background: rgba(10, 12, 16, 0.4); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
 
         .comentario-avatar { flex-shrink: 0; }
@@ -124,6 +123,7 @@ function injectCommentsCSS() {
         .comentario-header { display: flex; align-items: center; margin-bottom: 4px; }
         .comentario-user { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--user-color); text-shadow: 0 0 8px var(--user-color-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
         .comentario-texto { color: var(--cm-text-main); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+
         .comentario-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
         .comentario-fecha { color: var(--cm-text-muted); font-size: 0.8rem; font-weight: 600; }
         .comentario-badge-edit { font-size: 0.7rem; font-style: italic; opacity: 0.7; margin-left: 5px; }
@@ -171,11 +171,61 @@ function injectCommentsCSS() {
         .comentario-media-wrapper { margin-top: 10px; border-radius: 12px; overflow: hidden; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
         .comentario-media { display: block; max-width: 200px; max-height: 250px; object-fit: contain; }
 
-        .comentario-sticker-preview { margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 16px; border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden; }
-        .preview-sticker-wrapper { position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-neon-primary); }
-        .preview-sticker-wrapper img, .preview-sticker-wrapper video { width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto; }
-        .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
-        .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
+        /* PREVIEW STICKER */
+        .comentario-sticker-preview {
+            margin: 12px 0;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .preview-sticker-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 80px;
+            max-height: 80px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--cm-neon-primary);
+        }
+        .preview-sticker-wrapper img,
+        .preview-sticker-wrapper video {
+            width: auto;
+            height: auto;
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .remove-sticker-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff0055;
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255,0,85,0.6);
+            transition: transform 0.2s;
+        }
+        .remove-sticker-btn:hover {
+            transform: scale(1.1);
+            background: #ff3366;
+        }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(-15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .new-comment-fx { animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
@@ -198,22 +248,16 @@ function injectCommentsCSS() {
             .comentario-footer { gap: 10px; margin-top: 8px; }
             .comment-options-container { top: 8px; right: 8px; }
             .preview-sticker-wrapper { max-width: 60px; max-height: 60px; }
-            .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
+            .preview-sticker-wrapper img,
+            .preview-sticker-wrapper video { max-width: 60px; max-height: 60px; }
         }
     `;
     document.head.appendChild(style);
 }
 
 function getCurrentUser() {
-    // Lectura idéntica y sincronizada con los stickers
-    if (typeof window.currentUserGlobal !== 'undefined' && window.currentUserGlobal !== null) {
-        return window.currentUserGlobal;
-    }
-    if (window.firebase && firebase.auth().currentUser) {
-        return firebase.auth().currentUser;
-    }
-    if (typeof window.currentUserGlobal === 'undefined') return undefined; 
-    return null; 
+    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
+    return window.currentUserForComent || null;
 }
 
 function getCurrentUserColor() {
@@ -296,14 +340,12 @@ function setupComentariosRealtimeListener() {
                 roots.push(commentMap.get(c.id));
             }
         });
-        
         roots.sort((a, b) => {
             const scoreA = Object.keys(a.reactions || {}).length + (a.replies ? a.replies.length : 0);
             const scoreB = Object.keys(b.reactions || {}).length + (b.replies ? b.replies.length : 0);
             if (scoreB !== scoreA) return scoreB - scoreA;
             return (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0);
         });
-
         function countAllReplies(node) {
             let count = node.replies.length;
             node.replies.forEach(r => count += countAllReplies(r));
@@ -318,7 +360,6 @@ function setupComentariosRealtimeListener() {
             
             nodeHtml += `<div class="${hiddenClass}" style="${hiddenStyle}">`;
             nodeHtml += generarHtmlComentario(node, level > 0, isNew, level);
-            
             if (node.replies && node.replies.length > 0) {
                 node.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 if (level === 0) {
@@ -352,7 +393,6 @@ function setupComentariosRealtimeListener() {
         let html = '';
         roots.forEach(root => html += renderNode(root, 0, false, null));
         container.innerHTML = html;
-        
         openContainers.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -362,7 +402,6 @@ function setupComentariosRealtimeListener() {
                 if (textSpan) textSpan.innerText = 'Ocultar respuestas';
             }
         });
-        
         window.lastPostedCommentId = null;
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -402,7 +441,7 @@ function setupComentariosRealtimeListener() {
         console.error('Error en comentarios:', error);
         const container = document.getElementById('comentariosList');
         if (container) {
-            container.innerHTML = `<div class="empty-comments" style="color:var(--cm-neon-alert); border: 1px dashed var(--cm-neon-alert); padding: 20px;"><b>Error de sistema:</b><br>${error.message}</div>`;
+            container.innerHTML = `<div class="empty-comments" style="color:var(--cm-neon-alert); border: 1px dashed var(--cm-neon-alert); padding: 20px;"><b>Error de sistema:</b><br>${error.message}<br><br><span style="font-size:0.8rem; color:#aaa;">(Si eres el creador, verifica que tienes los "Índices compuestos" configurados en tu consola de Firestore).</span></div>`;
         }
     });
 }
@@ -445,7 +484,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
         const tagMedia = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         contenidoHtml += `
             <div class="comentario-media-wrapper" style="border-color: ${neonColor}; box-shadow: 0 4px 15px ${neonGlow}; cursor: pointer;"
-            onclick="openStickerModal('${c.stickerUrl}')">
+                onclick="openStickerModal('${c.stickerUrl}')">
                 <${tagMedia} src="${c.stickerUrl}" class="comentario-media" style="transition: transform 0.3s;"
                 onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}>
             </div>
@@ -456,7 +495,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     const editMenuBtn = isOwner ? `<button class="comment-dropdown-btn" onclick="iniciarEdicion('${c.id}'); closeAllCommentMenus();"><i class="fas fa-edit" style="color:var(--cm-neon-primary)"></i> Editar</button>` : '';
     const reportMenuBtn = `<button class="comment-dropdown-btn" onclick="reportarComentario('${c.id}'); closeAllCommentMenus();"><i class="fas fa-flag" style="color:var(--cm-neon-alert)"></i> Reportar</button>`;
     const deleteMenuBtn = isAdmin ? `<button class="comment-dropdown-btn" onclick="eliminarComentarioSistema('${c.id}'); closeAllCommentMenus();"><i class="fas fa-trash" style="color:var(--cm-neon-alert)"></i> Eliminar</button>` : '';
-    
     const optionsMenu = `
         <div class="comment-options-container">
             <button class="kebab-btn" onclick="toggleCommentMenu('${c.id}', event)"><i class="fas fa-ellipsis-v"></i></button>
@@ -471,8 +509,7 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
     let reaccionesBar = '';
     if (typeof procesarReaccionesHTML === 'function') reaccionesBar = procesarReaccionesHTML(c.id, c.reactions);
     
-    const botonResponder = currentUser ?
-        `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
+    const botonResponder = currentUser ? `<button class="btn-responder-ghost" onclick="prepararRespuesta('${c.id}', '${escapeHtmlComent(userName)}', '${c.userId}'); closeAllCommentMenus();">Responder</button>` : '';
 
     return `
         <div class="comentario-item ${isReply ? 'is-reply' : ''} ${newFxClass}" id="comment-${c.id}" 
@@ -505,7 +542,6 @@ function generarHtmlComentario(c, isReply, isNew = false, level = 0) {
 window.iniciarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer || textContainer.classList.contains('editing')) return;
-    
     const rawText = decodeURIComponent(textContainer.getAttribute('data-raw') || '');
     textContainer.setAttribute('data-original-html', textContainer.innerHTML);
     textContainer.classList.add('editing');
@@ -521,19 +557,16 @@ window.iniciarEdicion = function(commentId) {
         </div>
     `;
 };
-
 window.cancelarEdicion = function(commentId) {
     const textContainer = document.querySelector(`#comment-${commentId} .comentario-texto`);
     if (!textContainer) return;
     textContainer.innerHTML = textContainer.getAttribute('data-original-html');
     textContainer.classList.remove('editing');
 };
-
 window.guardarEdicion = async function(commentId) {
     const input = document.getElementById(`edit-input-${commentId}`);
     if (!input) return;
     const nuevoTexto = input.value.trim();
-    
     try {
         const docRef = comentariosDb.collection('comments').doc(commentId);
         const doc = await docRef.get();
@@ -548,12 +581,10 @@ window.guardarEdicion = async function(commentId) {
         }
     } catch (error) { alert("Error: " + error.message); }
 };
-
 window.reportarComentario = function(id) {
     if(!getCurrentUser()) return openLoginModalFromComent();
     showToastComent('🚩 Reportado.');
 };
-
 window.toggleRespuestas = function(rootId) {
     const container = document.getElementById(`container-${rootId}`);
     const textSpan = document.getElementById(`text-${rootId}`);
@@ -569,7 +600,6 @@ window.toggleRespuestas = function(rootId) {
         }
     }
 };
-
 window.showMoreReplies = function(rootId) {
     document.querySelectorAll(`.hidden-reply-${rootId}`).forEach(el => el.style.display = 'block');
     const btn = document.getElementById(`showMore-${rootId}`);
@@ -597,7 +627,6 @@ function procesarTextoComentario(texto) {
         const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img loading="lazy"';
         return `<div class="comentario-media-wrapper"><${tag} src="${url}" class="comentario-media" onclick="openStickerModal('${url.replace(/'/g, "\\'")}')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';"></${isVideo ? 'video' : 'img'}></div>`;
     });
-    
     const palabras = html.split(/(\s+)/);
     for (let i = 0; i < palabras.length; i++) {
         let palabra = palabras[i];
@@ -663,7 +692,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
                 </div>
                 <div id="dynamicPanelsDest-${commentId}" style="width: 100%; margin-top: 8px;"></div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-                    <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="reply-box-submit btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;"><i class="fas fa-ban"></i> Responder</button>
+                    <button id="btnEnviarRespuesta-${commentId}" onclick="enviarRespuestaDinamica()" class="reply-box-submit btn-disabled">Responder</button>
                 </div>
             </div>
         </div>
@@ -683,10 +712,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const textArea = document.getElementById(`dynamicReplyText-${commentId}`);
     if(textArea) {
         textArea.focus();
-        textArea.addEventListener('input', function() { 
-            autoResizeTextarea(this);
-            validarBotonPrincipal(this); 
-        });
+        textArea.addEventListener('input', function() { autoResizeTextarea(this); validarBotonPrincipal(this); });
         textArea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -731,10 +757,7 @@ window.openStickerModal = function(url) {
     else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
     
     document.getElementById('stickerModalStealBtn').onclick = () => {
-        if(typeof window.robarStickerSistema === 'function') { 
-            window.robarStickerSistema(url);
-            closeStickerModal(); 
-        }
+        if(typeof window.robarStickerSistema === 'function') { window.robarStickerSistema(url); closeStickerModal(); }
         else alert("Inicia sesión primero.");
     };
     modal.style.display = 'flex';
@@ -749,18 +772,15 @@ window.closeStickerModal = function() {
     }
 };
 
+// ========== FUNCIONES CORREGIDAS ==========
 window.validarBotonPrincipal = function(textarea) {
     if (!textarea) return;
     let btn = null;
-    let isReply = false;
-    
     if (textarea.id && textarea.id.startsWith('dynamicReplyText') && window.respondiendoA) {
         btn = document.getElementById(`btnEnviarRespuesta-${window.respondiendoA.id}`);
-        isReply = true;
     } else {
         btn = document.getElementById('enviarComentarioBtn');
     }
-    
     if (!btn) return;
 
     const hasText = textarea.value.trim().length > 0;
@@ -772,37 +792,17 @@ window.validarBotonPrincipal = function(textarea) {
         btn.classList.remove('btn-disabled');
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
-        
-        if (isReply) {
-            btn.innerHTML = 'Responder';
-        } else {
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Comentario';
-        }
     } else {
         btn.disabled = true;
         btn.classList.add('btn-disabled');
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
-        
-        if (isReply) {
-            btn.innerHTML = '<i class="fas fa-ban"></i> Responder';
-        } else {
-            btn.innerHTML = '<i class="fas fa-ban"></i> Escribe algo...';
-        }
     }
 };
 
 async function enviarComentarioTexto() {
     const currentUser = getCurrentUser();
-    
-    if (currentUser === undefined) {
-        showToastComent('⏳ Sincronizando tu sesión. Intenta en un momento.');
-        return;
-    }
-    
-    if (currentUser === null) {
-        return openLoginModalFromComent();
-    }
+    if (!currentUser) return openLoginModalFromComent();
     
     const textoInput = document.getElementById('comentarioTexto');
     if (!textoInput) return;
@@ -811,11 +811,11 @@ async function enviarComentarioTexto() {
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
     const btn = document.getElementById('enviarComentarioBtn');
     
-    if (!texto && !stickerUrl) return; 
+    if ((!texto && !stickerUrl) || (btn && btn.disabled)) return;
 
     const originalTexto = texto;
     const originalSticker = stickerUrl;
-    
+
     if (btn) {
         btn.disabled = true;
         btn.dataset.original = btn.innerHTML;
@@ -831,7 +831,7 @@ async function enviarComentarioTexto() {
     document.getElementById('stickerPanelFull')?.classList.remove('active');
     
     validarBotonPrincipal(textoInput);
-    
+
     try {
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
@@ -875,7 +875,6 @@ function mostrarPreviewSticker(url) {
     const previewImg = document.getElementById('previewStickerImgObj');
     const previewVid = document.getElementById('previewStickerVidObj');
     if (!previewContainer) return;
-    
     const isVideo = url.match(/\.(mp4|webm)$/i);
     if (isVideo) {
         previewImg.style.display = 'none';
@@ -894,7 +893,6 @@ window.seleccionarStickerParaEnviar = function(url) {
     mostrarPreviewSticker(url);
     const panel = document.getElementById('stickerPanelFull');
     if (panel) panel.classList.remove('active');
-    
     let targetTextarea = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
@@ -910,7 +908,6 @@ window.quitarStickerPreview = function() {
     const vid = document.getElementById('previewStickerVidObj');
     if (img) img.src = '';
     if (vid) vid.src = '';
-    
     let targetTextarea = document.getElementById('comentarioTexto');
     if (window.respondiendoA) {
         targetTextarea = document.getElementById(`dynamicReplyText-${window.respondiendoA.id}`);
@@ -925,7 +922,6 @@ window.agregarEmojiAlTexto = function(emoji) {
         const end = textarea.selectionEnd;
         textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
         textarea.focus();
-        
         textarea.dispatchEvent(new Event('input'));
         validarBotonPrincipal(textarea);
     }
@@ -933,25 +929,14 @@ window.agregarEmojiAlTexto = function(emoji) {
 
 window.enviarRespuestaDinamica = async function() {
     const currentUser = getCurrentUser();
-    
-    if (currentUser === undefined) {
-        showToastComent('⏳ Sincronizando tu sesión. Intenta en un momento.');
-        return;
-    }
-    
-    if (currentUser === null) {
-        return openLoginModalFromComent();
-    }
-    
+    if (!currentUser) return openLoginModalFromComent();
     if (!window.respondiendoA) return;
-    
     const replyContext = { ...window.respondiendoA };
     const textoInput = document.getElementById(`dynamicReplyText-${replyContext.id}`);
     if (!textoInput) return;
 
     const texto = textoInput.value.trim();
     const stickerUrl = window.stickerSeleccionadoParaEnviar;
-    
     if (!texto && !stickerUrl) return;
 
     const btn = document.getElementById(`btnEnviarRespuesta-${replyContext.id}`);
@@ -1001,7 +986,6 @@ function updateComentariosUI() {
     } else {
         if (loginMsg) loginMsg.style.display = 'none';
         if (formContainer) formContainer.style.display = 'block';
-        
         const avatar = document.getElementById('comentarioUserAvatar');
         const color = getCurrentUserColor() || getNeonColorByString(currentUser.uid || currentUser.email);
         if (avatar) {
@@ -1039,7 +1023,7 @@ function showToastComent(msg) {
     let toast = document.getElementById('toastComent');
     if (!toast) {
         toast = document.createElement('div'); toast.id = 'toastComent';
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:999999;font-weight:bold;border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);text-align:center; min-width:280px; transition: 0.3s ease-in-out;';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cm-bg-glass);backdrop-filter:blur(10px);color:var(--cm-neon-primary);padding:12px 25px;border-radius:25px;z-index:10000;font-weight:bold;border:1px solid var(--cm-neon-primary);box-shadow:0 0 20px rgba(0,255,247,0.3);';
         document.body.appendChild(toast);
     }
     toast.innerHTML = msg; toast.style.display = 'block';

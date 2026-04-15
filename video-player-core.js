@@ -1,4 +1,5 @@
-// video-player-core.js - Versión Firestore + Estado centralizado y sincronizado
+// video-player-core.js - Versión Firestore + Estado central
+// Obtiene los enlaces desde la colección 'catalogo'
 
 class VideoPlayer {
   constructor() {
@@ -22,7 +23,7 @@ class VideoPlayer {
     this.initUI();
     this.loadEpisodeData();
     this.setupAuthUI();
-    
+
     window.videoPlayerMethods = {
       toggleEmojiPanel: () => this.toggleEmojiPanel(),
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -50,21 +51,17 @@ class VideoPlayer {
       messagingSenderId: "938164660242",
       appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
-    
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     
     this.auth = firebase.auth();
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
-    // ANCLAJE GLOBAL DE SESIÓN PARA EVITAR DESINCRONIZACIÓN EN OTRAS PESTAÑAS
-    window.currentUserGlobal = undefined; 
-
     this.auth.onAuthStateChanged(user => {
-      window.currentUserGlobal = user; // Sincronización inmediata para stickers y comentarios
-      
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
       } else {
@@ -83,7 +80,6 @@ class VideoPlayer {
   }
   
   getCurrentUser() {
-    if (window.currentUserGlobal !== undefined) return window.currentUserGlobal;
     if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
     return this.currentUser;
   }
@@ -145,7 +141,7 @@ class VideoPlayer {
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadButton(initialLink);
       this.loadVideo(initialLink);
-      
+
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -230,7 +226,6 @@ class VideoPlayer {
         }
       });
     });
-    
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -318,7 +313,7 @@ class VideoPlayer {
     const form = document.getElementById('comentarioFormContainer');
     const avatar = document.getElementById('comentarioUserAvatar');
     const nameSpan = document.getElementById('comentarioUserName');
-    
+
     if (user) {
       if (loginMsg) loginMsg.style.display = 'none';
       if (form) {
@@ -341,15 +336,11 @@ class VideoPlayer {
   }
   
   insertEmoji(emoji) { 
-    if (typeof window.agregarEmojiAlTexto === 'function') {
-        window.agregarEmojiAlTexto(emoji);
-    } else {
-        const ta = document.getElementById('comentarioTexto');
-        if(ta){
-          ta.value += emoji; 
-          ta.focus(); 
-          this.validateSendButton();
-        }
+    const ta = document.getElementById('comentarioTexto');
+    if(ta){
+      ta.value += emoji; 
+      ta.focus(); 
+      this.validateSendButton();
     }
   }
   
@@ -376,18 +367,12 @@ class VideoPlayer {
   }
 
   validateSendButton() {
-    if (typeof window.validarBotonPrincipal === 'function') {
-        const taId = window.respondiendoA ? `dynamicReplyText-${window.respondiendoA.id}` : 'comentarioTexto';
-        const ta = document.getElementById(taId);
-        if (ta) window.validarBotonPrincipal(ta);
-    } else {
-        const textarea = document.getElementById('comentarioTexto');
-        const btn = document.getElementById('enviarComentarioBtn');
-        if (textarea && btn) {
-          const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
-          btn.disabled = !hasContent;
-          btn.style.opacity = hasContent ? '1' : '0.5';
-        }
+    const textarea = document.getElementById('comentarioTexto');
+    const btn = document.getElementById('enviarComentarioBtn');
+    if (textarea && btn) {
+      const hasContent = textarea.value.trim().length > 0 || window.stickerSeleccionadoParaEnviar;
+      btn.disabled = !hasContent;
+      btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
   
@@ -396,9 +381,7 @@ class VideoPlayer {
   }
   
   quitarStickerPreview() { 
-    if (typeof quitarStickerPreview === 'function') { 
-        quitarStickerPreview();
-    } 
+    if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
     this.validateSendButton();
   }
 }
@@ -415,3 +398,4 @@ window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleEmojiPanelSistema = () => window.videoPlayer?.toggleEmojiPanel();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
 window.agregarEmojiAlTexto = (emoji) => window.videoPlayer?.insertEmoji(emoji);
+// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.
