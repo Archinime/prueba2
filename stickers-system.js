@@ -12,6 +12,17 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
 const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
 const DEFAULT_STICKERS = [];
 
+// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
+function cleanStickerHTML(html) {
+    if (typeof DOMPurify !== 'undefined') {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['img', 'div', 'span'],
+            ALLOWED_ATTR: ['src', 'class', 'alt', 'onclick', 'data-url']
+        });
+    }
+    return html; // Fallback básico
+}
+
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
