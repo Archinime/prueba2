@@ -154,6 +154,22 @@ function updateUserUI(user) {
     dropdownName.style.color = 'var(--neon-cyan)';
     dropdownName.style.textShadow = 'none';
   }
+
+  // === CONEXIÓN CON SISTEMAS SECUNDARIOS ===
+  // Verificamos si las funciones de los otros archivos existen y las inicializamos
+  if (typeof initComentariosSystem === 'function') {
+      initComentariosSystem(window.db, window.auth);
+  }
+  
+  if (typeof initStickersSystem === 'function') {
+      initStickersSystem(window.db, window.auth);
+  }
+
+  // Si tienes el reproductor, también le avisamos
+  if (window.videoPlayer) {
+      window.videoPlayer.auth = window.auth;
+      window.videoPlayer.db = window.db;
+  }
 }
 
 // Observador principal de estado de autenticación
