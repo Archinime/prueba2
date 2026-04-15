@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE STICKERS (CLOUDINARY + FIRESTORE)
+// SISTEMA DE STICKERS (GOFILE + FIRESTORE)
 // CORREGIDO Y ACTUALIZADO: Subida nativa sin conflictos
 // ============================================
 
@@ -7,9 +7,7 @@ let stickersDb = null;
 let stickersAuth = null;
 let userStickersCollection = [];
 
-// CONFIGURACIÓN DE CLOUDINARY - VERIFICA TUS DATOS
-const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
-const CLOUDINARY_PRESET = 'stickers_archinime';  // ⚠️ Debes crear este preset en Cloudinary (modo unsigned)
+// CONFIGURACIÓN DE GOFILE - NO REQUIERE API KEY NI PRESET
 const DEFAULT_STICKERS = [];
 
 // --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
@@ -132,6 +130,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
+// ========== FUNCIÓN DE SUBIDA MODIFICADA PARA GOFILE ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -143,6 +142,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
+    // MANTENEMOS EL LÍMITE DE 2 MB (NO SE CAMBIA NADA AQUÍ)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
@@ -167,22 +167,30 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Cloudinary...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a GoFile...';
     btnSubir.style.pointerEvents = 'none';
     
     try {
+        // 1. Obtener un servidor de subida de GoFile
+        const serverResponse = await fetch('https://api.gofile.io/getServer');
+        const serverData = await serverResponse.json();
+        if (serverData.status !== 'ok') throw new Error('No se pudo obtener servidor de GoFile');
+        const server = serverData.data.server;
+
+        // 2. Preparar FormData con el archivo
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_PRESET);
 
-        const response = await fetch(CLOUDINARY_URL, {
+        // 3. Subir archivo a GoFile
+        const uploadResponse = await fetch(`https://${server}.gofile.io/uploadFile`, {
             method: 'POST',
             body: formData
         });
-        const data = await response.json();
+        const uploadData = await uploadResponse.json();
 
-        if (data.secure_url) {
-            await guardarStickerEnColeccion(data.secure_url);
+        if (uploadData.status === 'ok') {
+            const fileUrl = uploadData.data.downloadPage; // URL de la página de descarga
+            await guardarStickerEnColeccion(fileUrl);
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
@@ -190,11 +198,17 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            throw new Error(data.error ? data.error.message : 'Error desconocido de Cloudinary');
+            throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
     } catch (error) {
         console.error('Error en subida:', error);
-        alert('Error al subir: ' + error.message + '\n\nVerifica que el preset "' + CLOUDINARY_PRESET + '" exista y esté configurado como "unsigned" en tu Cloudinary.');
+        let mensaje = 'Error al subir el archivo.';
+        if (error.message.includes('getServer')) {
+            mensaje = 'No se pudo conectar con GoFile. Intenta de nuevo en unos segundos.';
+        } else if (error.message.includes('uploadFile')) {
+            mensaje = 'Error al procesar el archivo. Asegúrate de que no esté dañado.';
+        }
+        alert(mensaje);
         previewContainer.style.display = 'none';
         inputElement.value = '';
     } finally {
