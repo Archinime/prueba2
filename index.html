@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.1";
+      const APP_VERSION = "2025-04-06-v6.2";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -362,13 +362,19 @@
       background: transparent;
     }
     /* Asegurar que el contenido del anuncio ocupe toda la card */
-    .card-ad > div,
-    .card-ad > ins,
-    .card-ad > iframe {
+    .card-ad > div {
       width: 100%;
       height: 100%;
       position: relative;
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Forzar que el iframe ocupe todo el espacio */
+    .card-ad iframe {
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
     }
 
     .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
@@ -700,7 +706,7 @@
 <!-- 4. NUEVO: Archivo de anuncios externo -->
 <script src="anuncios_index.js"></script>
 
-<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) MODIFICADA para incluir anuncios cada 30 animes -->
+<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) MODIFICADA para incluir anuncio en posición aleatoria -->
 <script>
   // ========== GIF ALEATORIO ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -783,33 +789,38 @@
   }
 
   // ========== CONFIGURACIÓN DE ANUNCIOS ==========
-  // Elegir qué anuncio mostrar (puedes rotar o usar uno fijo)
   let anuncioActual = null;
-  // Inicializar el anuncio (usamos el primero de la lista, o puedes seleccionar por ID)
+  // Elegir un anuncio aleatorio de la lista (si hay más de uno)
   function inicializarAnuncio() {
     if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
-      // Por defecto usamos el primero. Si quieres rotar, descomenta la siguiente línea:
-      // const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
-      anuncioActual = window.listaAnuncios[0];
+      const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
+      anuncioActual = window.listaAnuncios[randomIndex];
       console.log('Anuncio cargado:', anuncioActual.red, anuncioActual.id);
     } else {
       console.warn('No hay anuncios definidos en anuncios_index.js');
     }
   }
 
-  // Función que genera el HTML de la tarjeta de anuncio
+  // Función que genera el HTML de la tarjeta de anuncio, ejecutando los scripts correctamente
   function crearTarjetaAnuncio() {
     if (!anuncioActual) return null;
     const card = document.createElement('div');
     card.className = 'card card-ad';
     card.dataset.id = anuncioActual.id;
-    // No añadimos onclick de navegación porque los anuncios ya tienen sus propios enlaces internos
-    // Pero si el anuncio no es interactivo, puedes dejarlo así.
+    
     // Contenedor interno para el código del anuncio
     const innerDiv = document.createElement('div');
-    // Insertamos el código HTML del anuncio (que puede contener scripts)
+    innerDiv.style.width = '100%';
+    innerDiv.style.height = '100%';
+    innerDiv.style.display = 'flex';
+    innerDiv.style.alignItems = 'center';
+    innerDiv.style.justifyContent = 'center';
+    innerDiv.style.overflow = 'hidden';
+    
+    // Insertamos el código HTML del anuncio
     innerDiv.innerHTML = anuncioActual.codigo;
-    // Ejecutar scripts si los hay (necesario para Adsterra, Google, etc.)
+    
+    // Los scripts necesitan ser reinsertados para que se ejecuten
     innerDiv.querySelectorAll('script').forEach(oldScript => {
       const newScript = document.createElement('script');
       if (oldScript.src) {
@@ -818,9 +829,11 @@
       } else {
         newScript.textContent = oldScript.textContent;
       }
-      document.body.appendChild(newScript); // o innerDiv.appendChild, pero mejor al body
+      // Añadir al contenedor o al body
+      innerDiv.appendChild(newScript);
       oldScript.remove();
     });
+    
     card.appendChild(innerDiv);
     
     // Añadir la info de "Patrocinado"
@@ -832,7 +845,7 @@
     return card;
   }
 
-  // ========== RENDERIZADO DE ANIMES (con anuncios cada 30) ==========
+  // ========== RENDERIZADO DE ANIMES (con un anuncio en posición aleatoria) ==========
   function renderAnimes(animes, append = false) {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -848,10 +861,26 @@
     const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
     // Solo insertar anuncios en la carga inicial (no en append) y sin filtros activos, y si hay anuncio disponible
     const shouldInsertAd = !append && !hasActiveFilters && anuncioActual !== null;
-    const adInterval = 10; // cada 30 animes normales aparece 1 anuncio
-    let adInserted = false; // Solo insertamos un anuncio por carga (el primero que cumpla)
+    
+    // Si debemos insertar un anuncio, elegimos una posición aleatoria entre 4 y la cantidad de animes - 2 (para que no quede muy al principio ni al final)
+    let adPosition = -1;
+    if (shouldInsertAd && animes.length >= 5) {
+      const minPos = 4;
+      const maxPos = animes.length - 2;
+      adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
+      console.log(`El anuncio se insertará en la posición ${adPosition + 1} (índice ${adPosition})`);
+    }
 
     for (let i = 0; i < animes.length; i++) {
+      // Si llegamos a la posición del anuncio, lo insertamos antes del anime actual
+      if (shouldInsertAd && i === adPosition) {
+        const adCard = crearTarjetaAnuncio();
+        if (adCard) {
+          frag.appendChild(adCard);
+          console.log(`Anuncio insertado en posición ${i + 1}`);
+        }
+      }
+      
       const anime = animes[i];
       const card = document.createElement('div');
       card.className = 'card';
@@ -867,16 +896,6 @@
         </div>
       `;
       frag.appendChild(card);
-
-      // Insertar anuncio después de cada 30 animes (solo uno en esta carga)
-      if (shouldInsertAd && !adInserted && (i + 1) % adInterval === 0) {
-        const adCard = crearTarjetaAnuncio();
-        if (adCard) {
-          frag.appendChild(adCard);
-          adInserted = true;
-          console.log(`Anuncio insertado después de ${i+1} animes`);
-        }
-      }
     }
 
     grid.appendChild(frag);
