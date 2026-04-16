@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// VERSIÓN FINAL CON USERHASH Y DEPURACIÓN
+// CON PROXY CORS PARA EVITAR BLOQUEO
 // ============================================
 
 let stickersDb = null;
@@ -11,10 +11,11 @@ const DEFAULT_STICKERS = [];
 
 // 🔐 TU USERHASH DE CATBOX
 const CATBOX_USERHASH = 'd825312c9594a0a1b16c12c50';
-// Por si acaso, URL de la API (oficial)
-const CATBOX_API_URL = 'https://catbox.moe/user/api.php';
 
-// --- FUNCIÓN DE LIMPIEZA ---
+// 🌐 PROXY CORS PÚBLICO (puedes cambiarlo por otro si falla)
+const CORS_PROXY = 'https://corsproxy.io/?url=';
+
+// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
     if (typeof DOMPurify !== 'undefined') {
         return DOMPurify.sanitize(html, {
@@ -133,7 +134,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== SUBIDA A CATBOX CON MEJOR MANEJO DE ERRORES ==========
+// ========== FUNCIÓN DE SUBIDA CON PROXY CORS ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -145,7 +146,6 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Catbox permite hasta 200 MB, pero ponemos 50 MB para prudencia
     if (file.size > 50 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 50 MB.');
         inputElement.value = '';
@@ -180,31 +180,34 @@ window.subirStickerDesdePC = async function(inputElement) {
         formData.append('userhash', CATBOX_USERHASH);
         formData.append('fileToUpload', file);
 
-        console.log('📤 Enviando archivo a Catbox:', file.name, file.size);
-
+        // Usamos el proxy para evitar CORS
+        const targetUrl = 'https://catbox.moe/user/api.php';
+        const proxyUrl = CORS_PROXY + encodeURIComponent(targetUrl);
+        
+        console.log('📤 Enviando archivo mediante proxy:', proxyUrl);
+        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
-        const uploadRes = await fetch(CATBOX_API_URL, {
+        const uploadRes = await fetch(proxyUrl, {
             method: 'POST',
             body: formData,
             signal: controller.signal
         });
         
         clearTimeout(timeoutId);
-
+        
         console.log('📡 Respuesta HTTP:', uploadRes.status);
         
         if (!uploadRes.ok) {
             throw new Error(`Error HTTP ${uploadRes.status}`);
         }
 
-        const responseText = await uploadRes.text();
-        console.log('📦 Respuesta de Catbox:', responseText);
+        const fileUrl = await uploadRes.text();
+        console.log('📦 Respuesta de Catbox:', fileUrl);
 
-        // Catbox devuelve la URL directa si todo fue bien, o un mensaje de error
-        if (responseText && responseText.startsWith('http')) {
-            await guardarStickerEnColeccion(responseText);
+        if (fileUrl && fileUrl.startsWith('http')) {
+            await guardarStickerEnColeccion(fileUrl);
             
             previewContainer.style.display = 'none';
             inputElement.value = '';
@@ -213,28 +216,18 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            // Posibles errores conocidos:
-            // "No file uploaded" -> el archivo no se envió correctamente
-            // "Invalid userhash" -> el userhash no es válido
-            // "File too large" -> excede límite
-            throw new Error(responseText || 'Error desconocido de Catbox');
+            throw new Error(fileUrl || 'Error desconocido de Catbox');
         }
     } catch (error) {
         console.error('❌ Error en subida:', error);
-        
         let mensaje = 'Error al subir el archivo. ';
         if (error.name === 'AbortError') {
-            mensaje += 'La subida tardó demasiado. Intenta con un archivo más pequeño o verifica tu conexión.';
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            mensaje += 'Problema de conexión con Catbox. Es posible que esté bloqueado por CORS. Intenta recargar la página.';
-        } else if (error.message.includes('Invalid userhash')) {
-            mensaje += 'El userhash de Catbox no es válido. Contacta al administrador.';
-        } else if (error.message.includes('No file uploaded')) {
-            mensaje += 'No se pudo enviar el archivo. Intenta de nuevo.';
+            mensaje += 'Tiempo de espera agotado. Inténtalo de nuevo.';
+        } else if (error.message.includes('Failed to fetch')) {
+            mensaje += 'Problema de conexión con el proxy. Recarga la página.';
         } else {
             mensaje += error.message;
         }
-        
         alert(mensaje);
         previewContainer.style.display = 'none';
         inputElement.value = '';
