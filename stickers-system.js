@@ -1,7 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
 // ACTUALIZADO: Subida a GoFile sin API Key
-// CORREGIDO: Guarda enlace directo para preview
+// CORREGIDO: Obtiene enlace directo (directLink) y construye fallback
 // ============================================
 
 let stickersDb = null;
@@ -129,7 +129,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA GOFILE ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA Y ROBUSTA ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -188,11 +188,27 @@ window.subirStickerDesdePC = async function(inputElement) {
             body: formData
         });
         const uploadData = await uploadRes.json();
+        console.log('Respuesta de GoFile:', uploadData);
 
         if (uploadData.status === 'ok') {
-            // *** CORRECCIÓN: Usar enlace directo para imágenes/videos ***
-            // La API devuelve 'directLink' para el archivo subido.
-            const fileUrl = uploadData.data.directLink || uploadData.data.downloadPage;
+            // *** CORRECCIÓN: Obtener enlace directo ***
+            let fileUrl = uploadData.data.directLink;
+            
+            // Si no viene directLink, construirlo manualmente
+            if (!fileUrl) {
+                const code = uploadData.data.code;
+                const fileName = encodeURIComponent(file.name);
+                // El formato típico de enlace directo de GoFile
+                fileUrl = `https://${server}.gofile.io/download/${code}/${fileName}`;
+                console.warn('directLink no proporcionado, se construyó:', fileUrl);
+            }
+            
+            // Verificar que la URL tenga extensión de imagen/video
+            const hasMediaExtension = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)(\?.*)?$/i.test(fileUrl);
+            if (!hasMediaExtension) {
+                // Si no tiene extensión, añadir el nombre del archivo como query param (a veces ayuda)
+                fileUrl = fileUrl + (fileUrl.includes('?') ? '&' : '?') + 'filename=' + encodeURIComponent(file.name);
+            }
             
             // Guardar en Firestore
             await guardarStickerEnColeccion(fileUrl);
