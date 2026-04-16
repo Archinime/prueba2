@@ -1,6 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
 // CON PROXY CORS Y DRAG & DROP (MÁX. 2 MB)
+// CORREGIDO: Alerta única para archivos grandes
 // ============================================
 
 let stickersDb = null;
@@ -141,6 +142,12 @@ function renderSubirStickersTab() {
     const container = document.querySelector('#subirStickersTab .add-sticker-container');
     if (!container) return;
 
+    // Limpiar listeners previos (evita duplicados al cambiar pestañas)
+    const oldInput = document.getElementById('stickerFileInput');
+    if (oldInput) {
+        oldInput.removeEventListener('change', handleFileInputChange);
+    }
+
     container.innerHTML = `
         <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 2 MB)</p>
         <label for="stickerFileInput" class="upload-sticker-label" id="dropZoneLabel">
@@ -156,23 +163,19 @@ function renderSubirStickersTab() {
     const fileInput = document.getElementById('stickerFileInput');
     const dropZone = document.getElementById('dropZoneLabel');
 
-    fileInput.addEventListener('change', (e) => {
-        if (fileInput.files.length > 0) {
-            window.subirStickerDesdePC(fileInput);
-        }
-    });
+    // Listener único para el input file
+    fileInput.addEventListener('change', handleFileInputChange);
 
     // Prevenir comportamiento por defecto en toda la zona
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        container.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+        dropZone.addEventListener(eventName, preventDefaults);
+        container.addEventListener(eventName, preventDefaults);
     });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
     // Efectos visuales al arrastrar
     ['dragenter', 'dragover'].forEach(eventName => {
@@ -202,48 +205,75 @@ function renderSubirStickersTab() {
     });
 
     // Manejar el drop
-    dropZone.addEventListener('drop', (e) => {
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleDroppedFile(files[0]);
-        }
-    });
-
-    container.addEventListener('drop', (e) => {
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleDroppedFile(files[0]);
-        }
-    });
+    dropZone.addEventListener('drop', handleDrop);
+    container.addEventListener('drop', handleDrop);
 }
 
-function handleDroppedFile(file) {
-    // Validar que sea imagen o video
+// Manejador único para el cambio del input file
+function handleFileInputChange(e) {
+    const input = e.target;
+    if (input.files.length > 0) {
+        const file = input.files[0];
+        // Validación única aquí (tamaño y tipo)
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Solo se permiten imágenes o videos.');
+            input.value = ''; // Limpiar
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert('El archivo es muy pesado. Máximo 2 MB.');
+            input.value = ''; // Limpiar
+            return;
+        }
+        // Si pasa validación, proceder a la subida
+        window.subirStickerDesdePC(input);
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        // Validar tipo y tamaño antes de asignar al input
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Solo se permiten imágenes o videos.');
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert('El archivo es muy pesado. Máximo 2 MB.');
+            return;
+        }
+        // Asignar al input y disparar evento change manual
+        const fileInput = document.getElementById('stickerFileInput');
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        // Disparar evento change para que se ejecute el flujo normal
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
+// Exponer función global para el drag & drop del HTML (por si se usa desde video-player)
+window.procesarArchivoSticker = function(file) {
+    // Validación unificada
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
         alert('Solo se permiten imágenes o videos.');
         return;
     }
-
-    // Validar tamaño 2 MB
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         return;
     }
-
-    // Simular input file
     const fileInput = document.getElementById('stickerFileInput');
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     fileInput.files = dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+};
 
-    const event = new Event('change', { bubbles: true });
-    fileInput.dispatchEvent(event);
-}
-
-// Exponer función global para el drag & drop del HTML
-window.procesarArchivoSticker = handleDroppedFile;
-
-// ========== FUNCIÓN DE SUBIDA CON PROXY CORS (LÍMITE 2 MB) ==========
+// ========== FUNCIÓN DE SUBIDA CON PROXY CORS ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -255,6 +285,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
+    // La validación ya se hizo en el paso anterior, pero por seguridad se mantiene
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
