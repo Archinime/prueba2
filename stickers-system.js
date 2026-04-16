@@ -1,6 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// CON PROXY CORS Y SOPORTE DRAG & DROP
+// CON PROXY CORS Y DRAG & DROP (LÍMITE 2 MB)
+// CORREGIDO: Manejo de errores mejorado y límite 2 MB
 // ============================================
 
 let stickersDb = null;
@@ -12,7 +13,7 @@ const DEFAULT_STICKERS = [];
 // 🔐 TU USERHASH DE CATBOX
 const CATBOX_USERHASH = 'd825312c9594a0a1b16c12c50';
 
-// 🌐 PROXY CORS PÚBLICO (puedes cambiarlo por otro si falla)
+// 🌐 PROXY CORS PÚBLICO
 const CORS_PROXY = 'https://corsproxy.io/?url=';
 
 // --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
@@ -134,7 +135,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN PRINCIPAL DE SUBIDA (AHORA EXPUESTA COMO procesarArchivoSticker) ==========
+// ========== FUNCIÓN PRINCIPAL DE SUBIDA (LÍMITE 2 MB, MEJOR MANEJO DE ERRORES) ==========
 window.procesarArchivoSticker = async function(file) {
     const user = getCurrentUser();
     if (!user) {
@@ -144,8 +145,15 @@ window.procesarArchivoSticker = async function(file) {
 
     if (!file) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-        alert('El archivo es muy pesado. Máximo 50 MB.');
+    // Validación estricta de 2 MB
+    if (file.size > 2 * 1024 * 1024) {
+        alert('El archivo es muy pesado. Máximo 2 MB.');
+        return;
+    }
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        alert('Solo se permiten imágenes o videos.');
         return;
     }
 
@@ -191,7 +199,7 @@ window.procesarArchivoSticker = async function(file) {
         console.log('📤 Enviando archivo mediante proxy:', proxyUrl);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
         const uploadRes = await fetch(proxyUrl, {
             method: 'POST',
@@ -207,11 +215,12 @@ window.procesarArchivoSticker = async function(file) {
             throw new Error(`Error HTTP ${uploadRes.status}`);
         }
 
-        const fileUrl = await uploadRes.text();
-        console.log('📦 Respuesta de Catbox:', fileUrl);
+        const responseText = await uploadRes.text();
+        console.log('📦 Respuesta de Catbox:', responseText);
 
-        if (fileUrl && fileUrl.startsWith('http')) {
-            await guardarStickerEnColeccion(fileUrl);
+        // Catbox devuelve una URL directa si todo fue bien, o un mensaje de error en texto plano
+        if (responseText && responseText.startsWith('http')) {
+            await guardarStickerEnColeccion(responseText);
             
             if (previewContainer) previewContainer.style.display = 'none';
             const fileInput = document.getElementById('stickerFileInput');
@@ -221,7 +230,8 @@ window.procesarArchivoSticker = async function(file) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            throw new Error(fileUrl || 'Error desconocido de Catbox');
+            // Mostrar el mensaje de error devuelto por Catbox
+            throw new Error(responseText || 'Error desconocido de Catbox');
         }
     } catch (error) {
         console.error('❌ Error en subida:', error);
@@ -230,6 +240,8 @@ window.procesarArchivoSticker = async function(file) {
             mensaje += 'Tiempo de espera agotado. Inténtalo de nuevo.';
         } else if (error.message.includes('Failed to fetch')) {
             mensaje += 'Problema de conexión con el proxy. Recarga la página.';
+        } else if (error.message.includes('HTTP')) {
+            mensaje += `Error del servidor (${error.message}).`;
         } else {
             mensaje += error.message;
         }
@@ -245,7 +257,7 @@ window.procesarArchivoSticker = async function(file) {
     }
 };
 
-// Mantener compatibilidad con el input file tradicional
+// Compatibilidad con input file tradicional
 window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (file) {
