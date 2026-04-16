@@ -1,6 +1,7 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.2
-// CORREGIDO: Scroll automático a respuestas desde notificaciones
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
+// CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
+// (VERSIÓN SIN PANEL DE EMOJIS Y CON ICONOS 🖼️ ACTUALIZADOS)
 // ============================================
 
 let comentariosDb = null;
@@ -84,7 +85,7 @@ function initComentariosSystem(db, auth) {
                 validarBotonPrincipal(this);
             });
         }
-        // ÍCONO DE STICKER
+        // ÍCONO DE STICKER CAMBIADO AQUÍ
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '🖼️';
     }, 1000);
@@ -385,27 +386,21 @@ function setupComentariosRealtimeListener() {
 
         window.lastPostedCommentId = null;
 
-        // --- MEJORA: SCROLL INTELIGENTE A COMENTARIO DESTINO ---
         const urlParams = new URLSearchParams(window.location.search);
         const targetCommentId = urlParams.get('targetComment');
-        
         if (targetCommentId && !window.hasScrolledToTarget) {
-            // Función con reintentos hasta que el elemento exista
-            const tryScrollToComment = (attempt = 0) => {
+            setTimeout(() => {
                 const targetEl = document.getElementById(`comment-${targetCommentId}`);
                 if (targetEl) {
-                    // Expandir todos los contenedores padres necesarios
                     let parent = targetEl.parentElement;
                     while (parent && parent.id !== 'comentariosList') {
-                        // Expandir replies-thread si está oculto
-                        if (parent.classList && parent.classList.contains('replies-thread') && parent.style.display === 'none') {
+                        if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
                             parent.style.display = 'flex';
                             const rootId = parent.id.replace('container-', '');
                             const textSpan = document.getElementById(`text-${rootId}`);
                             if (textSpan) textSpan.innerText = 'Ocultar respuestas';
                         }
-                        // Expandir hidden-reply si existe
-                        if (parent.className && typeof parent.className === 'string' && parent.className.includes('hidden-reply-')) {
+                        if (parent.className.includes('hidden-reply-')) {
                             parent.style.display = 'block';
                             const match = parent.className.match(/hidden-reply-([^ ]+)/);
                             if (match && match[1]) {
@@ -416,24 +411,13 @@ function setupComentariosRealtimeListener() {
                         }
                         parent = parent.parentElement;
                     }
-                    
-                    // Scroll suave y resaltado
                     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetEl.classList.add('comment-targeted');
                     window.hasScrolledToTarget = true;
-                    
-                    // Limpiar parámetro de la URL para evitar reintentos
-                    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
-                    window.history.replaceState({path: cleanUrl}, '', cleanUrl);
-                } else if (attempt < 20) { // Reintentar hasta 20 veces (4 segundos)
-                    setTimeout(() => tryScrollToComment(attempt + 1), 200);
-                } else {
-                    console.warn('No se encontró el comentario destino tras varios intentos:', targetCommentId);
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
+                    window.history.replaceState({path:newUrl}, '', newUrl);
                 }
-            };
-            
-            // Esperar un poco para que el DOM se estabilice
-            setTimeout(() => tryScrollToComment(0), 300);
+            }, 400);
         }
     }, (error) => {
         console.error('Error en comentarios:', error);
@@ -678,7 +662,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
-    // ÍCONO DE STICKER
+    // ÍCONO DE STICKER CAMBIADO AQUÍ
     replyBox.innerHTML = `
         <div class="reply-box-header">
             <span>Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span>
