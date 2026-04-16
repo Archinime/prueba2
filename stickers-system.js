@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// VERSIÓN FINAL CON CUENTA DE CATBOX (userhash)
+// VERSIÓN FINAL CON USERHASH DEL ADMINISTRADOR
 // ============================================
 
 let stickersDb = null;
@@ -9,8 +9,8 @@ let userStickersCollection = [];
 
 const DEFAULT_STICKERS = [];
 
-// --- TU USERHASH DE CATBOX (CUENTA PERSONAL) ---
-const CATBOX_USERHASH = "d825312c9594a0a1b16c12c50";
+// 🔐 TU USERHASH DE CATBOX (CONFIGURADO)
+const CATBOX_USERHASH = 'd825312c9594a0a1b16c12c50';
 
 // --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
@@ -131,7 +131,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA PARA CATBOX (CON TU USERHASH) ==========
+// ========== FUNCIÓN DE SUBIDA PARA CATBOX (CON USERHASH) ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -143,7 +143,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Catbox permite hasta 200 MB por archivo, ponemos límite generoso de 50 MB
+    // Catbox permite archivos de hasta 200 MB. Aumentamos el límite a 50 MB para mantener control.
     if (file.size > 50 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 50 MB.');
         inputElement.value = '';
@@ -175,7 +175,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     try {
         const formData = new FormData();
         formData.append('reqtype', 'fileupload');
-        formData.append('userhash', CATBOX_USERHASH);  // <-- Usamos tu userhash
+        formData.append('userhash', CATBOX_USERHASH);  // 🗝️ Usamos tu llave secreta
         formData.append('fileToUpload', file);
 
         const uploadRes = await fetch('https://catbox.moe/user/api.php', {
@@ -189,7 +189,6 @@ window.subirStickerDesdePC = async function(inputElement) {
 
         const fileUrl = await uploadRes.text();
 
-        // Catbox devuelve la URL directa si todo va bien
         if (fileUrl && fileUrl.startsWith('http')) {
             await guardarStickerEnColeccion(fileUrl);
             
@@ -200,7 +199,7 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            // Si no empieza con http, probablemente sea un mensaje de error
+            // Catbox a veces devuelve un mensaje de error en texto plano
             throw new Error(fileUrl || 'Error desconocido de Catbox');
         }
     } catch (error) {
