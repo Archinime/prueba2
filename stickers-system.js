@@ -1,6 +1,7 @@
 // ============================================
-// SISTEMA DE STICKERS (FIREBASE STORAGE + FIRESTORE)
-// CORREGIDO: Uso de Firebase Storage nativo para evitar errores CORS (Failed to fetch)
+// SISTEMA DE STICKERS (GOFILE + FIRESTORE)
+// ACTUALIZADO: Subida a GoFile sin API Key
+// CORREGIDO: Guarda enlace directo para preview
 // ============================================
 
 let stickersDb = null;
@@ -23,6 +24,7 @@ function cleanStickerHTML(html) {
 function initStickersSystem(db, auth) {
     stickersDb = db;
     stickersAuth = auth;
+
     const loadIfUserExists = (user) => {
         updateStickersUI();
         if (user) {
@@ -86,7 +88,7 @@ function renderUserStickers() {
     
     let html = '';
     validStickers.forEach(url => {
-        const isVideo = url.match(/\.(mp4|webm)(\?.*)?$/i);
+        const isVideo = url.match(/\.(mp4|webm)$/i);
         const tagMedia = isVideo
             ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
             : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
@@ -127,7 +129,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA MIGRADA A FIREBASE STORAGE ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA PARA GOFILE ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -139,17 +141,19 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
+    // Validación de tamaño (2 MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
+    // Preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
     const isVideo = file.type.startsWith('video/');
-
+    
     if (isVideo) {
         previewImg.style.display = 'none';
         previewVid.src = URL.createObjectURL(file);
@@ -163,24 +167,36 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo sticker...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a GoFile...';
     btnSubir.style.pointerEvents = 'none';
-
+    
     try {
-        // Obtenemos la referencia de Firebase Storage
-        const storageRef = firebase.storage().ref();
-        
-        // Creamos una ruta organizada por usuario para que los archivos no se mezclen
-        const fileRef = storageRef.child(`stickers_usuarios/${user.uid}/sticker_${Date.now()}_${file.name}`);
+        // 1. Obtener servidor óptimo
+        const serverRes = await fetch('https://api.gofile.io/servers');
+        const serverData = await serverRes.json();
+        if (serverData.status !== 'ok' || !serverData.data.servers.length) {
+            throw new Error('No se pudo obtener un servidor de GoFile.');
+        }
+        const server = serverData.data.servers[0].name;
 
-        // Subimos el archivo a tu Firebase
-        const snapshot = await fileRef.put(file);
-        
-        // Obtenemos el enlace de descarga directo
-        const fileUrl = await snapshot.ref.getDownloadURL();
+        // 2. Subir archivo
+        const formData = new FormData();
+        formData.append('file', file);
 
-        if (fileUrl) {
+        const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
+            method: 'POST',
+            body: formData
+        });
+        const uploadData = await uploadRes.json();
+
+        if (uploadData.status === 'ok') {
+            // *** CORRECCIÓN: Usar enlace directo para imágenes/videos ***
+            // La API devuelve 'directLink' para el archivo subido.
+            const fileUrl = uploadData.data.directLink || uploadData.data.downloadPage;
+            
+            // Guardar en Firestore
             await guardarStickerEnColeccion(fileUrl);
+            
             previewContainer.style.display = 'none';
             inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
@@ -188,18 +204,19 @@ window.subirStickerDesdePC = async function(inputElement) {
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            throw new Error('No se pudo obtener el enlace del archivo.');
+            throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
     } catch (error) {
         console.error('Error en subida:', error);
-        
-        let mensajeError = error.message;
-        // Si el error es de permisos, avisamos al usuario
-        if (error.code === 'storage/unauthorized') {
-            mensajeError = "No tienes permisos para subir archivos. Verifica las reglas de Firebase Storage.";
+        let mensaje = 'Error al subir el archivo. ';
+        if (error.message.includes('servidor')) {
+            mensaje += 'No se pudo contactar con GoFile. Inténtalo de nuevo.';
+        } else if (error.message.includes('Failed to fetch')) {
+            mensaje += 'Problema de conexión. Revisa tu internet.';
+        } else {
+            mensaje += error.message;
         }
-
-        alert('Error al subir el archivo.\nDetalle: ' + mensajeError);
+        alert(mensaje);
         previewContainer.style.display = 'none';
         inputElement.value = '';
     } finally {
