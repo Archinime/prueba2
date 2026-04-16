@@ -1,7 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// CON PROXY CORS Y DRAG & DROP (LÍMITE 2 MB)
-// CORREGIDO: Manejo de errores mejorado y límite 2 MB
+// CON PROXY CORS Y DRAG & DROP (MÁX. 2 MB)
 // ============================================
 
 let stickersDb = null;
@@ -35,6 +34,7 @@ function initStickersSystem(db, auth) {
         updateStickersUI();
         if (user) {
             loadUserStickers();
+            renderSubirStickersTab(); // Prepara el área de arrastre
         } else {
             userStickersCollection = [];
             renderUserStickers();
@@ -116,6 +116,7 @@ window.switchStickerTab = function(tabName) {
     const content = document.getElementById(`${tabName}StickersTab`);
     if (content) content.classList.add('active');
     if (tabName === 'mis') loadUserStickers();
+    if (tabName === 'subir') renderSubirStickersTab(); // Refresca el área de arrastre
 };
 
 async function eliminarSticker(urlSticker, event) {
@@ -135,57 +136,151 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN PRINCIPAL DE SUBIDA (LÍMITE 2 MB, MEJOR MANEJO DE ERRORES) ==========
-window.procesarArchivoSticker = async function(file) {
-    const user = getCurrentUser();
-    if (!user) {
-        openLoginModalFromStickers();
-        return;
-    }
+// ========== RENDERIZA EL ÁREA DE SUBIDA CON DRAG & DROP ==========
+function renderSubirStickersTab() {
+    const container = document.querySelector('#subirStickersTab .add-sticker-container');
+    if (!container) return;
 
-    if (!file) return;
+    container.innerHTML = `
+        <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 2 MB)</p>
+        <label for="stickerFileInput" class="upload-sticker-label" id="dropZoneLabel">
+            <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
+        </label>
+        <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none">
+        <div id="stickerPreview" style="display:none; margin-top:20px;">
+            <img id="previewImage" style="display:none; max-width:150px; border-radius:12px;">
+            <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; border-radius:12px;"></video>
+        </div>
+    `;
 
-    // Validación estricta de 2 MB
-    if (file.size > 2 * 1024 * 1024) {
-        alert('El archivo es muy pesado. Máximo 2 MB.');
-        return;
-    }
+    const fileInput = document.getElementById('stickerFileInput');
+    const dropZone = document.getElementById('dropZoneLabel');
 
-    // Validar tipo de archivo
+    fileInput.addEventListener('change', (e) => {
+        if (fileInput.files.length > 0) {
+            window.subirStickerDesdePC(fileInput);
+        }
+    });
+
+    // Prevenir comportamiento por defecto en toda la zona
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        container.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    // Efectos visuales al arrastrar
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.background = 'rgba(0, 255, 247, 0.3)';
+            dropZone.style.borderColor = '#fff';
+            dropZone.style.transform = 'scale(1.02)';
+        });
+        container.addEventListener(eventName, () => {
+            dropZone.style.background = 'rgba(0, 255, 247, 0.3)';
+            dropZone.style.borderColor = '#fff';
+            dropZone.style.transform = 'scale(1.02)';
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.background = '';
+            dropZone.style.borderColor = '';
+            dropZone.style.transform = '';
+        });
+        container.addEventListener(eventName, () => {
+            dropZone.style.background = '';
+            dropZone.style.borderColor = '';
+            dropZone.style.transform = '';
+        });
+    });
+
+    // Manejar el drop
+    dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleDroppedFile(files[0]);
+        }
+    });
+
+    container.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleDroppedFile(files[0]);
+        }
+    });
+}
+
+function handleDroppedFile(file) {
+    // Validar que sea imagen o video
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
         alert('Solo se permiten imágenes o videos.');
         return;
     }
 
-    // Preview local
+    // Validar tamaño 2 MB
+    if (file.size > 2 * 1024 * 1024) {
+        alert('El archivo es muy pesado. Máximo 2 MB.');
+        return;
+    }
+
+    // Simular input file
+    const fileInput = document.getElementById('stickerFileInput');
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+}
+
+// Exponer función global para el drag & drop del HTML
+window.procesarArchivoSticker = handleDroppedFile;
+
+// ========== FUNCIÓN DE SUBIDA CON PROXY CORS (LÍMITE 2 MB) ==========
+window.subirStickerDesdePC = async function(inputElement) {
+    const user = getCurrentUser();
+    if (!user) {
+        openLoginModalFromStickers();
+        inputElement.value = '';
+        return;
+    }
+
+    const file = inputElement.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        alert('El archivo es muy pesado. Máximo 2 MB.');
+        inputElement.value = '';
+        return;
+    }
+
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
     const isVideo = file.type.startsWith('video/');
     
-    if (previewContainer) {
-        if (isVideo) {
-            if (previewImg) previewImg.style.display = 'none';
-            if (previewVid) {
-                previewVid.src = URL.createObjectURL(file);
-                previewVid.style.display = 'inline-block';
-            }
-        } else {
-            if (previewVid) previewVid.style.display = 'none';
-            if (previewImg) {
-                previewImg.src = URL.createObjectURL(file);
-                previewImg.style.display = 'inline-block';
-            }
-        }
-        previewContainer.style.display = 'block';
+    if (isVideo) {
+        previewImg.style.display = 'none';
+        previewVid.src = URL.createObjectURL(file);
+        previewVid.style.display = 'inline-block';
+    } else {
+        previewVid.style.display = 'none';
+        previewImg.src = URL.createObjectURL(file);
+        previewImg.style.display = 'inline-block';
     }
+    previewContainer.style.display = 'block';
 
     const btnSubir = document.querySelector('.upload-sticker-label');
-    const originalText = btnSubir ? btnSubir.innerHTML : '';
-    if (btnSubir) {
-        btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
-        btnSubir.style.pointerEvents = 'none';
-    }
+    const originalText = btnSubir.innerHTML;
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
+    btnSubir.style.pointerEvents = 'none';
     
     try {
         const formData = new FormData();
@@ -199,7 +294,7 @@ window.procesarArchivoSticker = async function(file) {
         console.log('📤 Enviando archivo mediante proxy:', proxyUrl);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         const uploadRes = await fetch(proxyUrl, {
             method: 'POST',
@@ -215,23 +310,20 @@ window.procesarArchivoSticker = async function(file) {
             throw new Error(`Error HTTP ${uploadRes.status}`);
         }
 
-        const responseText = await uploadRes.text();
-        console.log('📦 Respuesta de Catbox:', responseText);
+        const fileUrl = await uploadRes.text();
+        console.log('📦 Respuesta de Catbox:', fileUrl);
 
-        // Catbox devuelve una URL directa si todo fue bien, o un mensaje de error en texto plano
-        if (responseText && responseText.startsWith('http')) {
-            await guardarStickerEnColeccion(responseText);
+        if (fileUrl && fileUrl.startsWith('http')) {
+            await guardarStickerEnColeccion(fileUrl);
             
-            if (previewContainer) previewContainer.style.display = 'none';
-            const fileInput = document.getElementById('stickerFileInput');
-            if (fileInput) fileInput.value = '';
+            previewContainer.style.display = 'none';
+            inputElement.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
             window.switchStickerTab('mis');
             await loadUserStickers();
         } else {
-            // Mostrar el mensaje de error devuelto por Catbox
-            throw new Error(responseText || 'Error desconocido de Catbox');
+            throw new Error(fileUrl || 'Error desconocido de Catbox');
         }
     } catch (error) {
         console.error('❌ Error en subida:', error);
@@ -240,28 +332,15 @@ window.procesarArchivoSticker = async function(file) {
             mensaje += 'Tiempo de espera agotado. Inténtalo de nuevo.';
         } else if (error.message.includes('Failed to fetch')) {
             mensaje += 'Problema de conexión con el proxy. Recarga la página.';
-        } else if (error.message.includes('HTTP')) {
-            mensaje += `Error del servidor (${error.message}).`;
         } else {
             mensaje += error.message;
         }
         alert(mensaje);
-        if (previewContainer) previewContainer.style.display = 'none';
-        const fileInput = document.getElementById('stickerFileInput');
-        if (fileInput) fileInput.value = '';
+        previewContainer.style.display = 'none';
+        inputElement.value = '';
     } finally {
-        if (btnSubir) {
-            btnSubir.innerHTML = originalText;
-            btnSubir.style.pointerEvents = 'auto';
-        }
-    }
-};
-
-// Compatibilidad con input file tradicional
-window.subirStickerDesdePC = async function(inputElement) {
-    const file = inputElement.files[0];
-    if (file) {
-        await window.procesarArchivoSticker(file);
+        btnSubir.innerHTML = originalText;
+        btnSubir.style.pointerEvents = 'auto';
     }
 };
 

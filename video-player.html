@@ -1185,9 +1185,7 @@
       const files = dt.files;
       if (files.length > 0) {
         const file = files[0];
-        // Verificar tipo de archivo
         if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-          // Pasar el archivo a la función de procesamiento (expuesta por stickers-system.js)
           if (typeof window.procesarArchivoSticker === 'function') {
             window.procesarArchivoSticker(file);
           } else {
@@ -1199,9 +1197,7 @@
       }
     }
     
-    // Exponer función para procesar archivo (será sobrescrita por stickers-system.js)
     window.procesarArchivoSticker = function(file) {
-      // Esta función será reemplazada por la implementación real desde stickers-system.js
       console.warn('procesarArchivoSticker no implementado aún');
     };
   })();
