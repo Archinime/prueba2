@@ -368,7 +368,6 @@
       padding: 0;
       letter-spacing: 0;
     }
-    /* Contenedor del banner */
     .card-ad .ad-inner-container {
       width: 100%;
       height: 100%;
@@ -379,7 +378,6 @@
       position: relative;
       overflow: hidden;
     }
-    /* Estilo para el iframe o el contenido del banner */
     .card-ad iframe,
     .card-ad ins {
       max-width: 100%;
@@ -390,7 +388,6 @@
       background: transparent;
       box-shadow: 0 0 15px rgba(0,243,255,0.1);
     }
-    /* Efecto de luz sutil en el fondo */
     .card-ad .ad-inner-container::after {
       content: '';
       position: absolute;
@@ -728,10 +725,10 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-<!-- 4. NUEVO: Archivo de anuncios externo (con la lógica separada) -->
+<!-- 4. Archivo de anuncios externo (con la lógica separada) -->
 <script src="anuncios_index.js"></script>
 
-<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) MODIFICADA para insertar anuncio en posición aleatoria -->
+<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) con integración de anuncio aleatorio -->
 <script>
   // ========== GIF ALEATORIO ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -825,20 +822,20 @@
     }
 
     const frag = document.createDocumentFragment();
-    // Determinar si hay filtros activos (para NO mostrar anuncios cuando hay filtros)
     const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    // Solo insertar anuncios en la carga inicial (no en append) y sin filtros activos, y si hay anuncio disponible
     const shouldInsertAd = !append && !hasActiveFilters && window.anuncioActual !== null;
-    
-    // Generar posición aleatoria (entre la 3ª y la penúltima posición)
+
+    console.log(`🔍 renderAnimes: append=${append}, hasActiveFilters=${hasActiveFilters}, shouldInsertAd=${shouldInsertAd}, anuncioActual=${window.anuncioActual ? 'OK' : 'null'}`);
+
     let randomPos = -1;
     let adCard = null;
     if (shouldInsertAd && animes.length > 3) {
-      const minPos = 2;       // después del tercer anime (índice 2)
-      const maxPos = animes.length - 1; // antes del último
+      const minPos = 2;
+      const maxPos = animes.length - 1;
       randomPos = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
       adCard = window.crearTarjetaAnuncio ? window.crearTarjetaAnuncio() : null;
       if (adCard) console.log(`📢 Anuncio insertado en posición aleatoria: ${randomPos + 1}`);
+      else console.warn('⚠️ No se pudo crear la tarjeta de anuncio');
     }
 
     for (let i = 0; i < animes.length; i++) {
@@ -858,7 +855,6 @@
       `;
       frag.appendChild(card);
 
-      // Insertar el anuncio en la posición aleatoria
       if (shouldInsertAd && adCard && i === randomPos) {
         frag.appendChild(adCard);
       }
@@ -1319,14 +1315,16 @@
   document.addEventListener('touchstart', startAudioMedia, { once: true });
 
   // ========== INICIALIZACIÓN FINAL ==========
-  // Inicializar notificaciones
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
+  
   // Inicializar anuncio (desde el archivo externo) y luego cargar animes
   if (typeof window.inicializarAnuncio === 'function') {
     window.inicializarAnuncio();
   } else {
-    console.warn('⚠️ No se encontró la función inicializarAnuncio. Asegúrate de que anuncios_index.js esté cargado.');
+    console.error('❌ ERROR: window.inicializarAnuncio no es una función. Revisa que anuncios_index.js se haya cargado correctamente.');
   }
+  
+  console.log('📢 Estado final de window.anuncioActual:', window.anuncioActual);
   cargarAnimesPaginado(true);
 </script>
 </body>
