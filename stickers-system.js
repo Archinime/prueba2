@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE STICKERS (GOFILE + FIRESTORE)
-// VERSIÓN CON CUENTA DE GOFILE (apiToken por usuario)
+// SISTEMA DE STICKERS (CATBOX + FIRESTORE)
+// VERSIÓN FINAL CON CUENTA DE CATBOX (userhash)
 // ============================================
 
 let stickersDb = null;
@@ -8,6 +8,9 @@ let stickersAuth = null;
 let userStickersCollection = [];
 
 const DEFAULT_STICKERS = [];
+
+// --- TU USERHASH DE CATBOX (CUENTA PERSONAL) ---
+const CATBOX_USERHASH = "d825312c9594a0a1b16c12c50";
 
 // --- FUNCIÓN DE LIMPIEZA INDUSTRIAL ---
 function cleanStickerHTML(html) {
@@ -45,23 +48,6 @@ function initStickersSystem(db, auth) {
 
 function getCurrentUser() {
     return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
-}
-
-// Obtiene el apiToken del usuario desde Firestore
-async function getUserGoFileToken(uid) {
-    try {
-        const userDoc = await stickersDb.collection('users').doc(uid).get();
-        if (userDoc.exists) {
-            const data = userDoc.data();
-            return {
-                token: data.gofileApiToken || null,
-                folderId: data.gofileFolderId || null
-            };
-        }
-    } catch (e) {
-        console.error('Error al obtener token de GoFile:', e);
-    }
-    return { token: null, folderId: null };
 }
 
 async function loadUserStickers() {
@@ -145,7 +131,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== SUBIDA DE STICKER CON CUENTA DE GOFILE (apiToken) ==========
+// ========== FUNCIÓN DE SUBIDA PARA CATBOX (CON TU USERHASH) ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -154,20 +140,12 @@ window.subirStickerDesdePC = async function(inputElement) {
         return;
     }
 
-    // Obtener el apiToken del usuario
-    const { token, folderId } = await getUserGoFileToken(user.uid);
-    if (!token) {
-        alert('⚠️ No has configurado tu API Token de GoFile. Ve a tu perfil y añádelo para poder subir stickers.');
-        inputElement.value = '';
-        return;
-    }
-
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validación de tamaño (2 MB)
-    if (file.size > 2 * 1024 * 1024) {
-        alert('El archivo es muy pesado. Máximo 2 MB.');
+    // Catbox permite hasta 200 MB por archivo, ponemos límite generoso de 50 MB
+    if (file.size > 50 * 1024 * 1024) {
+        alert('El archivo es muy pesado. Máximo 50 MB.');
         inputElement.value = '';
         return;
     }
@@ -191,71 +169,45 @@ window.subirStickerDesdePC = async function(inputElement) {
 
     const btnSubir = document.querySelector('.upload-sticker-label');
     const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a GoFile...';
+    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
     btnSubir.style.pointerEvents = 'none';
     
     try {
-        // 1. Obtener servidor de subida (no requiere token)
-        const serverRes = await fetch('https://api.gofile.io/servers');
-        const serverData = await serverRes.json();
-        if (serverData.status !== 'ok' || !serverData.data.servers.length) {
-            throw new Error('No se pudo obtener un servidor de GoFile.');
-        }
-        const server = serverData.data.servers[0].name;
-
-        // 2. Preparar datos de subida
         const formData = new FormData();
-        formData.append('file', file);
-        // Incluir token y carpeta (si existe)
-        if (token) formData.append('token', token);
-        if (folderId) formData.append('folderId', folderId);
+        formData.append('reqtype', 'fileupload');
+        formData.append('userhash', CATBOX_USERHASH);  // <-- Usamos tu userhash
+        formData.append('fileToUpload', file);
 
-        // 3. Subir archivo
-        const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
+        const uploadRes = await fetch('https://catbox.moe/user/api.php', {
             method: 'POST',
             body: formData
         });
-        const uploadData = await uploadRes.json();
-        console.log('📦 Respuesta de GoFile:', uploadData);
-
-        if (uploadData.status !== 'ok') {
-            throw new Error(uploadData.message || 'Error desconocido de GoFile');
-        }
-
-        // 4. Extraer enlace directo desde 'contents'
-        const contents = uploadData.data.contents;
-        if (!contents || Object.keys(contents).length === 0) {
-            throw new Error('No se recibió información del archivo en la respuesta');
-        }
-
-        const firstFileId = Object.keys(contents)[0];
-        const fileData = contents[firstFileId];
         
-        let directUrl = fileData.directLink;
-        if (!directUrl) {
-            // Construir manualmente: https://{server}.gofile.io/download/web/{fileId}/{filename}
-            const encodedFileName = encodeURIComponent(fileData.name);
-            directUrl = `https://${server}.gofile.io/download/web/${firstFileId}/${encodedFileName}`;
-            console.log('🔧 Enlace directo construido:', directUrl);
+        if (!uploadRes.ok) {
+            throw new Error(`Error de red: ${uploadRes.status}`);
+        }
+
+        const fileUrl = await uploadRes.text();
+
+        // Catbox devuelve la URL directa si todo va bien
+        if (fileUrl && fileUrl.startsWith('http')) {
+            await guardarStickerEnColeccion(fileUrl);
+            
+            previewContainer.style.display = 'none';
+            inputElement.value = '';
+            showToastSticker('✅ Sticker subido exitosamente');
+            
+            window.switchStickerTab('mis');
+            await loadUserStickers();
         } else {
-            console.log('✅ Enlace directo proporcionado:', directUrl);
+            // Si no empieza con http, probablemente sea un mensaje de error
+            throw new Error(fileUrl || 'Error desconocido de Catbox');
         }
-        
-        // 5. Guardar en Firestore
-        await guardarStickerEnColeccion(directUrl);
-        
-        previewContainer.style.display = 'none';
-        inputElement.value = '';
-        showToastSticker('✅ Sticker subido exitosamente');
-        
-        window.switchStickerTab('mis');
-        await loadUserStickers();
-        
     } catch (error) {
-        console.error('❌ Error en subida:', error);
+        console.error('Error en subida:', error);
         let mensaje = 'Error al subir el archivo. ';
-        if (error.message.includes('servidor') || error.message.includes('fetch')) {
-            mensaje += 'Problema de conexión con GoFile. Inténtalo de nuevo más tarde.';
+        if (error.message.includes('Failed to fetch')) {
+            mensaje += 'Problema de conexión. Revisa tu internet.';
         } else {
             mensaje += error.message;
         }
