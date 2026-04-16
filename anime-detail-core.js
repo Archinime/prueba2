@@ -1,7 +1,7 @@
 // anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
 // MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
-// CORREGIDO: Error al votar cuando no existe documento animeRatings
+// CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -216,7 +216,7 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES (SIN VOTO BASE Y CORREGIDO PARA PRIMER VOTO) ----------
+// ---------- VOTACIONES (SIN VOTO BASE Y CON TOGGLE CORREGIDO) ----------
 async function loadAnimeRating(animeId) {
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
@@ -289,7 +289,7 @@ function resetStars(val) {
   });
 }
 
-// Función corregida para votar, maneja correctamente el primer voto (documento inexistente)
+// Función corregida: ahora al eliminar el último voto se actualiza a count=0 en lugar de borrar el documento
 async function voteAnime(newVal) {
   if (!currentUserId) {
     document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
@@ -347,10 +347,14 @@ async function voteAnime(newVal) {
       
       // Actualizar o eliminar según corresponda
       if (newCount === 0) {
-        // No quedan votos: eliminar el documento principal y el voto del usuario
-        if (ratingDoc.exists) {
-          t.delete(ratingRef);
-        }
+        // No quedan votos: actualizamos el documento principal a (0,0) en lugar de borrarlo
+        // Esto evita problemas con reglas que no permiten delete
+        t.set(ratingRef, {
+          avg: 0,
+          count: 0,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        // Eliminamos el voto del usuario
         t.delete(userRef);
         animeRatingData = { avg: 0, count: 0 };
         currentUserRating = null;
@@ -652,7 +656,7 @@ function initAuthListener() {
   }
 }
 
-// ---------- INICIALIZACIÓN (CORREGIDO: sin voto base, manejo de errores) ----------
+// ---------- INICIALIZACIÓN ----------
 (async function init() {
   await loadSearchCache();
   initAuthListener();
