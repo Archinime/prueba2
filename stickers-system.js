@@ -1,7 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
 // ACTUALIZADO: Subida a GoFile sin API Key
-// CORREGIDO: Obtiene enlace directo (directLink) y construye fallback
+// CORREGIDO: Obtiene enlace directo extrayéndolo de la página de descarga
 // ============================================
 
 let stickersDb = null;
@@ -129,7 +129,43 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA Y ROBUSTA ==========
+// ========== FUNCIÓN AUXILIAR PARA EXTRAER ENLACE DIRECTO DE LA PÁGINA DE GOFILE ==========
+async function extractDirectLinkFromDownloadPage(downloadPageUrl) {
+    // Usamos un proxy CORS público para obtener el HTML de la página
+    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+    const response = await fetch(proxyUrl + encodeURIComponent(downloadPageUrl));
+    if (!response.ok) {
+        throw new Error('No se pudo obtener la página de descarga');
+    }
+    const html = await response.text();
+    
+    // Parsear HTML para encontrar el enlace directo (el botón "Download")
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Buscar el enlace de descarga. Suele ser un <a> con clase 'btn btn-primary' o similar
+    const downloadBtn = doc.querySelector('a.btn.btn-primary, a.btn-primary, a[href*="download"], .download-button a');
+    if (!downloadBtn) {
+        throw new Error('No se encontró el enlace de descarga en la página');
+    }
+    
+    let directUrl = downloadBtn.href;
+    if (!directUrl) {
+        throw new Error('El enlace de descarga no tiene href');
+    }
+    
+    // A veces la URL es relativa; la convertimos en absoluta
+    if (directUrl.startsWith('/')) {
+        const urlObj = new URL(downloadPageUrl);
+        directUrl = urlObj.origin + directUrl;
+    }
+    
+    // Limpiar posibles parámetros extraños
+    directUrl = directUrl.split('?')[0]; // Quitar query string si molesta
+    return directUrl;
+}
+
+// ========== FUNCIÓN DE SUBIDA CORREGIDA CON EXTRACCIÓN DE ENLACE DIRECTO ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -188,47 +224,49 @@ window.subirStickerDesdePC = async function(inputElement) {
             body: formData
         });
         const uploadData = await uploadRes.json();
-        console.log('Respuesta de GoFile:', uploadData);
+        console.log('Respuesta de GoFile (subida):', uploadData);
 
-        if (uploadData.status === 'ok') {
-            // *** CORRECCIÓN: Obtener enlace directo ***
-            let fileUrl = uploadData.data.directLink;
-            
-            // Si no viene directLink, construirlo manualmente
-            if (!fileUrl) {
-                const code = uploadData.data.code;
-                const fileName = encodeURIComponent(file.name);
-                // El formato típico de enlace directo de GoFile
-                fileUrl = `https://${server}.gofile.io/download/${code}/${fileName}`;
-                console.warn('directLink no proporcionado, se construyó:', fileUrl);
-            }
-            
-            // Verificar que la URL tenga extensión de imagen/video
-            const hasMediaExtension = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)(\?.*)?$/i.test(fileUrl);
-            if (!hasMediaExtension) {
-                // Si no tiene extensión, añadir el nombre del archivo como query param (a veces ayuda)
-                fileUrl = fileUrl + (fileUrl.includes('?') ? '&' : '?') + 'filename=' + encodeURIComponent(file.name);
-            }
-            
-            // Guardar en Firestore
-            await guardarStickerEnColeccion(fileUrl);
-            
-            previewContainer.style.display = 'none';
-            inputElement.value = '';
-            showToastSticker('✅ Sticker subido exitosamente');
-            
-            window.switchStickerTab('mis');
-            await loadUserStickers();
-        } else {
+        if (uploadData.status !== 'ok') {
             throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
+
+        // 3. Obtener la página de descarga
+        const downloadPage = uploadData.data.downloadPage;
+        if (!downloadPage) {
+            throw new Error('No se recibió la página de descarga');
+        }
+
+        // 4. Extraer el enlace directo real desde la página de descarga
+        btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extrayendo enlace directo...';
+        let directUrl;
+        try {
+            directUrl = await extractDirectLinkFromDownloadPage(downloadPage);
+        } catch (extractError) {
+            console.warn('Error extrayendo enlace directo:', extractError);
+            // Fallback: intentar construir manualmente (poco probable que funcione)
+            const code = uploadData.data.code;
+            const fileName = encodeURIComponent(file.name);
+            directUrl = `https://${server}.gofile.io/download/${code}/${fileName}`;
+            console.log('Fallback URL construida:', directUrl);
+        }
+        
+        console.log('Enlace directo obtenido:', directUrl);
+        
+        // 5. Guardar en Firestore
+        await guardarStickerEnColeccion(directUrl);
+        
+        previewContainer.style.display = 'none';
+        inputElement.value = '';
+        showToastSticker('✅ Sticker subido exitosamente');
+        
+        window.switchStickerTab('mis');
+        await loadUserStickers();
+        
     } catch (error) {
         console.error('Error en subida:', error);
         let mensaje = 'Error al subir el archivo. ';
-        if (error.message.includes('servidor')) {
-            mensaje += 'No se pudo contactar con GoFile. Inténtalo de nuevo.';
-        } else if (error.message.includes('Failed to fetch')) {
-            mensaje += 'Problema de conexión. Revisa tu internet.';
+        if (error.message.includes('servidor') || error.message.includes('fetch')) {
+            mensaje += 'Problema de conexión con GoFile o el proxy. Inténtalo de nuevo más tarde.';
         } else {
             mensaje += error.message;
         }
