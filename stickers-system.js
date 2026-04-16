@@ -1,7 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
-// ACTUALIZADO: Subida a GoFile sin API Key
-// CORREGIDO: Extrae correctamente el directLink desde contents
+// VERSIÓN CON CUENTA DE GOFILE (apiToken por usuario)
 // ============================================
 
 let stickersDb = null;
@@ -46,6 +45,23 @@ function initStickersSystem(db, auth) {
 
 function getCurrentUser() {
     return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
+}
+
+// Obtiene el apiToken del usuario desde Firestore
+async function getUserGoFileToken(uid) {
+    try {
+        const userDoc = await stickersDb.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            const data = userDoc.data();
+            return {
+                token: data.gofileApiToken || null,
+                folderId: data.gofileFolderId || null
+            };
+        }
+    } catch (e) {
+        console.error('Error al obtener token de GoFile:', e);
+    }
+    return { token: null, folderId: null };
 }
 
 async function loadUserStickers() {
@@ -129,11 +145,19 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CORREGIDA (EXTRAE CORRECTAMENTE EL ENLACE DIRECTO) ==========
+// ========== SUBIDA DE STICKER CON CUENTA DE GOFILE (apiToken) ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
         openLoginModalFromStickers();
+        inputElement.value = '';
+        return;
+    }
+
+    // Obtener el apiToken del usuario
+    const { token, folderId } = await getUserGoFileToken(user.uid);
+    if (!token) {
+        alert('⚠️ No has configurado tu API Token de GoFile. Ve a tu perfil y añádelo para poder subir stickers.');
         inputElement.value = '';
         return;
     }
@@ -171,7 +195,7 @@ window.subirStickerDesdePC = async function(inputElement) {
     btnSubir.style.pointerEvents = 'none';
     
     try {
-        // 1. Obtener servidor óptimo
+        // 1. Obtener servidor de subida (no requiere token)
         const serverRes = await fetch('https://api.gofile.io/servers');
         const serverData = await serverRes.json();
         if (serverData.status !== 'ok' || !serverData.data.servers.length) {
@@ -179,44 +203,45 @@ window.subirStickerDesdePC = async function(inputElement) {
         }
         const server = serverData.data.servers[0].name;
 
-        // 2. Subir archivo
+        // 2. Preparar datos de subida
         const formData = new FormData();
         formData.append('file', file);
+        // Incluir token y carpeta (si existe)
+        if (token) formData.append('token', token);
+        if (folderId) formData.append('folderId', folderId);
 
+        // 3. Subir archivo
         const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
             method: 'POST',
             body: formData
         });
         const uploadData = await uploadRes.json();
-        console.log('📦 Respuesta completa de GoFile:', uploadData);
+        console.log('📦 Respuesta de GoFile:', uploadData);
 
         if (uploadData.status !== 'ok') {
             throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
 
-        // 3. Extraer información del archivo subido desde 'contents'
+        // 4. Extraer enlace directo desde 'contents'
         const contents = uploadData.data.contents;
         if (!contents || Object.keys(contents).length === 0) {
             throw new Error('No se recibió información del archivo en la respuesta');
         }
 
-        // Obtener el primer archivo (solo subimos uno)
         const firstFileId = Object.keys(contents)[0];
         const fileData = contents[firstFileId];
         
-        // El enlace directo puede venir en fileData.directLink o debemos construirlo
         let directUrl = fileData.directLink;
-        
         if (!directUrl) {
             // Construir manualmente: https://{server}.gofile.io/download/web/{fileId}/{filename}
             const encodedFileName = encodeURIComponent(fileData.name);
             directUrl = `https://${server}.gofile.io/download/web/${firstFileId}/${encodedFileName}`;
-            console.log('🔧 Enlace directo construido manualmente:', directUrl);
+            console.log('🔧 Enlace directo construido:', directUrl);
         } else {
-            console.log('✅ Enlace directo proporcionado por GoFile:', directUrl);
+            console.log('✅ Enlace directo proporcionado:', directUrl);
         }
         
-        // 4. Guardar en Firestore
+        // 5. Guardar en Firestore
         await guardarStickerEnColeccion(directUrl);
         
         previewContainer.style.display = 'none';
