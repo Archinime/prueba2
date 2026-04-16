@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.0";
+      const APP_VERSION = "2025-04-06-v6.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -345,6 +345,32 @@
     .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
     .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
       letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
+    
+    /* ===== ESTILO PARA TARJETAS DE ANUNCIOS (se integran como cards) ===== */
+    .card-ad {
+      cursor: pointer;
+    }
+    .card-ad .info span {
+      background: rgba(255, 0, 85, 0.2);
+      color: var(--neon-pink);
+    }
+    .card-ad iframe,
+    .card-ad ins {
+      width: 100% !important;
+      height: 100% !important;
+      border: none;
+      background: transparent;
+    }
+    /* Asegurar que el contenido del anuncio ocupe toda la card */
+    .card-ad > div,
+    .card-ad > ins,
+    .card-ad > iframe {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: block;
+    }
+
     .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
@@ -671,7 +697,10 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-<!-- 4. Lógica principal (paginación, autenticación, chroma key, música, etc.) -->
+<!-- 4. NUEVO: Archivo de anuncios externo -->
+<script src="anuncios_index.js"></script>
+
+<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) MODIFICADA para incluir anuncios cada 30 animes -->
 <script>
   // ========== GIF ALEATORIO ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -753,50 +782,107 @@
     return 0;
   }
 
-  // ========== RENDERIZADO DE ANIMES ==========
+  // ========== CONFIGURACIÓN DE ANUNCIOS ==========
+  // Elegir qué anuncio mostrar (puedes rotar o usar uno fijo)
+  let anuncioActual = null;
+  // Inicializar el anuncio (usamos el primero de la lista, o puedes seleccionar por ID)
+  function inicializarAnuncio() {
+    if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
+      // Por defecto usamos el primero. Si quieres rotar, descomenta la siguiente línea:
+      // const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
+      anuncioActual = window.listaAnuncios[0];
+      console.log('Anuncio cargado:', anuncioActual.red, anuncioActual.id);
+    } else {
+      console.warn('No hay anuncios definidos en anuncios_index.js');
+    }
+  }
+
+  // Función que genera el HTML de la tarjeta de anuncio
+  function crearTarjetaAnuncio() {
+    if (!anuncioActual) return null;
+    const card = document.createElement('div');
+    card.className = 'card card-ad';
+    card.dataset.id = anuncioActual.id;
+    // No añadimos onclick de navegación porque los anuncios ya tienen sus propios enlaces internos
+    // Pero si el anuncio no es interactivo, puedes dejarlo así.
+    // Contenedor interno para el código del anuncio
+    const innerDiv = document.createElement('div');
+    // Insertamos el código HTML del anuncio (que puede contener scripts)
+    innerDiv.innerHTML = anuncioActual.codigo;
+    // Ejecutar scripts si los hay (necesario para Adsterra, Google, etc.)
+    innerDiv.querySelectorAll('script').forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+        newScript.async = true;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      document.body.appendChild(newScript); // o innerDiv.appendChild, pero mejor al body
+      oldScript.remove();
+    });
+    card.appendChild(innerDiv);
+    
+    // Añadir la info de "Patrocinado"
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'info';
+    infoDiv.innerHTML = `<strong>Patrocinado</strong><span>✨ ${anuncioActual.red || 'Colaboración'}</span>`;
+    card.appendChild(infoDiv);
+    
+    return card;
+  }
+
+  // ========== RENDERIZADO DE ANIMES (con anuncios cada 30) ==========
   function renderAnimes(animes, append = false) {
     const grid = document.getElementById('grid');
     if (!grid) return;
     if (!append) grid.innerHTML = '';
+
     if (!animes.length && !append) {
       mostrarNoResultados();
       return;
     }
+
     const frag = document.createDocumentFragment();
-    animes.forEach(anime => {
+    // Determinar si hay filtros activos (para NO mostrar anuncios cuando hay filtros)
+    const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
+    // Solo insertar anuncios en la carga inicial (no en append) y sin filtros activos, y si hay anuncio disponible
+    const shouldInsertAd = !append && !hasActiveFilters && anuncioActual !== null;
+    const adInterval = 30; // cada 30 animes normales aparece 1 anuncio
+    let adInserted = false; // Solo insertamos un anuncio por carga (el primero que cumpla)
+
+    for (let i = 0; i < animes.length; i++) {
+      const anime = animes[i];
       const card = document.createElement('div');
       card.className = 'card';
       card.dataset.id = anime.id;
       card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
       const rating = getDisplayRating(anime);
       const imgUrl = anime.img || 'placeholder.webp';
-      card.innerHTML = `<img src="${imgUrl}" alt="${anime.title}" loading="lazy"><div class="info"><strong>${anime.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
+      card.innerHTML = `
+        <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
+        <div class="info">
+          <strong>${anime.title}</strong>
+          <span class="rating-value">⭐ ${rating}</span>
+        </div>
+      `;
       frag.appendChild(card);
-    });
-    grid.appendChild(frag);
-    // Efecto tilt solo en desktop
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (!isTouch) {
-      document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
-        c.dataset.tiltInit = 'true';
-        c.addEventListener('mousemove', (e) => {
-          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
-          c.tiltRAF = requestAnimationFrame(() => {
-            const rect = c.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const rotX = ((y - rect.height/2) / (rect.height/2)) * -6;
-            const rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
-            c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-          });
-        });
-        c.addEventListener('mouseleave', () => {
-          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
-          c.style.transform = '';
-        });
-      });
+
+      // Insertar anuncio después de cada 30 animes (solo uno en esta carga)
+      if (shouldInsertAd && !adInserted && (i + 1) % adInterval === 0) {
+        const adCard = crearTarjetaAnuncio();
+        if (adCard) {
+          frag.appendChild(adCard);
+          adInserted = true;
+          console.log(`Anuncio insertado después de ${i+1} animes`);
+        }
+      }
     }
+
+    grid.appendChild(frag);
+    aplicarTiltANuevasCards();
   }
+
   function mostrarNoResultados() {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -1124,6 +1210,30 @@
     });
   })();
 
+  // ========== EFECTO TILT PARA CARDS ==========
+  function aplicarTiltANuevasCards() {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouch) return;
+    document.querySelectorAll('.card:not([data-tilt-init])').forEach(card => {
+      card.dataset.tiltInit = 'true';
+      card.addEventListener('mousemove', (e) => {
+        if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
+        card.tiltRAF = requestAnimationFrame(() => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotX = ((y - rect.height/2) / (rect.height/2)) * -6;
+          const rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
+          card.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+        });
+      });
+      card.addEventListener('mouseleave', () => {
+        if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
+        card.style.transform = '';
+      });
+    });
+  }
+
   // ========== ANIMACIONES FRONTALES (CHROMA KEY) Y MÚSICA ==========
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
@@ -1223,8 +1333,11 @@
   document.addEventListener('click', startAudioMedia, { once: true });
   document.addEventListener('touchstart', startAudioMedia, { once: true });
 
-  // Inicializar notificaciones y carga de animes
+  // ========== INICIALIZACIÓN FINAL ==========
+  // Inicializar notificaciones
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
+  // Inicializar anuncio y luego cargar animes
+  inicializarAnuncio();
   cargarAnimesPaginado(true);
 </script>
 </body>
