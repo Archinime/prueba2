@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.2";
+      const APP_VERSION = "2025-04-06-v6.3";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -687,6 +687,31 @@
   <div class="grid" id="grid"></div>
 </main>
 
+<!-- Tarjeta de anuncio oculta que será movida a una posición aleatoria -->
+<div id="hidden-ad-card" style="display: none;">
+  <div class="card card-ad" id="template-ad-card">
+    <div class="ad-inner-container">
+      <!-- Aquí va el código del banner -->
+      <div id="banner-container">
+        <script>
+          atOptions = {
+            'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65',
+            'format' : 'iframe',
+            'height' : 600,
+            'width' : 160,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
+      </div>
+    </div>
+    <div class="info">
+      <strong>anuncio</strong>
+      <span>⚡</span>
+    </div>
+  </div>
+</div>
+
 <div class="stage" aria-hidden="true">
   <div id="fgContainer" aria-label="Vídeo frontal">
     <canvas id="fgCanvas"></canvas>
@@ -725,10 +750,7 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-<!-- 4. Archivo de anuncios externo (con la lógica separada) -->
-<script src="anuncios_index.js"></script>
-
-<!-- 5. Lógica principal (paginación, autenticación, chroma key, música, etc.) con integración de anuncio aleatorio -->
+<!-- 4. Lógica principal (sin anuncios dinámicos, solo mover la tarjeta oculta) -->
 <script>
   // ========== GIF ALEATORIO ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -810,7 +832,7 @@
     return 0;
   }
 
-  // ========== RENDERIZADO DE ANIMES (con anuncio en posición aleatoria) ==========
+  // ========== RENDERIZADO DE ANIMES (con anuncio movido a posición aleatoria) ==========
   function renderAnimes(animes, append = false) {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -822,20 +844,29 @@
     }
 
     const frag = document.createDocumentFragment();
+
+    // Solo insertamos el anuncio en la primera carga (no en append) y si no hay filtros activos
     const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    const shouldInsertAd = !append && !hasActiveFilters && window.anuncioActual !== null;
-
-    console.log(`🔍 renderAnimes: append=${append}, hasActiveFilters=${hasActiveFilters}, shouldInsertAd=${shouldInsertAd}, anuncioActual=${window.anuncioActual ? 'OK' : 'null'}`);
-
+    const shouldInsertAd = !append && !hasActiveFilters;
+    
     let randomPos = -1;
     let adCard = null;
     if (shouldInsertAd && animes.length > 3) {
-      const minPos = 2;
-      const maxPos = animes.length - 1;
-      randomPos = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
-      adCard = window.crearTarjetaAnuncio ? window.crearTarjetaAnuncio() : null;
-      if (adCard) console.log(`📢 Anuncio insertado en posición aleatoria: ${randomPos + 1}`);
-      else console.warn('⚠️ No se pudo crear la tarjeta de anuncio');
+      // Clonar la tarjeta de anuncio oculta
+      const templateCard = document.getElementById('template-ad-card');
+      if (templateCard) {
+        adCard = templateCard.cloneNode(true);
+        adCard.style.display = 'flex'; // Asegurar que se muestre
+        // Eliminar el id para que no haya duplicados
+        adCard.removeAttribute('id');
+        // Posición aleatoria entre 2 y el penúltimo índice
+        const minPos = 2;
+        const maxPos = animes.length - 1;
+        randomPos = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
+        console.log(`📢 Anuncio insertado en posición aleatoria: ${randomPos + 1}`);
+      } else {
+        console.warn('No se encontró la tarjeta de anuncio oculta');
+      }
     }
 
     for (let i = 0; i < animes.length; i++) {
@@ -1316,15 +1347,6 @@
 
   // ========== INICIALIZACIÓN FINAL ==========
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
-  
-  // Inicializar anuncio (desde el archivo externo) y luego cargar animes
-  if (typeof window.inicializarAnuncio === 'function') {
-    window.inicializarAnuncio();
-  } else {
-    console.error('❌ ERROR: window.inicializarAnuncio no es una función. Revisa que anuncios_index.js se haya cargado correctamente.');
-  }
-  
-  console.log('📢 Estado final de window.anuncioActual:', window.anuncioActual);
   cargarAnimesPaginado(true);
 </script>
 </body>
