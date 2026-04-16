@@ -1,7 +1,6 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.1
-// CORREGIDO: Botón de enviar, preview de stickers, validaciones, notificaciones
-// (VERSIÓN SIN PANEL DE EMOJIS Y CON ICONOS 🖼️ ACTUALIZADOS)
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v10.3
+// CORREGIDO: Scroll perfecto a respuestas desde notificaciones
 // ============================================
 
 let comentariosDb = null;
@@ -85,7 +84,7 @@ function initComentariosSystem(db, auth) {
                 validarBotonPrincipal(this);
             });
         }
-        // ÍCONO DE STICKER CAMBIADO AQUÍ
+        // ÍCONO DE STICKER
         const stickerBtn = document.querySelector('.sticker-btn');
         if (stickerBtn) stickerBtn.innerHTML = '🖼️';
     }, 1000);
@@ -386,38 +385,79 @@ function setupComentariosRealtimeListener() {
 
         window.lastPostedCommentId = null;
 
+        // --- MEJORA EXTREMA: SCROLL PERFECTO A COMENTARIO DESTINO ---
         const urlParams = new URLSearchParams(window.location.search);
         const targetCommentId = urlParams.get('targetComment');
+        
         if (targetCommentId && !window.hasScrolledToTarget) {
-            setTimeout(() => {
+            // Función para expandir completamente el comentario y todos sus contenedores
+            const expandFullyAndScroll = (attempt = 0) => {
                 const targetEl = document.getElementById(`comment-${targetCommentId}`);
-                if (targetEl) {
-                    let parent = targetEl.parentElement;
-                    while (parent && parent.id !== 'comentariosList') {
-                        if (parent.classList.contains('replies-thread') && parent.style.display === 'none') {
-                            parent.style.display = 'flex';
-                            const rootId = parent.id.replace('container-', '');
-                            const textSpan = document.getElementById(`text-${rootId}`);
-                            if (textSpan) textSpan.innerText = 'Ocultar respuestas';
-                        }
-                        if (parent.className.includes('hidden-reply-')) {
-                            parent.style.display = 'block';
-                            const match = parent.className.match(/hidden-reply-([^ ]+)/);
-                            if (match && match[1]) {
-                                const btn = document.getElementById(`showMore-${match[1]}`);
-                                if (btn) btn.style.display = 'none';
-                                document.querySelectorAll(`.hidden-reply-${match[1]}`).forEach(el => el.style.display = 'block');
-                            }
-                        }
-                        parent = parent.parentElement;
+                if (!targetEl) {
+                    if (attempt < 30) { // Reintentar hasta 30 veces (6 segundos)
+                        setTimeout(() => expandFullyAndScroll(attempt + 1), 200);
+                    } else {
+                        console.warn('No se encontró el comentario destino tras múltiples intentos:', targetCommentId);
                     }
-                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetEl.classList.add('comment-targeted');
-                    window.hasScrolledToTarget = true;
-                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
-                    window.history.replaceState({path:newUrl}, '', newUrl);
+                    return;
                 }
-            }, 400);
+
+                // 1. Expandir todos los replies-thread padres que estén ocultos
+                let parent = targetEl.parentElement;
+                const parentsToExpand = [];
+                while (parent && parent.id !== 'comentariosList') {
+                    if (parent.classList && parent.classList.contains('replies-thread') && parent.style.display === 'none') {
+                        parentsToExpand.push(parent);
+                    }
+                    parent = parent.parentElement;
+                }
+                // Expandir de arriba hacia abajo para mantener consistencia
+                parentsToExpand.reverse().forEach(thread => {
+                    thread.style.display = 'flex';
+                    const rootId = thread.id.replace('container-', '');
+                    const textSpan = document.getElementById(`text-${rootId}`);
+                    if (textSpan) textSpan.innerText = 'Ocultar respuestas';
+                });
+
+                // 2. Si el comentario está dentro de un hidden-reply-* (por el límite de 5 respuestas)
+                let hiddenContainer = targetEl.closest('[class*="hidden-reply-"]');
+                if (hiddenContainer) {
+                    // Obtener el rootId (el ID del comentario padre que tiene el botón "Cargar más")
+                    const match = hiddenContainer.className.match(/hidden-reply-([^ ]+)/);
+                    if (match && match[1]) {
+                        const rootId = match[1];
+                        // Revelar todos los hidden-reply de ese root
+                        document.querySelectorAll(`.hidden-reply-${rootId}`).forEach(el => el.style.display = 'block');
+                        const moreBtn = document.getElementById(`showMore-${rootId}`);
+                        if (moreBtn) moreBtn.style.display = 'none';
+                    }
+                }
+
+                // 3. Pequeño retraso para que el DOM se actualice después de las expansiones
+                setTimeout(() => {
+                    // Re-obtener el elemento (por si cambió su posición)
+                    const finalTarget = document.getElementById(`comment-${targetCommentId}`);
+                    if (finalTarget) {
+                        // Scroll suave con offset para que no quede pegado al borde superior
+                        const rect = finalTarget.getBoundingClientRect();
+                        const absoluteTop = rect.top + window.pageYOffset;
+                        const offset = 100; // margen superior para que se vea completo
+                        window.scrollTo({
+                            top: absoluteTop - offset,
+                            behavior: 'smooth'
+                        });
+                        finalTarget.classList.add('comment-targeted');
+                        window.hasScrolledToTarget = true;
+                        
+                        // Limpiar parámetro de la URL para evitar reintentos
+                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?anime=${window.comentariosAnimeId}&s=${window.comentariosSeason}&e=${window.comentariosEpisode}`;
+                        window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                    }
+                }, 150);
+            };
+            
+            // Iniciar la expansión después de un breve retraso para que el DOM se estabilice
+            setTimeout(() => expandFullyAndScroll(0), 400);
         }
     }, (error) => {
         console.error('Error en comentarios:', error);
@@ -662,7 +702,7 @@ window.prepararRespuesta = function(commentId, userName, userId) {
     const replyBox = document.createElement('div');
     replyBox.id = `dynamicReplyBox-${commentId}`;
     replyBox.className = 'reply-box-container';
-    // ÍCONO DE STICKER CAMBIADO AQUÍ
+    // ÍCONO DE STICKER
     replyBox.innerHTML = `
         <div class="reply-box-header">
             <span>Respondiendo a <b>@${escapeHtmlComent(userName)}</b></span>
