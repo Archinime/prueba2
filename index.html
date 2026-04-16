@@ -848,7 +848,7 @@
     const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
     // Solo insertar anuncios en la carga inicial (no en append) y sin filtros activos, y si hay anuncio disponible
     const shouldInsertAd = !append && !hasActiveFilters && anuncioActual !== null;
-    const adInterval = 30; // cada 30 animes normales aparece 1 anuncio
+    const adInterval = 10; // cada 30 animes normales aparece 1 anuncio
     let adInserted = false; // Solo insertamos un anuncio por carga (el primero que cumpla)
 
     for (let i = 0; i < animes.length; i++) {
