@@ -1,6 +1,6 @@
 // anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
-// CORREGIDO: Error "Missing or insufficient permissions" al escribir en animeRatings sin autenticación
+// MODIFICADO: Eliminado voto base. Los animes comienzan sin votos (avg=0, count=0)
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
@@ -215,48 +215,31 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES (CORREGIDO: SIN ESCRITURA PARA USUARIOS NO AUTENTICADOS) ----------
+// ---------- VOTACIONES (CORREGIDO: SIN VOTO BASE, SOLO LECTURA/ESCRITURA DE USUARIOS AUTENTICADOS) ----------
 async function loadAnimeRating(animeId) {
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
     if (doc.exists) {
       animeRatingData = doc.data();
     } else {
-      // Solo leer el rating del documento del anime, pero NUNCA escribir si el usuario no está autenticado
-      if (animeData?.rating != null) {
-        animeRatingData = { avg: animeData.rating, count: 1 };
-        // SOLO escribir en Firestore si el usuario está autenticado (evita error de permisos)
-        if (currentUserId) {
-          try {
-            await db.collection('animeRatings').doc(String(animeId)).set({
-              avg: animeData.rating,
-              count: 1,
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-          } catch (writeError) {
-            console.warn("No se pudo escribir el rating inicial (probablemente falta autenticación):", writeError);
-            // No lanzamos el error, solo mostramos el rating localmente
-          }
-        }
-      }
+      // ✅ NUEVO COMPORTAMIENTO: Sin voto base, comienza sin votos
+      animeRatingData = { avg: 0, count: 0 };
     }
     updateRatingDisplay();
     updateRatingLabel(animeRatingData.avg);
   } catch (error) {
     console.error("Error al cargar animeRating:", error);
-    // Si falla la lectura, no rompemos la página, solo mostramos el rating del documento anime si existe
-    if (animeData?.rating != null) {
-      animeRatingData = { avg: animeData.rating, count: 1 };
-      updateRatingDisplay();
-      updateRatingLabel(animeRatingData.avg);
-    }
+    // En caso de error, también dejamos sin votos
+    animeRatingData = { avg: 0, count: 0 };
+    updateRatingDisplay();
+    updateRatingLabel(0);
   }
 }
 function updateRatingDisplay() {
   const avgSpan = document.getElementById('averageRatingDisplay');
   const countSpan = document.getElementById('voteCountDisplay');
-  if (avgSpan) avgSpan.textContent = (animeRatingData.avg || 0).toFixed(1);
-  if (countSpan) countSpan.textContent = `(${animeRatingData.count || 0} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
+  if (avgSpan) avgSpan.textContent = (animeRatingData.count > 0) ? animeRatingData.avg.toFixed(1) : '--';
+  if (countSpan) countSpan.textContent = (animeRatingData.count === 0) ? '(Sin votos)' : `(${animeRatingData.count} ${animeRatingData.count === 1 ? 'voto' : 'votos'})`;
   updateRatingLabel(animeRatingData.avg);
 }
 function updateRatingLabel(avg) {
@@ -405,7 +388,7 @@ async function renderMainContent() {
 
   const genres = animeData.genres || [];
   const genreHtml = genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
-  const ratingDisplay = (animeData.rating != null) ? animeData.rating.toFixed(1) : '--';
+  // ✅ Ya no usamos animeData.rating para mostrar nada
   const desc = animeData.desc || 'Sin descripción disponible.';
 
   let html = `
@@ -417,8 +400,8 @@ async function renderMainContent() {
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
         <div class="rating-stats">
           <span id="ratingLabel">Valoración media:</span>
-          <span id="averageRatingDisplay">${ratingDisplay}</span>
-          <span id="voteCountDisplay">(0 votos)</span>
+          <span id="averageRatingDisplay">--</span>
+          <span id="voteCountDisplay">(Sin votos)</span>
         </div>
         <div id="starRatingWidget" style="display:flex; gap:8px;"></div>
       </div>
@@ -614,7 +597,7 @@ function initAuthListener() {
   }
 }
 
-// ---------- INICIALIZACIÓN (CORREGIDO: manejo de errores de permisos) ----------
+// ---------- INICIALIZACIÓN (CORREGIDO: sin voto base, manejo de errores) ----------
 (async function init() {
   await loadSearchCache();
   initAuthListener();
