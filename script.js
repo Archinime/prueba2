@@ -29,7 +29,7 @@ let searchTimeout = null;
 let previewTimeout = null;
 let originalAnimeState = null;
 
-// Variables de usuario (se sincronizarán con ArchinimeState)
+// Variables de usuario
 let currentUserNick = "Usuario"; 
 let currentUserAvatar = "Logo_Archinime.avif";
 let currentUserEmail = "";
@@ -39,17 +39,14 @@ let currentSearchMode = 'mine';
 // AUTENTICACIÓN (integrada con ArchinimeState)
 // ============================================
 
-// Función para obtener el usuario actual desde el estado central o fallback
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
     return auth.currentUser;
 }
 
-// Sincronizar estado local con ArchinimeState
 function syncUserFromState(user) {
     if (user) {
         currentUserEmail = user.email;
-        // Intentar obtener nick y avatar desde globalUsersData (cargado aparte)
         if (globalUsersData[currentUserEmail]) {
             currentUserNick = globalUsersData[currentUserEmail].nick;
             currentUserAvatar = globalUsersData[currentUserEmail].avatar;
@@ -67,7 +64,6 @@ function syncUserFromState(user) {
     }
 }
 
-// Escuchar cambios de autenticación mediante ArchinimeState (si existe) o auth directamente
 if (window.ArchinimeState) {
     ArchinimeState.on('currentUser', async (user) => {
         if (user) {
@@ -77,7 +73,6 @@ if (window.ArchinimeState) {
         }
     });
 } else {
-    // Fallback: usar auth directamente
     auth.onAuthStateChanged((user) => {
         if (user) {
             checkAccess(user);
@@ -90,12 +85,9 @@ if (window.ArchinimeState) {
 function signInWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
     auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-        .then(() => {
-            return auth.signInWithPopup(provider);
-        })
-        .then((result) => {
-            checkAccess(result.user);
-        }).catch((error) => {
+        .then(() => auth.signInWithPopup(provider))
+        .then((result) => checkAccess(result.user))
+        .catch((error) => {
             console.error(error);
             const errEl = document.getElementById('errorText');
             if(errEl) errEl.innerText = error.message;
@@ -113,7 +105,6 @@ async function checkAccess(user) {
     if(logErr) logErr.style.display = 'none';
     
     try {
-        // Cargar datos de usuarios desde Firestore
         const usersSnapshot = await db.collection('users').get();
         globalUsersData = {};
         usersSnapshot.forEach(doc => {
@@ -263,7 +254,6 @@ function showCMS() {
     document.getElementById('userAvatarImg').src = currentUserAvatar;
     document.getElementById('userNameDisplay').innerText = currentUserNick;
     
-    // Inyectar elementos adicionales (Estado y Final)
     injectStateSelect();
     injectFinalBlock();
 }
@@ -283,10 +273,9 @@ function logout() {
 }
 
 // ============================================
-// LÓGICA DE INTERFAZ Y FORMULARIO
+// LÓGICA DE INTERFAZ Y FORMULARIO (SIN RATING)
 // ============================================
 
-// Función para inyectar el Bloque de Estado dinámicamente
 function injectStateSelect() {
     if(document.getElementById('estadoAnime')) return;
     const genresContainer = document.getElementById('genresContainer');
@@ -320,7 +309,6 @@ function injectStateSelect() {
     sel.style.backgroundSize = "16px";
 }
 
-// Función para inyectar el Bloque "Final" antes de Música
 function injectFinalBlock() {
     if(document.getElementById('finalToggle')) return;
     const musicContainer = document.getElementById('musicContainer');
@@ -412,14 +400,6 @@ function showToast(msg, isError = false) {
 
 function autoCap(input) {
     if(input.value) input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
-}
-
-function limitRating(input, min, max) {
-    if(input.value.length > 1) input.value = input.value.slice(0,1);
-    const val = parseInt(input.value);
-    if(isNaN(val)) return;
-    if (val < min) input.value = min;
-    if (val > max) input.value = max;
 }
 
 function validate(input) {
@@ -839,10 +819,7 @@ function updateWebPreview() {
     const prevAlias = document.getElementById('previewAliasesList');
     if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
 
-    const ri = document.getElementById('ratingInt').value;
-    const rd = document.getElementById('ratingDec').value;
-    const wRat = document.getElementById('webRating');
-    if(wRat) wRat.innerText = `⭐ ${ri || 0}.${rd || 0}`;
+    // Eliminamos la visualización del rating en la previsualización
     const tagsContainer = document.getElementById('webTags');
     if(tagsContainer) {
         tagsContainer.innerHTML = '';
@@ -1021,7 +998,7 @@ async function loadAnimeForEditing(id) {
             saveBtn.style.opacity = '0.5';
         }
 
-        // Rellenar formulario
+        // Rellenar formulario (sin campos de rating)
         document.getElementById('tituloAnime').value = targetDetail.title || '';
         document.getElementById('portadaAnime').value = targetDetail.img || '';
         document.getElementById('sinopsisAnime').value = targetDetail.desc || '';
@@ -1042,13 +1019,6 @@ async function loadAnimeForEditing(id) {
                 cb.checked = loadedGenres.includes(cb.value);
             });
         }
-        
-        // Rating
-        let r = targetDetail.rating || 0;
-        const intPart = Math.floor(r);
-        const decPart = Math.round((r - intPart) * 10);
-        document.getElementById('ratingInt').value = intPart || "";
-        document.getElementById('ratingDec').value = decPart;
         
         // Estado
         if (targetDetail.updateType) {
@@ -1109,7 +1079,6 @@ async function deleteCurrentAnime(idToDelete) {
         await db.collection('catalogo').doc(String(idToDelete)).delete();
         showToast("✅ Anime eliminado correctamente");
         
-        // Recargar catálogo en caché
         await loadCatalogForSearch();
         
         exitEditMode();
@@ -1135,8 +1104,6 @@ function exitEditMode() {
     document.getElementById('aliasContainer').innerHTML = '';
     document.getElementById('seasonsContainer').innerHTML = '';
     document.getElementById('musicContainer').innerHTML = '';
-    document.getElementById('ratingInt').value = '';
-    document.getElementById('ratingDec').value = '';
     document.querySelectorAll('#genresContainer input').forEach(cb => cb.checked = false);
     requestPreviewUpdate();
 }
@@ -1145,9 +1112,7 @@ function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
     const demoSelect = document.getElementById('demografiaAnime').value;
-    const iVal = document.getElementById('ratingInt').value || "0";
-    const dVal = document.getElementById('ratingDec').value || "0";
-    const ratingVal = parseFloat(iVal + "." + dVal);
+    // Ya no se incluye rating
     const aliasList = [];
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliasList.push(i.value.trim()) });
     
@@ -1166,7 +1131,8 @@ function generateData() {
         img: document.getElementById('portadaAnime').value.trim(),
         desc: document.getElementById('sinopsisAnime').value.trim(),
         genres: selectedGenres,
-        rating: ratingVal,
+        // rating ya no se guarda (o se guarda un valor por defecto 0)
+        rating: 0,
         musica: [],
         seasons: [],
         uploader: currentUserEmail, 
@@ -1239,38 +1205,8 @@ function generateData() {
     return anime;
 }
 
-function highlightLogoutButton() {
-    const headerBtns = document.querySelectorAll('#userHeader button');
-    const logoutBtn = Array.from(headerBtns).find(btn => btn.getAttribute('onclick') === 'logout()');
-    if (logoutBtn) {
-        logoutBtn.style.transition = 'all 0.5s ease';
-        logoutBtn.style.border = '2px solid #00f0ff';
-        logoutBtn.style.boxShadow = '0 0 20px #00f0ff, inset 0 0 10px #00f0ff';
-        logoutBtn.style.color = '#00f0ff';
-        logoutBtn.style.transform = 'scale(1.2)';
-        let visible = true;
-        setInterval(() => {
-            logoutBtn.style.opacity = visible ? '0.5' : '1';
-            visible = !visible;
-        }, 500);
-        const tip = document.createElement('div');
-        tip.innerHTML = "⬇ CLIC AQUÍ ⬇";
-        tip.style.position = 'absolute';
-        tip.style.top = '50px';
-        tip.style.right = '10px';
-        tip.style.background = '#00f0ff';
-        tip.style.color = '#000';
-        tip.style.padding = '5px 10px';
-        tip.style.borderRadius = '5px';
-        tip.style.fontWeight = 'bold';
-        tip.style.zIndex = '9999';
-        tip.style.pointerEvents = 'none';
-        document.body.appendChild(tip);
-    }
-}
-
 // ============================================
-// GUARDAR EN FIRESTORE (REEMPLAZA A subirAGithHub)
+// GUARDAR EN FIRESTORE (SIN CREAR VOTOS)
 // ============================================
 async function guardarEnFirestore() {
     const btn = document.getElementById('btnSaveAction');
@@ -1282,7 +1218,6 @@ async function guardarEnFirestore() {
     if(!nuevoAnime.title) return showToast("Falta Título", true);
     if(!nuevoAnime.img) return showToast("Falta Portada", true);
     if(!nuevoAnime.desc) return showToast("Falta Sinopsis", true);
-    if(nuevoAnime.rating < 1.0 || nuevoAnime.rating > 5.0) return showToast("Valoración inválida", true);
     if(nuevoAnime.genres.length === 0) return showToast("Elige Géneros", true);
     
     if(nuevoAnime.updateType !== 'PRÓXIMAMENTE ⏳') {
@@ -1315,19 +1250,8 @@ async function guardarEnFirestore() {
         // Timestamp para lastUpdate
         nuevoAnime.lastUpdate = Date.now();
         
-        // Guardar en Firestore
+        // Guardar en Firestore (solo catálogo, NO se crea animeRatings)
         await db.collection('catalogo').doc(String(finalId)).set(nuevoAnime, { merge: true });
-        
-        // Actualizar rating en animeRatings si es necesario
-        const ratingRef = db.collection('animeRatings').doc(String(finalId));
-        const ratingDoc = await ratingRef.get();
-        if (!ratingDoc.exists) {
-            await ratingRef.set({
-                avg: nuevoAnime.rating,
-                count: 1,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
         
         showToast(`¡Anime ${isEditMode ? 'actualizado' : 'creado'} correctamente!`, false);
         
@@ -1335,7 +1259,6 @@ async function guardarEnFirestore() {
         await loadCatalogForSearch();
         
         if (!isEditMode) {
-            // Limpiar formulario para nuevo anime
             exitEditMode();
         } else {
             originalAnimeState = JSON.stringify(nuevoAnime);
