@@ -1,7 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (GOFILE + FIRESTORE)
 // ACTUALIZADO: Subida a GoFile sin API Key
-// CORREGIDO: Obtiene enlace directo extrayéndolo de la página de descarga
+// CORREGIDO: Extrae correctamente el directLink desde contents
 // ============================================
 
 let stickersDb = null;
@@ -129,43 +129,7 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN AUXILIAR PARA EXTRAER ENLACE DIRECTO DE LA PÁGINA DE GOFILE ==========
-async function extractDirectLinkFromDownloadPage(downloadPageUrl) {
-    // Usamos un proxy CORS público para obtener el HTML de la página
-    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-    const response = await fetch(proxyUrl + encodeURIComponent(downloadPageUrl));
-    if (!response.ok) {
-        throw new Error('No se pudo obtener la página de descarga');
-    }
-    const html = await response.text();
-    
-    // Parsear HTML para encontrar el enlace directo (el botón "Download")
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    // Buscar el enlace de descarga. Suele ser un <a> con clase 'btn btn-primary' o similar
-    const downloadBtn = doc.querySelector('a.btn.btn-primary, a.btn-primary, a[href*="download"], .download-button a');
-    if (!downloadBtn) {
-        throw new Error('No se encontró el enlace de descarga en la página');
-    }
-    
-    let directUrl = downloadBtn.href;
-    if (!directUrl) {
-        throw new Error('El enlace de descarga no tiene href');
-    }
-    
-    // A veces la URL es relativa; la convertimos en absoluta
-    if (directUrl.startsWith('/')) {
-        const urlObj = new URL(downloadPageUrl);
-        directUrl = urlObj.origin + directUrl;
-    }
-    
-    // Limpiar posibles parámetros extraños
-    directUrl = directUrl.split('?')[0]; // Quitar query string si molesta
-    return directUrl;
-}
-
-// ========== FUNCIÓN DE SUBIDA CORREGIDA CON EXTRACCIÓN DE ENLACE DIRECTO ==========
+// ========== FUNCIÓN DE SUBIDA CORREGIDA (EXTRAE CORRECTAMENTE EL ENLACE DIRECTO) ==========
 window.subirStickerDesdePC = async function(inputElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -224,35 +188,35 @@ window.subirStickerDesdePC = async function(inputElement) {
             body: formData
         });
         const uploadData = await uploadRes.json();
-        console.log('Respuesta de GoFile (subida):', uploadData);
+        console.log('📦 Respuesta completa de GoFile:', uploadData);
 
         if (uploadData.status !== 'ok') {
             throw new Error(uploadData.message || 'Error desconocido de GoFile');
         }
 
-        // 3. Obtener la página de descarga
-        const downloadPage = uploadData.data.downloadPage;
-        if (!downloadPage) {
-            throw new Error('No se recibió la página de descarga');
+        // 3. Extraer información del archivo subido desde 'contents'
+        const contents = uploadData.data.contents;
+        if (!contents || Object.keys(contents).length === 0) {
+            throw new Error('No se recibió información del archivo en la respuesta');
         }
 
-        // 4. Extraer el enlace directo real desde la página de descarga
-        btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extrayendo enlace directo...';
-        let directUrl;
-        try {
-            directUrl = await extractDirectLinkFromDownloadPage(downloadPage);
-        } catch (extractError) {
-            console.warn('Error extrayendo enlace directo:', extractError);
-            // Fallback: intentar construir manualmente (poco probable que funcione)
-            const code = uploadData.data.code;
-            const fileName = encodeURIComponent(file.name);
-            directUrl = `https://${server}.gofile.io/download/${code}/${fileName}`;
-            console.log('Fallback URL construida:', directUrl);
+        // Obtener el primer archivo (solo subimos uno)
+        const firstFileId = Object.keys(contents)[0];
+        const fileData = contents[firstFileId];
+        
+        // El enlace directo puede venir en fileData.directLink o debemos construirlo
+        let directUrl = fileData.directLink;
+        
+        if (!directUrl) {
+            // Construir manualmente: https://{server}.gofile.io/download/web/{fileId}/{filename}
+            const encodedFileName = encodeURIComponent(fileData.name);
+            directUrl = `https://${server}.gofile.io/download/web/${firstFileId}/${encodedFileName}`;
+            console.log('🔧 Enlace directo construido manualmente:', directUrl);
+        } else {
+            console.log('✅ Enlace directo proporcionado por GoFile:', directUrl);
         }
         
-        console.log('Enlace directo obtenido:', directUrl);
-        
-        // 5. Guardar en Firestore
+        // 4. Guardar en Firestore
         await guardarStickerEnColeccion(directUrl);
         
         previewContainer.style.display = 'none';
@@ -263,10 +227,10 @@ window.subirStickerDesdePC = async function(inputElement) {
         await loadUserStickers();
         
     } catch (error) {
-        console.error('Error en subida:', error);
+        console.error('❌ Error en subida:', error);
         let mensaje = 'Error al subir el archivo. ';
         if (error.message.includes('servidor') || error.message.includes('fetch')) {
-            mensaje += 'Problema de conexión con GoFile o el proxy. Inténtalo de nuevo más tarde.';
+            mensaje += 'Problema de conexión con GoFile. Inténtalo de nuevo más tarde.';
         } else {
             mensaje += error.message;
         }
