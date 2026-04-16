@@ -1079,7 +1079,7 @@
         </div>
         <div id="subirStickersTab" class="sticker-tab-content">
           <div class="add-sticker-container" id="dragDropZone">
-            <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 50 MB)</p>
+            <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 2 MB)</p>
             <label for="stickerFileInput" class="upload-sticker-label">
               <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
             </label>
@@ -1185,9 +1185,7 @@
       const files = dt.files;
       if (files.length > 0) {
         const file = files[0];
-        // Verificar tipo de archivo
         if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-          // Pasar el archivo a la función de procesamiento (expuesta por stickers-system.js)
           if (typeof window.procesarArchivoSticker === 'function') {
             window.procesarArchivoSticker(file);
           } else {
@@ -1199,9 +1197,7 @@
       }
     }
     
-    // Exponer función para procesar archivo (será sobrescrita por stickers-system.js)
     window.procesarArchivoSticker = function(file) {
-      // Esta función será reemplazada por la implementación real desde stickers-system.js
       console.warn('procesarArchivoSticker no implementado aún');
     };
   })();

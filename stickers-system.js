@@ -156,7 +156,6 @@ function renderSubirStickersTab() {
     const fileInput = document.getElementById('stickerFileInput');
     const dropZone = document.getElementById('dropZoneLabel');
 
-    // Evento click en label ya funciona nativamente, pero añadimos cambio
     fileInput.addEventListener('change', (e) => {
         if (fileInput.files.length > 0) {
             window.subirStickerDesdePC(fileInput);
@@ -169,7 +168,6 @@ function renderSubirStickersTab() {
             e.preventDefault();
             e.stopPropagation();
         });
-        // También prevenir en el contenedor por si acaso
         container.addEventListener(eventName, (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -234,15 +232,16 @@ function handleDroppedFile(file) {
 
     // Simular input file
     const fileInput = document.getElementById('stickerFileInput');
-    // Crear un DataTransfer para asignar archivos al input
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     fileInput.files = dataTransfer.files;
 
-    // Disparar evento change manualmente
     const event = new Event('change', { bubbles: true });
     fileInput.dispatchEvent(event);
 }
+
+// Exponer función global para el drag & drop del HTML
+window.procesarArchivoSticker = handleDroppedFile;
 
 // ========== FUNCIÓN DE SUBIDA CON PROXY CORS (LÍMITE 2 MB) ==========
 window.subirStickerDesdePC = async function(inputElement) {
@@ -256,14 +255,12 @@ window.subirStickerDesdePC = async function(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
 
-    // Validación estricta de 2 MB
     if (file.size > 2 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 2 MB.');
         inputElement.value = '';
         return;
     }
 
-    // Preview local
     const previewContainer = document.getElementById('stickerPreview');
     const previewImg = document.getElementById('previewImage');
     const previewVid = document.getElementById('previewVideo');
@@ -425,6 +422,3 @@ window.openLoginModalFromStickers = function() {
 };
 
 window.cargarStickersUsuario = loadUserStickers;
-
-// Inicializar el área de subida cuando el sistema esté listo
-// (se llama desde initStickersSystem o switchStickerTab)
