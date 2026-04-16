@@ -1,28 +1,15 @@
 // ============================================
-// ARCHIVO DE ANUNCIOS PARA ARCHINIME - BANNER 160x600
+// ARCHIVO DE ANUNCIOS PARA ARCHINIME (VERSIÓN CON PRECARGA)
 // ============================================
 
 const listaAnuncios = [
   {
     id: 'banner_160x600',
     red: 'HighPerformanceFormat',
-    descripcion: 'Banner vertical 160x600',
-    codigo: `
-      <script>
-        atOptions = {
-          'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65',
-          'format' : 'iframe',
-          'height' : 600,
-          'width' : 160,
-          'params' : {}
-        };
-      </script>
-      <script src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
-    `
+    descripcion: 'Banner vertical 160x600'
   }
 ];
 
-// Variable global que almacenará el anuncio actual
 let anuncioActual = null;
 
 function inicializarAnuncio() {
@@ -40,39 +27,43 @@ function crearTarjetaAnuncio() {
     return null;
   }
 
+  // Buscar el contenedor oculto que ya tiene el banner cargado
+  const preloadContainer = document.getElementById('banner-preload');
+  if (!preloadContainer) {
+    console.warn('❌ No se encontró el contenedor #banner-preload');
+    return null;
+  }
+
+  // Clonar el contenido del contenedor (para no mover el original)
+  const bannerContent = preloadContainer.cloneNode(true);
+  // Eliminar el estilo de posición absoluta del clon
+  bannerContent.style.position = 'relative';
+  bannerContent.style.left = '0';
+  bannerContent.style.top = '0';
+  bannerContent.style.width = '100%';
+  bannerContent.style.height = '100%';
+  bannerContent.style.overflow = 'hidden';
+  bannerContent.style.zIndex = 'auto';
+
+  // Crear la tarjeta
   const card = document.createElement('div');
   card.className = 'card card-ad';
   card.dataset.id = anuncioActual.id;
 
-  // Contenedor interno con una clase específica
+  // Contenedor interno para el banner
   const innerDiv = document.createElement('div');
   innerDiv.className = 'ad-inner-container';
-  innerDiv.innerHTML = anuncioActual.codigo;
-
-  // Ejecutar los scripts que vienen dentro del código
-  const scripts = innerDiv.querySelectorAll('script');
-  scripts.forEach(oldScript => {
-    const newScript = document.createElement('script');
-    if (oldScript.src) {
-      newScript.src = oldScript.src;
-      newScript.async = true;
-    } else {
-      newScript.textContent = oldScript.textContent;
-    }
-    // Añadir al body para que se ejecute
-    document.body.appendChild(newScript);
-    oldScript.remove();
-  });
+  innerDiv.appendChild(bannerContent);
 
   card.appendChild(innerDiv);
 
-  // Info muy discreta
+  // Info discreta
   const infoDiv = document.createElement('div');
   infoDiv.className = 'info';
   infoDiv.innerHTML = `<strong>anuncio</strong><span>⚡</span>`;
   card.appendChild(infoDiv);
 
-  console.log('📦 Tarjeta de anuncio creada');
+  console.log('📦 Tarjeta de anuncio creada (con banner precargado)');
   return card;
 }
 
