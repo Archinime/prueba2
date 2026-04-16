@@ -1,6 +1,6 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
-// CON PROXY CORS PARA EVITAR BLOQUEO
+// CON PROXY CORS Y SOPORTE DRAG & DROP
 // ============================================
 
 let stickersDb = null;
@@ -134,21 +134,18 @@ async function eliminarSticker(urlSticker, event) {
     }
 }
 
-// ========== FUNCIÓN DE SUBIDA CON PROXY CORS ==========
-window.subirStickerDesdePC = async function(inputElement) {
+// ========== FUNCIÓN PRINCIPAL DE SUBIDA (AHORA EXPUESTA COMO procesarArchivoSticker) ==========
+window.procesarArchivoSticker = async function(file) {
     const user = getCurrentUser();
     if (!user) {
         openLoginModalFromStickers();
-        inputElement.value = '';
         return;
     }
 
-    const file = inputElement.files[0];
     if (!file) return;
 
     if (file.size > 50 * 1024 * 1024) {
         alert('El archivo es muy pesado. Máximo 50 MB.');
-        inputElement.value = '';
         return;
     }
 
@@ -158,21 +155,29 @@ window.subirStickerDesdePC = async function(inputElement) {
     const previewVid = document.getElementById('previewVideo');
     const isVideo = file.type.startsWith('video/');
     
-    if (isVideo) {
-        previewImg.style.display = 'none';
-        previewVid.src = URL.createObjectURL(file);
-        previewVid.style.display = 'inline-block';
-    } else {
-        previewVid.style.display = 'none';
-        previewImg.src = URL.createObjectURL(file);
-        previewImg.style.display = 'inline-block';
+    if (previewContainer) {
+        if (isVideo) {
+            if (previewImg) previewImg.style.display = 'none';
+            if (previewVid) {
+                previewVid.src = URL.createObjectURL(file);
+                previewVid.style.display = 'inline-block';
+            }
+        } else {
+            if (previewVid) previewVid.style.display = 'none';
+            if (previewImg) {
+                previewImg.src = URL.createObjectURL(file);
+                previewImg.style.display = 'inline-block';
+            }
+        }
+        previewContainer.style.display = 'block';
     }
-    previewContainer.style.display = 'block';
 
     const btnSubir = document.querySelector('.upload-sticker-label');
-    const originalText = btnSubir.innerHTML;
-    btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
-    btnSubir.style.pointerEvents = 'none';
+    const originalText = btnSubir ? btnSubir.innerHTML : '';
+    if (btnSubir) {
+        btnSubir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo a Catbox...';
+        btnSubir.style.pointerEvents = 'none';
+    }
     
     try {
         const formData = new FormData();
@@ -180,14 +185,13 @@ window.subirStickerDesdePC = async function(inputElement) {
         formData.append('userhash', CATBOX_USERHASH);
         formData.append('fileToUpload', file);
 
-        // Usamos el proxy para evitar CORS
         const targetUrl = 'https://catbox.moe/user/api.php';
         const proxyUrl = CORS_PROXY + encodeURIComponent(targetUrl);
         
         console.log('📤 Enviando archivo mediante proxy:', proxyUrl);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         const uploadRes = await fetch(proxyUrl, {
             method: 'POST',
@@ -209,8 +213,9 @@ window.subirStickerDesdePC = async function(inputElement) {
         if (fileUrl && fileUrl.startsWith('http')) {
             await guardarStickerEnColeccion(fileUrl);
             
-            previewContainer.style.display = 'none';
-            inputElement.value = '';
+            if (previewContainer) previewContainer.style.display = 'none';
+            const fileInput = document.getElementById('stickerFileInput');
+            if (fileInput) fileInput.value = '';
             showToastSticker('✅ Sticker subido exitosamente');
             
             window.switchStickerTab('mis');
@@ -229,11 +234,22 @@ window.subirStickerDesdePC = async function(inputElement) {
             mensaje += error.message;
         }
         alert(mensaje);
-        previewContainer.style.display = 'none';
-        inputElement.value = '';
+        if (previewContainer) previewContainer.style.display = 'none';
+        const fileInput = document.getElementById('stickerFileInput');
+        if (fileInput) fileInput.value = '';
     } finally {
-        btnSubir.innerHTML = originalText;
-        btnSubir.style.pointerEvents = 'auto';
+        if (btnSubir) {
+            btnSubir.innerHTML = originalText;
+            btnSubir.style.pointerEvents = 'auto';
+        }
+    }
+};
+
+// Mantener compatibilidad con el input file tradicional
+window.subirStickerDesdePC = async function(inputElement) {
+    const file = inputElement.files[0];
+    if (file) {
+        await window.procesarArchivoSticker(file);
     }
 };
 
