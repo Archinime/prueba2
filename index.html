@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.3";
+      const APP_VERSION = "2025-04-06-v6.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -196,6 +196,26 @@
       98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
     }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+/* ===== ESTILOS PARA PUBLICIDAD ===== */
+    .card.ad-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--dark-bg);
+      cursor: default;
+    }
+    .card.ad-card:hover img {
+      transform: none; 
+    }
+    .ad-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 1;
+    }
 
     /* Navbar y demás estilos (resumidos por brevedad, pero completos) */
     .cyber-nav {
@@ -345,60 +365,6 @@
     .card .info strong { font-size: 1rem; font-weight: 700; color: white; text-shadow: 0 2px 5px black; }
     .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
       letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
-    
-    /* ===== ESTILO PARA TARJETAS DE ANUNCIOS (BANNER 160x600) ===== */
-    .card-ad {
-      cursor: pointer;
-    }
-    .card-ad .info {
-      background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
-      padding: 30px 8px 8px;
-    }
-    .card-ad .info strong {
-      font-size: 0.65rem;
-      color: rgba(255,255,255,0.35);
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .card-ad .info span {
-      background: transparent;
-      color: rgba(255,0,85,0.4);
-      font-size: 0.5rem;
-      padding: 0;
-      letter-spacing: 0;
-    }
-    .card-ad .ad-inner-container {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(145deg, #0a0a0c, #020203);
-      position: relative;
-      overflow: hidden;
-    }
-    .card-ad iframe,
-    .card-ad ins {
-      max-width: 100%;
-      max-height: 100%;
-      width: auto !important;
-      height: auto !important;
-      border: none;
-      background: transparent;
-      box-shadow: 0 0 15px rgba(0,243,255,0.1);
-    }
-    .card-ad .ad-inner-container::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at 30% 20%, rgba(188,19,254,0.08), transparent);
-      pointer-events: none;
-    }
-
     .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
@@ -687,31 +653,6 @@
   <div class="grid" id="grid"></div>
 </main>
 
-<!-- Tarjeta de anuncio oculta que será movida a una posición aleatoria -->
-<div id="hidden-ad-card" style="display: none;">
-  <div class="card card-ad" id="template-ad-card">
-    <div class="ad-inner-container">
-      <!-- Aquí va el código del banner -->
-      <div id="banner-container">
-        <script>
-          atOptions = {
-            'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65',
-            'format' : 'iframe',
-            'height' : 600,
-            'width' : 160,
-            'params' : {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
-      </div>
-    </div>
-    <div class="info">
-      <strong>anuncio</strong>
-      <span>⚡</span>
-    </div>
-  </div>
-</div>
-
 <div class="stage" aria-hidden="true">
   <div id="fgContainer" aria-label="Vídeo frontal">
     <canvas id="fgCanvas"></canvas>
@@ -749,8 +690,9 @@
 <!-- 3. Otros scripts (notificaciones, gifs, etc.) -->
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
+<script src="banners.js"></script> ```
 
-<!-- 4. Lógica principal (sin anuncios dinámicos, solo mover la tarjeta oculta) -->
+<!-- 4. Lógica principal (paginación, autenticación, chroma key, música, etc.) -->
 <script>
   // ========== GIF ALEATORIO ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -832,69 +774,50 @@
     return 0;
   }
 
-  // ========== RENDERIZADO DE ANIMES (con anuncio movido a posición aleatoria) ==========
+  // ========== RENDERIZADO DE ANIMES ==========
   function renderAnimes(animes, append = false) {
     const grid = document.getElementById('grid');
     if (!grid) return;
     if (!append) grid.innerHTML = '';
-
     if (!animes.length && !append) {
       mostrarNoResultados();
       return;
     }
-
     const frag = document.createDocumentFragment();
-
-    // Solo insertamos el anuncio en la primera carga (no en append) y si no hay filtros activos
-    const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    const shouldInsertAd = !append && !hasActiveFilters;
-    
-    let randomPos = -1;
-    let adCard = null;
-    if (shouldInsertAd && animes.length > 3) {
-      // Clonar la tarjeta de anuncio oculta
-      const templateCard = document.getElementById('template-ad-card');
-      if (templateCard) {
-        adCard = templateCard.cloneNode(true);
-        adCard.style.display = 'flex'; // Asegurar que se muestre
-        // Eliminar el id para que no haya duplicados
-        adCard.removeAttribute('id');
-        // Posición aleatoria entre 2 y el penúltimo índice
-        const minPos = 2;
-        const maxPos = animes.length - 1;
-        randomPos = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
-        console.log(`📢 Anuncio insertado en posición aleatoria: ${randomPos + 1}`);
-      } else {
-        console.warn('No se encontró la tarjeta de anuncio oculta');
-      }
-    }
-
-    for (let i = 0; i < animes.length; i++) {
-      const anime = animes[i];
+    animes.forEach(anime => {
       const card = document.createElement('div');
       card.className = 'card';
       card.dataset.id = anime.id;
       card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
       const rating = getDisplayRating(anime);
       const imgUrl = anime.img || 'placeholder.webp';
-      card.innerHTML = `
-        <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
-        <div class="info">
-          <strong>${anime.title}</strong>
-          <span class="rating-value">⭐ ${rating}</span>
-        </div>
-      `;
+      card.innerHTML = `<img src="${imgUrl}" alt="${anime.title}" loading="lazy"><div class="info"><strong>${anime.title}</strong><span class="rating-value">⭐ ${rating}</span></div>`;
       frag.appendChild(card);
-
-      if (shouldInsertAd && adCard && i === randomPos) {
-        frag.appendChild(adCard);
-      }
-    }
-
+    });
     grid.appendChild(frag);
-    aplicarTiltANuevasCards();
+    // Efecto tilt solo en desktop
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!isTouch) {
+      document.querySelectorAll('.card:not([data-tilt-init])').forEach(c => {
+        c.dataset.tiltInit = 'true';
+        c.addEventListener('mousemove', (e) => {
+          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
+          c.tiltRAF = requestAnimationFrame(() => {
+            const rect = c.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const rotX = ((y - rect.height/2) / (rect.height/2)) * -6;
+            const rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
+            c.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+          });
+        });
+        c.addEventListener('mouseleave', () => {
+          if (c.tiltRAF) cancelAnimationFrame(c.tiltRAF);
+          c.style.transform = '';
+        });
+      });
+    }
   }
-
   function mostrarNoResultados() {
     const grid = document.getElementById('grid');
     if (!grid) return;
@@ -1222,30 +1145,6 @@
     });
   })();
 
-  // ========== EFECTO TILT PARA CARDS ==========
-  function aplicarTiltANuevasCards() {
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch) return;
-    document.querySelectorAll('.card:not([data-tilt-init])').forEach(card => {
-      card.dataset.tiltInit = 'true';
-      card.addEventListener('mousemove', (e) => {
-        if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
-        card.tiltRAF = requestAnimationFrame(() => {
-          const rect = card.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          const rotX = ((y - rect.height/2) / (rect.height/2)) * -6;
-          const rotY = ((x - rect.width/2) / (rect.width/2)) * 6;
-          card.style.transform = `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-        });
-      });
-      card.addEventListener('mouseleave', () => {
-        if (card.tiltRAF) cancelAnimationFrame(card.tiltRAF);
-        card.style.transform = '';
-      });
-    });
-  }
-
   // ========== ANIMACIONES FRONTALES (CHROMA KEY) Y MÚSICA ==========
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
@@ -1345,7 +1244,7 @@
   document.addEventListener('click', startAudioMedia, { once: true });
   document.addEventListener('touchstart', startAudioMedia, { once: true });
 
-  // ========== INICIALIZACIÓN FINAL ==========
+  // Inicializar notificaciones y carga de animes
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
   cargarAnimesPaginado(true);
 </script>
