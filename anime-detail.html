@@ -399,7 +399,8 @@
       transform: translateZ(0);
     }
     .search-item:hover { background: rgba(0,243,255,0.1); }
-    .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
+    .search-item img { width: 40px; height: 55px;
+      object-fit: cover; border-radius: 6px; }
 
     .anime-cover {
       text-align: center;
@@ -628,7 +629,8 @@
       border: 1px solid rgba(188,19,254,0.15);
       display: flex;
       flex-direction: column;
-      aspect-ratio: 2/3;          /* Proporción fija como en index */
+      aspect-ratio: 2/3;
+      /* Proporción fija como en index */
       width: 100%;
       will-change: transform;
     }
@@ -644,7 +646,7 @@
       flex-shrink: 0;
     }
     .rec-card p {
-      padding: 8px;
+      padding: 25px 8px 8px; /* Ajustado superior para el efecto del degradado */
       margin: 0;
       text-align: center;
       font-size: 0.8rem;
@@ -653,7 +655,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      background: rgba(0,0,0,0.5);
+      background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%); /* Sombra degradada */
       flex-shrink: 0;
       position: absolute;
       bottom: 0;
@@ -682,7 +684,8 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      overflow: hidden !important;   /* Recorta el contenido que sobresalga */
+      overflow: hidden !important;
+      /* Recorta el contenido que sobresalga */
       position: relative;
     }
     .rec-card.card-ad iframe,
@@ -831,6 +834,7 @@
   window.playUISound = function(type) {
     if (window._playUISound) window._playUISound(type);
   };
+
   window.escapeHtml = function(str) { 
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
   };
