@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cargando Archinime...</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --neon-cyan: #00f3ff;
@@ -12,59 +12,74 @@
       --neon-pink: #ff0055;
       --dark-bg: #050505;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
       margin: 0;
       padding: 0;
       background-color: var(--dark-bg);
       background-image: radial-gradient(circle at center, #111116 0%, #020202 100%);
       height: 100vh;
-      width: 100vw;
-      display: flex;
+      display: flex; 
       flex-direction: column;
       justify-content: center;
       align-items: center;
       font-family: 'Orbitron', sans-serif;
-      color: white;
+      color: white; 
       overflow: hidden;
       position: relative;
     }
+
     body::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 3px
+      );
       pointer-events: none;
       z-index: 1;
     }
-    /* Contenido central */
+    
     .loader-content {
       position: relative;
-      z-index: 10;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      max-width: 95vw;
-      padding: 20px;
+      width: 100%;
     }
+
     .gif-wrapper {
       position: relative;
-      width: 190px; height: 190px;
+      width: 190px; 
+      height: 190px;
       margin-bottom: 25px;
-      border-radius: 50%;
+      border-radius: 50%; 
       padding: 4px;
       background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
       animation: spinGradient 4s linear infinite, floatAnim 2s ease-in-out infinite alternate;
-      box-shadow: 0 0 30px rgba(188,19,254,0.4), inset 0 0 20px rgba(0,243,255,0.5);
+      box-shadow: 0 0 30px rgba(188, 19, 254, 0.4), inset 0 0 20px rgba(0, 243, 255, 0.5);
     }
+
     .gif-inner {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       overflow: hidden;
-      background: #000;
+      background-color: #000;
     }
-    .gif-inner img { width: 100%; height: 100%; object-fit: cover; }
+
+    .gif-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .loader-text-container {
       text-align: center;
       display: flex;
@@ -72,12 +87,15 @@
       align-items: center;
       gap: 8px;
     }
+
     .loader-title {
       font-size: 1.6rem;
+      color: white;
       letter-spacing: 8px;
       text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
       animation: glitchText 4s infinite;
     }
+
     .loader-percentage {
       font-size: 1rem;
       color: var(--neon-purple);
@@ -85,180 +103,198 @@
       font-weight: 900;
       text-shadow: 0 0 8px var(--neon-purple);
     }
+
     .loader-line-container {
       width: 320px;
       height: 6px;
-      background: rgba(255,255,255,0.05);
-      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-top: 30px; 
       border-radius: 10px;
       overflow: hidden;
       box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
-      border: 1px solid rgba(0,243,255,0.3);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      position: relative;
     }
+
     .loader-line {
       width: 0;
       height: 100%;
       background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
       box-shadow: 0 0 20px var(--neon-cyan), 0 0 10px var(--neon-purple);
       border-radius: 10px;
-      animation: loadProgress 3s forwards cubic-bezier(0.8,0,0.2,1);
+      animation: loadProgress 4.5s forwards cubic-bezier(0.8, 0, 0.2, 1);
     }
-    /* Banners en las 4 esquinas (fuera del loader-content para que no se oculten) */
-    .corner-banner {
-      position: fixed;
-      z-index: 1000;
-      background: rgba(0,0,0,0.6);
-      border-radius: 12px;
-      padding: 6px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(0,243,255,0.4);
-      max-width: 35vw;
-      max-height: 35vh;
-      overflow: auto;
+
+    /* ===== CONTENEDOR DEL PATROCINADOR (ADS) ===== */
+    .sponsor-container {
+      margin-top: 35px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 100vw;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInSponsor 1s ease 0.5s forwards; /* Aparece suavemente después del loader */
+    }
+
+    .sponsor-text {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.65rem;
+      color: #888;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+    }
+
+    .ad-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.6);
-    }
-    .corner-banner iframe, .corner-banner ins {
       max-width: 100%;
-      max-height: 100%;
-      border: none;
+      overflow: hidden;
+      border-radius: 8px;
     }
-    .corner-tl { top: 12px; left: 12px; }
-    .corner-tr { top: 12px; right: 12px; }
-    .corner-bl { bottom: 12px; left: 12px; }
-    .corner-br { bottom: 12px; right: 12px; }
-    @media (max-width: 768px) {
-      .corner-banner { max-width: 40vw; max-height: 30vh; padding: 4px; }
+
+    /* Fuerza a que el iframe del anuncio no rompa la pantalla */
+    .ad-wrapper iframe {
+      max-width: 100% !important;
+      object-fit: contain;
     }
-    @media (max-width: 480px) {
-      .corner-banner { max-width: 45vw; max-height: 25vh; }
-    }
-    @keyframes loadProgress {
-      0% { width: 0%; opacity: 0; }
+
+    @keyframes loadProgress { 
+      0% { width: 0%; opacity: 0;} 
       10% { opacity: 1; }
-      100% { width: 100%; }
+      100% { width: 100%; } 
     }
-    @keyframes floatAnim {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-12px); }
+    
+    @keyframes floatAnim { 
+      0% { transform: translateY(0); } 
+      100% { transform: translateY(-12px); } 
     }
+
     @keyframes spinGradient {
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
+
     @keyframes glitchText {
-      0%,100% { opacity: 1; transform: skewX(0deg); }
-      94% { opacity: 1; transform: skewX(0deg); }
-      96% { opacity: 0.8; transform: skewX(6deg); text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--neon-cyan); }
-      98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
+      0%, 100% { opacity: 1; transform: skewX(0deg); }
+      92% { opacity: 1; transform: skewX(0deg); }
+      94% { opacity: 0.8; transform: skewX(10deg); text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--neon-cyan); }
+      96% { opacity: 0.9; transform: skewX(-10deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
+      98% { opacity: 1; transform: skewX(0deg); }
+    }
+
+    @keyframes fadeInSponsor {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-<div class="loader-content">
-  <div class="gif-wrapper">
-    <div class="gif-inner">
-      <img id="personaje-gif" src="" alt="Cargando sistema">
+  <div class="loader-content">
+    
+    <div class="gif-wrapper">
+      <div class="gif-inner">
+        <img id="personaje-gif" src="" alt="Cargando sistema" class="character-gif">
+      </div>
     </div>
+    
+    <div class="loader-text-container">
+      <div class="loader-title">ARCHINIME</div>
+      <div class="loader-percentage" id="loading-percentage">0%</div>
+    </div>
+    
+    <div class="loader-line-container">
+      <div class="loader-line"></div>
+    </div>
+
+    <div class="sponsor-container">
+      <div class="sponsor-text"><i class="fas fa-bolt"></i> Servidores potenciados por</div>
+      <div id="ad-wrapper" class="ad-wrapper">
+        <script>
+          // Lógica para elegir el banner perfecto sin deformar la pantalla
+          (function() {
+            var banners = [
+              { key: '1904483365c7a7ab9f83e49d32b7d237', height: 60, width: 468 },
+              { key: '49281ce83eb56f120e34ad617cfd6996', height: 300, width: 160 },
+              { key: '6ecb40404fef8f9daf755244f9c4d753', height: 50, width: 320 },
+              { key: '1f072201cddab551b2b65315f6c1643e', height: 90, width: 728 },
+              { key: 'c80e9060ab41f7adc2b2ccc358ef6c65', height: 250, width: 300 },
+              { key: '190984de4e16fc6eded87c1cb7a9bc83', height: 600, width: 160 }
+            ];
+
+            var screenW = window.innerWidth;
+            var screenH = window.innerHeight;
+
+            // Filtrar banners: solo se muestran los que son más pequeños que el ancho de la pantalla actual (con un margen de seguridad) y que no ocupen toda la altura
+            var validBanners = banners.filter(function(ad) { 
+              return ad.width <= (screenW * 0.95) && ad.height <= (screenH * 0.4); 
+            });
+
+            // Si por alguna razón la pantalla es diminuta, forzamos el banner de móvil (320x50)
+            if (validBanners.length === 0) {
+              validBanners = [{ key: '6ecb40404fef8f9daf755244f9c4d753', height: 50, width: 320 }];
+            }
+
+            // Elegir uno aleatorio entre los que son seguros para esta pantalla
+            var chosenAd = validBanners[Math.floor(Math.random() * validBanners.length)];
+
+            // Imprimir la configuración de Adsterra
+            window.atOptions = {
+              'key' : chosenAd.key,
+              'format' : 'iframe',
+              'height' : chosenAd.height,
+              'width' : chosenAd.width,
+              'params' : {}
+            };
+            
+            document.write('<scr' + 'ipt src="https://www.highperformanceformat.com/' + chosenAd.key + '/invoke.js"></scr' + 'ipt>');
+          })();
+        </script>
+      </div>
+    </div>
+
   </div>
-  <div class="loader-text-container">
-    <div class="loader-title">ARCHINIME</div>
-    <div class="loader-percentage" id="loading-percentage">0%</div>
-  </div>
-  <div class="loader-line-container">
-    <div class="loader-line"></div>
-  </div>
-</div>
 
-<!-- 4 contenedores para banners en esquinas -->
-<div id="bannerTL" class="corner-banner corner-tl"></div>
-<div id="bannerTR" class="corner-banner corner-tr"></div>
-<div id="bannerBL" class="corner-banner corner-bl"></div>
-<div id="bannerBR" class="corner-banner corner-br"></div>
+  <script src="gifs.js"></script>
 
-<script src="gifs.js"></script>
-<script>
-  // ========== 1. GIF aleatorio ==========
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length) {
-    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    document.getElementById('personaje-gif').src = gifElegido;
-  }
-
-  // ========== 2. Progreso y redirección (3s) ==========
-  const percentageEl = document.getElementById('loading-percentage');
-  const duration = 3000;
-  const intervalTime = 30;
-  const step = (100 / (duration / intervalTime));
-  let progress = 0;
-
-  const counterInterval = setInterval(() => {
-    progress += step;
-    let displayProgress = progress + (Math.random() * 5 - 2.5);
-    if (progress >= 100) {
-      displayProgress = 100;
-      clearInterval(counterInterval);
-      percentageEl.innerText = "SISTEMA LISTO";
-      percentageEl.style.color = "var(--neon-cyan)";
-    } else {
-      percentageEl.innerText = Math.max(0, Math.min(99, Math.floor(displayProgress))) + '%';
+  <script>
+    // Leemos la lista que está en el otro documento (gifs.js)
+    if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+      const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+      document.getElementById('personaje-gif').src = gifElegido;
     }
-  }, intervalTime);
 
-  setTimeout(() => {
-    window.location.href = 'index.html';
-  }, duration);
+    // Lógica del contador y redirección
+    const percentageEl = document.getElementById('loading-percentage');
+    // Aumentado a 4.5s (4500ms) para darle tiempo al anuncio de cargar y contabilizar la impresión
+    const duration = 4500; 
+    const intervalTime = 30; 
+    const step = (100 / (duration / intervalTime));
+    let progress = 0;
 
-  // ========== 3. Banners con Adsterra (usando tu ID 3126765) ==========
-  // Vamos a usar 4 IDs diferentes de Adsterra (puedes usar el mismo para todos o cambiarlos)
-  // Como solo me diste un ID, usaré el mismo para las 4 esquinas, pero puedes reemplazar por otros.
-  // Formato correcto de Adsterra: <script type="text/javascript" src="//pl19044836.toprevenuegate.com/3126765/invoke.js" data-cfasync="false" async></script>
-  // Generaremos dinámicamente el script para cada esquina.
+    const counterInterval = setInterval(() => {
+      progress += step;
+      let displayProgress = progress + (Math.random() * 5 - 2.5); 
+      
+      if (progress >= 100) {
+        displayProgress = 100;
+        clearInterval(counterInterval);
+        percentageEl.innerText = "SISTEMA LISTO";
+        percentageEl.style.color = "var(--neon-cyan)";
+      } else {
+        percentageEl.innerText = Math.max(0, Math.min(99, Math.floor(displayProgress))) + '%';
+      }
+    }, intervalTime);
 
-  const adsterraId = '3126765';  // tu ID de Adsterra
-  // Si tienes más IDs, ponlos aquí (ej: ['3126765', '3126766', ...])
-  const cornersIds = ['bannerTL', 'bannerTR', 'bannerBL', 'bannerBR'];
-
-  function loadAdsterraBanner(containerId, zoneId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    // Limpiar por si acaso (evita duplicados)
-    container.innerHTML = '';
-    // Crear el script como lo requiere Adsterra
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = `//pl19044836.toprevenuegate.com/${zoneId}/invoke.js`;
-    script.setAttribute('data-cfasync', 'false');
-    script.async = true;
-    script.onerror = () => {
-      console.warn(`Error cargando Adsterra banner en ${containerId}`);
-      // Opcional: mostrar un mensaje sutil de fallo
-      container.innerHTML = '<div style="color:#555; font-size:10px; text-align:center;">&nbsp;</div>';
-    };
-    container.appendChild(script);
-  }
-
-  // Inicializar banners (evitar ejecución múltiple)
-  let bannersInitialized = false;
-  function initBanners() {
-    if (bannersInitialized) return;
-    bannersInitialized = true;
-    // Cargar un banner diferente en cada esquina (puedes usar el mismo ID o varios)
-    // Para que sean distintos, puedes generar números aleatorios o usar IDs fijos
-    // Como solo tenemos un ID, lo usamos en las 4 esquinas (es válido, Adsterra lo permite)
-    cornersIds.forEach(id => {
-      loadAdsterraBanner(id, adsterraId);
-    });
-  }
-
-  // Ejecutar cuando el DOM esté listo
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBanners);
-  } else {
-    initBanners();
-  }
-</script>
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, duration);
+  </script>
 </body>
 </html>
