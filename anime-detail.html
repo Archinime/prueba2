@@ -617,6 +617,8 @@
       h1 { font-size: 1.6rem; margin: 15px 0 10px; }
       .star { font-size: 1.5rem; }
     }
+    
+    /* NUEVOS ESTILOS PARA TARJETAS DE RECOMENDACIÓN (MISMO TAMAÑO QUE INDEX) */
     .rec-card {
       background: rgba(0,0,0,0.35);
       border-radius: 12px;
@@ -626,8 +628,8 @@
       border: 1px solid rgba(188,19,254,0.15);
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 240px; /* Altura fija uniforme como en index */
+      aspect-ratio: 2/3;          /* Proporción fija como en index */
+      width: 100%;
       will-change: transform;
     }
     .rec-card:hover {
@@ -637,7 +639,7 @@
     }
     .rec-card img {
       width: 100%;
-      aspect-ratio: 2/3;
+      height: 100%;
       object-fit: cover;
       flex-shrink: 0;
     }
@@ -653,8 +655,24 @@
       text-overflow: ellipsis;
       background: rgba(0,0,0,0.5);
       flex-shrink: 0;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
-    /* Estilos específicos para la tarjeta de anuncio */
+    /* Ajuste para que el texto no tape la imagen completamente */
+    .rec-card {
+      position: relative;
+    }
+    .rec-card img {
+      position: relative;
+      z-index: 1;
+    }
+    .rec-card p {
+      z-index: 2;
+    }
+    
+    /* Tarjeta de anuncio */
     .rec-card.card-ad {
       cursor: default;
     }
@@ -664,13 +682,24 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+      overflow: hidden !important;   /* Recorta el contenido que sobresalga */
+      position: relative;
     }
     .rec-card.card-ad iframe,
-    .rec-card.card-ad ins {
+    .rec-card.card-ad ins,
+    .rec-card.card-ad [id^="container-"] {
       width: 100% !important;
       height: 100% !important;
       border: none;
+      object-fit: cover;            /* Ajusta sin deformar */
     }
+    /* Asegurar que el contenedor del anuncio no tenga padding/margen extra */
+    .rec-card.card-ad [id^="container-"] {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
     .toast {
       position: fixed;
       bottom: 30px;
@@ -741,7 +770,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
 <script src="musica-data.js?v=20250406"></script>
-<script src="anuncios_index.js"></script>   <!-- NUEVO: Archivo de anuncios -->
+<script src="anuncios_index.js"></script>
 <script src="anime-detail-core.js?v=20250406"></script>
 
 <script src="gifs.js"></script>
@@ -774,7 +803,6 @@
     }, 800);
   }
 
-  // Progreso incremental simulado mientras carga
   let progressValue = 0;
   const interval = setInterval(() => {
     if (loadingCompleted) {
@@ -788,7 +816,6 @@
     }
   }, 200);
 
-  // Terminar la carga cuando todo el contenido y scripts estén listos
   window.addEventListener('load', () => {
     const bgVideo = document.getElementById('bg-video');
     if (bgVideo) bgVideo.play().catch(()=>{});
