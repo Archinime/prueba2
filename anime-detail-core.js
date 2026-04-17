@@ -40,14 +40,14 @@ function crearTarjetaAnuncio() {
   card.className = 'rec-card card-ad';
   card.style.cursor = 'default';
   
-  // Contenedor interno que ocupará todo el espacio y recortará el contenido
+  // Contenedor interno que ocupará todo el espacio
   const innerDiv = document.createElement('div');
   innerDiv.style.width = '100%';
   innerDiv.style.height = '100%';
   innerDiv.style.display = 'flex';
   innerDiv.style.alignItems = 'center';
   innerDiv.style.justifyContent = 'center';
-  innerDiv.style.overflow = 'hidden';   // Esto recorta lo que sobresalga
+  innerDiv.style.overflow = 'hidden';
   innerDiv.style.position = 'relative';
   
   // Insertar el código del anuncio

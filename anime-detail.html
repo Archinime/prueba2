@@ -618,7 +618,7 @@
       .star { font-size: 1.5rem; }
     }
     
-    /* TARJETAS DE RECOMENDACIÓN (como te gustaban antes, solo con fondo de título oscuro) */
+    /* NUEVOS ESTILOS PARA TARJETAS DE RECOMENDACIÓN (MISMO TAMAÑO QUE INDEX) */
     .rec-card {
       background: rgba(0,0,0,0.35);
       border-radius: 12px;
@@ -628,8 +628,8 @@
       border: 1px solid rgba(188,19,254,0.15);
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 240px;
+      aspect-ratio: 2/3;          /* Proporción fija como en index */
+      width: 100%;
       will-change: transform;
     }
     .rec-card:hover {
@@ -639,7 +639,7 @@
     }
     .rec-card img {
       width: 100%;
-      aspect-ratio: 2/3;
+      height: 100%;
       object-fit: cover;
       flex-shrink: 0;
     }
@@ -653,10 +653,23 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      /* Fondo oscuro con sombra como en index */
-      background: linear-gradient(to top, #000000, #1a1a1a);
-      border-top: 1px solid rgba(0, 243, 255, 0.2);
+      background: rgba(0,0,0,0.5);
       flex-shrink: 0;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    /* Ajuste para que el texto no tape la imagen completamente */
+    .rec-card {
+      position: relative;
+    }
+    .rec-card img {
+      position: relative;
+      z-index: 1;
+    }
+    .rec-card p {
+      z-index: 2;
     }
     
     /* Tarjeta de anuncio */
@@ -669,13 +682,22 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      overflow: hidden !important;
+      overflow: hidden !important;   /* Recorta el contenido que sobresalga */
+      position: relative;
     }
     .rec-card.card-ad iframe,
-    .rec-card.card-ad ins {
+    .rec-card.card-ad ins,
+    .rec-card.card-ad [id^="container-"] {
       width: 100% !important;
       height: 100% !important;
       border: none;
+      object-fit: cover;            /* Ajusta sin deformar */
+    }
+    /* Asegurar que el contenedor del anuncio no tenga padding/margen extra */
+    .rec-card.card-ad [id^="container-"] {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
     }
 
     .toast {
@@ -754,6 +776,7 @@
 <script src="gifs.js"></script>
 
 <script>
+  // Lógica para cargar el GIF aleatorio antes de iniciar el progreso
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
