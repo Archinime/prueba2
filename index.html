@@ -765,6 +765,8 @@
   }
 
   let anuncioActual = null;
+  let cachedAdCard = null; // FIX: almacenar la tarjeta de anuncio para reutilizarla
+
   function inicializarAnuncio() {
     if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
       const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
@@ -775,7 +777,9 @@
     }
   }
 
+  // FIX: crear la tarjeta de anuncio una sola vez y cachearla
   function crearTarjetaAnuncio() {
+    if (cachedAdCard) return cachedAdCard;
     if (!anuncioActual) return null;
     const card = document.createElement('div');
     card.className = 'card card-ad';
@@ -800,6 +804,7 @@
       oldScript.remove();
     });
     card.appendChild(innerDiv);
+    cachedAdCard = card;
     return card;
   }
 
@@ -825,6 +830,8 @@
       if (shouldInsertAd && i === adPosition) {
         const adCard = crearTarjetaAnuncio();
         if (adCard) {
+          // Si la tarjeta ya tiene un padre (por ejemplo de una inserción anterior), la removemos para reubicarla
+          if (adCard.parentNode) adCard.remove();
           frag.appendChild(adCard);
           console.log(`Anuncio insertado en posición ${i + 1}`);
         }
@@ -1261,10 +1268,9 @@
     currentAudio.play().catch(e => { console.log('Música bloqueada', e); isPlayingMedia = false; });
   }
 
-  // FIX: Chispas integradas de fallback también mejoradas
   function createSparks(clientX, clientY) {
     const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
-    for (let i = 0; i < 80; i++) { // FIX: Más chispas (antes 30)
+    for (let i = 0; i < 80; i++) {
       const spark = document.createElement('div');
       spark.className = 'spark';
       const size = Math.random() * 6 + 3;
@@ -1275,11 +1281,11 @@
       spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
       spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
       const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * 250 + 80; // FIX: Llegan mucho más lejos
+      const distance = Math.random() * 250 + 80;
       spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
       spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
       document.body.appendChild(spark);
-      setTimeout(() => spark.remove(), 800); // FIX: Duran un poco más
+      setTimeout(() => spark.remove(), 800);
     }
   }
 
