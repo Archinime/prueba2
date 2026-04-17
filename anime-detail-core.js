@@ -3,6 +3,7 @@
 // MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
 // CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// NUEVO: Integración de anuncios en la sección de recomendaciones
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -16,6 +17,51 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// ---------- ANUNCIOS (INTEGRACIÓN EN RECOMENDACIONES) ----------
+let anuncioActual = null;
+let cachedAdCard = null;
+
+function inicializarAnuncio() {
+  if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
+    const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
+    anuncioActual = window.listaAnuncios[randomIndex];
+    console.log('Anuncio cargado en detalle:', anuncioActual.id);
+  } else {
+    console.warn('No hay anuncios definidos en anuncios_index.js');
+  }
+}
+
+function crearTarjetaAnuncio() {
+  if (cachedAdCard) return cachedAdCard;
+  if (!anuncioActual) return null;
+  const card = document.createElement('div');
+  card.className = 'rec-card card-ad';
+  card.style.cursor = 'default';
+  const innerDiv = document.createElement('div');
+  innerDiv.style.width = '100%';
+  innerDiv.style.height = '100%';
+  innerDiv.style.display = 'flex';
+  innerDiv.style.alignItems = 'center';
+  innerDiv.style.justifyContent = 'center';
+  innerDiv.style.overflow = 'hidden';
+  innerDiv.innerHTML = anuncioActual.codigo;
+  // Re-ejecutar scripts si los hay
+  innerDiv.querySelectorAll('script').forEach(oldScript => {
+    const newScript = document.createElement('script');
+    if (oldScript.src) {
+      newScript.src = oldScript.src;
+      newScript.async = true;
+    } else {
+      newScript.textContent = oldScript.textContent;
+    }
+    innerDiv.appendChild(newScript);
+    oldScript.remove();
+  });
+  card.appendChild(innerDiv);
+  cachedAdCard = card;
+  return card;
+}
 
 // ---------- AUDIO CONTEXT (SONIDOS UI) ----------
 let audioCtx = null;
@@ -422,16 +468,44 @@ async function renderRecommendations(currentId) {
       .get();
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const random = docs.sort(() => 0.5 - Math.random()).slice(0, 12);
+    
     if (!random.length) {
       grid.innerHTML = '<p style="color:#666;">Sin recomendaciones</p>';
       return;
     }
-    grid.innerHTML = random.map(a => `
-      <div class="rec-card" onclick="playUISound('click'); location.href='anime-detail.html?id=${a.id}'" onmouseenter="playUISound('hover')">
+
+    // Inserción de anuncio
+    const shouldInsertAd = anuncioActual !== null && random.length >= 5;
+    let adPosition = -1;
+    if (shouldInsertAd) {
+      const minPos = 4;
+      const maxPos = random.length - 2;
+      adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
+      console.log(`Anuncio en recomendaciones: posición ${adPosition + 1} (índice ${adPosition})`);
+    }
+
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < random.length; i++) {
+      if (shouldInsertAd && i === adPosition) {
+        const adCard = crearTarjetaAnuncio();
+        if (adCard) {
+          if (adCard.parentNode) adCard.remove();
+          frag.appendChild(adCard.cloneNode(true)); // clonamos para no mover el original
+        }
+      }
+      const a = random[i];
+      const card = document.createElement('div');
+      card.className = 'rec-card';
+      card.setAttribute('onclick', `playUISound('click'); location.href='anime-detail.html?id=${a.id}'`);
+      card.setAttribute('onmouseenter', `playUISound('hover')`);
+      card.innerHTML = `
         <img src="${a.img}" alt="${a.title}" loading="lazy">
         <p>${a.title}</p>
-      </div>
-    `).join('');
+      `;
+      frag.appendChild(card);
+    }
+    grid.innerHTML = '';
+    grid.appendChild(frag);
   } catch(e) {
     console.error('Error cargando recomendaciones:', e);
     grid.innerHTML = '<p style="color:#666;">Error al cargar recomendaciones</p>';
@@ -658,6 +732,7 @@ function initAuthListener() {
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
+  inicializarAnuncio();  // NUEVO: Carga un anuncio aleatorio al iniciar
   await loadSearchCache();
   initAuthListener();
 
