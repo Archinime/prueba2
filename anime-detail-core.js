@@ -3,7 +3,7 @@
 // MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
 // CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
-// NUEVO: Integración de anuncios en la sección de recomendaciones
+// NUEVO: Integración de anuncios en la sección de recomendaciones con estilos uniformes
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -35,9 +35,12 @@ function inicializarAnuncio() {
 function crearTarjetaAnuncio() {
   if (cachedAdCard) return cachedAdCard;
   if (!anuncioActual) return null;
+  
   const card = document.createElement('div');
   card.className = 'rec-card card-ad';
   card.style.cursor = 'default';
+  
+  // Contenedor interno que ocupará todo el espacio
   const innerDiv = document.createElement('div');
   innerDiv.style.width = '100%';
   innerDiv.style.height = '100%';
@@ -45,7 +48,11 @@ function crearTarjetaAnuncio() {
   innerDiv.style.alignItems = 'center';
   innerDiv.style.justifyContent = 'center';
   innerDiv.style.overflow = 'hidden';
+  innerDiv.style.position = 'relative';
+  
+  // Insertar el código del anuncio
   innerDiv.innerHTML = anuncioActual.codigo;
+  
   // Re-ejecutar scripts si los hay
   innerDiv.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script');
@@ -58,6 +65,7 @@ function crearTarjetaAnuncio() {
     innerDiv.appendChild(newScript);
     oldScript.remove();
   });
+  
   card.appendChild(innerDiv);
   cachedAdCard = card;
   return card;
@@ -269,7 +277,6 @@ async function loadAnimeRating(animeId) {
     if (doc.exists) {
       animeRatingData = doc.data();
     } else {
-      // Sin voto base, comenzamos sin votos
       animeRatingData = { avg: 0, count: 0 };
     }
     updateRatingDisplay();
@@ -335,7 +342,6 @@ function resetStars(val) {
   });
 }
 
-// Función corregida: ahora al eliminar el último voto se actualiza a count=0 en lugar de borrar el documento
 async function voteAnime(newVal) {
   if (!currentUserId) {
     document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
@@ -353,12 +359,10 @@ async function voteAnime(newVal) {
       let newAvg, newCount;
       
       if (ratingDoc.exists) {
-        // Ya existe el documento de calificaciones
         const currentAvg = ratingDoc.data().avg;
         const currentCount = ratingDoc.data().count;
         
         if (oldValue !== null && oldValue === newVal) {
-          // Eliminar voto
           if (currentCount > 1) {
             newAvg = (currentAvg * currentCount - oldValue) / (currentCount - 1);
             newCount = currentCount - 1;
@@ -367,65 +371,50 @@ async function voteAnime(newVal) {
             newCount = 0;
           }
         } else {
-          // Agregar o cambiar voto
           if (oldValue !== null) {
-            // Cambiar voto existente
             newAvg = (currentAvg * currentCount - oldValue + newVal) / currentCount;
             newCount = currentCount;
           } else {
-            // Nuevo voto
             newAvg = (currentAvg * currentCount + newVal) / (currentCount + 1);
             newCount = currentCount + 1;
           }
         }
       } else {
-        // No existe documento de calificaciones: es el primer voto
         if (oldValue !== null && oldValue === newVal) {
-          // Intentando eliminar un voto que no existe (no debería pasar)
           newAvg = 0;
           newCount = 0;
         } else {
-          // Primer voto
           newAvg = newVal;
           newCount = 1;
         }
       }
       
-      // Actualizar o eliminar según corresponda
       if (newCount === 0) {
-        // No quedan votos: actualizamos el documento principal a (0,0) en lugar de borrarlo
-        // Esto evita problemas con reglas que no permiten delete
         t.set(ratingRef, {
           avg: 0,
           count: 0,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        // Eliminamos el voto del usuario
         t.delete(userRef);
         animeRatingData = { avg: 0, count: 0 };
         currentUserRating = null;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
       } else {
-        // Guardar o actualizar documento principal
         t.set(ratingRef, {
           avg: newAvg,
           count: newCount,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        
-        // Guardar voto del usuario
         t.set(userRef, {
           value: newVal,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = newVal;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
       }
     });
     
-    // Actualizar la interfaz después de la transacción
     updateRatingDisplay();
     renderStars(currentUserRating || 0);
     setTimeout(() => {
@@ -474,7 +463,6 @@ async function renderRecommendations(currentId) {
       return;
     }
 
-    // Inserción de anuncio
     const shouldInsertAd = anuncioActual !== null && random.length >= 5;
     let adPosition = -1;
     if (shouldInsertAd) {
@@ -490,7 +478,7 @@ async function renderRecommendations(currentId) {
         const adCard = crearTarjetaAnuncio();
         if (adCard) {
           if (adCard.parentNode) adCard.remove();
-          frag.appendChild(adCard.cloneNode(true)); // clonamos para no mover el original
+          frag.appendChild(adCard.cloneNode(true));
         }
       }
       const a = random[i];
@@ -677,7 +665,6 @@ function initSearch() {
 // ---------- AUTENTICACIÓN (usando ArchinimeState) ----------
 function initAuthListener() {
   if (window.ArchinimeState) {
-    // Usar el estado central
     ArchinimeState.on('currentUser', async (user) => {
       const previousUserId = currentUserId;
       currentUserId = user ? user.uid : null;
@@ -702,7 +689,6 @@ function initAuthListener() {
       }
     });
   } else {
-    // Fallback: usar auth directamente si state.js no está cargado
     console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
     auth.onAuthStateChanged(async (user) => {
       const previousUserId = currentUserId;
@@ -732,7 +718,7 @@ function initAuthListener() {
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
-  inicializarAnuncio();  // NUEVO: Carga un anuncio aleatorio al iniciar
+  inicializarAnuncio();
   await loadSearchCache();
   initAuthListener();
 
