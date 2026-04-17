@@ -11,19 +11,19 @@
   <meta name="description" content="Sumérgete en la experiencia definitiva de anime. Grid neón, sonido envolvente y la mejor calidad. Archinime OS.">
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
   
-  <!-- ========== SCRIPT PARA CAPTURAR beforeinstallprompt LO ANTES POSIBLE ========== -->
+  <!-- CAPTURAR beforeinstallprompt LO ANTES POSIBLE (igual que en index_z) -->
   <script>
-    window.deferredPrompt = null;
+    let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      window.deferredPrompt = e;
+      deferredPrompt = e;
       console.log('beforeinstallprompt capturado correctamente');
     });
   </script>
 
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.6"; 
+      const APP_VERSION = "2025-04-06-v6.7"; // versión actualizada
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -102,7 +102,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen íntegros) ===== */
+    /* ===== TODOS TUS ESTILOS ORIGINALES (preservados) ===== */
     :root {
       --neon-cyan: #00f3ff;
       --neon-purple: #bc13fe;
@@ -134,6 +134,7 @@
     ::-webkit-scrollbar-track { background: #020202; }
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
+    /* Fondo y overlay */
     #bg-video { 
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
@@ -157,6 +158,7 @@
       z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0);
     }
 
+    /* Pantalla de carga */
     #loadingScreen {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -212,6 +214,7 @@
     }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* Navbar */
     .cyber-nav {
       position: sticky; top: 0; z-index: 1000; background: rgba(5, 5, 10, 0.85);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px 3%;
@@ -253,12 +256,13 @@
     .cyber-btn-icon {
       width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
       border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(4px); flex-shrink: 0; will-change: transform;
+      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); flex-shrink: 0; will-change: transform;
     }
     .cyber-btn-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
     .cyber-btn-icon:hover { background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan);
       box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
     
+    /* BOTÓN DINÁMICO CON BRILLO EXTRA (descargar) */
     .dynamic-install-btn {
       animation: pulseSupernova 1.8s infinite ease-in-out;
       position: relative;
@@ -285,8 +289,30 @@
       50% { box-shadow: 0 0 0 8px rgba(0, 243, 255, 0.2), 0 0 0 15px rgba(188, 19, 254, 0.1); border-color: var(--neon-pink); background: rgba(188,19,254,0.2); }
       100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0), 0 0 0 0 rgba(188, 19, 254, 0); border-color: var(--neon-cyan); }
     }
+    @media (max-width: 480px) { .cyber-btn-icon { width: 38px; height: 38px; font-size: 1rem; } }
+    
+    /* Modal de instalación iOS */
+    .ios-install-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(16px); z-index: 20001;
+      display: flex; justify-content: center; align-items: center; opacity: 0;
+      pointer-events: none; transition: 0.3s; padding: 20px;
+    }
+    .ios-install-modal.active { opacity: 1; pointer-events: auto; }
+    .ios-card {
+      background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 28px;
+      max-width: 360px; width: 100%; padding: 28px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+      transform: scale(0.95); transition: transform 0.2s;
+    }
+    .ios-install-modal.active .ios-card { transform: scale(1); }
+    .ios-card h3 { font-family: 'Orbitron'; color: var(--neon-cyan); margin-bottom: 15px; }
+    .ios-card p { margin: 12px 0; color: #ccc; }
+    .ios-steps { background: #00000055; padding: 15px; border-radius: 20px; margin: 15px 0; font-size: 0.9rem; text-align: left; }
+    .ios-steps i { color: var(--neon-pink); margin-right: 8px; }
+    .ios-close-btn { background: var(--neon-cyan); color: black; border: none; padding: 12px 20px; border-radius: 40px; font-weight: bold; margin-top: 10px; cursor: pointer; width: 100%; }
 
-    /* Resto de estilos (user-menu, notif, dropdown, etc.) se mantienen igual que en tu original */
+    /* Resto de estilos (grid, cards, modales, etc.) se mantienen intactos */
+    .user-menu, .notif-wrapper, .auth-modal, .profile-modal, .controls-container, .grid, .card, .card-ad, .container, .stage, #fgContainer { /* todo existente */ }
     .user-menu { position: relative; display: flex; align-items: center; }
     #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); cursor: pointer; transition: 0.2s; background: #111; display: block; }
     #userAvatarBtn:hover { transform: scale(1.08); box-shadow: 0 0 15px var(--neon-cyan); }
@@ -426,32 +452,14 @@
     .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
     
-    .ios-install-modal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9); backdrop-filter: blur(16px); z-index: 20001;
-      display: flex; justify-content: center; align-items: center; opacity: 0;
-      pointer-events: none; transition: 0.3s; padding: 20px;
-    }
-    .ios-install-modal.active { opacity: 1; pointer-events: auto; }
-    .ios-card {
-      background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 28px;
-      max-width: 360px; width: 100%; padding: 28px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.9);
-      transform: scale(0.95); transition: transform 0.2s;
-    }
-    .ios-install-modal.active .ios-card { transform: scale(1); }
-    .ios-card h3 { font-family: 'Orbitron'; color: var(--neon-cyan); margin-bottom: 15px; }
-    .ios-card p { margin: 12px 0; color: #ccc; }
-    .ios-steps { background: #00000055; padding: 15px; border-radius: 20px; margin: 15px 0; font-size: 0.9rem; text-align: left; }
-    .ios-steps i { color: var(--neon-pink); margin-right: 8px; }
-    .ios-close-btn { background: var(--neon-cyan); color: black; border: none; padding: 12px 20px; border-radius: 40px; font-weight: bold; margin-top: 10px; cursor: pointer; width: 100%; }
-    
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
       .card .info { padding: 40px 8px 8px; }
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
-      #fgContainer { width: 180px; bottom: 10px; right: 10px; filter: none !important; }
+      .profile-card { padding: 20px; }
+      #fgContainer { width: 180px; bottom: 10px; right: 10px; filter: none !important; position: fixed !important; }
       .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger {
         backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
       }
@@ -459,7 +467,9 @@
       .user-dropdown, .notif-dropdown { background: rgba(15, 15, 20, 1); }
       .search-input { background: rgba(0, 0, 0, 0.8); }
     }
-    @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    }
     @keyframes borderFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
   </style>
 </head>
@@ -486,6 +496,7 @@
 
 <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto">
   <source src="galaxia.mp4" type="video/mp4">
+  Tu navegador no soporta video HTML5.
 </video>
 <div id="overlay" aria-hidden="true"></div>
 <div id="scanlines"></div>
@@ -501,6 +512,7 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
+    <!-- Botón dinámico: reemplaza al antiguo installBtn y al botón de YouTube -->
     <button id="dynamicActionBtn" class="cyber-btn-icon" title="Descargar app"><i class="fas fa-download"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
@@ -617,6 +629,7 @@
   </div>
 </div>
 
+<!-- Modal para instrucciones iOS -->
 <div id="iosInstallModal" class="ios-install-modal">
   <div class="ios-card">
     <h3><i class="fab fa-apple"></i> Instalar Archinime</h3>
@@ -630,7 +643,7 @@
 </div>
 
 <script>
-  // ========== CONFIGURACIÓN FIREBASE ==========
+  // ========== CONFIGURACIÓN FIREBASE (ORIGINAL) ==========
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
     authDomain: "login-admin-archinime.firebaseapp.com",
@@ -673,35 +686,31 @@
   }
   
   function triggerInstall() {
-    if (window.deferredPrompt) {
-      // Usar el prompt guardado
+    // Lógica exacta de index_z que funciona
+    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    if (isIos()) {
+      // iOS: mostrar instrucciones manuales
+      iosModalEl.classList.add('active');
+    } else if (window.deferredPrompt) {
+      // Android / Chrome: lanzar el prompt automático
       window.deferredPrompt.prompt();
       window.deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           console.log('Usuario aceptó instalar la PWA');
-        } else {
-          console.log('Usuario rechazó la instalación');
         }
         window.deferredPrompt = null;
       });
     } else {
-      // No hay prompt disponible: puede ser iOS o el navegador no soporta instalación automática
-      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-      if (isIos && !isStandaloneMode()) {
-        iosModalEl.classList.add('active');
-      } else {
-        // Mostrar un mensaje más amigable y sugerir añadir a pantalla de inicio manualmente
-        if (confirm('Tu navegador no permite la instalación automática. ¿Quieres ver cómo instalar la app manualmente?')) {
-          iosModalEl.classList.add('active');
-        }
-      }
+      // Fallback: si no hay deferredPrompt (puede que ya esté instalada o el navegador no soporte)
+      // Mostramos el modal de instrucciones también
+      iosModalEl.classList.add('active');
     }
   }
   
   function closeIosModal() { iosModalEl.classList.remove('active'); }
   window.closeIosModal = closeIosModal;
   
-  // El evento beforeinstallprompt ya se capturó al principio del head
+  // El evento beforeinstallprompt ya se capturó al principio del head (window.deferredPrompt)
   // Solo aseguramos que el botón se actualice cuando cambie el modo standalone
   const displayModeMedia = window.matchMedia('(display-mode: standalone)');
   displayModeMedia.addEventListener('change', updateDynamicButton);
