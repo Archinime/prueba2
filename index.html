@@ -346,35 +346,38 @@
     .card .info span { font-size: 0.8rem; color: var(--neon-cyan); font-family: 'Orbitron'; font-weight: 600;
       letter-spacing: 1px; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 8px; border-radius: 20px; width: fit-content; }
     
-    /* ===== ESTILO PARA TARJETAS DE ANUNCIOS (se integran como cards) ===== */
+    /* ===== ESTILO PARA TARJETAS DE ANUNCIOS (actualizado para banner nativo) ===== */
     .card-ad {
-      cursor: pointer;
+      cursor: default;
+      background: #0a0a0c;
     }
-    .card-ad .info span {
-      background: rgba(255, 0, 85, 0.2);
-      color: var(--neon-pink);
+    .card-ad > div {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+    }
+    /* Para contenedores nativos o iframes */
+    .card-ad > div > div,
+    .card-ad .native-ad,
+    .card-ad [id^="container-"] {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
     }
     .card-ad iframe,
     .card-ad ins {
       width: 100% !important;
       height: 100% !important;
       border: none;
-      background: transparent;
     }
-    /* Asegurar que el contenido del anuncio ocupe toda la card */
-    .card-ad > div {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Forzar que el iframe ocupe todo el espacio */
-    .card-ad iframe {
-      min-width: 100%;
-      min-height: 100%;
-      object-fit: cover;
+    /* Eliminamos cualquier texto o overlay que pudiera añadirse */
+    .card-ad .info {
+      display: none;
     }
 
     .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
@@ -790,25 +793,23 @@
 
   // ========== CONFIGURACIÓN DE ANUNCIOS ==========
   let anuncioActual = null;
-  // Elegir un anuncio aleatorio de la lista (si hay más de uno)
   function inicializarAnuncio() {
     if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
       const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
       anuncioActual = window.listaAnuncios[randomIndex];
-      console.log('Anuncio cargado:', anuncioActual.red, anuncioActual.id);
+      console.log('Anuncio cargado:', anuncioActual.id);
     } else {
       console.warn('No hay anuncios definidos en anuncios_index.js');
     }
   }
 
-  // Función que genera el HTML de la tarjeta de anuncio, ejecutando los scripts correctamente
+  // Función que genera la tarjeta de anuncio SIN texto "Patrocinado" y adaptada para banner nativo
   function crearTarjetaAnuncio() {
     if (!anuncioActual) return null;
     const card = document.createElement('div');
     card.className = 'card card-ad';
     card.dataset.id = anuncioActual.id;
-    
-    // Contenedor interno para el código del anuncio
+
     const innerDiv = document.createElement('div');
     innerDiv.style.width = '100%';
     innerDiv.style.height = '100%';
@@ -816,11 +817,10 @@
     innerDiv.style.alignItems = 'center';
     innerDiv.style.justifyContent = 'center';
     innerDiv.style.overflow = 'hidden';
-    
-    // Insertamos el código HTML del anuncio
+
     innerDiv.innerHTML = anuncioActual.codigo;
-    
-    // Los scripts necesitan ser reinsertados para que se ejecuten
+
+    // Reinsertar scripts para que se ejecuten
     innerDiv.querySelectorAll('script').forEach(oldScript => {
       const newScript = document.createElement('script');
       if (oldScript.src) {
@@ -829,19 +829,12 @@
       } else {
         newScript.textContent = oldScript.textContent;
       }
-      // Añadir al contenedor o al body
       innerDiv.appendChild(newScript);
       oldScript.remove();
     });
-    
+
     card.appendChild(innerDiv);
-    
-    // Añadir la info de "Patrocinado"
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'info';
-    infoDiv.innerHTML = `<strong>Patrocinado</strong><span>✨ ${anuncioActual.red || 'Colaboración'}</span>`;
-    card.appendChild(infoDiv);
-    
+    // No añadimos infoDiv con "Patrocinado"
     return card;
   }
 
@@ -857,12 +850,9 @@
     }
 
     const frag = document.createDocumentFragment();
-    // Determinar si hay filtros activos (para NO mostrar anuncios cuando hay filtros)
     const hasActiveFilters = currentFilters.search || currentFilters.genre || currentFilters.demographic || currentFilters.rating;
-    // Solo insertar anuncios en la carga inicial (no en append) y sin filtros activos, y si hay anuncio disponible
     const shouldInsertAd = !append && !hasActiveFilters && anuncioActual !== null;
     
-    // Si debemos insertar un anuncio, elegimos una posición aleatoria entre 4 y la cantidad de animes - 2 (para que no quede muy al principio ni al final)
     let adPosition = -1;
     if (shouldInsertAd && animes.length >= 5) {
       const minPos = 4;
@@ -872,7 +862,6 @@
     }
 
     for (let i = 0; i < animes.length; i++) {
-      // Si llegamos a la posición del anuncio, lo insertamos antes del anime actual
       if (shouldInsertAd && i === adPosition) {
         const adCard = crearTarjetaAnuncio();
         if (adCard) {

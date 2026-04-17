@@ -1,36 +1,24 @@
 // ============================================
 // ARCHIVO DE ANUNCIOS PARA ARCHINIME
-// SOLO CONTIENE EL CÓDIGO DE TU PROVEEDOR
 // ============================================
 
 const listaAnuncios = [
   {
-    id: 'mi_anuncio_300x250',
-    red: 'HighPerformanceFormat',
-    descripcion: 'Banner 300x250 - Código personalizado',
+    id: 'banner_nativo_1',
+    descripcion: 'Banner nativo 1:2',
     codigo: `
-      <script>
-        atOptions = {
-          'key' : 'c80e9060ab41f7adc2b2ccc358ef6c65',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script src="https://www.highperformanceformat.com/c80e9060ab41f7adc2b2ccc358ef6c65/invoke.js"></script>
+      <script async="async" data-cfasync="false" src="https://pl28551391.profitablecpmratenetwork.com/9cef0d62800a6a4f5bd25c7a50157dba/invoke.js"></script>
+      <div id="container-9cef0d62800a6a4f5bd25c7a50157dba"></div>
     `
   }
-  // Si quieres más anuncios, agrégalos aquí y la función aleatoria los elegirá
+  // Para añadir otro banner, copia el bloque y cambia el id y el código.
 ];
 
-// Función auxiliar para obtener el código de un anuncio por su ID
 function obtenerHTMLAnuncio(anuncioId) {
   const anuncio = listaAnuncios.find(a => a.id === anuncioId);
   if (!anuncio) return '<div>Anuncio no disponible</div>';
   return anuncio.codigo;
 }
 
-// Hacemos accesibles las variables globalmente
 window.listaAnuncios = listaAnuncios;
 window.obtenerHTMLAnuncio = obtenerHTMLAnuncio;
