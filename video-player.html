@@ -951,70 +951,6 @@
       background: #ff3366;
     }
 
-    /* ===== PUBLICIDAD EN PAUSA (6 BANNERS 2x3) ===== */
-    .pause-ad-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 150;
-      border-radius: 16px;
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(188, 19, 254, 0.3);
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .pause-ad-label {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      color: var(--primary-color);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 4px 12px;
-      border-radius: 30px;
-      border: 1px solid var(--primary-color);
-      backdrop-filter: blur(4px);
-      z-index: 5;
-    }
-    .pause-ad-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 12px;
-      width: 100%;
-      max-width: 600px;
-      aspect-ratio: 2 / 3;
-      margin: 0 auto;
-    }
-    .pause-ad-cell {
-      background: rgba(20, 20, 25, 0.7);
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid rgba(0, 243, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 0;
-    }
-    .pause-ad-cell iframe {
-      width: 100% !important;
-      height: 100% !important;
-      border: none;
-      display: block;
-    }
-
     /* ======================================================= */
     /* AJUSTES MÓVILES PARA LOS STICKERS Y SUS TAMAÑOS        */
     /* ======================================================= */
@@ -1040,25 +976,6 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img,
       .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
-
-      .pause-ad-grid {
-        max-width: 95%;
-        gap: 8px;
-      }
-      .pause-ad-container {
-        padding: 15px;
-      }
-      .pause-ad-label {
-        top: 10px;
-        right: 10px;
-        font-size: 0.7rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .pause-ad-grid {
-        gap: 5px;
-      }
     }
   </style>
 </head>
@@ -1219,7 +1136,6 @@
 <script defer src="stickers-system.js"></script>
 <script defer src="reacciones.js"></script>
 <script defer src="comentarios.js"></script>
-<script defer src="pause-ads.js"></script>
 <script defer src="video-player-core.js"></script>
 <script src="gifs.js"></script>
 
