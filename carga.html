@@ -12,11 +12,7 @@
       --neon-pink: #ff0055;
       --dark-bg: #050505;
     }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       margin: 0;
       padding: 0;
@@ -41,7 +37,7 @@
       pointer-events: none;
       z-index: 1;
     }
-    /* CONTENIDO CENTRAL */
+    /* Contenido central */
     .loader-content {
       position: relative;
       z-index: 10;
@@ -68,10 +64,7 @@
       overflow: hidden;
       background: #000;
     }
-    .gif-inner img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
+    .gif-inner img { width: 100%; height: 100%; object-fit: cover; }
     .loader-text-container {
       text-align: center;
       display: flex;
@@ -110,11 +103,11 @@
       border-radius: 10px;
       animation: loadProgress 3s forwards cubic-bezier(0.8,0,0.2,1);
     }
-    /* ===== BANNERS EN LAS 4 ESQUINAS ===== */
+    /* Banners en las 4 esquinas (fuera del loader-content para que no se oculten) */
     .corner-banner {
       position: fixed;
       z-index: 1000;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       border-radius: 12px;
       padding: 6px;
       backdrop-filter: blur(4px);
@@ -127,7 +120,7 @@
       align-items: center;
       box-shadow: 0 0 15px rgba(0,0,0,0.6);
     }
-    .corner-banner iframe {
+    .corner-banner iframe, .corner-banner ins {
       max-width: 100%;
       max-height: 100%;
       border: none;
@@ -180,7 +173,7 @@
   </div>
 </div>
 
-<!-- 4 ESQUINAS PARA BANNERS -->
+<!-- 4 contenedores para banners en esquinas -->
 <div id="bannerTL" class="corner-banner corner-tl"></div>
 <div id="bannerTR" class="corner-banner corner-tr"></div>
 <div id="bannerBL" class="corner-banner corner-bl"></div>
@@ -188,13 +181,13 @@
 
 <script src="gifs.js"></script>
 <script>
-  // ========== GIF ALEATORIO ==========
+  // ========== 1. GIF aleatorio ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
   }
 
-  // ========== PROGRESO Y REDIRECCIÓN (3 segundos) ==========
+  // ========== 2. Progreso y redirección (3s) ==========
   const percentageEl = document.getElementById('loading-percentage');
   const duration = 3000;
   const intervalTime = 30;
@@ -218,61 +211,54 @@
     window.location.href = 'index.html';
   }, duration);
 
-  // ========== BANNERS EN LAS 4 ESQUINAS (cada uno con un banner aleatorio de los 6) ==========
-  const bannerOptionsList = [
-    { key: '1904483365c7a7ab9f83e49d32b7d237', width: 468, height: 60 },
-    { key: '49281ce83eb56f120e34ad617cfd6996', width: 160, height: 300 },
-    { key: '6ecb40404fef8f9daf755244f9c4d753', width: 320, height: 50 },
-    { key: '1f072201cddab551b2b65315f6c1643e', width: 728, height: 90 },
-    { key: 'c80e9060ab41f7adc2b2ccc358ef6c65', width: 300, height: 250 },
-    { key: '190984de4e16fc6eded87c1cb7a9bc83', width: 160, height: 600 }
-  ];
+  // ========== 3. Banners con Adsterra (usando tu ID 3126765) ==========
+  // Vamos a usar 4 IDs diferentes de Adsterra (puedes usar el mismo para todos o cambiarlos)
+  // Como solo me diste un ID, usaré el mismo para las 4 esquinas, pero puedes reemplazar por otros.
+  // Formato correcto de Adsterra: <script type="text/javascript" src="//pl19044836.toprevenuegate.com/3126765/invoke.js" data-cfasync="false" async></script>
+  // Generaremos dinámicamente el script para cada esquina.
 
-  function loadBanner(container, banner) {
+  const adsterraId = '3126765';  // tu ID de Adsterra
+  // Si tienes más IDs, ponlos aquí (ej: ['3126765', '3126766', ...])
+  const cornersIds = ['bannerTL', 'bannerTR', 'bannerBL', 'bannerBR'];
+
+  function loadAdsterraBanner(containerId, zoneId) {
+    const container = document.getElementById(containerId);
     if (!container) return;
+    // Limpiar por si acaso (evita duplicados)
     container.innerHTML = '';
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.width = '100%';
-    wrapper.style.height = '100%';
-    window.atOptions = {
-      key: banner.key,
-      format: 'iframe',
-      height: banner.height,
-      width: banner.width,
-      params: {}
-    };
+    // Crear el script como lo requiere Adsterra
     const script = document.createElement('script');
-    script.src = `https://www.highperformanceformat.com/${banner.key}/invoke.js`;
+    script.type = 'text/javascript';
+    script.src = `//pl19044836.toprevenuegate.com/${zoneId}/invoke.js`;
+    script.setAttribute('data-cfasync', 'false');
     script.async = true;
-    script.onerror = () => { console.warn('Error banner:', banner.key); };
-    wrapper.appendChild(script);
-    container.appendChild(wrapper);
+    script.onerror = () => {
+      console.warn(`Error cargando Adsterra banner en ${containerId}`);
+      // Opcional: mostrar un mensaje sutil de fallo
+      container.innerHTML = '<div style="color:#555; font-size:10px; text-align:center;">&nbsp;</div>';
+    };
+    container.appendChild(script);
   }
 
-  // Seleccionar 4 banners aleatorios (pueden repetirse si hay pocos, pero con 6 es raro)
-  function getRandomBanners(count) {
-    const shuffled = [...bannerOptionsList];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, count);
-  }
-
-  const corners = ['bannerTL', 'bannerTR', 'bannerBL', 'bannerBR'];
-  const selectedBanners = getRandomBanners(4);
-
-  function init() {
-    corners.forEach((id, idx) => {
-      const container = document.getElementById(id);
-      if (container && selectedBanners[idx]) loadBanner(container, selectedBanners[idx]);
+  // Inicializar banners (evitar ejecución múltiple)
+  let bannersInitialized = false;
+  function initBanners() {
+    if (bannersInitialized) return;
+    bannersInitialized = true;
+    // Cargar un banner diferente en cada esquina (puedes usar el mismo ID o varios)
+    // Para que sean distintos, puedes generar números aleatorios o usar IDs fijos
+    // Como solo tenemos un ID, lo usamos en las 4 esquinas (es válido, Adsterra lo permite)
+    cornersIds.forEach(id => {
+      loadAdsterraBanner(id, adsterraId);
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+
+  // Ejecutar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBanners);
+  } else {
+    initBanners();
+  }
 </script>
 </body>
 </html>
