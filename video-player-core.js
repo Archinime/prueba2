@@ -167,6 +167,11 @@ class VideoPlayer {
     container.innerHTML = '';
     if (!url) return;
 
+    // Ocultar cualquier anuncio de pausa previo
+    if (window.PauseAds) {
+      window.PauseAds.hide();
+    }
+
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -174,8 +179,15 @@ class VideoPlayer {
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
+      
+      // *** INICIALIZAR SISTEMA DE ANUNCIOS EN PAUSA ***
+      if (window.PauseAds) {
+        window.PauseAds.init(video);
+      }
+      
       container.appendChild(video);
     } else {
+      // Para iframes no aplicamos publicidad en pausa
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
