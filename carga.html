@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Cargando Archinime...</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <style>
@@ -13,6 +13,12 @@
       --dark-bg: #050505;
     }
     
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -50,6 +56,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      max-width: 95vw;
+      padding: 20px;
     }
 
     .gif-wrapper {
@@ -123,6 +132,67 @@
       animation: loadProgress 3s forwards cubic-bezier(0.8, 0, 0.2, 1);
     }
 
+    /* Contenedor de banners publicitarios - adaptable y discreto */
+    .banner-container {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      padding: 8px 12px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    .banner-inner {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .banner-inner::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .banner-inner::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+
+    .banner-inner::-webkit-scrollbar-thumb {
+      background: var(--neon-cyan);
+      border-radius: 4px;
+    }
+
+    /* Ajuste para iframes generados por los scripts */
+    .banner-inner iframe {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto;
+      border: none;
+      background: transparent;
+    }
+
+    /* Texto pequeño de patrocinio sutil */
+    .sponsor-note {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 6px;
+      letter-spacing: 1px;
+      font-family: 'Poppins', sans-serif;
+      text-transform: uppercase;
+    }
+
     @keyframes loadProgress { 
       0% { width: 0%; opacity: 0;} 
       10% { opacity: 1; }
@@ -146,6 +216,37 @@
       96% { opacity: 0.9; transform: skewX(-10deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
       98% { opacity: 1; transform: skewX(0deg); }
     }
+
+    /* Responsive: ajustes para móviles */
+    @media (max-width: 768px) {
+      .loader-line-container {
+        width: 280px;
+      }
+      .banner-container {
+        padding: 6px 8px;
+        margin-top: 18px;
+      }
+      .sponsor-note {
+        font-size: 0.55rem;
+      }
+      .gif-wrapper {
+        width: 150px;
+        height: 150px;
+      }
+      .loader-title {
+        font-size: 1.3rem;
+        letter-spacing: 4px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .loader-line-container {
+        width: 240px;
+      }
+      .banner-container {
+        padding: 4px 6px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -167,16 +268,26 @@
       <div class="loader-line"></div>
     </div>
 
+    <!-- Contenedor de banners publicitarios (sutil y adaptable) -->
+    <div class="banner-container" id="adBannerContainer">
+      <div class="banner-inner" id="adBannerInner">
+        <!-- Aquí se inyectará dinámicamente el banner seleccionado al azar -->
+      </div>
+      <div class="sponsor-note">
+        <i class="fas fa-bolt"></i> streaming potenciado por <span style="color: var(--neon-cyan);">publinet</span> <i class="fas fa-shield-alt"></i>
+      </div>
+    </div>
+
   </div>
 
   <script src="gifs.js"></script>
 
   <script>
-    // Ahora leemos la lista que está en el otro documento (gifs.js)
+    // ========== 1. GIF ALEATORIO (sin cambios) ==========
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
 
-    // Lógica del contador y redirección
+    // ========== 2. LÓGICA DE PROGRESO Y REDIRECCIÓN (sin cambios) ==========
     const percentageEl = document.getElementById('loading-percentage');
     const duration = 3000; 
     const intervalTime = 30; 
@@ -200,6 +311,109 @@
     setTimeout(() => {
       window.location.href = 'index.html';
     }, duration);
+
+    // ========== 3. BANNER PUBLICITARIO ALEATORIO (6 opciones, uno solo, sin romper diseño) ==========
+    // Lista de configuraciones de los 6 banners proporcionados
+    const bannerOptionsList = [
+      {
+        key: '1904483365c7a7ab9f83e49d32b7d237',
+        format: 'iframe',
+        height: 60,
+        width: 468
+      },
+      {
+        key: '49281ce83eb56f120e34ad617cfd6996',
+        format: 'iframe',
+        height: 300,
+        width: 160
+      },
+      {
+        key: '6ecb40404fef8f9daf755244f9c4d753',
+        format: 'iframe',
+        height: 50,
+        width: 320
+      },
+      {
+        key: '1f072201cddab551b2b65315f6c1643e',
+        format: 'iframe',
+        height: 90,
+        width: 728
+      },
+      {
+        key: 'c80e9060ab41f7adc2b2ccc358ef6c65',
+        format: 'iframe',
+        height: 250,
+        width: 300
+      },
+      {
+        key: '190984de4e16fc6eded87c1cb7a9bc83',
+        format: 'iframe',
+        height: 600,
+        width: 160
+      }
+    ];
+
+    // Seleccionar aleatoriamente UNO de los banners
+    const randomIndex = Math.floor(Math.random() * bannerOptionsList.length);
+    const selectedBanner = bannerOptionsList[randomIndex];
+
+    // Función para inyectar el script del banner seleccionado
+    function injectBannerScript(bannerConfig) {
+      const bannerInner = document.getElementById('adBannerInner');
+      if (!bannerInner) return;
+
+      // Limpiar contenido previo (por si acaso)
+      bannerInner.innerHTML = '';
+
+      // Crear un div contenedor específico para este banner (ayuda a mantener el tamaño)
+      const adDiv = document.createElement('div');
+      adDiv.style.display = 'flex';
+      adDiv.style.justifyContent = 'center';
+      adDiv.style.alignItems = 'center';
+      adDiv.style.margin = '0 auto';
+      adDiv.style.width = '100%';
+      
+      // Configuración global atOptions requerida por el script de highperformanceformat
+      window.atOptions = {
+        key: bannerConfig.key,
+        format: bannerConfig.format,
+        height: bannerConfig.height,
+        width: bannerConfig.width,
+        params: {}
+      };
+
+      // Crear el script externo que carga el anuncio
+      const script = document.createElement('script');
+      script.src = `https://www.highperformanceformat.com/${bannerConfig.key}/invoke.js`;
+      script.async = true;
+      script.type = 'text/javascript';
+      
+      // Añadir el script al div y luego al contenedor
+      adDiv.appendChild(script);
+      bannerInner.appendChild(adDiv);
+
+      // Pequeño log para depuración (opcional, no afecta al usuario)
+      console.log(`[Archinime] Banner cargado: ${bannerConfig.width}x${bannerConfig.height} (key: ${bannerConfig.key})`);
+    }
+
+    // Ejecutar la inyección del banner cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => injectBannerScript(selectedBanner));
+    } else {
+      injectBannerScript(selectedBanner);
+    }
+
+    // Manejo de errores silencioso: si el script falla, no rompe la experiencia de carga
+    window.addEventListener('error', function(e) {
+      if (e.target && e.target.tagName === 'SCRIPT' && e.target.src && e.target.src.includes('highperformanceformat')) {
+        console.warn('[Archinime] Error cargando banner, se omite para no afectar la experiencia');
+        // No mostramos nada al usuario, solo evitamos que se vea un error feo
+        const bannerInner = document.getElementById('adBannerInner');
+        if (bannerInner && bannerInner.children.length === 0) {
+          bannerInner.innerHTML = '<div style="font-size:10px; color:#333; text-align:center;">&nbsp;</div>';
+        }
+      }
+    }, false);
   </script>
 </body>
 </html>
