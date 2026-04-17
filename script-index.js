@@ -1,6 +1,6 @@
 /* Archivo: script-index.js - Versión final estable con Firestore */
 /* -------------------------------------------------- */
-/*            PAGINACIÓN + FILTROS EN CLIENTE         */
+/* PAGINACIÓN + FILTROS EN CLIENTE         */
 /* -------------------------------------------------- */
 
 // ============================================
@@ -58,18 +58,31 @@ function mostrarNoResultados() {
         style.id = 'archinime-no-results-css';
         style.innerHTML = `
             .cyber-no-results {
-                grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-                padding: 60px 20px; background: rgba(10, 12, 16, 0.7); border: 1px solid var(--neon-purple); border-radius: 16px;
+                grid-column: 1 / -1;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                padding: 60px 20px; background: rgba(10, 12, 16, 0.7); border: 1px solid var(--neon-purple);
+                border-radius: 16px;
                 box-shadow: 0 0 30px rgba(188, 19, 254, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05); backdrop-filter: blur(10px);
                 text-align: center; margin-top: 20px; animation: fadeInCyber 0.5s ease forwards;
             }
-            .cyber-no-results i { font-size: 3.5rem; color: var(--neon-cyan); margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--neon-cyan)); animation: floatIcon 3s ease-in-out infinite; }
-            .cyber-no-results h2 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-purple); }
-            .cyber-no-results p { color: #aaa; font-size: 1rem; margin-bottom: 25px; max-width: 500px; line-height: 1.5; }
-            .btn-cyber-reset { background: transparent; border: 2px solid var(--neon-pink); color: #fff; font-family: 'Orbitron', sans-serif; padding: 12px 30px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 0, 85, 0.3); }
-            .btn-cyber-reset:hover { background: var(--neon-pink); box-shadow: 0 0 25px var(--neon-pink); color: #fff; transform: scale(1.05); }
-            @keyframes fadeInCyber { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-            @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+            .cyber-no-results i { font-size: 3.5rem;
+                color: var(--neon-cyan); margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--neon-cyan)); animation: floatIcon 3s ease-in-out infinite;
+            }
+            .cyber-no-results h2 { font-family: 'Orbitron', sans-serif; font-size: 1.8rem;
+                color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-purple);
+            }
+            .cyber-no-results p { color: #aaa; font-size: 1rem;
+                margin-bottom: 25px; max-width: 500px; line-height: 1.5; }
+            .btn-cyber-reset { background: transparent;
+                border: 2px solid var(--neon-pink); color: #fff; font-family: 'Orbitron', sans-serif; padding: 12px 30px; font-size: 1rem; border-radius: 8px; cursor: pointer;
+                transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            }
+            .btn-cyber-reset:hover { background: var(--neon-pink);
+                box-shadow: 0 0 25px var(--neon-pink); color: #fff; transform: scale(1.05); }
+            @keyframes fadeInCyber { from { opacity: 0;
+                transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes floatIcon { 0%, 100% { transform: translateY(0);
+            } 50% { transform: translateY(-10px); } }
         `;
         document.head.appendChild(style);
     }
@@ -100,10 +113,8 @@ async function cargarAnimes(reset = true) {
         hasMore = true;
     }
     if (loadingEl) loadingEl.style.display = 'block';
-
     try {
         let query = db.collection('catalogo');
-
         // Solo aplicamos el filtro de género en Firestore (más eficiente)
         if (currentFilters.genre) {
             query = query.where('genres', 'array-contains', currentFilters.genre);
@@ -111,10 +122,8 @@ async function cargarAnimes(reset = true) {
 
         query = query.orderBy('title').limit(20);
         if (lastVisible) query = query.startAfter(lastVisible);
-
         const snapshot = await query.get();
         if (loadingEl) loadingEl.style.display = 'none';
-
         if (snapshot.empty) {
             hasMore = false;
             if (reset) mostrarNoResultados();
@@ -124,10 +133,8 @@ async function cargarAnimes(reset = true) {
 
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
         // Normalización para filtros cliente
         const normalize = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
         // Filtro de demografía en cliente (para evitar doble array-contains)
         if (currentFilters.demographic) {
             const target = normalize(currentFilters.demographic);
@@ -156,12 +163,12 @@ async function cargarAnimes(reset = true) {
 
         render(animes, !reset);
         if (snapshot.docs.length < 20) hasMore = false;
-
     } catch (error) {
         console.error('Error cargando catálogo:', error);
         if (loadingEl) loadingEl.style.display = 'none';
         if (reset) {
-            gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.<br><small>${error.message}</small></div>`;
+            gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar.
+            Recarga la página.<br><small>${error.message}</small></div>`;
         }
     } finally {
         isLoading = false;
@@ -213,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (genreSelect) genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; cargarAnimes(true); });
     if (demographicSelect) demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
     if (ratingSelect) ratingSelect.addEventListener('change', (e) => { currentFilters.rating = e.target.value; cargarAnimes(true); });
-
     window.addEventListener('scroll', () => {
         if (isLoading || !hasMore) return;
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) cargarAnimes(false);
@@ -267,7 +273,7 @@ function getPerformanceHints() {
 }
 
 // ============================================
-// LÓGICA DE MÚSICA (sin cambios)
+// LÓGICA DE MÚSICA
 // ============================================
 window.addEventListener('DOMContentLoaded', () => {
     const audio = document.getElementById('bg-music');
@@ -280,6 +286,7 @@ window.addEventListener('DOMContentLoaded', () => {
         audio.src = musicList[currentMusicIndex];
         audio.load();
         audio.volume = 0.75;
+    
         if (hints.processingScale >= 0.6) {
             audio.play().catch(() => {
                 document.addEventListener('click', () => { audio.play().catch(() => {}); }, { once: true });
@@ -291,7 +298,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// CHROMA + FG LOGIC (sin cambios)
+// CHROMA + FG LOGIC
 // ============================================
 const fgContainer = document.getElementById('fgContainer');
 const fgCanvas = document.getElementById('fgCanvas');
@@ -509,7 +516,8 @@ function resizeFireCanvas(){
     const h = Math.max(1, Math.floor(rect.height * dpr));
     
     if (fireCanvas.width !== w || fireCanvas.height !== h) {
-        fireCanvas.width = w; fireCanvas.height = h;
+        fireCanvas.width = w;
+        fireCanvas.height = h;
         fireCanvas.style.width = rect.width + 'px';
         fireCanvas.style.height = rect.height + 'px';
         fctx.setTransform(dpr,0,0,dpr,0,0);
@@ -518,7 +526,8 @@ function resizeFireCanvas(){
 window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
 
-function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
+// MEJORA: Aumentamos velocidad, vida y expansión de chispas
+function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
     const hints = getPerformanceHints();
     const rect = fgContainer.getBoundingClientRect();
     const areaFactor = Math.min(2.2, Math.max(0.45, (rect.width * rect.height) / (360 * 640)));
@@ -527,8 +536,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
     if (hints.processingScale < 0.45) effectiveCount = Math.max(12, Math.round(effectiveCount * 0.30));
     else if (hints.processingScale < 0.6) effectiveCount = Math.max(18, Math.round(effectiveCount * 0.45));
     else if (hints.processingScale < 0.85) effectiveCount = Math.max(28, Math.round(effectiveCount * 0.7));
-    effectiveCount = Math.min(220, effectiveCount);
-    
+    effectiveCount = Math.min(300, effectiveCount);
     const targetFps = hints.processingScale >= 0.85 ? 50 : hints.processingScale >= 0.6 ? 36 : 24;
     const frameInterval = 1000 / targetFps;
 
@@ -537,14 +545,14 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
 
     for (let i = 0; i < effectiveCount; i++) {
         const angle = rnd(0, Math.PI*2);
-        const speed = rnd(1.2, 6.0);
+        const speed = rnd(3.5, 12.0); // FIX: Chispas más rápidas y lejanas
         particles.push({
             x, y,
-            vx: Math.cos(angle) * speed * rnd(0.6, 1.2),
-            vy: Math.sin(angle) * speed * rnd(0.6, 1.2) - rnd(0.6, 2.2),
-            life: rnd(duration*0.65, duration*1.05),
+            vx: Math.cos(angle) * speed * rnd(0.8, 1.5),
+            vy: Math.sin(angle) * speed * rnd(0.8, 1.5) - rnd(1.0, 3.0),
+            life: rnd(duration*0.8, duration*1.2), // FIX: Viven más tiempo
             age: 0,
-            radius: rnd(1.6, 5.2),
+            radius: rnd(2.0, 6.0),
             color: colors[Math.floor(Math.random()*colors.length)]
         });
     }
@@ -566,6 +574,7 @@ function explodeParticlesAt(x, y, colors, count = 60, duration = 650) {
             try {
                 if (finished) return;
                 if (!lastFrameTime) lastFrameTime = now;
+            
                 const dt = now - lastFrameTime;
                 
                 if (dt < frameInterval) {
@@ -633,13 +642,19 @@ async function doFireworkThenHide(){
 
         resizeFireCanvas();
         const palette = ['#ffcc00','#ff4d4d','#ffd700','#00fff7','#ff6ad5','#ff7f50','#8b5cf6'];
-        fgContainer.style.transition = 'transform .25s ease-out, opacity .25s ease';
-        fgContainer.style.transform = 'scale(0.96)';
-        fgContainer.style.opacity = '0.85';
+        
+        // FIX: Cambiamos la animación para que brille y explote hacia adelante en lugar de caer
+        fgContainer.style.transition = 'transform .25s ease-out, opacity .25s ease, filter .25s ease';
+        fgContainer.style.transform = 'scale(1.05)';
+        fgContainer.style.filter = 'drop-shadow(0 0 15px var(--neon-cyan)) brightness(1.2)';
+        fgContainer.style.opacity = '0.9';
 
-        await explodeParticlesAt(cx, cy, palette, 80, 700);
+        await explodeParticlesAt(cx, cy, palette, 200, 900); // Más chispas y más tiempo
+        
         fgContainer.style.opacity = '0';
-        fgContainer.style.transform = 'scale(.8) translateY(10px)';
+        fgContainer.style.transform = 'scale(1.2) translateZ(0)'; // En vez de caer, se expande
+        fgContainer.style.filter = '';
+        
         await new Promise(r => setTimeout(r, 220));
         fgContainer.style.display = 'none';
         fgContainer.style.transform = '';
@@ -700,7 +715,7 @@ fgContainer.addEventListener('click', async (ev) => {
     setTimeout(() => { playVideoClip(next); }, 420);
 });
 
-document.getElementById('playBtn').addEventListener('click', ()=>{
+document.getElementById('playBtn') && document.getElementById('playBtn').addEventListener('click', ()=>{
     document.getElementById('playOverlay').style.display = 'none';
     bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
     try { bgMusic.play().catch(()=>{}); } catch(e){}
