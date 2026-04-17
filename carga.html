@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cargando Archinime...</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --neon-cyan: #00f3ff;
@@ -32,8 +32,7 @@
     body::before {
       content: '';
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(
         0deg,
         rgba(0, 0, 0, 0.15),
@@ -51,7 +50,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 100%;
     }
 
     .gif-wrapper {
@@ -122,46 +120,7 @@
       background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
       box-shadow: 0 0 20px var(--neon-cyan), 0 0 10px var(--neon-purple);
       border-radius: 10px;
-      animation: loadProgress 4.5s forwards cubic-bezier(0.8, 0, 0.2, 1);
-    }
-
-    /* ===== CONTENEDOR DEL PATROCINADOR (ADS) ===== */
-    .sponsor-container {
-      margin-top: 35px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      max-width: 100vw;
-      overflow: hidden;
-      opacity: 0;
-      animation: fadeInSponsor 1s ease 0.5s forwards; /* Aparece suavemente después del loader */
-    }
-
-    .sponsor-text {
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.65rem;
-      color: #888;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-    }
-
-    .ad-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      max-width: 100%;
-      overflow: hidden;
-      border-radius: 8px;
-    }
-
-    /* Fuerza a que el iframe del anuncio no rompa la pantalla */
-    .ad-wrapper iframe {
-      max-width: 100% !important;
-      object-fit: contain;
+      animation: loadProgress 3s forwards cubic-bezier(0.8, 0, 0.2, 1);
     }
 
     @keyframes loadProgress { 
@@ -187,11 +146,6 @@
       96% { opacity: 0.9; transform: skewX(-10deg); text-shadow: -2px 0 var(--neon-pink), 2px 0 var(--neon-cyan); }
       98% { opacity: 1; transform: skewX(0deg); }
     }
-
-    @keyframes fadeInSponsor {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 <body>
@@ -213,67 +167,18 @@
       <div class="loader-line"></div>
     </div>
 
-    <div class="sponsor-container">
-      <div class="sponsor-text"><i class="fas fa-bolt"></i> Servidores potenciados por</div>
-      <div id="ad-wrapper" class="ad-wrapper">
-        <script>
-          // Lógica para elegir el banner perfecto sin deformar la pantalla
-          (function() {
-            var banners = [
-              { key: '1904483365c7a7ab9f83e49d32b7d237', height: 60, width: 468 },
-              { key: '49281ce83eb56f120e34ad617cfd6996', height: 300, width: 160 },
-              { key: '6ecb40404fef8f9daf755244f9c4d753', height: 50, width: 320 },
-              { key: '1f072201cddab551b2b65315f6c1643e', height: 90, width: 728 },
-              { key: 'c80e9060ab41f7adc2b2ccc358ef6c65', height: 250, width: 300 },
-              { key: '190984de4e16fc6eded87c1cb7a9bc83', height: 600, width: 160 }
-            ];
-
-            var screenW = window.innerWidth;
-            var screenH = window.innerHeight;
-
-            // Filtrar banners: solo se muestran los que son más pequeños que el ancho de la pantalla actual (con un margen de seguridad) y que no ocupen toda la altura
-            var validBanners = banners.filter(function(ad) { 
-              return ad.width <= (screenW * 0.95) && ad.height <= (screenH * 0.4); 
-            });
-
-            // Si por alguna razón la pantalla es diminuta, forzamos el banner de móvil (320x50)
-            if (validBanners.length === 0) {
-              validBanners = [{ key: '6ecb40404fef8f9daf755244f9c4d753', height: 50, width: 320 }];
-            }
-
-            // Elegir uno aleatorio entre los que son seguros para esta pantalla
-            var chosenAd = validBanners[Math.floor(Math.random() * validBanners.length)];
-
-            // Imprimir la configuración de Adsterra
-            window.atOptions = {
-              'key' : chosenAd.key,
-              'format' : 'iframe',
-              'height' : chosenAd.height,
-              'width' : chosenAd.width,
-              'params' : {}
-            };
-            
-            document.write('<scr' + 'ipt src="https://www.highperformanceformat.com/' + chosenAd.key + '/invoke.js"></scr' + 'ipt>');
-          })();
-        </script>
-      </div>
-    </div>
-
   </div>
 
   <script src="gifs.js"></script>
 
   <script>
-    // Leemos la lista que está en el otro documento (gifs.js)
-    if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-      const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-      document.getElementById('personaje-gif').src = gifElegido;
-    }
+    // Ahora leemos la lista que está en el otro documento (gifs.js)
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    document.getElementById('personaje-gif').src = gifElegido;
 
     // Lógica del contador y redirección
     const percentageEl = document.getElementById('loading-percentage');
-    // Aumentado a 4.5s (4500ms) para darle tiempo al anuncio de cargar y contabilizar la impresión
-    const duration = 4500; 
+    const duration = 3000; 
     const intervalTime = 30; 
     const step = (100 / (duration / intervalTime));
     let progress = 0;
