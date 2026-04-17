@@ -3,7 +3,7 @@
 // MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
 // CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
-// NUEVO: Integración de anuncios en la sección de recomendaciones con estilos uniformes
+// NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -456,7 +456,8 @@ async function renderRecommendations(currentId) {
       .limit(50)
       .get();
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const random = docs.sort(() => 0.5 - Math.random()).slice(0, 12);
+    // 11 animes para dejar espacio al banner (total 12)
+    const random = docs.sort(() => 0.5 - Math.random()).slice(0, 11);
     
     if (!random.length) {
       grid.innerHTML = '<p style="color:#666;">Sin recomendaciones</p>';
@@ -467,7 +468,7 @@ async function renderRecommendations(currentId) {
     let adPosition = -1;
     if (shouldInsertAd) {
       const minPos = 4;
-      const maxPos = random.length - 2;
+      const maxPos = random.length - 1;
       adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
       console.log(`Anuncio en recomendaciones: posición ${adPosition + 1} (índice ${adPosition})`);
     }

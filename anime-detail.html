@@ -17,7 +17,6 @@
       const animationDuration = 20000;
       const segments = colors.length - 1;
       
-  
       let metaTag = document.querySelector('meta[name="theme-color"]');
       if (!metaTag) {
         metaTag = document.createElement('meta');
@@ -400,8 +399,7 @@
       transform: translateZ(0);
     }
     .search-item:hover { background: rgba(0,243,255,0.1); }
-    .search-item img { width: 40px; height: 55px;
-      object-fit: cover; border-radius: 6px; }
+    .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 6px; }
 
     .anime-cover {
       text-align: center;
@@ -626,6 +624,10 @@
       transition: 0.2s;
       cursor: pointer;
       border: 1px solid rgba(188,19,254,0.15);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 240px; /* Altura fija uniforme como en index */
       will-change: transform;
     }
     .rec-card:hover {
@@ -637,13 +639,37 @@
       width: 100%;
       aspect-ratio: 2/3;
       object-fit: cover;
+      flex-shrink: 0;
     }
     .rec-card p {
       padding: 8px;
+      margin: 0;
       text-align: center;
       font-size: 0.8rem;
       font-weight: 500;
       color: #eee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: rgba(0,0,0,0.5);
+      flex-shrink: 0;
+    }
+    /* Estilos específicos para la tarjeta de anuncio */
+    .rec-card.card-ad {
+      cursor: default;
+    }
+    .rec-card.card-ad > div {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .rec-card.card-ad iframe,
+    .rec-card.card-ad ins {
+      width: 100% !important;
+      height: 100% !important;
+      border: none;
     }
     .toast {
       position: fixed;
@@ -715,13 +741,13 @@
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
 <script src="musica-data.js?v=20250406"></script>
-<script src="anuncios_index.js"></script>  
+<script src="anuncios_index.js"></script>   <!-- NUEVO: Archivo de anuncios -->
 <script src="anime-detail-core.js?v=20250406"></script>
 
 <script src="gifs.js"></script>
 
 <script>
-  // AÑADIDO: Lógica para cargar el GIF aleatorio antes de iniciar el progreso
+  // Lógica para cargar el GIF aleatorio antes de iniciar el progreso
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
