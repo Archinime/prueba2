@@ -758,7 +758,11 @@
   const iosModal = document.getElementById('iosInstallModal');
 
   const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isInStandaloneMode = () => ('standalone' in window.navigator) && window.navigator.standalone;
+  // Detección mejorada de modo standalone
+  const isInStandaloneMode = () => {
+    return (window.matchMedia('(display-mode: standalone)').matches) || 
+           (window.navigator.standalone === true);
+  };
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
   function resumeMusic() {
@@ -769,6 +773,8 @@
   }
 
   function checkInstallButtonVisibility() {
+    if (!installBtn) return;
+    // Solo mostrar si es móvil y NO está en modo standalone
     if (isMobile() && !isInStandaloneMode()) {
       installBtn.style.display = 'flex';
     } else {
@@ -808,14 +814,46 @@
   }
   window.closeIosModal = closeIosModal;
 
+  // Comprobar al cargar y al cambiar el modo de visualización
   window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
   window.addEventListener('resize', checkInstallButtonVisibility);
+  // Escuchar cambios en display-mode (ej: al abrir la app instalada)
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', checkInstallButtonVisibility);
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     checkInstallButtonVisibility();
   });
 
-  // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios, pero con chroma key funcionando) ====================
+  // ==================== MEJORA: MÚSICA AUTOMÁTICA EN MODO STANDALONE ====================
+  let isPlayingMedia = false;
+  let currentAudio = null;
+
+  function startAudioMedia() {
+    if (isPlayingMedia) return;
+    isPlayingMedia = true;
+    const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
+    currentAudio = new Audio(track);
+    currentAudio.volume = 0.3;
+    currentAudio.onended = () => { isPlayingMedia = false; startAudioMedia(); };
+    currentAudio.play().catch(e => { 
+      console.log('Música bloqueada, se iniciará con el primer clic', e);
+      isPlayingMedia = false; 
+    });
+  }
+
+  // Si la app está instalada (standalone), intentar reproducir música automáticamente
+  if (isInStandaloneMode()) {
+    // Pequeño retardo para asegurar que el DOM está listo
+    setTimeout(() => {
+      startAudioMedia();
+    }, 500);
+  } else {
+    // En navegador normal, seguir con el primer clic
+    document.addEventListener('click', startAudioMedia, { once: true });
+    document.addEventListener('touchstart', startAudioMedia, { once: true });
+  }
+
+  // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios, con chroma key) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
@@ -1341,8 +1379,6 @@
   const fgCanvas = document.getElementById('fgCanvas');
   const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
   let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
-  let currentAudio = null;
-  let isPlayingMedia = false;
   let isTransitioning = false;
 
   fgVideo.style.display = 'none';
@@ -1381,15 +1417,6 @@
     bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
     fgVideo.muted = true;
     fgVideo.play().catch(e => console.log('Animación bloqueada', e));
-  }
-  function startAudioMedia() {
-    if (isPlayingMedia) return;
-    isPlayingMedia = true;
-    const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
-    currentAudio = new Audio(track);
-    currentAudio.volume = 0.3;
-    currentAudio.onended = () => { isPlayingMedia = false; startAudioMedia(); };
-    currentAudio.play().catch(e => { console.log('Música bloqueada', e); isPlayingMedia = false; });
   }
 
   function createSparks(clientX, clientY) {
@@ -1430,8 +1457,6 @@
   });
 
   window.addEventListener('DOMContentLoaded', startVisualMedia);
-  document.addEventListener('click', startAudioMedia, { once: true });
-  document.addEventListener('touchstart', startAudioMedia, { once: true });
 
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
   inicializarAnuncio();
