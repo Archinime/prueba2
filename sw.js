@@ -1,7 +1,6 @@
-const CACHE_NAME = 'archinime-os-dynamic';
+const CACHE_NAME = 'archinime-os-v' + Date.now(); // Fuerza renovación de caché
 const urlsToCache = [
-  './',
-  'index.html',
+  // No cacheamos index.html intencionalmente para evitar versión antigua
   'styles-index.css',
   'Logo_Archinime.avif'
 ];
@@ -9,8 +8,7 @@ const urlsToCache = [
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
@@ -30,6 +28,17 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  
+  // Nunca devolver index.html desde caché, siempre ir a la red
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  
+  // Para el resto de recursos, usar network-first
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {
@@ -39,8 +48,6 @@ self.addEventListener('fetch', event => {
         });
         return networkResponse;
       })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });
