@@ -542,7 +542,7 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
-    <!-- BOTÓN DE INSTALACIÓN PWA (reemplaza al de YouTube) -->
+    <!-- BOTÓN DE INSTALACIÓN PWA -->
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
@@ -564,7 +564,6 @@
         <div id="userDropdownItems"><div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div></div>
       </div>
     </div>
-    <!-- El botón de YouTube ha sido eliminado y reemplazado por installBtn -->
   </div>
 </nav>
 
@@ -660,7 +659,7 @@
   </div>
 </div>
 
-<!-- Modal de instrucciones para iOS (se crea dinámicamente) -->
+<!-- Modal de instrucciones para iOS -->
 <div id="iosInstallModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 999999; justify-content: center; align-items: center; padding: 20px;">
   <div style="background: #0f0f13; border: 1px solid var(--neon-cyan); border-radius: 24px; max-width: 320px; padding: 25px; text-align: center; color: white; font-family: 'Poppins';">
     <i class="fab fa-apple" style="font-size: 3rem; color: var(--neon-cyan);"></i>
@@ -723,7 +722,6 @@
   const isInStandaloneMode = () => ('standalone' in window.navigator) && window.navigator.standalone;
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
-  // Función para reanudar la música después de cualquier diálogo
   function resumeMusic() {
     const audio = document.getElementById('bg-music');
     if (audio && audio.paused) {
@@ -748,7 +746,6 @@
   installBtn.addEventListener('click', () => {
     if (isIos()) {
       iosModal.style.display = 'flex';
-      // Esperar a que el modal se cierre para reanudar la música
       const checkModal = setInterval(() => {
         if (iosModal.style.display === 'none') {
           clearInterval(checkModal);
@@ -779,7 +776,7 @@
     checkInstallButtonVisibility();
   });
 
-  // ==================== RESTO DE TU CÓDIGO ORIGINAL (optimizado en chroma key) ====================
+  // ==================== RESTO DE TU CÓDIGO ORIGINAL (SIN OPTIMIZACIONES EN EL CHROMA) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
@@ -1309,41 +1306,17 @@
   let isPlayingMedia = false;
   let isTransitioning = false;
 
-  // --- CHROMA KEY OPTIMIZADO (con limitación de fps) ---
-  let lastChromaTime = 0;
-  const chromaFPS = 24; // frames por segundo
-  const chromaInterval = 1000 / chromaFPS;
-
-  function processChromaKey(now) {
+  // CHROMA KEY ORIGINAL (sin optimizaciones, máxima calidad)
+  function processChromaKey() {
     if (fgVideo.paused || fgVideo.ended || isTransitioning) {
       requestAnimationFrame(processChromaKey);
       return;
     }
-    
-    // Limitar la frecuencia de procesamiento
-    if (now - lastChromaTime < chromaInterval) {
-      requestAnimationFrame(processChromaKey);
-      return;
-    }
-    lastChromaTime = now;
-    
-    // Dibujar a menor resolución para ganar rendimiento
-    const scale = 0.5; // reduce la resolución a la mitad
-    const w = fgCanvas.width * scale;
-    const h = fgCanvas.height * scale;
-    
-    // Usar un canvas offscreen temporal
-    const offCanvas = document.createElement('canvas');
-    offCanvas.width = w;
-    offCanvas.height = h;
-    const offCtx = offCanvas.getContext('2d');
-    offCtx.drawImage(fgVideo, 0, 0, w, h);
-    
-    const frameData = offCtx.getImageData(0, 0, w, h);
+    fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+    const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
     const data = frameData.data;
     const keyColor = currentAnim.keyColor || 'green';
     const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
-    
     for (let i = 0; i < data.length; i += 4) {
       let r = data[i], g = data[i+1], b = data[i+2];
       if (keyColor === 'blue') {
@@ -1352,11 +1325,7 @@
         if (g > r + threshold && g > b + threshold) data[i+3] = 0;
       }
     }
-    
-    offCtx.putImageData(frameData, 0, 0);
-    // Escalar de vuelta al canvas principal
-    fgCtx.drawImage(offCanvas, 0, 0, w, h, 0, 0, fgCanvas.width, fgCanvas.height);
-    
+    fgCtx.putImageData(frameData, 0, 0);
     requestAnimationFrame(processChromaKey);
   }
 
