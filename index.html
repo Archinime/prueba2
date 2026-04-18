@@ -92,7 +92,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen exactamente igual) ===== */
+    /* ===== TODOS TUS ESTILOS ORIGINALES ===== */
     :root {
       --neon-cyan: #00f3ff;
       --neon-purple: #bc13fe;
@@ -660,8 +660,8 @@
   </div>
 </div>
 
-<!-- Modal de instrucciones para iOS (se crea dinámicamente) -->
-<div id="iosInstallModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 999999; justify-content: center; align-items: center; padding: 20px;">
+<!-- Modal de instrucciones para iOS -->
+<div id="iosInstallModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 999999; justify-content: center; align-items: center; padding: 20px;">
   <div style="background: #0f0f13; border: 1px solid var(--neon-cyan); border-radius: 24px; max-width: 320px; padding: 25px; text-align: center; color: white; font-family: 'Poppins';">
     <i class="fab fa-apple" style="font-size: 3rem; color: var(--neon-cyan);"></i>
     <h3 style="margin: 15px 0 10px;">Instalar Archinime</h3>
@@ -714,16 +714,32 @@
     });
   }
 
-  // ==================== LÓGICA DEL BOTÓN DE INSTALACIÓN (PWA) ====================
+  // ==================== LÓGICA DEL BOTÓN DE INSTALACIÓN (PWA) MEJORADA ====================
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const iosModal = document.getElementById('iosInstallModal');
 
+  // Detectar si la app ya está instalada (modo standalone)
+  const isInStandaloneMode = () => {
+    return (window.matchMedia('(display-mode: standalone)').matches) || 
+           (window.navigator.standalone === true);
+  };
+
   const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isInStandaloneMode = () => ('standalone' in window.navigator) && window.navigator.standalone;
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
+  // Función para mostrar instrucciones genéricas de instalación (cuando no hay prompt nativo)
+  function showManualInstallInstructions() {
+    if (isIos()) {
+      iosModal.style.display = 'flex';
+    } else {
+      // Para Android/Chrome cuando no hay beforeinstallprompt (ej: ya rechazado)
+      alert("📲 Para instalar la app:\n1. Abre el menú de Chrome (tres puntos)\n2. Toca 'Instalar aplicación'\n3. Confirma la instalación");
+    }
+  }
+
   function checkInstallButtonVisibility() {
+    // Solo mostrar si es móvil Y no está en modo standalone
     if (isMobile() && !isInStandaloneMode()) {
       installBtn.style.display = 'flex';
     } else {
@@ -731,25 +747,41 @@
     }
   }
 
+  // Escuchar el evento beforeinstallprompt (se dispara cuando el navegador detecta que la app es instalable)
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     checkInstallButtonVisibility();
+    console.log('beforeinstallprompt capturado');
   });
 
+  // También escuchar cuando la app se instala (para ocultar el botón)
+  window.addEventListener('appinstalled', () => {
+    console.log('App instalada');
+    deferredPrompt = null;
+    checkInstallButtonVisibility();
+  });
+
+  // Click en el botón de instalar
   installBtn.addEventListener('click', () => {
     if (isIos()) {
+      // iOS siempre requiere instrucciones manuales
       iosModal.style.display = 'flex';
     } else if (deferredPrompt) {
+      // Android/Chrome: tenemos el prompt guardado, lo mostramos
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           console.log('Usuario aceptó instalar');
+        } else {
+          console.log('Usuario rechazó la instalación');
         }
         deferredPrompt = null;
       });
     } else {
-      alert("¡Ya la tienes! 😄\nLa app ya está instalada. Ábrela desde tu pantalla de inicio.");
+      // No hay prompt disponible (porque el navegador no lo soporta, o ya fue usado, o el usuario rechazó antes)
+      // Mostramos instrucciones manuales
+      showManualInstallInstructions();
     }
   });
 
@@ -758,8 +790,11 @@
   }
   window.closeIosModal = closeIosModal;
 
+  // Comprobar al cargar y al cambiar de tamaño/rotación
   window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
   window.addEventListener('resize', checkInstallButtonVisibility);
+  // También comprobar cuando cambie el modo de visualización (ej: al abrir la app instalada)
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', checkInstallButtonVisibility);
 
   // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
