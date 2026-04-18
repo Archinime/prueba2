@@ -489,6 +489,13 @@
     .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
     
+    /* MODAL DE IOS ESTILOS */
+    .ios-modal { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 340px; background: rgba(20,20,25,0.95); border: 1px solid var(--neon-purple); border-radius: 16px; padding: 25px; z-index: 10000; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+    .ios-content p { color: #ddd; margin: 10px 0; font-size: 0.95rem; }
+    .ios-content i { color: var(--neon-cyan); }
+    .ios-close { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #888; cursor: pointer; transition: 0.2s; }
+    .ios-close:hover { color: var(--neon-pink); transform: scale(1.2); }
+
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -672,6 +679,16 @@
     <canvas id="fgCanvas"></canvas>
     <video id="fgVideo" muted loop playsinline></video>
   </div>
+</div>
+
+<div id="iosInstallModal" class="ios-modal">
+    <div class="ios-content">
+        <span class="ios-close" onclick="closeIosModal()">&times;</span>
+        <h3 style="color:white; margin-bottom:10px; font-family: 'Orbitron';"><i class="fas fa-apple-alt"></i> Instalar Sistema</h3>
+        <p>Para añadir <strong>Archinime</strong> a iOS:</p>
+        <p>1. Toca <strong>Compartir</strong> <i class="fas fa-share-square"></i> en Safari.</p>
+        <p>2. Elige <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
+    </div>
 </div>
 
 <script>
@@ -1324,58 +1341,77 @@
   inicializarAnuncio();
   cargarAnimesPaginado(true);
 
-  // --- LÓGICA PWA Y BOTÓN DESCARGAR VS YOUTUBE ---
+  // --- LÓGICA PWA CORREGIDA (Botón Descargar vs YouTube) ---
   let deferredPrompt;
   const btnInstalar = document.getElementById('installBtn');
   const btnYoutube = document.getElementById('youtubeBtn');
+  const iosModal = document.getElementById('iosInstallModal');
 
-  function toggleBotonesPWA() {
-    // Comprobar si se está ejecutando como app independiente instalada
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    
-    if (isStandalone) {
-      // Estamos en la app instalada
+  // Funciones para saber el estado
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+
+  function gestionarBotonesPWA() {
+    if (isStandalone()) {
+      // 1. Si la persona abrió la PWA instalada, escondemos instalar y mostramos YouTube
       if(btnInstalar) btnInstalar.style.display = 'none';
       if(btnYoutube) btnYoutube.style.display = 'flex';
     } else {
-      // Estamos en el navegador web
-      if(btnInstalar) btnInstalar.style.display = 'flex';
-      if(btnYoutube) btnYoutube.style.display = 'none';
+      // 2. Si está en el navegador
+      // Por defecto, NO mostramos el botón de instalar hasta estar 100% seguros de que se puede
+      if(btnInstalar) btnInstalar.style.display = 'none';
+      if(btnYoutube) btnYoutube.style.display = 'flex';
+
+      // 3. Excepción: iOS no avisa cuándo está listo, así que se lo mostramos manual
+      if (isIos()) {
+        if(btnInstalar) btnInstalar.style.display = 'flex';
+        if(btnYoutube) btnYoutube.style.display = 'none';
+      }
     }
   }
 
+  // Este evento SOLO se dispara cuando Chrome/Android confirman que todo está listo para instalarse
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); // Evita el popup por defecto
+    e.preventDefault();
     deferredPrompt = e;
-    toggleBotonesPWA(); // Vuelve a revisar para estar seguros
+    
+    // Como ya confirmó que se puede instalar, ahora sí hacemos el cambio
+    if (!isStandalone()) {
+      if(btnInstalar) btnInstalar.style.display = 'flex';
+      if(btnYoutube) btnYoutube.style.display = 'none';
+    }
   });
 
+  // Funcionalidad al hacer click
   if (btnInstalar) {
     btnInstalar.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt(); // Muestra el popup de instalación
+      if (isIos()) {
+        // Mostrar modal manual de iOS
+        if(iosModal) iosModal.style.display = 'block';
+      } else if (deferredPrompt) {
+        // Mostrar el pop-up nativo de Android/Chrome
+        deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-          deferredPrompt = null;
+          deferredPrompt = null; // Limpiar para que no se use de nuevo
         }
       } else {
-        // En caso de estar en iOS u otro caso límite
-        const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-        if (isIos) {
-          alert("Para instalar en iOS: Toca el icono de 'Compartir' en Safari y selecciona 'Agregar a Inicio'.");
-        } else {
-          alert("La aplicación ya está instalada o tu navegador no soporta esta función directamente.");
-        }
+        // Si llega aquí, es porque algo raro pasó o el navegador no es compatible
+        alert("El navegador aún está preparando la descarga o no es compatible. ¡Intenta recargar la página!");
       }
     });
   }
 
-  // Ejecutamos la función de chequeo apenas cargue el documento
-  window.addEventListener('DOMContentLoaded', toggleBotonesPWA);
-  // Escucha cambios por si el usuario instala e ingresa automáticamente a modo standalone
-  window.matchMedia('(display-mode: standalone)').addEventListener('change', toggleBotonesPWA);
+  function closeIosModal() {
+    if(iosModal) iosModal.style.display = 'none';
+  }
 
-  // --- REGISTRO DEL SERVICE WORKER (Requerido para instalar PWA y mejorar velocidad) ---
+  // Corremos la verificación apenas cargue
+  window.addEventListener('DOMContentLoaded', gestionarBotonesPWA);
+  // Escuchamos si cambia de ventana normal a standalone (cuando se instala)
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', gestionarBotonesPWA);
+
+  // Registro del Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('service-worker.js')
@@ -1383,7 +1419,6 @@
         .catch(err => console.log('Error al registrar Service Worker:', err));
     });
   }
-
 </script>
 </body>
 </html>
