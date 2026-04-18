@@ -1,6 +1,6 @@
-const CACHE_NAME = 'archinime-cyber-cache-v1';
+const CACHE_NAME = 'archinime-cyber-cache-v2';
 
-// Recursos críticos a cachear inmediatamente al instalar
+// Recursos críticos a cachear al instalar
 const PRECACHE_ASSETS = [
     '/',
     '/index.html',
@@ -16,7 +16,6 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-    // Limpieza de cachés antiguos si cambias la versión de CACHE_NAME
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
@@ -30,11 +29,9 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Estrategia: Stale-While-Revalidate
+// Estrategia: Stale-While-Revalidate para recursos estáticos y CDN
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-
-    // Aplicar la estrategia a JS, CSS, imágenes y peticiones a jsdelivr
     const isStaticAsset = url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|avif|webp)$/);
     const isCDN = url.hostname.includes('jsdelivr.net');
 
@@ -42,10 +39,7 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             caches.open(CACHE_NAME).then(cache => {
                 return cache.match(event.request).then(cachedResponse => {
-                    
-                    // Promesa de red: busca el recurso fresco y actualiza el caché
                     const fetchPromise = fetch(event.request).then(networkResponse => {
-                        // Solo cacheamos respuestas exitosas
                         if (networkResponse && networkResponse.status === 200) {
                             cache.put(event.request, networkResponse.clone());
                         }
@@ -53,8 +47,6 @@ self.addEventListener('fetch', event => {
                     }).catch(err => {
                         console.warn('Modo offline: Red inaccesible para', event.request.url);
                     });
-
-                    // Retornamos el caché inmediatamente si existe, si no, esperamos a la red
                     return cachedResponse || fetchPromise;
                 });
             })
