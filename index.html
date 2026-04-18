@@ -723,6 +723,14 @@
   const isInStandaloneMode = () => ('standalone' in window.navigator) && window.navigator.standalone;
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
+  // Función para reanudar la música después de cualquier diálogo
+  function resumeMusic() {
+    const audio = document.getElementById('bg-music');
+    if (audio && audio.paused) {
+      audio.play().catch(e => console.log("No se pudo reanudar la música", e));
+    }
+  }
+
   function checkInstallButtonVisibility() {
     if (isMobile() && !isInStandaloneMode()) {
       installBtn.style.display = 'flex';
@@ -740,16 +748,22 @@
   installBtn.addEventListener('click', () => {
     if (isIos()) {
       iosModal.style.display = 'flex';
+      // Esperar a que el modal se cierre para reanudar la música
+      const checkModal = setInterval(() => {
+        if (iosModal.style.display === 'none') {
+          clearInterval(checkModal);
+          resumeMusic();
+        }
+      }, 200);
     } else if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('Usuario aceptó instalar');
-        }
+      deferredPrompt.userChoice.then(() => {
+        resumeMusic();
         deferredPrompt = null;
       });
     } else {
-      alert("¡Ya la tienes! 😄\nLa app ya está instalada. Ábrela desde tu pantalla de inicio.");
+      alert("📲 Para instalar la app:\n1. Abre el menú de Chrome (tres puntos)\n2. Toca 'Instalar aplicación'\n3. Confirma la instalación");
+      resumeMusic();
     }
   });
 
@@ -760,8 +774,12 @@
 
   window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
   window.addEventListener('resize', checkInstallButtonVisibility);
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    checkInstallButtonVisibility();
+  });
 
-  // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios) ====================
+  // ==================== RESTO DE TU CÓDIGO ORIGINAL (optimizado en chroma key) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
@@ -1291,24 +1309,41 @@
   let isPlayingMedia = false;
   let isTransitioning = false;
 
-  fgVideo.style.display = 'none';
-  fgVideo.src = currentAnim.src;
-  fgVideo.addEventListener('loadedmetadata', () => {
-    const maxCanvasWidth = 300;
-    const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
-    fgCanvas.width = maxCanvasWidth;
-    fgCanvas.height = maxCanvasWidth / ratio;
-  });
-  function processChromaKey() {
+  // --- CHROMA KEY OPTIMIZADO (con limitación de fps) ---
+  let lastChromaTime = 0;
+  const chromaFPS = 24; // frames por segundo
+  const chromaInterval = 1000 / chromaFPS;
+
+  function processChromaKey(now) {
     if (fgVideo.paused || fgVideo.ended || isTransitioning) {
       requestAnimationFrame(processChromaKey);
       return;
     }
-    fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
-    const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+    
+    // Limitar la frecuencia de procesamiento
+    if (now - lastChromaTime < chromaInterval) {
+      requestAnimationFrame(processChromaKey);
+      return;
+    }
+    lastChromaTime = now;
+    
+    // Dibujar a menor resolución para ganar rendimiento
+    const scale = 0.5; // reduce la resolución a la mitad
+    const w = fgCanvas.width * scale;
+    const h = fgCanvas.height * scale;
+    
+    // Usar un canvas offscreen temporal
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = w;
+    offCanvas.height = h;
+    const offCtx = offCanvas.getContext('2d');
+    offCtx.drawImage(fgVideo, 0, 0, w, h);
+    
+    const frameData = offCtx.getImageData(0, 0, w, h);
     const data = frameData.data;
     const keyColor = currentAnim.keyColor || 'green';
     const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+    
     for (let i = 0; i < data.length; i += 4) {
       let r = data[i], g = data[i+1], b = data[i+2];
       if (keyColor === 'blue') {
@@ -1317,9 +1352,14 @@
         if (g > r + threshold && g > b + threshold) data[i+3] = 0;
       }
     }
-    fgCtx.putImageData(frameData, 0, 0);
+    
+    offCtx.putImageData(frameData, 0, 0);
+    // Escalar de vuelta al canvas principal
+    fgCtx.drawImage(offCanvas, 0, 0, w, h, 0, 0, fgCanvas.width, fgCanvas.height);
+    
     requestAnimationFrame(processChromaKey);
   }
+
   fgVideo.addEventListener('play', () => { requestAnimationFrame(processChromaKey); });
   function startVisualMedia() {
     const bgVideo = document.getElementById('bg-video');
