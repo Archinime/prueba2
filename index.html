@@ -543,11 +543,11 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
-    <!-- Botón de Instalación (se muestra cuando la app NO está instalada y el navegador soporta PWA) -->
+    <!-- Botón de Instalación (se muestra cuando la app NO está instalada) -->
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar Archinime App" style="display: none;">
       <i class="fas fa-download"></i>
     </button>
-    <!-- Botón de YouTube (se muestra cuando la app YA está instalada o cuando no se puede instalar) -->
+    <!-- Botón de YouTube (se muestra cuando la app YA está instalada) -->
     <button id="ytBtn" class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube" style="display: none;">
       <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
     </button>
@@ -694,65 +694,71 @@
 <script src="anuncios_index.js"></script>
 
 <script>
-  // --- LÓGICA DE INSTALACIÓN PWA ---
+  // --- LÓGICA DE INSTALACIÓN PWA (CORREGIDA) ---
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const ytBtn = document.getElementById('ytBtn');
 
-  // Determinar si la app ya está instalada (modo standalone)
+  // Detectar si la app ya está instalada (modo standalone)
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-  // Función para actualizar visibilidad de botones
+  // Función para mostrar/ocultar botones según el contexto
   function updateButtonVisibility() {
     if (isStandalone) {
-      // Si está instalada, mostramos solo YouTube
+      // Instalada → solo YouTube
       installBtn.style.display = 'none';
       ytBtn.style.display = 'flex';
     } else {
-      // En navegador: si tenemos evento de instalación guardado, mostramos botón de instalar
-      if (deferredPrompt) {
-        installBtn.style.display = 'flex';
-        ytBtn.style.display = 'none';
-      } else {
-        // Si no hay soporte de instalación, mostramos YouTube como fallback
-        installBtn.style.display = 'none';
-        ytBtn.style.display = 'flex';
-      }
+      // En navegador → mostrar siempre el botón de instalación (con brillo)
+      installBtn.style.display = 'flex';
+      ytBtn.style.display = 'none';
     }
+  }
+
+  // Registrar el Service Worker (necesario para que la PWA sea instalable)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => console.log('SW registrado:', registration.scope))
+        .catch(err => console.log('Error al registrar SW:', err));
+    });
   }
 
   // Escuchar el evento beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevenir que el navegador muestre el mini-infobar automático
+    // Prevenir el mini-infobar automático
     e.preventDefault();
     // Guardar el evento para usarlo después
     deferredPrompt = e;
-    // Actualizar visibilidad de botones
+    // Asegurar que el botón de instalación esté visible
     updateButtonVisibility();
+    console.log('✅ beforeinstallprompt capturado, instalación disponible');
   });
 
   // Manejar clic en el botón de instalación
   installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    // Mostrar el prompt de instalación
-    deferredPrompt.prompt();
-    // Esperar la respuesta del usuario
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install prompt: ${outcome}`);
-    // Limpiar el prompt guardado
-    deferredPrompt = null;
-    // Actualizar visibilidad (ahora probablemente se instaló, así que se mostrará YouTube)
+    if (deferredPrompt) {
+      // Mostrar el prompt nativo de instalación
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`Respuesta del usuario: ${outcome}`);
+      deferredPrompt = null;
+    } else {
+      // Si no hay prompt disponible, mostrar un mensaje alternativo
+      alert('📱 Para instalar Archinime:\n\n• En Chrome/Edge: menú ⋮ → "Instalar aplicación"\n• En Safari: botón Compartir → "Agregar a inicio"\n• En PC: icono de monitor en la barra de direcciones');
+    }
+    // Actualizar visibilidad (si se instaló, cambiará a YouTube)
     updateButtonVisibility();
   });
 
   // Detectar cuando la app ha sido instalada
   window.addEventListener('appinstalled', () => {
-    console.log('Aplicación instalada correctamente');
+    console.log('🎉 Aplicación instalada correctamente');
     deferredPrompt = null;
     updateButtonVisibility();
   });
 
-  // Actualizar visibilidad inicial
+  // Inicializar visibilidad de botones
   updateButtonVisibility();
 
   // --- RESTO DEL CÓDIGO ORIGINAL (sin cambios) ---
