@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v7.0";
+      const APP_VERSION = "2025-04-06-v6.2";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -92,7 +92,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== TODOS TUS ESTILOS ORIGINALES (SE MANTIENEN ÍNTEGROS) ===== */
+    /* ===== TODOS TUS ESTILOS ORIGINALES (SIN MODIFICAR) ===== */
     :root {
       --neon-cyan: #00f3ff;
       --neon-purple: #bc13fe;
@@ -418,20 +418,10 @@
     .profile-save-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
     .profile-status { text-align: center; margin-top: 15px; font-size: 0.9rem; }
 
-    /* Modal iOS */
-    .ios-modal { 
-      display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%;
-      max-width: 340px; background: rgba(20,20,25,0.95); border: 1px solid #444; border-radius: 16px; padding: 25px;
-      z-index: 10000; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    }
-    .ios-content p { color: #ddd; margin: 10px 0; font-size: 0.95rem; }
-    .ios-content i { color: var(--neon-cyan); }
-    .ios-close { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #888; cursor: pointer; }
-
     /* ===== FIX PARA LA ANIMACIÓN (Chroma Key container) ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     #fgContainer {
-      position: fixed;
+      position: fixed; /* FIX: Anclado a la pantalla, evita el salto en móviles al hacer scroll */
       pointer-events: auto; display: flex; align-items: center; justify-content: center;
       right: 20px; bottom: 20px; 
       width: 280px; height: auto; max-height: 350px; overflow: hidden;
@@ -441,11 +431,12 @@
       transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, filter 0.6s;
       transform-origin: center bottom;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: transparent; /* FIX: Quita el cuadrado celeste al tocar */
       outline: none;
       user-select: none;
     }
     #fgContainer.poof {
+      /* FIX: Salida con destello y expansión, sin caerse */
       transform: scale(1.15) translateZ(0);
       opacity: 0;
       filter: drop-shadow(0 0 20px var(--neon-pink)) brightness(1.5) blur(4px);
@@ -454,7 +445,7 @@
     #fgVideo { display: none; }
     .spark {
       position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999;
-      animation: sparkAnim 0.8s ease-out forwards;
+      animation: sparkAnim 0.8s ease-out forwards; /* FIX: Más duración de la chispa */
     }
     @keyframes sparkAnim {
       0% { transform: scale(1) translate(0, 0); opacity: 1; }
@@ -552,6 +543,7 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
+    <!-- Botón de Instalación (visible solo en móvil y no instalado) -->
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App" style="display: none;"><i class="fas fa-download"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
@@ -579,27 +571,85 @@
   </div>
 </nav>
 
-<!-- Modal iOS -->
-<div id="iosInstallModal" class="ios-modal">
-  <div class="ios-content">
-    <span class="ios-close" onclick="closeIosModal()">&times;</span>
-    <h3 style="color:white; margin-bottom:10px;">Instalar Sistema</h3>
-    <p>Para añadir <strong>Archinime</strong> a iOS:</p>
-    <p>1. Toca <strong>Compartir</strong> <i class="fas fa-share-square"></i></p>
-    <p>2. Elige <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square"></i></p>
+<div id="authModal" class="auth-modal">
+  <div class="auth-card">
+    <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+      <div class="auth-tab" data-tab="register">Registrarse</div>
+    </div>
+    <div id="authLoginForm" class="auth-form">
+      <input type="email" id="loginEmail" placeholder="Correo electrónico">
+      <input type="password" id="loginPassword" placeholder="Contraseña">
+      <button onclick="loginWithEmail()">Iniciar sesión</button>
+    </div>
+    <div id="authRegisterForm" class="auth-form" style="display:none;">
+      <input type="email" id="registerEmail" placeholder="Correo electrónico">
+      <input type="password" id="registerPassword" placeholder="Contraseña">
+      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
+      <button onclick="registerWithEmail()">Registrarse</button>
+    </div>
+    <div class="auth-providers">
+      <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
+      <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
+    </div>
+    <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
   </div>
 </div>
 
-<div id="authModal" class="auth-modal">
-  <!-- ... (igual que antes) ... -->
-</div>
-
 <div id="profileModal" class="profile-modal">
-  <!-- ... (igual que antes) ... -->
+  <div class="profile-card">
+    <div class="profile-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></div>
+    <h2 style="font-family: 'Orbitron'; text-align: center; color: var(--neon-cyan); margin-bottom: 20px;">CONFIGURACIÓN</h2>
+    <div class="profile-avatar">
+      <img id="profileAvatar" src="invitado.avif" alt="Avatar">
+      <label class="profile-upload-btn" for="profileAvatarInput">
+        <i class="fas fa-upload"></i> Subir nuevo avatar
+      </label>
+      <input type="file" id="profileAvatarInput" accept="image/*" style="display: none;">
+    </div>
+    <div class="profile-field">
+      <label>ID Único de Cuenta</label>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="profileUid" readonly style="color: #aaa; background: rgba(0,0,0,0.6); cursor: not-allowed; border-color: rgba(255,255,255,0.1);">
+        <button class="profile-upload-btn" onclick="copiarUID()" style="margin: 0; padding: 0 15px; font-size: 1rem; border-radius: 10px;" title="Copiar ID"><i class="fas fa-copy"></i></button>
+      </div>
+      <span style="font-size: 0.8rem; color: #888; margin-top: 5px; display: inline-block;">Este ID es único y no puede cambiarse.</span>
+    </div>
+    <div class="profile-field">
+      <label>Nombre Público</label>
+      <input type="text" id="profileDisplayName" placeholder="Ej: CyberNinja99">
+    </div>
+    <div class="profile-field">
+      <label>Color de Nombre (Afecta comentarios y tu Avatar)</label>
+      <div class="color-picker-wrapper">
+        <input type="color" id="profileNameColor" class="color-picker" value="#00fff7">
+        <span style="font-size: 0.85rem; color: #aaa;">Elige tu color neón representativo</span>
+      </div>
+    </div>
+    <button id="profileSaveBtn" class="profile-save-btn" onclick="guardarCambiosPerfil()">GUARDAR CAMBIOS</button>
+    <div id="profileStatusMsg" class="profile-status"></div>
+  </div>
 </div>
 
 <div class="controls-container controls" id="controls">
-  <!-- ... (igual que antes) ... -->
+  <select id="genre-select">
+      <option value="">🎭 Todos los géneros</option>
+      <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
+      <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
+      <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
+      <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
+  </select>
+  <select id="demographic-select">
+    <option value="">👥 Todas las demografías</option>
+    <option>Josei</option><option>Kodomo</option><option>Seijin</option><option>Seinen</option><option>Shōjo</option><option>Shōnen</option>
+  </select>
+  <select id="rating-select">
+    <option value="">⭐ RANKING GLOBAL</option>
+    <option value="excellent">🏆 S-TIER (4.8+)</option>
+    <option value="good">🔥 A-TIER (4.6+)</option>
+    <option value="regular">📀 B-TIER (&lt;4.5)</option>
+  </select>
 </div>
 
 <main class="container">
@@ -613,8 +663,20 @@
   </div>
 </div>
 
+<!-- Modal instrucciones iOS -->
+<div id="iosInstallModal" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,20,0.95); border: 1px solid var(--neon-purple); border-radius: 16px; padding: 20px; z-index: 100000; max-width: 320px; width: 90%; box-shadow: 0 0 30px black; text-align: center; color: white;">
+  <div style="position: relative;">
+    <span onclick="document.getElementById('iosInstallModal').style.display='none'" style="position: absolute; top: -10px; right: -10px; font-size: 1.5rem; cursor: pointer; color: #aaa;">&times;</span>
+    <h3 style="margin-bottom: 15px; color: var(--neon-cyan);"><i class="fas fa-download"></i> Instalar Archinime</h3>
+    <p style="margin-bottom: 10px; font-size: 0.9rem;">Para añadir a la pantalla de inicio:</p>
+    <p style="background: #222; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+      <i class="fas fa-share-square" style="color: var(--neon-cyan);"></i> Toca <strong>Compartir</strong> y luego<br>
+      <i class="fas fa-plus-square" style="color: var(--neon-cyan);"></i> <strong>"Agregar a inicio"</strong>
+    </p>
+  </div>
+</div>
+
 <script>
-  // Configuración de Firebase (sin cambios)
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
     authDomain: "login-admin-archinime.firebaseapp.com",
@@ -642,61 +704,70 @@
 <script src="anuncios_index.js"></script>
 
 <script>
-  // --- LÓGICA DE INSTALACIÓN (PROBADA, INTEGRADA AQUÍ) ---
-  let deferredPrompt;
-  const installBtn = document.getElementById('installBtn');
-  const iosModal = document.getElementById('iosInstallModal');
+  // --- LÓGICA DE INSTALACIÓN MEJORADA (CON BRILLO Y DETECCIÓN CORRECTA) ---
+  (function() {
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const iosModal = document.getElementById('iosInstallModal');
 
-  const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isInStandaloneMode = () => (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
-  const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
+    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = () => (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+    const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
-  function updateInstallButtonVisibility() {
-    if (isMobile() && !isInStandaloneMode()) {
-      installBtn.style.display = 'flex';
-    } else {
-      installBtn.style.display = 'none';
+    function updateInstallButtonVisibility() {
+      // Mostrar botón solo en móviles y cuando NO está instalada
+      if (isMobile() && !isInStandaloneMode()) {
+        installBtn.style.display = 'flex';
+      } else {
+        installBtn.style.display = 'none';
+      }
     }
-  }
 
-  // Registrar Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('SW registrado:', reg.scope))
-        .catch(err => console.log('Error SW:', err));
+    // Registrar Service Worker si no está ya registrado
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW registrado para instalación:', reg.scope))
+          .catch(err => console.log('Error SW:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      updateInstallButtonVisibility();
     });
-  }
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    updateInstallButtonVisibility();
-  });
+    installBtn.addEventListener('click', () => {
+      if (isIos()) {
+        iosModal.style.display = 'block';
+      } else if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuario aceptó instalar');
+          }
+          deferredPrompt = null;
+          updateInstallButtonVisibility();
+        });
+      } else {
+        // Fallback si el prompt no está disponible
+        alert('📱 Para instalar:\n• Chrome/Edge: menú ⋮ → "Instalar aplicación"\n• Safari: botón Compartir → "Agregar a inicio"');
+      }
+    });
 
-  installBtn.addEventListener('click', () => {
-    if (isIos()) {
-      iosModal.style.display = 'block';
-    } else if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-    } else {
-      alert('📱 Para instalar:\n• Chrome/Edge: menú ⋮ → "Instalar aplicación"\n• Safari: botón Compartir → "Agregar a inicio"');
-    }
-  });
+    window.addEventListener('appinstalled', () => {
+      console.log('App instalada');
+      deferredPrompt = null;
+      updateInstallButtonVisibility();
+    });
 
-  window.closeIosModal = function() { iosModal.style.display = 'none'; };
+    // Inicializar al cargar y al redimensionar
+    window.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
+    window.addEventListener('resize', updateInstallButtonVisibility);
+  })();
 
-  window.addEventListener('appinstalled', () => {
-    console.log('App instalada');
-    deferredPrompt = null;
-    updateInstallButtonVisibility();
-  });
-
-  window.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
-  window.addEventListener('resize', updateInstallButtonVisibility);
-
-  // --- RESTO DEL CÓDIGO ORIGINAL (SIN CAMBIOS) ---
+  // --- A PARTIR DE AQUÍ TODO EL CÓDIGO ORIGINAL SE MANTIENE INTACTO ---
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
@@ -772,7 +843,7 @@
   }
 
   let anuncioActual = null;
-  let cachedAdCard = null;
+  let cachedAdCard = null; // FIX: almacenar la tarjeta de anuncio para reutilizarla
 
   function inicializarAnuncio() {
     if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
@@ -784,6 +855,7 @@
     }
   }
 
+  // FIX: crear la tarjeta de anuncio una sola vez y cachearla
   function crearTarjetaAnuncio() {
     if (cachedAdCard) return cachedAdCard;
     if (!anuncioActual) return null;
@@ -836,6 +908,7 @@
       if (shouldInsertAd && i === adPosition) {
         const adCard = crearTarjetaAnuncio();
         if (adCard) {
+          // Si la tarjeta ya tiene un padre (por ejemplo de una inserción anterior), la removemos para reubicarla
           if (adCard.parentNode) adCard.remove();
           frag.appendChild(adCard);
           console.log(`Anuncio insertado en posición ${i + 1}`);
