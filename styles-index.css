@@ -27,8 +27,7 @@ html, body {
 
 /* --- FONDO Y ELEMENTOS GLOBALES --- */
 #bg-video {
-  position: fixed; top: 0;
-  left: 0; width: 100%;
+  position: fixed; top: 0; left: 0; width: 100%;
   height: 100%; object-fit: cover; z-index: -5;
   /* FIX: Forzamos la opacidad y brillo en todos los dispositivos */
   opacity: 1 !important; 
@@ -39,8 +38,7 @@ html, body {
 
 #overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: radial-gradient(circle at center, rgba(188, 19, 254, 0.1) 0%, rgba(0,0,0,0.8) 90%);
   z-index: -4; pointer-events: none;
 }
@@ -68,12 +66,10 @@ html, body {
   background-size: 200% 100%; animation: borderFlow 4s linear infinite; opacity: 0.8;
 }
 
-.nav-logo { display: flex;
-  align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
 .nav-logo img { height: 42px; width: 42px; object-fit: contain; border-radius: 8px;
   box-shadow: 0 0 10px rgba(188, 19, 254, 0.3); transition: transform 0.3s; }
-.nav-logo:hover img { transform: scale(1.1);
-}
+.nav-logo:hover img { transform: scale(1.1); }
 .nav-logo-text {
   font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.4rem; letter-spacing: 1px;
   background: linear-gradient(90deg, #fff, var(--neon-cyan), #fff);
@@ -83,8 +79,7 @@ html, body {
 }
 
 /* SEARCH */
-.search-wrapper { position: relative;
-  margin: 0 25px; flex-grow: 1; max-width: 450px; }
+.search-wrapper { position: relative; margin: 0 25px; flex-grow: 1; max-width: 450px; }
 .search-input {
   width: 100%; background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255,255,255,0.15); border-radius: 4px;
@@ -111,20 +106,8 @@ html, body {
   color: white; border-color: var(--neon-purple);
   box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); transform: translateY(-2px);
 }
-
-/* ESTILOS DE BOTONES DINÁMICOS */
 #installBtn { display: none; }
-#youtubeBtn { display: none; }
-.install-pulse {
-  color: var(--neon-cyan);
-  border: 1px solid var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(0, 243, 255, 0.2);
-  animation: neon-pulse-heavy 1.5s infinite alternate !important;
-}
-@keyframes neon-pulse-heavy {
-  0% { box-shadow: 0 0 10px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(0, 243, 255, 0.2); transform: scale(1); }
-  100% { box-shadow: 0 0 25px var(--neon-cyan), 0 0 45px var(--neon-cyan), inset 0 0 15px var(--neon-cyan); transform: scale(1.15); background-color: rgba(0, 243, 255, 0.1); color: #fff; }
-}
+.install-pulse { animation: pulseBorder 2s infinite; color: var(--neon-cyan); }
 
 /* --- NOTIFICACIONES MEJORADAS --- */
 .notif-wrapper { position: relative; overflow: visible; }
@@ -223,8 +206,7 @@ select {
 #eventModal.show .event-card { transform: scale(1) translateY(0); }
 .event-visuals { position: relative; width: 100%; height: 240px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }
 .visual-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(15px) brightness(0.4); transform: scale(1.1); }
-.covers-container { position: relative;
-  z-index: 2; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding-bottom: 20px; }
+.covers-container { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding-bottom: 20px; }
 .cover-back { width: 100px; height: 150px; object-fit: cover;
   border-radius: 6px; opacity: 0.7; transform: translateX(45px) rotate(-5deg) scale(0.9); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 .cover-front { width: 120px; height: 180px;
@@ -243,28 +225,45 @@ select {
 .event-close:hover { background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); }
 .event-info { background: #111;
   padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 5; }
-.event-title { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.2; }
+.event-title { font-size: 1.3rem; font-weight: 800; color: white;
+  margin-bottom: 5px; line-height: 1.2; }
 .event-meta { color: var(--neon-cyan); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 15px; }
-.event-desc { color: #999; font-size: 0.85rem; font-style: italic; margin-bottom: 20px; }
+.event-desc { color: #999;
+  font-size: 0.85rem; font-style: italic; margin-bottom: 20px; }
 .event-btn { background: white; color: black; border: none; padding: 12px; width: 100%; border-radius: 30px;
   font-weight: 800; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
-.event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
+.event-btn:hover { background: var(--neon-cyan);
+  box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
 
 /* --- RESPONSIVE FIX (Adaptación Móvil) --- */
 @media (max-width: 768px) {
-  .cyber-nav { padding: 10px 15px; height: auto; flex-wrap: wrap; gap: 10px; }
+  .cyber-nav { padding: 10px 15px;
+    height: auto; flex-wrap: wrap; gap: 10px; }
   .search-wrapper { order: 3; width: 100%; margin: 5px 0 0; max-width: none; }
   .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .notif-dropdown { position: fixed; top: 60px; left: 10px; right: 10px; width: auto; max-width: none; }
+  .notif-dropdown { position: fixed; top: 60px; left: 10px;
+    right: 10px; width: auto; max-width: none; }
   
-  .controls-container { flex-direction: row; align-items: stretch; justify-content: space-between; }
-  .controls-container select { flex: 1 1 calc(33% - 10px); font-size: 13px; padding: 10px 5px; text-align: center; }
+  .controls-container {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+  }
+  .controls-container select {
+    flex: 1 1 calc(33% - 10px);
+    font-size: 13px;
+    padding: 10px 5px;
+    text-align: center;
+  }
 }
 @media (max-width: 480px) {
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .nav-logo-text { display: none; }
   .event-card { width: 95%; }
-  .controls-container select { flex: 1 1 calc(50% - 10px); }
+  
+  .controls-container select {
+    flex: 1 1 calc(50% - 10px);
+  }
 }
 
 /* Animaciones */

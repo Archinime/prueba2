@@ -82,7 +82,7 @@ function mostrarNoResultados() {
             @keyframes fadeInCyber { from { opacity: 0;
                 transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
             @keyframes floatIcon { 0%, 100% { transform: translateY(0);
-                } 50% { transform: translateY(-10px); } }
+            } 50% { transform: translateY(-10px); } }
         `;
         document.head.appendChild(style);
     }
@@ -113,7 +113,6 @@ async function cargarAnimes(reset = true) {
         hasMore = true;
     }
     if (loadingEl) loadingEl.style.display = 'block';
-
     try {
         let query = db.collection('catalogo');
         // Solo aplicamos el filtro de género en Firestore (más eficiente)
@@ -123,10 +122,8 @@ async function cargarAnimes(reset = true) {
 
         query = query.orderBy('title').limit(20);
         if (lastVisible) query = query.startAfter(lastVisible);
-
         const snapshot = await query.get();
         if (loadingEl) loadingEl.style.display = 'none';
-
         if (snapshot.empty) {
             hasMore = false;
             if (reset) mostrarNoResultados();
@@ -136,10 +133,8 @@ async function cargarAnimes(reset = true) {
 
         lastVisible = snapshot.docs[snapshot.docs.length - 1];
         let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
         // Normalización para filtros cliente
         const normalize = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
         // Filtro de demografía en cliente (para evitar doble array-contains)
         if (currentFilters.demographic) {
             const target = normalize(currentFilters.demographic);
@@ -168,12 +163,12 @@ async function cargarAnimes(reset = true) {
 
         render(animes, !reset);
         if (snapshot.docs.length < 20) hasMore = false;
-
     } catch (error) {
         console.error('Error cargando catálogo:', error);
         if (loadingEl) loadingEl.style.display = 'none';
         if (reset) {
-            gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar. Recarga la página.<br><small>${error.message}</small></div>`;
+            gridEl.innerHTML = `<div class="error-message" style="grid-column:1/-1; text-align:center; padding:40px; color:var(--neon-pink);">Error al cargar.
+            Recarga la página.<br><small>${error.message}</small></div>`;
         }
     } finally {
         isLoading = false;
@@ -225,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (genreSelect) genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; cargarAnimes(true); });
     if (demographicSelect) demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
     if (ratingSelect) ratingSelect.addEventListener('change', (e) => { currentFilters.rating = e.target.value; cargarAnimes(true); });
-    
     window.addEventListener('scroll', () => {
         if (isLoading || !hasMore) return;
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) cargarAnimes(false);
@@ -292,6 +286,7 @@ window.addEventListener('DOMContentLoaded', () => {
         audio.src = musicList[currentMusicIndex];
         audio.load();
         audio.volume = 0.75;
+    
         if (hints.processingScale >= 0.6) {
             audio.play().catch(() => {
                 document.addEventListener('click', () => { audio.play().catch(() => {}); }, { once: true });
@@ -500,6 +495,7 @@ function scheduleNextVideo(afterSeconds = 3, excludeId = null){
     scheduledTimer = setTimeout(()=>{ const next = pickRandomVideo(excludeId); if (!next) return; playVideoClip(next); }, afterSeconds*1000);
 }
 
+// Fuegos artificiales
 const fireCanvas = document.createElement('canvas');
 fireCanvas.className = 'firework-canvas';
 fireCanvas.style.position = 'absolute';
@@ -530,6 +526,7 @@ function resizeFireCanvas(){
 window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
 
+// MEJORA: Aumentamos velocidad, vida y expansión de chispas
 function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
     const hints = getPerformanceHints();
     const rect = fgContainer.getBoundingClientRect();
@@ -548,12 +545,12 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
 
     for (let i = 0; i < effectiveCount; i++) {
         const angle = rnd(0, Math.PI*2);
-        const speed = rnd(3.5, 12.0); 
+        const speed = rnd(3.5, 12.0); // FIX: Chispas más rápidas y lejanas
         particles.push({
             x, y,
             vx: Math.cos(angle) * speed * rnd(0.8, 1.5),
             vy: Math.sin(angle) * speed * rnd(0.8, 1.5) - rnd(1.0, 3.0),
-            life: rnd(duration*0.8, duration*1.2), 
+            life: rnd(duration*0.8, duration*1.2), // FIX: Viven más tiempo
             age: 0,
             radius: rnd(2.0, 6.0),
             color: colors[Math.floor(Math.random()*colors.length)]
@@ -625,8 +622,7 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
             }
         }
         
-        try { requestAnimationFrame(frame);
-        } catch (err) {
+        try { requestAnimationFrame(frame); } catch (err) {
             clearTimeout(safeTimer);
             try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height); } catch(e){}
             resolve();
@@ -647,16 +643,18 @@ async function doFireworkThenHide(){
         resizeFireCanvas();
         const palette = ['#ffcc00','#ff4d4d','#ffd700','#00fff7','#ff6ad5','#ff7f50','#8b5cf6'];
         
+        // FIX: Cambiamos la animación para que brille y explote hacia adelante en lugar de caer
         fgContainer.style.transition = 'transform .25s ease-out, opacity .25s ease, filter .25s ease';
         fgContainer.style.transform = 'scale(1.05)';
         fgContainer.style.filter = 'drop-shadow(0 0 15px var(--neon-cyan)) brightness(1.2)';
         fgContainer.style.opacity = '0.9';
 
-        await explodeParticlesAt(cx, cy, palette, 200, 900);
+        await explodeParticlesAt(cx, cy, palette, 200, 900); // Más chispas y más tiempo
         
         fgContainer.style.opacity = '0';
-        fgContainer.style.transform = 'scale(1.2) translateZ(0)'; 
+        fgContainer.style.transform = 'scale(1.2) translateZ(0)'; // En vez de caer, se expande
         fgContainer.style.filter = '';
+        
         await new Promise(r => setTimeout(r, 220));
         fgContainer.style.display = 'none';
         fgContainer.style.transform = '';
@@ -716,12 +714,14 @@ fgContainer.addEventListener('click', async (ev) => {
     const next = pickRandomVideo(currentId);
     setTimeout(() => { playVideoClip(next); }, 420);
 });
+
 document.getElementById('playBtn') && document.getElementById('playBtn').addEventListener('click', ()=>{
     document.getElementById('playOverlay').style.display = 'none';
     bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
     try { bgMusic.play().catch(()=>{}); } catch(e){}
     if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
 });
+
 let resizeRaf = null;
 window.addEventListener('resize', ()=> {
     if (resizeRaf) return;
@@ -733,6 +733,7 @@ window.addEventListener('resize', ()=> {
         resizeRaf = null;
     });
 }, {passive:true});
+
 document.addEventListener('visibilitychange', ()=> {
     if (document.hidden) {
         visibilityPaused = true;
@@ -744,6 +745,7 @@ document.addEventListener('visibilitychange', ()=> {
         }
     }
 }, {passive:true});
+
 function init(){
     fgContainer.style.display = 'none';
     fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
@@ -754,77 +756,3 @@ function init(){
 
 init();
 window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){} });
-
-// ============================================
-// PWA INSTALACIÓN Y YOUTUBE TOGGLE
-// ============================================
-let deferredPrompt;
-const pwaInstallBtn = document.getElementById('installBtn');
-const ytBtn = document.getElementById('youtubeBtn');
-
-function isPwaInstalled() {
-    return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
-}
-
-function updateNavButtons() {
-    if (!pwaInstallBtn || !ytBtn) return;
-    
-    if (isPwaInstalled()) {
-        // Estamos en la App instalada: Mostrar YouTube, Ocultar Descargar
-        pwaInstallBtn.style.display = 'none';
-        ytBtn.style.display = 'flex';
-    } else {
-        // Estamos en la Web: Mostrar Descargar, Ocultar YouTube
-        pwaInstallBtn.style.display = 'flex';
-        ytBtn.style.display = 'none';
-    }
-}
-
-// Inicializar la vista de botones
-window.addEventListener('DOMContentLoaded', updateNavButtons);
-
-// Capturar el evento de instalación que dispara el navegador cuando es compatible con PWA
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Evitar que el navegador muestre su banner automático
-    e.preventDefault();
-    // Guardar el evento para dispararlo al hacer clic en tu botón neón
-    deferredPrompt = e;
-    
-    // Asegurarnos de que el botón de descarga es el que se ve en la web
-    if (!isPwaInstalled() && pwaInstallBtn && ytBtn) {
-        pwaInstallBtn.style.display = 'flex';
-        ytBtn.style.display = 'none';
-    }
-});
-
-// Lógica al hacer clic en el botón mágico de Descargar App
-if (pwaInstallBtn) {
-    pwaInstallBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            // Mostrar la ventana de instalación oficial del navegador
-            deferredPrompt.prompt();
-            // Esperar a que el usuario decida (Instalar o Cancelar)
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                console.log('El usuario aceptó instalar Archinime OS');
-            } else {
-                console.log('El usuario canceló la instalación');
-            }
-            // Limpiar la variable
-            deferredPrompt = null;
-        } else {
-            // Fallback por si acaso
-            alert("La aplicación ya está instalada o tu navegador actual no soporta esta función.");
-        }
-    });
-}
-
-// Escuchar cuándo la instalación fue completada con éxito
-window.addEventListener('appinstalled', () => {
-    console.log('Archinime OS instalada exitosamente');
-    // Al instante, ocultamos Descarga y mostramos YouTube
-    if (pwaInstallBtn && ytBtn) {
-        pwaInstallBtn.style.display = 'none';
-        ytBtn.style.display = 'flex';
-    }
-});
