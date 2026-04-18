@@ -82,7 +82,7 @@ function mostrarNoResultados() {
             @keyframes fadeInCyber { from { opacity: 0;
                 transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
             @keyframes floatIcon { 0%, 100% { transform: translateY(0);
-            } 50% { transform: translateY(-10px); } }
+                } 50% { transform: translateY(-10px); } }
         `;
         document.head.appendChild(style);
     }
@@ -90,7 +90,8 @@ function mostrarNoResultados() {
     gridEl.innerHTML = `
         <div class="cyber-no-results">
             <i class="fas fa-satellite-dish"></i>
-            <h2>¡Ups! Sin Resultados</h2>
+            <h2>¡Ups!
+            Sin Resultados</h2>
             <p>Verifica el nombre o prueba buscar por un alias.<br>Si no aparece, puedes solicitar que se suba a la base de datos.</p>
             <button class="btn-cyber-reset" id="btn-reset">RESTAURAR RADARES</button>
         </div>
@@ -155,7 +156,8 @@ async function cargarAnimes(reset = true) {
             animes = animes.filter(a => {
                 const r = a.rating || 0;
                 if (currentFilters.rating === 'excellent') return r >= 4.8;
-                if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+                if (currentFilters.rating === 
+                'good') return r >= 4.6 && r < 4.8;
                 if (currentFilters.rating === 'regular') return r < 4.6;
                 return true;
             });
@@ -179,7 +181,8 @@ async function cargarAnimes(reset = true) {
 // FUNCIONES AUXILIARES PARA FILTROS
 // ============================================
 function normalizeText(s) {
-    try { return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''); }
+    try { return (s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    }
     catch(e) { return (s || '').toLowerCase().replace(/[\u0300-\u036f]/g, ''); }
 }
 
@@ -213,12 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
             currentFilters.search = e.target.value;
             debouncedCargar();
         });
-        searchInput.addEventListener('keydown', (e) => {
+        searchInput.addEventListener('keydown', (e) 
+        => {
             if (e.key === 'Enter') { e.preventDefault(); cargarAnimes(true); }
         });
     }
     if (genreSelect) genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; cargarAnimes(true); });
-    if (demographicSelect) demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value; cargarAnimes(true); });
+    if (demographicSelect) demographicSelect.addEventListener('change', (e) => { currentFilters.demographic = e.target.value;
+        cargarAnimes(true); });
     if (ratingSelect) ratingSelect.addEventListener('change', (e) => { currentFilters.rating = e.target.value; cargarAnimes(true); });
     window.addEventListener('scroll', () => {
         if (isLoading || !hasMore) return;
@@ -247,6 +252,7 @@ function handleCardTilt(e) {
         const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -6;
         const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 6;
         card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    
     });
 }
 
@@ -287,13 +293,15 @@ window.addEventListener('DOMContentLoaded', () => {
         audio.load();
         audio.volume = 0.75;
     
+  
         if (hints.processingScale >= 0.6) {
             audio.play().catch(() => {
                 document.addEventListener('click', () => { audio.play().catch(() => {}); }, { once: true });
             });
         }
     }
-    audio.addEventListener('ended', () => { currentMusicIndex = currentMusicIndex + 1; playByIndex(currentMusicIndex); });
+    audio.addEventListener('ended', () => { currentMusicIndex = currentMusicIndex + 1; playByIndex(currentMusicIndex);
+    });
     playByIndex(currentMusicIndex);
 });
 
@@ -305,7 +313,8 @@ const fgCanvas = document.getElementById('fgCanvas');
 const fgVideo = document.getElementById('fgVideo');
 const bgVideo = document.getElementById('bg-video');
 const bgMusic = document.getElementById('bg-music');
-const ctx = fgCanvas.getContext ? fgCanvas.getContext('2d', { alpha: true }) : null;
+const ctx = fgCanvas.getContext ?
+fgCanvas.getContext('2d', { alpha: true }) : null;
 
 let off = document.createElement('canvas');
 let offCtx = off.getContext ? off.getContext('2d') : null;
@@ -317,7 +326,6 @@ let currentVideoObj = null;
 let lastObjectUrl = null;
 let isAnimatingExplosion = false;
 let scheduledTimer = null;
-
 function pickRandomVideo(excludeId){
     if (typeof videoList === 'undefined' || videoList.length === 0) return null;
     if (videoList.length === 1) return videoList[0];
@@ -329,8 +337,10 @@ function pickRandomVideo(excludeId){
 function placeRandomSide(infoObj){
     const side = Math.random() < 0.5 ? 'left' : 'right';
     const margin = window.matchMedia('(max-width:767px)').matches ? '12px' : '20px';
-    if (side === 'left') { fgContainer.style.left = margin; fgContainer.style.right = ''; }
-    else { fgContainer.style.right = margin; fgContainer.style.left = ''; }
+    if (side === 'left') { fgContainer.style.left = margin; fgContainer.style.right = '';
+    }
+    else { fgContainer.style.right = margin; fgContainer.style.left = '';
+    }
 }
 
 function drawProcessedToScreen(){
@@ -467,7 +477,8 @@ function processFrame(video, infoObj){
         return;
     }
     
-    const settings = infoObj && infoObj.preset ? infoObj.preset : { threshold:0.4, diff:30, soft:30 };
+    const settings = infoObj && infoObj.preset ?
+    infoObj.preset : { threshold:0.4, diff:30, soft:30 };
     const keyColor = infoObj && infoObj.keyColor ? infoObj.keyColor : 'green';
     const processed = applyChromaKey(frame, settings, keyColor);
     offCtx.putImageData(processed, 0, 0);
@@ -486,11 +497,13 @@ function stopChromaInterval(){
     if (chromaIntervalId) { clearInterval(chromaIntervalId); chromaIntervalId = null; }
 }
 
-function showContainer(){ fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter'); }
+function showContainer(){ fgContainer.style.display = 'flex'; fgContainer.classList.remove('exit'); fgContainer.classList.add('enter');
+}
 function hideContainerInstantlyForTransition(){ fgContainer.classList.remove('enter'); fgContainer.classList.add('exit'); }
 
 function scheduleNextVideo(afterSeconds = 3, excludeId = null){
-    if (scheduledTimer){ clearTimeout(scheduledTimer); scheduledTimer = null; }
+    if (scheduledTimer){ clearTimeout(scheduledTimer); scheduledTimer = null;
+    }
     hideContainerInstantlyForTransition();
     scheduledTimer = setTimeout(()=>{ const next = pickRandomVideo(excludeId); if (!next) return; playVideoClip(next); }, afterSeconds*1000);
 }
@@ -525,7 +538,6 @@ function resizeFireCanvas(){
 }
 window.addEventListener('resize', resizeFireCanvas, {passive:true});
 setTimeout(resizeFireCanvas, 120);
-
 // MEJORA: Aumentamos velocidad, vida y expansión de chispas
 function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
     const hints = getPerformanceHints();
@@ -541,7 +553,8 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
     const frameInterval = 1000 / targetFps;
 
     const particles = [];
-    function rnd(min, max){ return Math.random()*(max-min)+min; }
+    function rnd(min, max){ return Math.random()*(max-min)+min;
+    }
 
     for (let i = 0; i < effectiveCount; i++) {
         const angle = rnd(0, Math.PI*2);
@@ -551,6 +564,7 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
             vx: Math.cos(angle) * speed * rnd(0.8, 1.5),
             vy: Math.sin(angle) * speed * rnd(0.8, 1.5) - rnd(1.0, 3.0),
             life: rnd(duration*0.8, duration*1.2), // FIX: Viven más tiempo
+          
             age: 0,
             radius: rnd(2.0, 6.0),
             color: colors[Math.floor(Math.random()*colors.length)]
@@ -566,6 +580,7 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
             if (!finished) {
                 finished = true;
                 try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height); } catch(e){}
+         
                 resolve();
             }
         }, safeTimeoutMs);
@@ -580,6 +595,7 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
                 if (dt < frameInterval) {
                     requestAnimationFrame(frame);
                     return;
+   
                 }
                 lastFrameTime = now;
 
@@ -587,6 +603,7 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
                 fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
 
                 for (let p of particles) {
+           
                     p.age = t;
                     const lifeRatio = Math.max(0, 1 - p.age / p.life);
                     p.x += p.vx * (dt/16.67);
@@ -622,9 +639,11 @@ function explodeParticlesAt(x, y, colors, count = 150, duration = 900) {
             }
         }
         
-        try { requestAnimationFrame(frame); } catch (err) {
+        try { requestAnimationFrame(frame);
+        } catch (err) {
             clearTimeout(safeTimer);
-            try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height); } catch(e){}
+            try { fctx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
+            } catch(e){}
             resolve();
         }
     });
@@ -635,26 +654,26 @@ async function doFireworkThenHide(){
     isAnimatingExplosion = true;
     try {
         await new Promise(r => setTimeout(r, 8));
-        try { fgVideo.pause(); } catch(e){}
+        try { fgVideo.pause();
+        } catch(e){}
         const rect = fgContainer.getBoundingClientRect();
         const cx = rect.width / 2;
         const cy = rect.height / 2;
 
         resizeFireCanvas();
         const palette = ['#ffcc00','#ff4d4d','#ffd700','#00fff7','#ff6ad5','#ff7f50','#8b5cf6'];
-        
         // FIX: Cambiamos la animación para que brille y explote hacia adelante en lugar de caer
         fgContainer.style.transition = 'transform .25s ease-out, opacity .25s ease, filter .25s ease';
         fgContainer.style.transform = 'scale(1.05)';
         fgContainer.style.filter = 'drop-shadow(0 0 15px var(--neon-cyan)) brightness(1.2)';
         fgContainer.style.opacity = '0.9';
 
-        await explodeParticlesAt(cx, cy, palette, 200, 900); // Más chispas y más tiempo
+        await explodeParticlesAt(cx, cy, palette, 200, 900);
+        // Más chispas y más tiempo
         
         fgContainer.style.opacity = '0';
         fgContainer.style.transform = 'scale(1.2) translateZ(0)'; // En vez de caer, se expande
         fgContainer.style.filter = '';
-        
         await new Promise(r => setTimeout(r, 220));
         fgContainer.style.display = 'none';
         fgContainer.style.transform = '';
@@ -677,7 +696,8 @@ async function playVideoClip(infoObj){
     const onMeta = () => {
         fgVideo.removeEventListener('loadedmetadata', onMeta);
         if (infoObj.id === 'hola') { fgContainer.style.bottom = '0px'; }
-        else { fgContainer.style.bottom = '20px'; }
+        else { fgContainer.style.bottom = '20px';
+        }
         placeRandomSide(infoObj);
         adjustContainerToVideo(fgVideo, infoObj);
         fgCanvas.style.display = 'block';
@@ -714,14 +734,12 @@ fgContainer.addEventListener('click', async (ev) => {
     const next = pickRandomVideo(currentId);
     setTimeout(() => { playVideoClip(next); }, 420);
 });
-
 document.getElementById('playBtn') && document.getElementById('playBtn').addEventListener('click', ()=>{
     document.getElementById('playOverlay').style.display = 'none';
     bgVideo.play().catch(()=>{}); fgVideo.play().catch(()=>{});
     try { bgMusic.play().catch(()=>{}); } catch(e){}
     if (currentVideoObj) startChromaIntervalIfNeeded(currentVideoObj);
 });
-
 let resizeRaf = null;
 window.addEventListener('resize', ()=> {
     if (resizeRaf) return;
@@ -733,7 +751,6 @@ window.addEventListener('resize', ()=> {
         resizeRaf = null;
     });
 }, {passive:true});
-
 document.addEventListener('visibilitychange', ()=> {
     if (document.hidden) {
         visibilityPaused = true;
@@ -745,7 +762,6 @@ document.addEventListener('visibilitychange', ()=> {
         }
     }
 }, {passive:true});
-
 function init(){
     fgContainer.style.display = 'none';
     fgCanvas.style.display = 'none'; fgVideo.style.display = 'none';
@@ -756,3 +772,56 @@ function init(){
 
 init();
 window.addEventListener('beforeunload', ()=>{ if (lastObjectUrl) try{ URL.revokeObjectURL(lastObjectUrl); } catch(e){} });
+
+// ============================================
+// LÓGICA DE PWA (INSTALAR VS YOUTUBE)
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    const installBtn = document.getElementById('installBtn');
+    const youtubeBtn = document.getElementById('youtubeBtn');
+    let deferredPrompt;
+
+    // Detectar si la página se está ejecutando como App instalada (Standalone)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+
+    if (isStandalone) {
+        // Si ya está descargada y se abre por la app
+        if (installBtn) installBtn.style.display = 'none';
+        if (youtubeBtn) youtubeBtn.style.display = 'flex';
+    } else {
+        // Si la página está en la Web
+        if (installBtn) installBtn.style.display = 'flex';
+        if (youtubeBtn) youtubeBtn.style.display = 'none';
+
+        // Guardar el evento de instalación para el botón
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) installBtn.style.display = 'flex';
+            if (youtubeBtn) youtubeBtn.style.display = 'none';
+        });
+
+        // Acción al hacer clic en el botón de Descargar
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('App instalada con éxito');
+                    }
+                    deferredPrompt = null;
+                } else {
+                    // Soporte para Safari en iOS y otros navegadores que no soportan el prompt automático
+                    alert('Para descargar la app, abre el menú de tu navegador y selecciona "Añadir a la pantalla de inicio" o "Instalar aplicación".');
+                }
+            });
+        }
+
+        // Cambiar al botón de YouTube inmediatamente si la app se instala
+        window.addEventListener('appinstalled', () => {
+            if (installBtn) installBtn.style.display = 'none';
+            if (youtubeBtn) youtubeBtn.style.display = 'flex';
+        });
+    }
+});
