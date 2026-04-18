@@ -251,7 +251,6 @@
       box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
     @media (max-width: 480px) { .cyber-btn-icon { width: 38px; height: 38px; font-size: 1rem; } }
     #installBtn { display: none; }
-    #ytBtn { display: none; }
     .install-pulse { animation: pulseBorder 1.5s infinite; }
     .user-menu { position: relative; display: flex; align-items: center; }
     #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
@@ -422,7 +421,7 @@
     /* ===== FIX PARA LA ANIMACIÓN (Chroma Key container) ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     #fgContainer {
-      position: fixed;
+      position: fixed; /* FIX: Anclado a la pantalla, evita el salto en móviles al hacer scroll */
       pointer-events: auto; display: flex; align-items: center; justify-content: center;
       right: 20px; bottom: 20px; 
       width: 280px; height: auto; max-height: 350px; overflow: hidden;
@@ -432,11 +431,12 @@
       transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, filter 0.6s;
       transform-origin: center bottom;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      -webkit-tap-highlight-color: transparent; /* FIX: Quita el cuadrado celeste al tocar */
       outline: none;
       user-select: none;
     }
     #fgContainer.poof {
+      /* FIX: Salida con destello y expansión, sin caerse */
       transform: scale(1.15) translateZ(0);
       opacity: 0;
       filter: drop-shadow(0 0 20px var(--neon-pink)) brightness(1.5) blur(4px);
@@ -445,7 +445,7 @@
     #fgVideo { display: none; }
     .spark {
       position: fixed; border-radius: 50%; pointer-events: none; z-index: 9999;
-      animation: sparkAnim 0.8s ease-out forwards;
+      animation: sparkAnim 0.8s ease-out forwards; /* FIX: Más duración de la chispa */
     }
     @keyframes sparkAnim {
       0% { transform: scale(1) translate(0, 0); opacity: 1; }
@@ -543,14 +543,8 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
-    <!-- Botón de Instalación (se muestra cuando la app NO está instalada) -->
-    <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar Archinime App" style="display: none;">
-      <i class="fas fa-download"></i>
-    </button>
-    <!-- Botón de YouTube (se muestra cuando la app YA está instalada) -->
-    <button id="ytBtn" class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube" style="display: none;">
-      <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
-    </button>
+    <!-- BOTÓN DE INSTALACIÓN (LÓGICA CORREGIDA) -->
+    <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App" style="display: none;"><i class="fas fa-download"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
       <div id="notifMenu" class="notif-dropdown">
@@ -571,6 +565,9 @@
         <div id="userDropdownItems"><div class="user-dropdown-item" id="loginBtnItem"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</div></div>
       </div>
     </div>
+    <button class="cyber-btn-icon" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')" title="YouTube">
+      <img src="youtube.avif" alt="YT" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
+    </button>
   </div>
 </nav>
 
@@ -666,6 +663,17 @@
   </div>
 </div>
 
+<!-- Modal para instrucciones iOS -->
+<div id="iosInstallModal" style="display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 340px; background: rgba(20,20,25,0.95); border: 1px solid #444; border-radius: 16px; padding: 25px; z-index: 10000; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+  <div class="ios-content">
+    <span class="ios-close" onclick="closeIosModal()" style="position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #888; cursor: pointer;">&times;</span>
+    <h3 style="color:white; margin-bottom:10px;">Instalar Sistema</h3>
+    <p style="color: #ddd; margin: 10px 0; font-size: 0.95rem;">Para añadir <strong>Archinime</strong> a iOS:</p>
+    <p style="color: #ddd; margin: 10px 0; font-size: 0.95rem;">1. Toca <strong>Compartir</strong> <i class="fas fa-share-square" style="color: var(--neon-cyan);"></i></p>
+    <p style="color: #ddd; margin: 10px 0; font-size: 0.95rem;">2. Elige <strong>"Agregar a Inicio"</strong> <i class="far fa-plus-square" style="color: var(--neon-cyan);"></i></p>
+  </div>
+</div>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -694,74 +702,62 @@
 <script src="anuncios_index.js"></script>
 
 <script>
-  // --- LÓGICA DE INSTALACIÓN PWA (CORREGIDA) ---
+  // ========== LÓGICA DE INSTALACIÓN CORREGIDA ==========
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
-  const ytBtn = document.getElementById('ytBtn');
+  const iosModal = document.getElementById('iosInstallModal');
 
-  // Detectar si la app ya está instalada (modo standalone)
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isInStandaloneMode = () => (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+  const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
-  // Función para mostrar/ocultar botones según el contexto
-  function updateButtonVisibility() {
-    if (isStandalone) {
-      // Instalada → solo YouTube
-      installBtn.style.display = 'none';
-      ytBtn.style.display = 'flex';
-    } else {
-      // En navegador → mostrar siempre el botón de instalación (con brillo)
+  function updateInstallButtonVisibility() {
+    // Mostrar botón solo en móviles y cuando NO está instalada
+    if (isMobile() && !isInStandaloneMode()) {
       installBtn.style.display = 'flex';
-      ytBtn.style.display = 'none';
+    } else {
+      installBtn.style.display = 'none';
     }
   }
 
-  // Registrar el Service Worker (necesario para que la PWA sea instalable)
+  // Registrar Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => console.log('SW registrado:', registration.scope))
-        .catch(err => console.log('Error al registrar SW:', err));
+        .then(reg => console.log('SW registrado:', reg.scope))
+        .catch(err => console.log('Error SW:', err));
     });
   }
 
-  // Escuchar el evento beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevenir el mini-infobar automático
     e.preventDefault();
-    // Guardar el evento para usarlo después
     deferredPrompt = e;
-    // Asegurar que el botón de instalación esté visible
-    updateButtonVisibility();
-    console.log('✅ beforeinstallprompt capturado, instalación disponible');
+    updateInstallButtonVisibility();
   });
 
-  // Manejar clic en el botón de instalación
-  installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      // Mostrar el prompt nativo de instalación
+  installBtn.addEventListener('click', () => {
+    if (isIos()) {
+      iosModal.style.display = 'block';
+    } else if (deferredPrompt) {
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`Respuesta del usuario: ${outcome}`);
-      deferredPrompt = null;
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
     } else {
-      // Si no hay prompt disponible, mostrar un mensaje alternativo
-      alert('📱 Para instalar Archinime:\n\n• En Chrome/Edge: menú ⋮ → "Instalar aplicación"\n• En Safari: botón Compartir → "Agregar a inicio"\n• En PC: icono de monitor en la barra de direcciones');
+      alert('📱 Para instalar:\n• Chrome/Edge: menú ⋮ → "Instalar aplicación"\n• Safari: botón Compartir → "Agregar a inicio"');
     }
-    // Actualizar visibilidad (si se instaló, cambiará a YouTube)
-    updateButtonVisibility();
   });
 
-  // Detectar cuando la app ha sido instalada
+  window.closeIosModal = function() { iosModal.style.display = 'none'; };
+
   window.addEventListener('appinstalled', () => {
-    console.log('🎉 Aplicación instalada correctamente');
+    console.log('App instalada');
     deferredPrompt = null;
-    updateButtonVisibility();
+    updateInstallButtonVisibility();
   });
 
-  // Inicializar visibilidad de botones
-  updateButtonVisibility();
+  window.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
+  window.addEventListener('resize', updateInstallButtonVisibility);
 
-  // --- RESTO DEL CÓDIGO ORIGINAL (sin cambios) ---
+  // ========== RESTO DEL CÓDIGO ORIGINAL (SIN CAMBIOS) ==========
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
