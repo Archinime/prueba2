@@ -4,6 +4,7 @@
 // CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 // NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
+// NUEVO: Música cargada desde Firestore (campo "music")
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -101,29 +102,49 @@ window._playUISound = function(type) {
 };
 window.playUISound = window._playUISound;
 
-// ---------- MÚSICA DE FONDO (musica-data.js) ----------
+// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) ----------
 let currentAudio = null, playlist = [], currentTrackIndex = -1;
+
 function playTrack(idx) {
-  if (currentAudio) { currentAudio.pause(); currentAudio.onended = null; }
-  currentAudio = new Audio(playlist[idx]);
+  if (!playlist.length) return;
+  if (currentAudio) { 
+    currentAudio.pause(); 
+    currentAudio.onended = null; 
+  }
+  // Construir URL completa si es ruta relativa
+  let track = playlist[idx];
+  const fullUrl = track.startsWith('http') ? track : `musica/${track}`;
+  currentAudio = new Audio(fullUrl);
   currentAudio.volume = 0.3;
   currentAudio.loop = false;
   currentAudio.onended = () => {
     currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
     playTrack(currentTrackIndex);
   };
-  currentAudio.play().catch(e=>console.log);
+  currentAudio.play().catch(e => console.log('Reproducción automática bloqueada:', e));
 }
-document.addEventListener('click', () => {
-  if (typeof audioPlaylists !== 'undefined' && !currentAudio) {
-    const id = new URLSearchParams(location.search).get('id');
-    if (audioPlaylists[id]?.length) {
-      playlist = audioPlaylists[id];
-      currentTrackIndex = Math.floor(Math.random() * playlist.length);
-      playTrack(currentTrackIndex);
-    }
+
+function playMusicFromArray(musicArray) {
+  if (!musicArray || musicArray.length === 0) return;
+  playlist = musicArray;
+  currentTrackIndex = Math.floor(Math.random() * playlist.length);
+  playTrack(currentTrackIndex);
+}
+
+// Función de compatibilidad (llamada desde renderMainContent)
+function playMusicForAnime(animeId) {
+  // Intentar obtener desde sessionStorage (guardado en renderMainContent)
+  let musicArray = [];
+  try {
+    const stored = sessionStorage.getItem('musicList');
+    if (stored) musicArray = JSON.parse(stored);
+  } catch (e) {}
+  
+  if (musicArray.length) {
+    playMusicFromArray(musicArray);
   }
-}, { once: true });
+  // Si no hay en sessionStorage, no se reproduce (ya no usamos audioPlaylists)
+}
 
 // ---------- ESTADO GLOBAL ----------
 let currentUserId = null;
@@ -554,6 +575,13 @@ async function renderMainContent() {
   
   if (currentUserId) {
     await loadUserRating(animeId, currentUserId);
+  }
+
+  // 🎵 Reproducir música desde Firestore
+  const musicList = animeData.music || [];
+  sessionStorage.setItem('musicList', JSON.stringify(musicList));
+  if (musicList.length > 0) {
+    playMusicFromArray(musicList);
   }
 
   document.querySelectorAll('details').forEach(d => {
