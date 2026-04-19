@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migración de Música a Firestore - Archinime</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Archivo con los datos de música -->
+    <script src="musica-data.js"></script>
+    <style>
+        body { background: #0a0a0f; color: #fff; font-family: monospace; padding: 20px; }
+        h1 { color: #00f3ff; }
+        button { background: #00f3ff; color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #log { background: #111; padding: 20px; border-radius: 8px; height: 400px; overflow-y: auto; margin-top: 20px; }
+        .success { color: #00ff9d; }
+        .error { color: #ff4757; }
+        .warning { color: #f1c40f; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Migrar música (audioPlaylists) a Firestore</h1>
+    <button onclick="iniciarMigracion()">Iniciar Migración</button>
+    <pre id="log"></pre>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+            authDomain: "login-admin-archinime.firebaseapp.com",
+            projectId: "login-admin-archinime",
+            storageBucket: "login-admin-archinime.firebasestorage.app",
+            messagingSenderId: "938164660242",
+            appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const logEl = document.getElementById('log');
+        function log(msg, tipo = 'info') {
+            const clase = tipo === 'error' ? 'error' : (tipo === 'success' ? 'success' : (tipo === 'warning' ? 'warning' : ''));
+            logEl.innerHTML += `<span class="${clase}">${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function iniciarMigracion() {
+            log('=== INICIANDO MIGRACIÓN DE MÚSICA ===');
+            
+            if (typeof audioPlaylists === 'undefined') {
+                log('❌ ERROR: No se encontró la variable "audioPlaylists". Asegúrate de que musica-data.js esté en la misma carpeta.', 'error');
+                return;
+            }
+
+            const ids = Object.keys(audioPlaylists);
+            log(`📦 Total de animes con música: ${ids.length}`);
+
+            let procesados = 0;
+            let exitos = 0;
+            let errores = 0;
+            let noExiste = 0;
+
+            for (const id of ids) {
+                try {
+                    const musicArray = audioPlaylists[id];
+                    if (!Array.isArray(musicArray) || musicArray.length === 0) {
+                        log(`⚠️ ID ${id}: Array vacío o inválido, se omite.`, 'warning');
+                        procesados++;
+                        continue;
+                    }
+
+                    const docRef = db.collection('catalogo').doc(id);
+                    const doc = await docRef.get();
+                    
+                    if (!doc.exists) {
+                        log(`⚠️ ID ${id}: No existe en catálogo, se omite.`, 'warning');
+                        noExiste++;
+                        procesados++;
+                        continue;
+                    }
+
+                    // Actualizar agregando el campo "music" (o "audioPlaylist")
+                    await docRef.update({
+                        music: musicArray
+                    });
+
+                    exitos++;
+                    log(`✅ ID ${id}: Música actualizada (${musicArray.length} pista(s))`, 'success');
+                } catch (e) {
+                    errores++;
+                    log(`❌ Error en ID ${id}: ${e.message}`, 'error');
+                }
+                procesados++;
+                if (procesados % 20 === 0) {
+                    log(`⏳ Procesados: ${procesados}/${ids.length}`);
+                }
+            }
+
+            log('🎉 MIGRACIÓN DE MÚSICA COMPLETADA.', 'success');
+            log(`📊 Éxitos: ${exitos} | Errores: ${errores} | No existen: ${noExiste}`);
+            log('👉 Ya puedes cerrar esta página.');
+        }
+
+        window.iniciarMigracion = iniciarMigracion;
+    </script>
+</body>
+</html>
