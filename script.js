@@ -1043,10 +1043,10 @@ async function loadAnimeForEditing(id) {
             });
         }
 
-        // Música
+        // Música (ahora campo "music")
         document.getElementById('musicContainer').innerHTML = '';
-        if(targetDetail.musica) {
-            targetDetail.musica.forEach(url => addMusic(url));
+        if(targetDetail.music) {
+            targetDetail.music.forEach(url => addMusic(url));
         }
 
         checkCoverVisual(document.getElementById('portadaAnime'));
@@ -1131,9 +1131,8 @@ function generateData() {
         img: document.getElementById('portadaAnime').value.trim(),
         desc: document.getElementById('sinopsisAnime').value.trim(),
         genres: selectedGenres,
-        // rating ya no se guarda (o se guarda un valor por defecto 0)
         rating: 0,
-        musica: [],
+        music: [],  // CAMBIADO de "musica" a "music"
         seasons: [],
         uploader: currentUserEmail, 
         uploaderImg: currentUserAvatar,
@@ -1148,7 +1147,8 @@ function generateData() {
         anime.genres.push(demoSelect);
     }
     
-    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.musica.push(i.value.trim()); });
+    // CAMBIADO: ahora se usa anime.music en lugar de anime.musica
+    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.music.push(i.value.trim()); });
     
     let globalOrder = 1;
     document.querySelectorAll('.season-card').forEach(card => {
