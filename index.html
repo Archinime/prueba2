@@ -129,7 +129,8 @@
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
       z-index: -5; opacity: 0;
-      filter: contrast(1.2) brightness(0.6) saturate(1.1);
+      /* Aumentado el brillo de 0.6 a 0.85 */
+      filter: contrast(1.2) brightness(0.85) saturate(1.1);
       transition: opacity 1.2s ease;
       background: url('galaxia-morado1.avif') no-repeat center center / cover; 
       transform: translateZ(0); will-change: opacity;
@@ -251,6 +252,7 @@
       box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
     @media (max-width: 480px) { .cyber-btn-icon { width: 38px; height: 38px; font-size: 1rem; } }
     #installBtn { display: none; }
+    #youtubeBtn { display: none; }
     .install-pulse { animation: pulseBorder 1.5s infinite; }
     .user-menu { position: relative; display: flex; align-items: center; }
     #userAvatarBtn { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);
@@ -542,8 +544,12 @@
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions header-actions">
-    <!-- BOTÓN DE INSTALACIÓN PWA -->
+    <!-- BOTÓN DE INSTALACIÓN PWA (solo móvil sin instalar) -->
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
+    <!-- BOTÓN DE YOUTUBE (PC siempre + móvil instalado) -->
+    <button id="youtubeBtn" class="cyber-btn-icon" title="Canal de YouTube" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')">
+      <img src="youtube.avif" alt="YouTube" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
+    </button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
       <div id="notifMenu" class="notif-dropdown">
@@ -752,106 +758,101 @@
     });
   }
 
-  // ==================== LÓGICA DEL BOTÓN DE INSTALACIÓN (PWA) ====================
+  // ==================== LÓGICA DE BOTONES (INSTALACIÓN Y YOUTUBE) ====================
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
+  const youtubeBtn = document.getElementById('youtubeBtn');
   const iosModal = document.getElementById('iosInstallModal');
 
   const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  // Detección mejorada de modo standalone
   const isInStandaloneMode = () => {
     return (window.matchMedia('(display-mode: standalone)').matches) || 
            (window.navigator.standalone === true);
   };
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
 
-  function resumeMusic() {
-    const audio = document.getElementById('bg-music');
-    if (audio && audio.paused) {
-      audio.play().catch(e => console.log("No se pudo reanudar la música", e));
+  // Función para mostrar/ocultar botones según el contexto
+  function updateButtonsVisibility() {
+    // En PC (no móvil) -> solo mostrar YouTube
+    if (!isMobile()) {
+      if (installBtn) installBtn.style.display = 'none';
+      if (youtubeBtn) youtubeBtn.style.display = 'flex';
+      return;
     }
-  }
-
-  function checkInstallButtonVisibility() {
-    if (!installBtn) return;
-    // Solo mostrar si es móvil y NO está en modo standalone
-    if (isMobile() && !isInStandaloneMode()) {
-      installBtn.style.display = 'flex';
+    
+    // En móvil: decidir según si está instalada o no
+    if (isInStandaloneMode()) {
+      // App instalada -> mostrar YouTube
+      if (installBtn) installBtn.style.display = 'none';
+      if (youtubeBtn) youtubeBtn.style.display = 'flex';
     } else {
-      installBtn.style.display = 'none';
+      // Navegador normal -> mostrar botón de instalación
+      if (installBtn) installBtn.style.display = 'flex';
+      if (youtubeBtn) youtubeBtn.style.display = 'none';
     }
   }
 
+  // Evento beforeinstallprompt (solo navegadores compatibles)
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    checkInstallButtonVisibility();
+    updateButtonsVisibility();
   });
 
-  installBtn.addEventListener('click', () => {
-    if (isIos()) {
-      iosModal.style.display = 'flex';
-      const checkModal = setInterval(() => {
-        if (iosModal.style.display === 'none') {
-          clearInterval(checkModal);
-          resumeMusic();
-        }
-      }, 200);
-    } else if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        resumeMusic();
-        deferredPrompt = null;
-      });
-    } else {
-      alert("📲 Para instalar la app:\n1. Abre el menú de Chrome (tres puntos)\n2. Toca 'Instalar aplicación'\n3. Confirma la instalación");
-      resumeMusic();
-    }
-  });
+  // Click en botón de instalación
+  if (installBtn) {
+    installBtn.addEventListener('click', () => {
+      if (isIos()) {
+        iosModal.style.display = 'flex';
+      } else if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          updateButtonsVisibility();
+        });
+      } else {
+        alert("📲 Para instalar la app:\n1. Abre el menú de Chrome (tres puntos)\n2. Toca 'Instalar aplicación'\n3. Confirma la instalación");
+      }
+    });
+  }
 
+  // Cerrar modal de iOS
   function closeIosModal() {
     iosModal.style.display = 'none';
   }
   window.closeIosModal = closeIosModal;
 
-  // Comprobar al cargar y al cambiar el modo de visualización
-  window.addEventListener('DOMContentLoaded', checkInstallButtonVisibility);
-  window.addEventListener('resize', checkInstallButtonVisibility);
-  // Escuchar cambios en display-mode (ej: al abrir la app instalada)
-  window.matchMedia('(display-mode: standalone)').addEventListener('change', checkInstallButtonVisibility);
-  window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-    checkInstallButtonVisibility();
-  });
+  // Escuchar cambios en el modo standalone (cuando se abre la app instalada)
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', updateButtonsVisibility);
+  window.addEventListener('appinstalled', updateButtonsVisibility);
+  window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
+  window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MEJORA: MÚSICA AUTOMÁTICA EN MODO STANDALONE ====================
-  let isPlayingMedia = false;
+  // ==================== MÚSICA: PRIMER CLIC EN CUALQUIER PARTE ====================
+  let isMusicStarted = false;
   let currentAudio = null;
 
-  function startAudioMedia() {
-    if (isPlayingMedia) return;
-    isPlayingMedia = true;
+  function startMusic() {
+    if (isMusicStarted) return;
+    isMusicStarted = true;
     const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
     currentAudio = new Audio(track);
     currentAudio.volume = 0.3;
-    currentAudio.onended = () => { isPlayingMedia = false; startAudioMedia(); };
-    currentAudio.play().catch(e => { 
-      console.log('Música bloqueada, se iniciará con el primer clic', e);
-      isPlayingMedia = false; 
-    });
+    currentAudio.onended = () => {
+      // Cuando termina una canción, iniciar otra (solo si ya se empezó)
+      if (isMusicStarted) {
+        const nextTrack = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
+        currentAudio = new Audio(nextTrack);
+        currentAudio.volume = 0.3;
+        currentAudio.play().catch(e => console.log("Error al reproducir siguiente canción", e));
+      }
+    };
+    currentAudio.play().catch(e => console.log("Error al iniciar música", e));
   }
 
-  // Si la app está instalada (standalone), intentar reproducir música automáticamente
-  if (isInStandaloneMode()) {
-    // Pequeño retardo para asegurar que el DOM está listo
-    setTimeout(() => {
-      startAudioMedia();
-    }, 500);
-  } else {
-    // En navegador normal, seguir con el primer clic
-    document.addEventListener('click', startAudioMedia, { once: true });
-    document.addEventListener('touchstart', startAudioMedia, { once: true });
-  }
+  // Escuchar el primer clic en cualquier parte del documento
+  document.addEventListener('click', startMusic, { once: true });
+  document.addEventListener('touchstart', startMusic, { once: true });
 
   // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios, con chroma key) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
