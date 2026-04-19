@@ -21,7 +21,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-// Variables globales (usamos var para evitar problemas de zona muerta temporal)
+// Variables globales (var evita problemas de zona muerta temporal)
 var globalUsersData = {};
 var isEditMode = false;
 var currentEditingId = null;
@@ -36,7 +36,7 @@ var currentUserEmail = "";
 var currentSearchMode = 'mine';
 
 // ============================================
-// AUTENTICACIÓN (integrada con ArchinimeState)
+// AUTENTICACIÓN
 // ============================================
 function getCurrentUser() {
     if (window.ArchinimeState) return ArchinimeState.get('currentUser');
@@ -45,19 +45,13 @@ function getCurrentUser() {
 
 if (window.ArchinimeState) {
     ArchinimeState.on('currentUser', async (user) => {
-        if (user) {
-            await checkAccess(user);
-        } else {
-            showLogin();
-        }
+        if (user) await checkAccess(user);
+        else showLogin();
     });
 } else {
     auth.onAuthStateChanged((user) => {
-        if (user) {
-            checkAccess(user);
-        } else {
-            showLogin();
-        }
+        if (user) checkAccess(user);
+        else showLogin();
     });
 }
 
@@ -101,19 +95,13 @@ async function checkAccess(user) {
         return;
     }
 
-    try {
-        if (globalUsersData[email]) {
-            const userData = globalUsersData[email];
-            currentUserNick = userData.nick;
-            currentUserAvatar = userData.avatar;
-            showCMS();
-        } else {
-            showProfileSetup();
-        }
-    } catch (e) {
-        console.error("Error acceso:", e);
-        if(errText) errText.innerText = "Acceso Denegado: No formas parte de los aportadores.";
-        if(logErr) logErr.style.display = 'block';
+    if (globalUsersData[email]) {
+        const userData = globalUsersData[email];
+        currentUserNick = userData.nick;
+        currentUserAvatar = userData.avatar;
+        showCMS();
+    } else {
+        showProfileSetup();
     }
 }
 
@@ -170,20 +158,12 @@ async function saveUserProfile() {
     const logEl = document.getElementById('profileLog');
     const btn = document.getElementById('btnSaveProfile');
     
-    if(!nick) { 
-        alert("Debes elegir un nombre de usuario.");
-        return; 
-    }
-    if(!avatar) { 
-        alert("Debes colocar una URL de avatar."); 
-        return;
-    }
+    if(!nick) { alert("Debes elegir un nombre de usuario."); return; }
+    if(!avatar) { alert("Debes colocar una URL de avatar."); return; }
 
-    if (nick.toLowerCase().includes("archinime")) {
-        if (currentUserEmail !== "archinime12@gmail.com") {
-             alert("El nombre 'Archinime' está reservado y no puede ser utilizado.");
-             return;
-        }
+    if (nick.toLowerCase().includes("archinime") && currentUserEmail !== "archinime12@gmail.com") {
+        alert("El nombre 'Archinime' está reservado y no puede ser utilizado.");
+        return;
     }
 
     const nickLower = nick.toLowerCase();
@@ -205,9 +185,7 @@ async function saveUserProfile() {
             email: currentUserEmail,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        
         await db.collection('users').doc(currentUserEmail).set(userData, { merge: true });
-        
         globalUsersData[currentUserEmail] = userData;
         currentUserNick = nick;
         currentUserAvatar = avatar;
@@ -233,7 +211,6 @@ function showCMS() {
     document.getElementById('userAvatarImg').src = currentUserAvatar;
     document.getElementById('userNameDisplay').innerText = currentUserNick;
     
-    // Inyectar elementos adicionales después de mostrar CMS
     setTimeout(() => {
         injectStateSelect();
         injectFinalBlock();
@@ -255,7 +232,7 @@ function logout() {
 }
 
 // ============================================
-// LÓGICA DE INTERFAZ Y FORMULARIO (SIN RATING)
+// LÓGICA DE INTERFAZ Y FORMULARIO
 // ============================================
 function injectStateSelect() {
     if(document.getElementById('estadoAnime')) return;
@@ -276,18 +253,7 @@ function injectStateSelect() {
     genresContainer.parentNode.insertBefore(wrapper, genresContainer);
     
     const sel = document.getElementById('estadoAnime');
-    sel.style.width = "100%";
-    sel.style.padding = "14px 16px";
-    sel.style.background = "#181920";
-    sel.style.border = "1px solid #2a2b35";
-    sel.style.color = "white";
-    sel.style.borderRadius = "12px";
-    sel.style.fontSize = "16px";
-    sel.style.appearance = "none";
-    sel.style.backgroundImage = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b8d96'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")";
-    sel.style.backgroundRepeat = "no-repeat";
-    sel.style.backgroundPosition = "right 15px center";
-    sel.style.backgroundSize = "16px";
+    sel.style.cssText = "width:100%; padding:14px 16px; background:#181920; border:1px solid #2a2b35; color:white; border-radius:12px; font-size:16px; appearance:none; background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%238b8d96%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27%3E%3C/path%3E%3C/svg%3E'); background-repeat:no-repeat; background-position:right 15px center; background-size:16px;";
 }
 
 function injectFinalBlock() {
@@ -297,19 +263,12 @@ function injectFinalBlock() {
     const parent = musicContainer.parentNode;
     const musicHeader = musicContainer.previousElementSibling;
     const wrapper = document.createElement('div');
-    wrapper.style.marginBottom = "25px";
-    wrapper.style.padding = "20px";
-    wrapper.style.background = "#131419";
-    wrapper.style.borderRadius = "16px";
-    wrapper.style.border = "1px solid #2a2b35";
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.justifyContent = "space-between";
+    wrapper.style.cssText = "margin-bottom:25px; padding:20px; background:#131419; border-radius:16px; border:1px solid #2a2b35; display:flex; align-items:center; justify-content:space-between;";
     wrapper.innerHTML = `
         <div style="font-weight:700; color:#fff; display:flex; align-items:center; gap:10px;">
             <i class="fas fa-flag-checkered" style="color:var(--accent)"></i> MARCAR COMO FINAL
         </div>
-        <label class="switch" style="margin:0; width:auto; background:none; border:none;">
+        <label class="switch" style="margin:0;">
             <input type="checkbox" id="finalToggle">
             <span class="slider round" style="position:relative; display:inline-block; width:50px; height:26px; background-color:#333; border-radius:34px; transition:.4s;">
                 <span style="position:absolute; content:''; height:20px; width:20px; left:3px; bottom:3px; background-color:white; border-radius:50%; transition:.4s;" id="sliderCircle"></span>
@@ -372,8 +331,7 @@ if(demoSelectCMS) {
 function showToast(msg, isError = false) {
     const x = document.getElementById("toast");
     if(!x) return;
-    x.innerHTML = isError ?
- `<i class="fas fa-times-circle" style="color:#ff4757"></i> ${msg}` : `<i class="fas fa-check-circle" style="color:var(--accent)"></i> ${msg}`;
+    x.innerHTML = isError ? `<i class="fas fa-times-circle" style="color:#ff4757"></i> ${msg}` : `<i class="fas fa-check-circle" style="color:var(--accent)"></i> ${msg}`;
     x.className = "show";
     x.style.borderColor = isError ? "#ff4757" : "var(--accent)";
     setTimeout(() => { x.className = x.className.replace("show", ""); }, 4000);
@@ -388,14 +346,6 @@ function validate(input) {
     else input.style.borderColor = '#2a2b35';
 }
 
-function log(msg) {
-    const el = document.getElementById('statusLog');
-    if(!el) return;
-    el.style.display = 'block';
-    el.innerHTML += `> ${msg}<br>`;
-    el.scrollTop = el.scrollHeight;
-}
-
 function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
@@ -404,7 +354,6 @@ function smartLinkConvert(input) {
         changed = true;
         showToast("Link local convertido a Render");
     }
-
     if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
         input.value = val.replace('&dl=0', '&raw=1');
         changed = true;
@@ -419,25 +368,19 @@ function smartLinkConvert(input) {
             showToast("Link Drive convertido a /preview");
         }
     }
-    
     if (/ok\.ru\/video\//i.test(val)) {
         input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
         changed = true;
         showToast("Link ok.ru convertido a /videoembed/");
     }
-
     if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
         input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
         changed = true;
         showToast("Link Odysee convertido a Embed");
     }
-    
     if(changed) {
-        if(input.id === 'portadaAnime') {
-            checkCoverVisual(input);
-        } else if (input.classList.contains('m-url')) {
-            updateAudioPreview(input);
-        }
+        if(input.id === 'portadaAnime') checkCoverVisual(input);
+        else if (input.classList.contains('m-url')) updateAudioPreview(input);
         requestPreviewUpdate();
     }
 }
@@ -459,7 +402,7 @@ function checkCoverVisual(input) {
     img.onload = function() { 
         const w = this.naturalWidth;
         const h = this.naturalHeight;
-        const allowed = [{w: 1000, h: 1500}, {w: 1400, h: 2100}, {w: 2000, h: 3000}, {w: 2090, h: 3135}, {w: 3412, h: 5120}];
+        const allowed = [{w:1000,h:1500},{w:1400,h:2100},{w:2000,h:3000},{w:2090,h:3135},{w:3412,h:5120}];
         const isValid = allowed.some(d => d.w === w && d.h === h);
         if (isValid) {
             display.innerHTML = `<span style="color:#00ffbf"><i class="fas fa-check"></i> Válido: ${w}x${h}px</span>`;
@@ -510,7 +453,6 @@ function updateAudioPreview(input) {
     const parent = input.parentElement;
     const audioEl = parent.querySelector('audio');
     const statusEl = parent.querySelector('.audio-status-text');
-    
     if (!input.value.trim()) {
         statusEl.innerHTML = '';
         return;
@@ -604,7 +546,6 @@ function addSeason(data = null) {
 function checkAutoState() {
     const stateSel = document.getElementById('estadoAnime');
     if(!stateSel) return;
-    
     let totalCaps = 0;
     document.querySelectorAll('.s-count').forEach(inp => {
         const val = parseInt(inp.value);
@@ -612,11 +553,8 @@ function checkAutoState() {
         if(inp.disabled) totalCaps += 1;
     });
     if (stateSel.value !== 'PRÓXIMAMENTE ⏳' && stateSel.value !== 'Ninguna') {
-        if (totalCaps === 1) {
-            stateSel.value = "ESTRENO 🚨";
-        } else if (totalCaps > 1) {
-            stateSel.value = "NUEVO 🔥";
-        }
+        if (totalCaps === 1) stateSel.value = "ESTRENO 🚨";
+        else if (totalCaps > 1) stateSel.value = "NUEVO 🔥";
     }
 }
 
@@ -659,7 +597,6 @@ function updateAllBlockNames() {
         if (!type) return;
         
         nameInput.disabled = (type !== 'Spin-Off');
-        
         if (nameInput.disabled || nameInput.value.trim() === "") {
              if (type === 'Temporada') { tempCount++; nameInput.value = `Temporada ${tempCount}`; }
              else if (type === 'Pelicula') { movieCount++; nameInput.value = `Película ${movieCount}`; }
@@ -689,7 +626,6 @@ function handleSeasonTypeChange(select) {
     } else {
         countInput.disabled = false;
     }
-    
     updateAllBlockNames();
     if(countInput.value) renderChapters(countInput);
     checkAutoState();
@@ -844,9 +780,7 @@ function openSearchModal() {
 }
 
 function handleModalClick(event) {
-    if (event.target.id === 'searchModal') {
-        closeSearchModal();
-    }
+    if (event.target.id === 'searchModal') closeSearchModal();
 }
 
 function closeSearchModal() { 
@@ -864,7 +798,8 @@ async function loadCatalogForSearch() {
     const loading = document.getElementById('loadingSearch');
     loading.style.display = 'block';
     try {
-        const snapshot = await db.collection('catalogo').orderBy('title').get();
+        // Ordenamos por id (numérico) que no requiere índice compuesto
+        const snapshot = await db.collection('catalogo').orderBy('id').get();
         cachedCatalog = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         filterSearch();
     } catch(e) {
@@ -926,7 +861,7 @@ function _performFilter() {
 }
 
 // ============================================
-// CARGAR ANIME PARA EDITAR DESDE FIRESTORE
+// CARGAR ANIME PARA EDITAR
 // ============================================
 async function loadAnimeForEditing(id) {
     if(!confirm("¿Cargar anime? Se perderán los datos actuales del formulario.")) return;
@@ -936,13 +871,9 @@ async function loadAnimeForEditing(id) {
     try {
         const docRef = db.collection('catalogo').doc(String(id));
         const doc = await docRef.get();
-        
-        if (!doc.exists) {
-            throw new Error("Anime no encontrado");
-        }
+        if (!doc.exists) throw new Error("Anime no encontrado");
         
         const targetDetail = doc.data();
-        
         isEditMode = true;
         currentEditingId = id;
         
@@ -959,10 +890,8 @@ async function loadAnimeForEditing(id) {
              editModeBar.appendChild(delBtn);
         }
         
-        const editIdEl = document.getElementById('editIdDisplay');
-        if(editIdEl) editIdEl.innerText = id;
-        const btnActEl = document.getElementById('btnActionText');
-        if(btnActEl) btnActEl.innerText = "GUARDAR CAMBIOS";
+        document.getElementById('editIdDisplay').innerText = id;
+        document.getElementById('btnActionText').innerText = "GUARDAR CAMBIOS";
         
         const storedUploader = targetDetail.uploader || "Archinime";
         const isSuperAdmin = ALLOWED_USERS.includes(currentUserEmail);
@@ -978,18 +907,16 @@ async function loadAnimeForEditing(id) {
             saveBtn.style.opacity = '0.5';
         }
 
-        // Rellenar formulario
         document.getElementById('tituloAnime').value = targetDetail.title || '';
         document.getElementById('portadaAnime').value = targetDetail.img || '';
         document.getElementById('sinopsisAnime').value = targetDetail.desc || '';
         document.getElementById('aliasContainer').innerHTML = '';
         if(targetDetail.aliases) targetDetail.aliases.forEach(a => addAlias(a));
 
-        if(targetDetail.genres && targetDetail.genres.length > 0) {
+        if(targetDetail.genres) {
             let loadedGenres = [...targetDetail.genres];
             const demoOptions = ["Gekiga", "Josei", "Kodomo", "Seijin", "Seinen", "Shōjo", "Shōnen"];
             const foundDemo = loadedGenres.find(g => demoOptions.includes(g));
-            
             if(foundDemo) {
                 document.getElementById('demografiaAnime').value = foundDemo;
                 loadedGenres = loadedGenres.filter(g => g !== foundDemo);
@@ -1006,30 +933,19 @@ async function loadAnimeForEditing(id) {
         
         if (targetDetail.isFinal) {
             const toggle = document.getElementById('finalToggle');
-            if(toggle) {
-                toggle.checked = true;
-                toggle.dispatchEvent(new Event('change'));
-            }
+            if(toggle) { toggle.checked = true; toggle.dispatchEvent(new Event('change')); }
         }
         
         document.getElementById('seasonsContainer').innerHTML = '';
-        if(targetDetail.seasons) {
-            targetDetail.seasons.forEach(s => {
-                addSeason(s);
-            });
-        }
+        if(targetDetail.seasons) targetDetail.seasons.forEach(s => addSeason(s));
 
         document.getElementById('musicContainer').innerHTML = '';
-        if(targetDetail.music) {
-            targetDetail.music.forEach(url => addMusic(url));
-        }
+        if(targetDetail.music) targetDetail.music.forEach(url => addMusic(url));
 
         checkCoverVisual(document.getElementById('portadaAnime'));
         requestPreviewUpdate();
         originalAnimeState = JSON.stringify(generateData());
-        
         checkAutoState();
-        
         showToast("¡Datos cargados correctamente!");
     } catch(e) {
         console.error(e);
@@ -1038,14 +954,8 @@ async function loadAnimeForEditing(id) {
     }
 }
 
-// ============================================
-// ELIMINAR ANIME (SOLO ADMIN)
-// ============================================
 async function deleteCurrentAnime(idToDelete) {
-    if(currentUserEmail !== "archinime12@gmail.com") { 
-        alert("Acción no permitida.");
-        return; 
-    }
+    if(currentUserEmail !== "archinime12@gmail.com") { alert("Acción no permitida."); return; }
     if(!confirm(`⚠️ PELIGRO ⚠️\n\n¿Eliminar anime ID: ${idToDelete}?`)) return;
     if(!confirm(`ÚLTIMA ADVERTENCIA.\n¿Confirmar borrado?`)) return;
 
@@ -1053,9 +963,7 @@ async function deleteCurrentAnime(idToDelete) {
     try {
         await db.collection('catalogo').doc(String(idToDelete)).delete();
         showToast("✅ Anime eliminado correctamente");
-        
         await loadCatalogForSearch();
-        
         exitEditMode();
     } catch(e) {
         console.error(e);
@@ -1105,9 +1013,9 @@ function generateData() {
         desc: document.getElementById('sinopsisAnime').value.trim(),
         genres: selectedGenres,
         rating: 0,
-        music: [],  // <-- CAMPO UNIFICADO
+        music: [],
         seasons: [],
-        uploader: currentUserEmail, 
+        uploader: currentUserEmail,
         uploaderImg: currentUserAvatar,
         updateType: selectedState,
         isFinal: isFinal,
@@ -1171,27 +1079,19 @@ function generateData() {
             anime.latestEpTitle = lastSeason.eps[lastSeason.eps.length - 1].title;
         }
     }
-    
     return anime;
 }
 
-// ============================================
-// GUARDAR EN FIRESTORE
-// ============================================
 async function guardarEnFirestore() {
     const btn = document.getElementById('btnSaveAction');
     if(btn.disabled) return showToast("Edición Bloqueada o Sin Cambios", true);
     
     const nuevoAnime = generateData();
-    
     if(!nuevoAnime.title) return showToast("Falta Título", true);
     if(!nuevoAnime.img) return showToast("Falta Portada", true);
     if(!nuevoAnime.desc) return showToast("Falta Sinopsis", true);
     if(nuevoAnime.genres.length === 0) return showToast("Elige Géneros", true);
-    
-    if(nuevoAnime.updateType !== 'PRÓXIMAMENTE ⏳') {
-        if(nuevoAnime.seasons.length === 0) return showToast("Agrega contenido", true);
-    }
+    if(nuevoAnime.updateType !== 'PRÓXIMAMENTE ⏳' && nuevoAnime.seasons.length === 0) return showToast("Agrega contenido", true);
 
     if(!confirm(`¿Deseas ${isEditMode ? 'actualizar' : 'crear'} "${nuevoAnime.title}"?`)) return;
 
@@ -1200,27 +1100,15 @@ async function guardarEnFirestore() {
     
     try {
         let finalId = nuevoAnime.id;
-        
         if (!isEditMode) {
-            const snapshot = await db.collection('catalogo')
-                .orderBy('id', 'desc')
-                .limit(1)
-                .get();
-            
-            if (!snapshot.empty) {
-                finalId = snapshot.docs[0].data().id + 1;
-            } else {
-                finalId = 1;
-            }
+            const snapshot = await db.collection('catalogo').orderBy('id', 'desc').limit(1).get();
+            finalId = snapshot.empty ? 1 : snapshot.docs[0].data().id + 1;
             nuevoAnime.id = finalId;
         }
-        
         nuevoAnime.lastUpdate = Date.now();
-        
         await db.collection('catalogo').doc(String(finalId)).set(nuevoAnime, { merge: true });
         
         showToast(`¡Anime ${isEditMode ? 'actualizado' : 'creado'} correctamente!`, false);
-        
         await loadCatalogForSearch();
         
         if (!isEditMode) {
@@ -1231,7 +1119,6 @@ async function guardarEnFirestore() {
             btn.innerHTML = '<i class="fas fa-check"></i> Sin cambios pendientes';
             btn.style.opacity = '0.5';
         }
-        
     } catch (error) {
         console.error('Error al guardar:', error);
         showToast('Error al guardar: ' + error.message, true);
@@ -1243,11 +1130,4 @@ async function guardarEnFirestore() {
 
 window.subirAGithHub = guardarEnFirestore;
 
-// Inicialización segura
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Las inyecciones se harán en showCMS()
-    });
-} else {
-    // Ya está listo
-}
+// Inicialización segura (las inyecciones se hacen en showCMS)
