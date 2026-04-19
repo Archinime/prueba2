@@ -11,7 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Cargar state.js si existe, para unificar estado -->
+  <!-- state.js opcional, para unificar estado -->
   <script src="state.js"></script>
 
   <style>
@@ -61,12 +61,14 @@
     
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; font-size: 0.9rem; color: #ccc; margin-bottom: 8px; font-weight: 600; }
-    .form-group input[type="text"] {
+    .form-group input[type="text"],
+    .form-group select {
       width: 100%; padding: 14px; border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.1);
       background: rgba(0,0,0,0.5); color: white; font-family: 'Poppins'; outline: none; transition: 0.3s;
     }
-    .form-group input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
+    .form-group input[type="text"]:focus,
+    .form-group select:focus { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0,255,247,0.2); }
     
     .avatar-preview {
       display: flex; flex-direction: column;
@@ -139,11 +141,21 @@
       </div>
     </div>
 
+    <!-- NUEVA SECCIÓN: SELECCIONAR FONDO DE VIDEO -->
+    <div class="form-group">
+      <label>🎬 Fondo de pantalla (Video)</label>
+      <select id="bgSelector" style="width:100%; padding:12px; background:#000; color:white; border:1px solid var(--primary-color); border-radius:10px;">
+        <option value="">-- Elige tu ambiente --</option>
+      </select>
+      <span style="font-size: 0.8rem; color: #aaa;">El cambio se aplicará al recargar las páginas.</span>
+    </div>
+
     <button id="saveBtn" class="save-btn" onclick="guardarCambios()">GUARDAR CAMBIOS</button>
     <div id="statusMsg"></div>
   </div>
 
   <script>
+    // ========== CONFIGURACIÓN DE FIREBASE (igual que antes) ==========
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
       authDomain: "login-admin-archinime.firebaseapp.com",
@@ -162,6 +174,70 @@
     let newAvatarUrl = null;
     let lastProfileUpdate = 0;
 
+    // ========== GESTIÓN DE FONDO DE VIDEO (background manager inline) ==========
+    const BG_STORAGE_KEY = 'archinime_selected_bg';
+    const DEFAULT_BG_ID = 'galaxia';
+    // Lista de fondos disponibles (puedes añadir más o modificar las URLs)
+    const BG_OPTIONS = [
+      { id: 'galaxia', name: '🌌 Galaxia', videoUrl: 'galaxia.mp4', posterUrl: 'galaxia-morado1.avif' },
+      { id: 'cyber_city', name: '🏙️ Ciudad Cyberpunk', videoUrl: 'cyber_city.mp4', posterUrl: 'cyber_city.avif' },
+      { id: 'neon_rain', name: '🌧️ Lluvia Neón', videoUrl: 'neon_rain.mp4', posterUrl: 'neon_rain.avif' },
+      { id: 'matrix', name: '💚 Código Matrix', videoUrl: 'matrix_rain.mp4', posterUrl: 'matrix.avif' }
+    ];
+
+    // Función que aplica el fondo (se usará también en index y demás páginas)
+    function applyBackground(videoUrl, posterUrl) {
+      // Esta función se ejecutará en todas las páginas que incluyan background-manager.js
+      // Pero aquí la definimos por si queremos previsualizar en opciones (opcional)
+      const bgVideo = document.getElementById('bg-video');
+      if (bgVideo) {
+        const source = bgVideo.querySelector('source');
+        if (source) source.src = videoUrl;
+        if (posterUrl) bgVideo.poster = posterUrl;
+        bgVideo.load();
+        bgVideo.play().catch(e => console.log('Autoplay bloqueado', e));
+      }
+    }
+
+    function saveBackgroundPreference(bgId) {
+      localStorage.setItem(BG_STORAGE_KEY, bgId);
+      const selected = BG_OPTIONS.find(bg => bg.id === bgId);
+      if (selected) {
+        // Si estamos en una página que tiene el video, lo cambiamos en vivo
+        applyBackground(selected.videoUrl, selected.posterUrl);
+      }
+    }
+
+    // Cargar selector de fondos
+    function populateBgSelector() {
+      const selector = document.getElementById('bgSelector');
+      if (!selector) return;
+      BG_OPTIONS.forEach(bg => {
+        const option = document.createElement('option');
+        option.value = bg.id;
+        option.textContent = bg.name;
+        selector.appendChild(option);
+      });
+      const saved = localStorage.getItem(BG_STORAGE_KEY);
+      if (saved && BG_OPTIONS.some(bg => bg.id === saved)) {
+        selector.value = saved;
+      } else {
+        selector.value = DEFAULT_BG_ID;
+      }
+      selector.addEventListener('change', (e) => {
+        if (e.target.value) {
+          saveBackgroundPreference(e.target.value);
+          const statusMsg = document.getElementById('statusMsg');
+          if (statusMsg) {
+            statusMsg.style.color = '#00fff7';
+            statusMsg.innerText = '✅ Fondo actualizado. Recarga las páginas para ver el cambio.';
+            setTimeout(() => { if (statusMsg.innerText.includes('Fondo')) statusMsg.innerText = ''; }, 4000);
+          }
+        }
+      });
+    }
+
+    // ========== FUNCIONES DE PERFIL (existentes, sin cambios) ==========
     function getNeonColorByString(str) {
         const neonColors = ['#00fff7', '#ff0055', '#bc13fe', '#00ff33', '#ffff00', '#ffaa00', '#ff00aa', '#00aaff'];
         let hash = 0;
@@ -169,7 +245,6 @@
         return neonColors[Math.abs(hash) % neonColors.length];
     }
 
-    // Función para sincronizar con el estado central si existe
     function syncWithGlobalState(user) {
       if (window.ArchinimeState) {
         ArchinimeState.set('currentUser', user);
@@ -185,7 +260,6 @@
       }
     }
 
-    // Escuchar cambios de autenticación (usar state si existe, si no, directo)
     if (window.ArchinimeState) {
       ArchinimeState.on('currentUser', async (user) => {
         if (user) {
@@ -308,7 +382,6 @@
           lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() 
         }, { merge: true });
         
-        // Actualizar comentarios históricos
         statusMsg.style.color = '#fff';
         statusMsg.innerText = 'Actualizando comentarios históricos...';
         
@@ -329,9 +402,8 @@
           await batch.commit();
         }
 
-        // Sincronizar con estado global si existe
         if (window.ArchinimeState) {
-          ArchinimeState.set('currentUser', currentUser); // fuerza actualización
+          ArchinimeState.set('currentUser', currentUser);
           ArchinimeState.set('currentUserColor', newColor);
         }
 
@@ -347,6 +419,11 @@
         saveBtn.innerText = 'GUARDAR CAMBIOS';
       }
     }
+
+    // Inicializar el selector de fondos una vez cargado el DOM
+    document.addEventListener('DOMContentLoaded', () => {
+      populateBgSelector();
+    });
   </script>
 </body>
 </html>
