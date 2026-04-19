@@ -21,7 +21,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-// Variables globales (var evita problemas de zona muerta temporal)
+// Variables globales
 var globalUsersData = {};
 var isEditMode = false;
 var currentEditingId = null;
@@ -516,16 +516,16 @@ function addSeason(data = null) {
 
     if(data) {
         let selectedType = 'Spin-Off';
-        if(data.name.startsWith('Temporada')) selectedType = 'Temporada';
-        else if(data.name.startsWith('Película')) selectedType = 'Pelicula';
-        else if(data.name.startsWith('OVA')) selectedType = 'OVA';
-        else if(data.name.startsWith('Especial')) selectedType = 'Especial';
+        if(data.name && data.name.startsWith('Temporada')) selectedType = 'Temporada';
+        else if(data.name && data.name.startsWith('Película')) selectedType = 'Pelicula';
+        else if(data.name && data.name.startsWith('OVA')) selectedType = 'OVA';
+        else if(data.name && data.name.startsWith('Especial')) selectedType = 'Especial';
         
         const typeSel = div.querySelector('.s-type');
         typeSel.value = selectedType;
         const nameInp = div.querySelector('.s-name');
-        nameInp.value = data.name;
-        div.querySelector('.s-img').value = data.cover;
+        nameInp.value = data.name || '';
+        div.querySelector('.s-img').value = data.cover || '';
         handleSeasonTypeChange(typeSel);
         
         const startSel = div.querySelector('.s-start-index');
@@ -535,8 +535,8 @@ function addSeason(data = null) {
             else startSel.value = "1";
         }
         const countInp = div.querySelector('.s-count');
-        countInp.value = data.eps.length;
-        renderChapters(countInp, data.eps);
+        countInp.value = data.eps ? data.eps.length : 1;
+        renderChapters(countInp, data.eps || []);
     }
     updateAllBlockNames();
     requestPreviewUpdate();
@@ -803,6 +803,7 @@ async function loadCatalogForSearch() {
         cachedCatalog = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         filterSearch();
     } catch(e) {
+        console.error('Error cargando catálogo:', e);
         document.getElementById('searchResults').innerHTML = `<div style="color:red; text-align:center">Error: ${e.message}</div>`;
     } finally {
         loading.style.display = 'none';
@@ -820,7 +821,7 @@ function _performFilter() {
     results.innerHTML = '';
     
     const filtered = cachedCatalog.filter(a => {
-        const matchesText = a.title.toLowerCase().includes(query);
+        const matchesText = a.title && a.title.toLowerCase().includes(query);
         if (currentSearchMode === 'mine') { 
             return matchesText && (a.uploader === currentUserEmail || a.uploader === currentUserNick); 
         } else { 
@@ -934,6 +935,9 @@ async function loadAnimeForEditing(id) {
         if (targetDetail.isFinal) {
             const toggle = document.getElementById('finalToggle');
             if(toggle) { toggle.checked = true; toggle.dispatchEvent(new Event('change')); }
+        } else {
+            const toggle = document.getElementById('finalToggle');
+            if(toggle) { toggle.checked = false; toggle.dispatchEvent(new Event('change')); }
         }
         
         document.getElementById('seasonsContainer').innerHTML = '';
@@ -987,6 +991,8 @@ function exitEditMode() {
     document.getElementById('seasonsContainer').innerHTML = '';
     document.getElementById('musicContainer').innerHTML = '';
     document.querySelectorAll('#genresContainer input').forEach(cb => cb.checked = false);
+    const finalTog = document.getElementById('finalToggle');
+    if(finalTog) { finalTog.checked = false; finalTog.dispatchEvent(new Event('change')); }
     requestPreviewUpdate();
 }
 
