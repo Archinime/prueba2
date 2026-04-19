@@ -9,14 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
+    <!-- Firebase: solo necesitas App, Auth y Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        /* ESTILOS EXTRA PARA EL MODAL DE PERFIL */
+        /* tus estilos extra (se mantienen igual) */
         #profileSetupModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
@@ -43,8 +44,6 @@
             height: 80px; border-radius: 50%; object-fit: cover;
             border: 2px solid #00f0ff; margin: 0 auto 20px; display: block; background: #000;
         }
-
-        /* ESTILOS PARA LA VALORACIÓN DIVIDIDA */
         .rating-container {
             display: flex;
             align-items: flex-end; gap: 10px;
