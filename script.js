@@ -16,79 +16,51 @@ const ALLOWED_USERS = [
     "lucioguapofeo@gmail.com",
 ];
 
+const OWNER = "Archinime";
+const REPO = "-Archinime-";
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore();
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-var globalUsersData = {};
-var isEditMode = false;
-var currentEditingId = null;
-var cachedCatalog = [];
-var searchTimeout = null;
-var previewTimeout = null;
-var originalAnimeState = null;
+let currentUserToken = null;
+let globalUsersData = {};
+let isEditMode = false;
+let currentEditingId = null;
+let cachedIndex = [];
+let searchTimeout = null;
+let previewTimeout = null;
+let originalAnimeState = null;
 
-// Variables de usuario (cambiadas a var para evitar TDZ)
-var currentUserNick = "Usuario"; 
-var currentUserAvatar = "Logo_Archinime.avif";
-var currentUserEmail = "";
-var currentSearchMode = 'mine';
+let currentUserNick = "Usuario"; 
+let currentUserAvatar = "Logo_Archinime.avif";
+let currentUserEmail = "";
+let currentSearchMode = 'mine';
 
 // ============================================
-// AUTENTICACIÓN (integrada con ArchinimeState)
+// AUTENTICACIÓN
 // ============================================
-
-function getCurrentUser() {
-    if (window.ArchinimeState) return ArchinimeState.get('currentUser');
-    return auth.currentUser;
-}
-
-function syncUserFromState(user) {
-    if (user) {
-        currentUserEmail = user.email;
-        if (globalUsersData[currentUserEmail]) {
-            currentUserNick = globalUsersData[currentUserEmail].nick;
-            currentUserAvatar = globalUsersData[currentUserEmail].avatar;
-        } else if (user.email === "archinime12@gmail.com") {
-            currentUserNick = "Archinime";
-            currentUserAvatar = "Logo_Archinime.avif";
-        } else {
-            currentUserNick = user.displayName || user.email.split('@')[0];
-            currentUserAvatar = user.photoURL || "Logo_Archinime.avif";
-        }
-    } else {
-        currentUserEmail = "";
-        currentUserNick = "Usuario";
-        currentUserAvatar = "Logo_Archinime.avif";
+auth.onAuthStateChanged((user) => {
+    if (user && currentUserToken) {
+        checkAccess(user);
+    } else if (!user) {
+        showLogin();
     }
-}
-
-if (window.ArchinimeState) {
-    ArchinimeState.on('currentUser', async (user) => {
-        if (user) {
-            await checkAccess(user);
-        } else {
-            showLogin();
-        }
-    });
-} else {
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            checkAccess(user);
-        } else {
-            showLogin();
-        }
-    });
-}
+});
 
 function signInWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
+    provider.addScope('repo');
     auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-        .then(() => auth.signInWithPopup(provider))
-        .then((result) => checkAccess(result.user))
-        .catch((error) => {
+        .then(() => {
+            return auth.signInWithPopup(provider);
+        })
+        .then((result) => {
+            currentUserToken = result.credential.accessToken;
+            checkAccess(result.user);
+        }).catch((error) => {
             console.error(error);
+           
             const errEl = document.getElementById('errorText');
             if(errEl) errEl.innerText = error.message;
             const logErr = document.getElementById('loginError');
@@ -103,13 +75,9 @@ async function checkAccess(user) {
     if(errText) errText.innerText = "Verificando base de datos...";
     const logErr = document.getElementById('loginError');
     if(logErr) logErr.style.display = 'none';
-    
     try {
-        const usersSnapshot = await db.collection('users').get();
-        globalUsersData = {};
-        usersSnapshot.forEach(doc => {
-            globalUsersData[doc.id] = doc.data();
-        });
+        const usersFile = await getGithubFile(currentUserToken, OWNER, REPO, 'users-data.js');
+        globalUsersData = safeEval(usersFile.content);
     } catch (e) {
         console.warn("No se pudo cargar la DB de usuarios.");
         globalUsersData = {}; 
@@ -149,7 +117,7 @@ function showProfileSetup() {
     const btnCancel = document.getElementById('btnCancelProfile');
     if(btnCancel) btnCancel.style.display = 'none';
     
-    const user = getCurrentUser();
+    const user = auth.currentUser;
     if(user) {
         document.getElementById('setupNick').value = "";
         if(user.photoURL) {
@@ -191,13 +159,9 @@ async function saveUserProfile() {
     const logEl = document.getElementById('profileLog');
     const btn = document.getElementById('btnSaveProfile');
     
-    if(!nick) { 
-        alert("Debes elegir un nombre de usuario.");
-        return; 
-    }
-    if(!avatar) { 
-        alert("Debes colocar una URL de avatar."); 
-        return;
+    if(!nick) { alert("Debes elegir un nombre de usuario.");
+        return; }
+    if(!avatar) { alert("Debes colocar una URL de avatar."); return;
     }
 
     if (nick.toLowerCase().includes("archinime")) {
@@ -209,7 +173,7 @@ async function saveUserProfile() {
 
     const nickLower = nick.toLowerCase();
     const isTaken = Object.entries(globalUsersData).some(([email, data]) => {
-        return data.nick?.toLowerCase() === nickLower && email !== currentUserEmail;
+        return data.nick.toLowerCase() === nickLower && email !== currentUserEmail;
     });
     if (isTaken) {
         alert("Este nombre ya ha sido registrado, elige otro por favor.");
@@ -217,19 +181,17 @@ async function saveUserProfile() {
     }
 
     btn.disabled = true;
-    logEl.innerText = "Guardando perfil en Firestore...";
+    logEl.innerText = "Guardando perfil en GitHub...";
     try {
-        const userData = {
+        globalUsersData[currentUserEmail] = {
             nick: nick,
             avatar: avatar,
-            social: social,
-            email: currentUserEmail,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            social: social
         };
-        
-        await db.collection('users').doc(currentUserEmail).set(userData, { merge: true });
-        
-        globalUsersData[currentUserEmail] = userData;
+        await updateGithubFile(currentUserToken, OWNER, REPO, 'users-data.js', (content) => {
+            const jsonStr = JSON.stringify(globalUsersData, null, 4);
+            return `const usersData = ${jsonStr};`;
+        });
         currentUserNick = nick;
         currentUserAvatar = avatar;
 
@@ -242,7 +204,7 @@ async function saveUserProfile() {
         }, 1000);
     } catch(e) {
         console.error(e);
-        logEl.innerText = "Error al guardar el perfil: " + e.message;
+        logEl.innerText = "Aun no perteneces al grupo de aportadores";
         btn.disabled = false;
     }
 }
@@ -254,11 +216,9 @@ function showCMS() {
     document.getElementById('userAvatarImg').src = currentUserAvatar;
     document.getElementById('userNameDisplay').innerText = currentUserNick;
     
-    // Asegurar que los elementos se inyectan después de mostrar el CMS
-    setTimeout(() => {
-        injectStateSelect();
-        injectFinalBlock();
-    }, 10);
+    // Inyectar elementos adicionales (Estado y Final)
+    injectStateSelect();
+    injectFinalBlock();
 }
 
 function showLogin() {
@@ -270,15 +230,15 @@ function showLogin() {
 
 function logout() {
     auth.signOut().then(() => {
-        if (window.ArchinimeState) ArchinimeState.set('currentUser', null);
         location.reload();
     });
 }
 
 // ============================================
-// LÓGICA DE INTERFAZ Y FORMULARIO (SIN RATING)
+// LÓGICA DE INTERFAZ Y FORMULARIO
 // ============================================
 
+// Función para inyectar el Bloque de Estado dinámicamente
 function injectStateSelect() {
     if(document.getElementById('estadoAnime')) return;
     const genresContainer = document.getElementById('genresContainer');
@@ -286,6 +246,7 @@ function injectStateSelect() {
 
     const wrapper = document.createElement('div');
     wrapper.style.marginBottom = "25px";
+    // NUEVO: Se agregó la opción "Ninguna"
     wrapper.innerHTML = `
         <h2><i class="fas fa-fire"></i> Estado del Anime</h2>
         <select id="estadoAnime" onchange="requestPreviewUpdate()">
@@ -293,10 +254,12 @@ function injectStateSelect() {
             <option value="NUEVO 🔥">NUEVO 🔥</option>
             <option value="PRÓXIMAMENTE ⏳">PRÓXIMAMENTE ⏳</option>
             <option value="Ninguna">Ninguna</option>
+      
         </select>
     `;
     genresContainer.parentNode.insertBefore(wrapper, genresContainer);
     
+    // Estilos inline para asegurar consistencia
     const sel = document.getElementById('estadoAnime');
     sel.style.width = "100%";
     sel.style.padding = "14px 16px";
@@ -312,11 +275,16 @@ function injectStateSelect() {
     sel.style.backgroundSize = "16px";
 }
 
+// Función para inyectar el Bloque "Final" antes de Música
 function injectFinalBlock() {
     if(document.getElementById('finalToggle')) return;
     const musicContainer = document.getElementById('musicContainer');
+    // El contenedor de Musica tiene un H2 antes, buscamos el padre del contenedor y el elemento previo
     if(!musicContainer) return;
-    const parent = musicContainer.parentNode;
+    const parent = musicContainer.parentNode; // editor-panel
+    
+    // Buscamos el H2 de música para insertar ANTES de él
+    // El H2 de música suele estar justo antes del musicContainer
     const musicHeader = musicContainer.previousElementSibling;
     const wrapper = document.createElement('div');
     wrapper.style.marginBottom = "25px";
@@ -334,10 +302,13 @@ function injectFinalBlock() {
         <label class="switch" style="margin:0; width:auto; background:none; border:none;">
             <input type="checkbox" id="finalToggle">
             <span class="slider round" style="position:relative; display:inline-block; width:50px; height:26px; background-color:#333; border-radius:34px; transition:.4s;">
-                <span style="position:absolute; content:''; height:20px; width:20px; left:3px; bottom:3px; background-color:white; border-radius:50%; transition:.4s;" id="sliderCircle"></span>
+           
+      <span style="position:absolute; content:''; height:20px; width:20px; left:3px; bottom:3px; background-color:white; border-radius:50%; transition:.4s;"
+ id="sliderCircle"></span>
             </span>
         </label>
     `;
+    // Lógica visual del toggle (hack rápido inline)
     const checkbox = wrapper.querySelector('#finalToggle');
     const slider = wrapper.querySelector('.slider');
     const circle = wrapper.querySelector('#sliderCircle');
@@ -351,8 +322,10 @@ function injectFinalBlock() {
             circle.style.transform = "translateX(0)";
         }
         requestPreviewUpdate();
+  
     });
 
+    // Insertar antes del título de música (o del container si no encuentra título)
     if (musicHeader && musicHeader.tagName === 'H2') {
         parent.insertBefore(wrapper, musicHeader);
     } else {
@@ -369,6 +342,7 @@ const genresList = [
     "Mecha", "Militar", "Mitología", "Misterio", "Musical", "Nekketsu", "Parodia", 
     "Policial", "Post-apocalíptico", "Psicológico", "Reverse Harem", "Romance", "RPG", 
     "Slice of Life", "Sobrenatural", "Steampunk", "Superhéroes", "Survival", 
+   
     "Survival Game", "Suspenso", "Tentáculos", "Terror", "Terror psicológico", "Thriller", 
     "Thriller psicológico", "Tokusatsu", "Tragedia", "VRMMO", "Yankī", "Yaoi", "Yuri"
 ];
@@ -378,6 +352,7 @@ genresList.forEach(g => {
     label.innerHTML = `<input type="checkbox" value="${g}" onchange="requestPreviewUpdate()"> ${g}`;
     gContainer.appendChild(label);
 });
+// Actualizar demografías
 const demoSelectCMS = document.getElementById('demografiaAnime');
 if(demoSelectCMS) {
     demoSelectCMS.innerHTML = `
@@ -397,12 +372,21 @@ function showToast(msg, isError = false) {
     x.innerHTML = isError ?
  `<i class="fas fa-times-circle" style="color:#ff4757"></i> ${msg}` : `<i class="fas fa-check-circle" style="color:var(--accent)"></i> ${msg}`;
     x.className = "show";
-    x.style.borderColor = isError ? "#ff4757" : "var(--accent)";
+    x.style.borderColor = isError ?
+ "#ff4757" : "var(--accent)";
     setTimeout(() => { x.className = x.className.replace("show", ""); }, 4000);
 }
 
 function autoCap(input) {
     if(input.value) input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
+}
+
+function limitRating(input, min, max) {
+    if(input.value.length > 1) input.value = input.value.slice(0,1);
+    const val = parseInt(input.value);
+    if(isNaN(val)) return;
+    if (val < min) input.value = min;
+    if (val > max) input.value = max;
 }
 
 function validate(input) {
@@ -421,6 +405,7 @@ function log(msg) {
 function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
+    // NUEVO: Reemplazo para enlaces locales de red a Render
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
@@ -442,18 +427,24 @@ function smartLinkConvert(input) {
         }
     }
     
+    // --- NUEVA LÓGICA PARA OK.RU ---
+    // Busca "ok.ru/video/" usando expresiones regulares para capturar variantes (http, https, m.ok.ru, etc.)
     if (/ok\.ru\/video\//i.test(val)) {
         input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
         changed = true;
         showToast("Link ok.ru convertido a /videoembed/");
-    }
+}
+    // -------------------------------
 
+    // --- NUEVA LÓGICA PARA ODYSEE ---
     if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
         input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
         changed = true;
         showToast("Link Odysee convertido a Embed");
     }
+    // --------------------------------
     
+    // Si cambió el link, forzamos la re-verificación inmediata
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
@@ -551,7 +542,8 @@ function addSeason(data = null) {
     div.className = 'season-card';
     const count = document.querySelectorAll('.season-card').length;
     const color = colorPalette[count % colorPalette.length];
-    div.style.cssText = `border-left: 4px solid ${color}; background: linear-gradient(120deg, ${color}11 0%, rgba(19, 20, 25, 0.9) 35%);`;
+    div.style.cssText = `border-left: 4px solid ${color};
+ background: linear-gradient(120deg, ${color}11 0%, rgba(19, 20, 25, 0.9) 35%);`;
     div.innerHTML = `
         <div class="card-controls">
             <button class="btn-move" onclick="moveSeason(this, -1)" title="Mover Atrás/Arriba"><i class="fas fa-arrow-up"></i></button>
@@ -559,33 +551,39 @@ function addSeason(data = null) {
             <button class="btn-del-section" onclick="removeSeasonBlock(this)"><i class="fas fa-trash"></i> ELIMINAR</button>
         </div>
         <div class="row-flex">
-            <div class="col-flex">
+        
+     <div class="col-flex">
                 <label>Tipo</label>
                 <select class="s-type" onchange="handleSeasonTypeChange(this)">
-                    <option value="" disabled ${!data ? 'selected' : ''}>Seleccionar...</option>
+                    <option value="" disabled ${!data ?
+ 'selected' : ''}>Seleccionar...</option>
                     <option value="Temporada">Temporada</option>
                     <option value="Pelicula">Película</option>
                     <option value="OVA">OVA</option>
                     <option value="Especial">Especial</option>
-                    <option value="Spin-Off">Spin-Off</option>
+              
+       <option value="Spin-Off">Spin-Off</option>
                 </select>
             </div>
             <div class="col-flex">
                  <label>Nombre Bloque</label>
                  <input type="text" class="s-name" placeholder="Auto" disabled oninput="requestPreviewUpdate()">
-            </div>
+            
+ </div>
         </div>
         <label>Poster Bloque</label>
         <input type="text" class="s-img" placeholder="https://..." oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
         <div class="row-flex">
             <div class="col-flex">
-                <label>Cant. Capítulos</label>
+                <label>Cant.
+ Capítulos</label>
                 <input type="number" class="s-count" min="1" onchange="renderChapters(this); checkAutoState();">
             </div>
             <div class="col-flex">
                 <label>Numeración</label>
                 <select class="s-start-index" onchange="renderChapters(this)">
-                    <option value="1" selected>Desde Cap 1</option>
+                    
+ <option value="1" selected>Desde Cap 1</option>
                     <option value="0">Desde Cap 0</option>
                 </select>
             </div>
@@ -610,7 +608,8 @@ function addSeason(data = null) {
         
         const startSel = div.querySelector('.s-start-index');
         if(data.eps && data.eps.length > 0) {
-            const firstTitle = data.eps[0].title || "";
+            const firstTitle = data.eps[0].title ||
+ "";
             if(firstTitle.includes(" 0") || firstTitle.includes("Capítulo 0")) startSel.value = "0";
             else startSel.value = "1";
         }
@@ -618,6 +617,7 @@ function addSeason(data = null) {
         countInp.value = data.eps.length;
         renderChapters(countInp, data.eps);
     }
+    // Aseguramos que se actualicen los nombres automáticamente al agregar
     updateAllBlockNames();
     requestPreviewUpdate();
     checkAutoState();
@@ -631,8 +631,10 @@ function checkAutoState() {
     document.querySelectorAll('.s-count').forEach(inp => {
         const val = parseInt(inp.value);
         if(!isNaN(val) && !inp.disabled) totalCaps += val;
+        // Peliculas/OVAs suelen ser 1 cap, el input está disabled pero value=1
         if(inp.disabled) totalCaps += 1;
     });
+    // NUEVO: Respetar si el usuario eligió "PRÓXIMAMENTE ⏳" o "Ninguna"
     if (stateSel.value !== 'PRÓXIMAMENTE ⏳' && stateSel.value !== 'Ninguna') {
         if (totalCaps === 1) {
             stateSel.value = "ESTRENO 🚨";
@@ -674,6 +676,7 @@ function removeSeasonBlock(btn) {
 function updateAllBlockNames() {
     const cards = document.querySelectorAll('.season-card');
     let tempCount = 0, movieCount = 0, ovaCount = 0, specialCount = 0, spinOffCount = 0;
+    // Iteramos en orden del DOM para asignar nombres secuenciales
     cards.forEach(card => {
         const typeSelect = card.querySelector('.s-type');
         const nameInput = card.querySelector('.s-name');
@@ -682,6 +685,8 @@ function updateAllBlockNames() {
         
         nameInput.disabled = (type !== 'Spin-Off');
         
+        // CORRECCION: Rellenar siempre si es automático (disabled) o está vacío
+        // Esto permite que al reordenar se actualicen los números (Temp 1, Temp 2...)
         if (nameInput.disabled || nameInput.value.trim() === "") {
              if (type === 'Temporada') { tempCount++; nameInput.value = `Temporada ${tempCount}`; }
              else if (type === 'Pelicula') { movieCount++; nameInput.value = `Película ${movieCount}`; }
@@ -689,9 +694,12 @@ function updateAllBlockNames() {
              else if (type === 'Especial') { specialCount++; nameInput.value = `Especial ${specialCount}`; }
              else if (type === 'Spin-Off') { 
                  spinOffCount++;
+                 // Solo ponemos nombre por defecto si está vacío, el SpinOff es editable
                  if (!nameInput.value) nameInput.value = `Spin-Off ${spinOffCount}`;
              }
         } else {
+             // Si el usuario escribió un nombre personalizado en un Spin-Off, no lo tocamos.
+             // Pero sí incrementamos los contadores para que los siguientes sigan la secuencia correcta si fuera necesario.
              if (type === 'Temporada') tempCount++;
              else if (type === 'Pelicula') movieCount++;
              else if (type === 'OVA') ovaCount++;
@@ -712,6 +720,7 @@ function handleSeasonTypeChange(select) {
         countInput.disabled = false;
     }
     
+    // Forzar actualización inmediata de nombres al cambiar tipo
     updateAllBlockNames();
     if(countInput.value) renderChapters(countInput);
     checkAutoState();
@@ -757,7 +766,8 @@ function renderChapters(input, existingEps = []) {
 
         let currentNum = startNum + i;
         let titleInputDisabled = ['Temporada', 'Spin-Off'].includes(type) ? "disabled" : "";
-        let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
+        let titlePlaceholder = titleInputDisabled ?
+ `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
         row.innerHTML = `
             <div class="chapter-header"><span class="chapter-num">CAPÍTULO ${currentNum}</span></div>
@@ -765,7 +775,8 @@ function renderChapters(input, existingEps = []) {
                 <input type="text" class="c-link-lat" value="${lat}" placeholder="🔗 Lat" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
                 <input type="text" class="c-link-sub" value="${sub}" placeholder="🔗 Sub" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
             </div>
-            <input type="text" class="c-title-ov" value="${customTitle}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
+            
+ <input type="text" class="c-title-ov" value="${customTitle}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
         `;
         list.appendChild(row);
     }
@@ -822,6 +833,10 @@ function updateWebPreview() {
     const prevAlias = document.getElementById('previewAliasesList');
     if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
 
+    const ri = document.getElementById('ratingInt').value;
+    const rd = document.getElementById('ratingDec').value;
+    const wRat = document.getElementById('webRating');
+    if(wRat) wRat.innerText = `⭐ ${ri || 0}.${rd || 0}`;
     const tagsContainer = document.getElementById('webTags');
     if(tagsContainer) {
         tagsContainer.innerHTML = '';
@@ -844,24 +859,65 @@ function updateWebPreview() {
 
             if(name) {
                 const div = document.createElement('div');
-                div.className = 'preview-s-item';
+    
+             div.className = 'preview-s-item';
                 let label = (['Temporada', 'Spin-Off'].includes(type)) ? `${count} Caps` : (count > 1 ? `${count} ${type}s` : `${count} ${type}`);
                 div.innerHTML = `<img src="${img || 'https://via.placeholder.com/150'}"><div class="preview-s-count">${label}</div><div class="preview-s-title">${name}</div>`;
                 grid.appendChild(div);
             }
+  
         });
     }
 }
 
-// ============================================
-// BÚSQUEDA EN FIRESTORE
-// ============================================
+async function getGithubFile(token, owner, repo, path) {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    const response = await fetch(url, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!response.ok) throw new Error(`Error leyendo ${path}`);
+    const data = await response.json();
+    return { 
+        sha: data.sha, 
+        content: new TextDecoder().decode(Uint8Array.from(atob(data.content), c => c.charCodeAt(0))) 
+    };
+}
+
+function safeEval(fileContent) {
+    try {
+        const eqIndex = fileContent.indexOf('=');
+        if (eqIndex === -1) throw new Error("No se encontró asignación de variable");
+        let dataStr = fileContent.substring(eqIndex + 1).trim();
+        if (dataStr.endsWith(';')) dataStr = dataStr.slice(0, -1);
+        return eval('(' + dataStr + ')');
+    } catch (e) {
+        console.error("Error parseando JS:", e);
+        throw new Error("El archivo tiene un formato inválido o complejo.");
+    }
+}
+
+async function updateGithubFile(token, owner, repo, path, contentTransformer) {
+    const fileData = await getGithubFile(token, owner, repo, path);
+    const newContent = contentTransformer(fileData.content);
+    const encodedContent = btoa(new TextEncoder().encode(newContent).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: `Update ${path} via CMS (${isEditMode ? 'Edit' : 'New'})`,
+            content: encodedContent,
+            sha: fileData.sha
+        })
+    });
+    if (!response.ok) throw new Error(`Error subiendo ${path}`);
+}
+
 function openSearchModal() {
     document.getElementById('searchModal').style.display = 'flex';
     document.getElementById('searchInput').value = "";
     document.getElementById('searchResults').innerHTML = "";
     switchSearchTab('mine');
-    if(cachedCatalog.length === 0) loadCatalogForSearch();
+    if(cachedIndex.length === 0) loadIndexForSearch();
     else filterSearch();
 }
 
@@ -879,15 +935,17 @@ function switchSearchTab(mode) {
     currentSearchMode = mode;
     document.getElementById('tabMine').className = mode === 'mine' ? 'tab-btn active' : 'tab-btn';
     document.getElementById('tabGeneral').className = mode === 'general' ? 'tab-btn active' : 'tab-btn';
-    if(cachedCatalog.length > 0) filterSearch();
+    if(cachedIndex.length > 0) filterSearch();
 }
 
-async function loadCatalogForSearch() {
+async function loadIndexForSearch() {
     const loading = document.getElementById('loadingSearch');
     loading.style.display = 'block';
     try {
-        const snapshot = await db.collection('catalogo').orderBy('title').get();
-        cachedCatalog = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if(!currentUserToken) throw new Error("No hay sesión");
+        const file = await getGithubFile(currentUserToken, OWNER, REPO, 'index-data.js');
+        const data = safeEval(file.content);
+        cachedIndex = data.reverse(); 
         filterSearch();
     } catch(e) {
         document.getElementById('searchResults').innerHTML = `<div style="color:red; text-align:center">Error: ${e.message}</div>`;
@@ -906,7 +964,7 @@ function _performFilter() {
     const results = document.getElementById('searchResults');
     results.innerHTML = '';
     
-    const filtered = cachedCatalog.filter(a => {
+    const filtered = cachedIndex.filter(a => {
         const matchesText = a.title.toLowerCase().includes(query);
         if (currentSearchMode === 'mine') { 
             return matchesText && (a.uploader === currentUserEmail || a.uploader === currentUserNick); 
@@ -914,7 +972,6 @@ function _performFilter() {
             return matchesText; 
         }
     }).slice(0, 1000);
-    
     filtered.forEach(anime => {
         const div = document.createElement('div');
         div.className = 's-result-item';
@@ -924,7 +981,8 @@ function _performFilter() {
         let displayNick = anime.uploader;
         let uploaderImg = "Logo_Archinime.avif"; 
         if(globalUsersData[anime.uploader]) {
-             displayNick = globalUsersData[anime.uploader].nick;
+             displayNick 
+= globalUsersData[anime.uploader].nick;
              uploaderImg = globalUsersData[anime.uploader].avatar;
         }
         if (currentSearchMode === 'general') { 
@@ -932,10 +990,13 @@ function _performFilter() {
         }
 
         div.innerHTML = `
-            <img src="${anime.img}" class="s-result-img" onerror="this.src='https://via.placeholder.com/50'">
+           
+ <img src="${anime.img}" class="s-result-img" onerror="this.src='https://via.placeholder.com/50'">
             <div>
-                <div style="font-weight:bold; color:#fff;">${anime.title}</div>
-                <div style="color:#777; font-size:0.8em">ID: ${anime.id}${extraInfo}</div>
+                <div style="font-weight:bold;
+color:#fff;">${anime.title}</div>
+                <div style="color:#777;
+font-size:0.8em">ID: ${anime.id}${extraInfo}</div>
             </div>
         `;
         results.appendChild(div);
@@ -943,28 +1004,33 @@ function _performFilter() {
 
     if(filtered.length === 0) {
         let emptyMsg = currentSearchMode === 'mine' ? `No se encontraron animes subidos por <b>${currentUserNick}</b>.` : "No se encontraron resultados.";
-        results.innerHTML = `<div style="padding:20px; color:#777; text-align:center"><i class="fas fa-folder-open" style="font-size:2em; margin-bottom:10px;"></i><br>${emptyMsg}</div>`;
+        results.innerHTML = `<div style="padding:20px;
+color:#777; text-align:center"><i class="fas fa-folder-open" style="font-size:2em; margin-bottom:10px;"></i><br>${emptyMsg}</div>`;
     }
 }
 
-// ============================================
-// CARGAR ANIME PARA EDITAR DESDE FIRESTORE
-// ============================================
 async function loadAnimeForEditing(id) {
     if(!confirm("¿Cargar anime? Se perderán los datos actuales del formulario.")) return;
     closeSearchModal();
     showToast("Descargando datos...", false);
     
     try {
-        const docRef = db.collection('catalogo').doc(String(id));
-        const doc = await docRef.get();
-        
-        if (!doc.exists) {
-            throw new Error("Anime no encontrado");
-        }
-        
-        const targetDetail = doc.data();
-        
+        const [detailFile, playerFile, musicFile] = await Promise.all([
+            getGithubFile(currentUserToken, OWNER, REPO, 'anime-detail-data.js'),
+            getGithubFile(currentUserToken, OWNER, REPO, 'video-player-data.js'),
+            
+getGithubFile(currentUserToken, OWNER, REPO, 'musica-data.js')
+        ]);
+        const detObj = safeEval(detailFile.content);
+        const playObj = safeEval(playerFile.content);
+        const musObj = safeEval(musicFile.content);
+
+        const targetDetail = detObj[id];
+        const targetPlayer = playObj[id] || {};
+        const targetMusic = musObj[id] || [];
+
+        if(!targetDetail) throw new Error("Anime no encontrado en Details");
+    
         isEditMode = true;
         currentEditingId = id;
         
@@ -985,8 +1051,8 @@ async function loadAnimeForEditing(id) {
         if(editIdEl) editIdEl.innerText = id;
         const btnActEl = document.getElementById('btnActionText');
         if(btnActEl) btnActEl.innerText = "GUARDAR CAMBIOS";
-        
-        const storedUploader = targetDetail.uploader || "Archinime";
+        const indexEntry = cachedIndex.find(x => x.id === id);
+        const storedUploader = targetDetail.uploader || (indexEntry ? indexEntry.uploader : "Archinime");
         const isSuperAdmin = ALLOWED_USERS.includes(currentUserEmail);
         const isOwner = (storedUploader === currentUserEmail) || (storedUploader === currentUserNick) || isSuperAdmin || (currentUserNick === "Archinime");
         const saveBtn = document.getElementById('btnSaveAction');
@@ -1000,15 +1066,15 @@ async function loadAnimeForEditing(id) {
             saveBtn.style.opacity = '0.5';
         }
 
-        // Rellenar formulario
-        document.getElementById('tituloAnime').value = targetDetail.title || '';
-        document.getElementById('portadaAnime').value = targetDetail.img || '';
-        document.getElementById('sinopsisAnime').value = targetDetail.desc || '';
+        document.getElementById('tituloAnime').value = targetDetail.title;
+        document.getElementById('portadaAnime').value = targetDetail.cover;
+        document.getElementById('sinopsisAnime').value = targetDetail.desc;
         document.getElementById('aliasContainer').innerHTML = '';
-        if(targetDetail.aliases) targetDetail.aliases.forEach(a => addAlias(a));
+        if(indexEntry && indexEntry.aliases) indexEntry.aliases.forEach(a => addAlias(a));
 
-        if(targetDetail.genres && targetDetail.genres.length > 0) {
-            let loadedGenres = [...targetDetail.genres];
+        if(indexEntry && indexEntry.genres && indexEntry.genres.length > 0) {
+            let loadedGenres = [...indexEntry.genres];
+            // Detectar demografia
             const demoOptions = ["Gekiga", "Josei", "Kodomo", "Seijin", "Seinen", "Shōjo", "Shōnen"];
             const foundDemo = loadedGenres.find(g => demoOptions.includes(g));
             
@@ -1021,29 +1087,41 @@ async function loadAnimeForEditing(id) {
             });
         }
         
-        if (targetDetail.updateType) {
-            const estadoSel = document.getElementById('estadoAnime');
-            if (estadoSel) estadoSel.value = targetDetail.updateType;
-        }
-        
-        if (targetDetail.isFinal) {
-            const toggle = document.getElementById('finalToggle');
-            if(toggle) {
-                toggle.checked = true;
-                toggle.dispatchEvent(new Event('change'));
-            }
-        }
+        let r = 0;
+        if(indexEntry && indexEntry.rating) r = parseFloat(indexEntry.rating);
+        if(isNaN(r)) r = 0;
+        const intPart = Math.floor(r);
+        const decPart = Math.round((r - intPart) * 10);
+        document.getElementById('ratingInt').value = intPart || "";
+        document.getElementById('ratingDec').value = decPart;
         
         document.getElementById('seasonsContainer').innerHTML = '';
         if(targetDetail.seasons) {
             targetDetail.seasons.forEach(s => {
-                addSeason(s);
+                const seasonPlayer = targetPlayer[s.num] || {}; 
+                const fullEps = s.eps.map((e, idx) => {
+                    const epKey = idx + 1;
+                
+     const links = seasonPlayer[epKey] || {};
+                    return { title: e.title, link: links.link, link2: links.link2 };
+                });
+                addSeason({ name: s.name || `Temporada ${s.num}`, cover: s.cover, eps: fullEps });
             });
         }
 
         document.getElementById('musicContainer').innerHTML = '';
-        if(targetDetail.music) {
-            targetDetail.music.forEach(url => addMusic(url));
+        targetMusic.forEach(url => addMusic(url));
+        // Cargar estado de "FINAL" si existe en indexEntry
+        if(indexEntry && indexEntry.isFinal) {
+            const toggle = document.getElementById('finalToggle');
+            if(toggle) {
+                toggle.checked = true;
+                const evt = new Event('change');
+                toggle.dispatchEvent(evt); // Forzar actualizacion visual
+            }
+        } else {
+             const toggle = document.getElementById('finalToggle');
+             if(toggle) { toggle.checked = false; toggle.dispatchEvent(new Event('change')); }
         }
 
         checkCoverVisual(document.getElementById('portadaAnime'));
@@ -1060,28 +1138,64 @@ async function loadAnimeForEditing(id) {
     }
 }
 
-// ============================================
-// ELIMINAR ANIME (SOLO ADMIN)
-// ============================================
 async function deleteCurrentAnime(idToDelete) {
-    if(currentUserEmail !== "archinime12@gmail.com") { 
-        alert("Acción no permitida.");
-        return; 
-    }
+    if(currentUserEmail !== "archinime12@gmail.com") { alert("Acción no permitida.");
+        return; }
     if(!confirm(`⚠️ PELIGRO ⚠️\n\n¿Eliminar anime ID: ${idToDelete}?`)) return;
     if(!confirm(`ÚLTIMA ADVERTENCIA.\n¿Confirmar borrado?`)) return;
 
-    showToast("Eliminando anime...", false);
+    showToast("Iniciando borrado masivo...", false);
+    const token = currentUserToken;
+    const logEl = document.getElementById('statusLog');
+    logEl.style.display = 'block';
     try {
-        await db.collection('catalogo').doc(String(idToDelete)).delete();
-        showToast("✅ Anime eliminado correctamente");
-        
-        await loadCatalogForSearch();
-        
-        exitEditMode();
+        log("1/5 Descargando bases de datos...");
+        const [indexFile, detailFile, playerFile, musicFile] = await Promise.all([
+            getGithubFile(token, OWNER, REPO, 'index-data.js'),
+            getGithubFile(token, OWNER, REPO, 'anime-detail-data.js'),
+            getGithubFile(token, OWNER, REPO, 'video-player-data.js'),
+            getGithubFile(token, OWNER, REPO, 'musica-data.js')
+        ]);
+        let indexData = safeEval(indexFile.content);
+        let detailData = safeEval(detailFile.content);
+        let playerData = safeEval(playerFile.content);
+        let musicData = safeEval(musicFile.content);
+
+        log("2/5 Procesando Index...");
+        const newIndex = indexData.filter(item => item.id !== idToDelete).map(item => {
+            if (item.id > idToDelete) item.id = item.id - 1; 
+            return item;
+        });
+        log("3/5 Procesando Detalles y Player...");
+        const shiftObjectKeys = (obj) => {
+            const newObj = {};
+            const keys = Object.keys(obj).map(Number).sort((a,b) => a-b);
+            keys.forEach(key => {
+                if (key === idToDelete) return; 
+                if (key > idToDelete) newObj[key - 1] = obj[key]; 
+                else newObj[key] = obj[key]; 
+            });
+            return newObj;
+        };
+        const newDetail = shiftObjectKeys(detailData);
+        const newPlayer = shiftObjectKeys(playerData);
+        const newMusic = shiftObjectKeys(musicData);
+
+        log("4/5 Subiendo cambios a GitHub...");
+        await updateGithubFile(token, OWNER, REPO, 'index-data.js', () => `const animes = ${JSON.stringify(newIndex, null, 4)};`);
+        await updateGithubFile(token, OWNER, REPO, 'anime-detail-data.js', () => `const data = ${JSON.stringify(newDetail, null, 4)};`);
+        await updateGithubFile(token, OWNER, REPO, 'video-player-data.js', () => `const players = ${JSON.stringify(newPlayer, null, 4)};`);
+        await updateGithubFile(token, OWNER, REPO, 'musica-data.js', () => `const audioPlaylists = ${JSON.stringify(newMusic, null, 4)};`);
+        log("✅ ¡ELIMINADO Y REORDENADO CORRECTAMENTE!");
+        alert("✅ Cambios guardados correctamente.\nPor favor, cierra sesión.");
+        highlightLogoutButton();
+        document.getElementById('editModeBar').style.display = 'none';
+        document.getElementById('btnSaveAction').disabled = true;
+        document.getElementById('btnSaveAction').innerText = "ELIMINADO";
     } catch(e) {
         console.error(e);
-        showToast("Error al eliminar: " + e.message, true);
+        log(`❌ ERROR FATAL: ${e.message}`);
+        alert("Error crítico durante el borrado.");
     }
 }
 
@@ -1094,20 +1208,16 @@ function exitEditMode() {
     const saveBtn = document.getElementById('btnSaveAction');
     saveBtn.disabled = false;
     saveBtn.style.opacity = '1';
-    document.getElementById('tituloAnime').value = '';
-    document.getElementById('portadaAnime').value = '';
-    document.getElementById('sinopsisAnime').value = '';
-    document.getElementById('aliasContainer').innerHTML = '';
-    document.getElementById('seasonsContainer').innerHTML = '';
-    document.getElementById('musicContainer').innerHTML = '';
-    document.querySelectorAll('#genresContainer input').forEach(cb => cb.checked = false);
-    requestPreviewUpdate();
+    location.reload();
 }
 
 function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
     const demoSelect = document.getElementById('demografiaAnime').value;
+    const iVal = document.getElementById('ratingInt').value || "0";
+    const dVal = document.getElementById('ratingDec').value || "0";
+    const ratingVal = parseFloat(iVal + "." + dVal);
     const aliasList = [];
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliasList.push(i.value.trim()) });
     
@@ -1115,162 +1225,246 @@ function generateData() {
     const stEl = document.getElementById('estadoAnime');
     if(stEl) selectedState = stEl.value;
 
+    // Obtener estado FINAL
     let isFinal = false;
     const finalTog = document.getElementById('finalToggle');
     if(finalTog) isFinal = finalTog.checked;
 
     const anime = {
-        id: isEditMode ? currentEditingId : null,
-        title: document.getElementById('tituloAnime').value.trim(),
+        id: isEditMode ?
+ currentEditingId : 0, 
+        titulo: document.getElementById('tituloAnime').value.trim(),
         aliases: aliasList,
-        img: document.getElementById('portadaAnime').value.trim(),
-        desc: document.getElementById('sinopsisAnime').value.trim(),
-        genres: selectedGenres,
-        rating: 0,
-        music: [],  // <-- CORREGIDO: antes "musica"
-        seasons: [],
+        portada: document.getElementById('portadaAnime').value.trim(),
+        sinopsis: document.getElementById('sinopsisAnime').value.trim(),
+        demografia: demoSelect, 
+        generos: selectedGenres,
+        rating: ratingVal,
+        musica: [],
+        temporadas: [],
         uploader: currentUserEmail, 
-        uploaderImg: currentUserAvatar,
-        updateType: selectedState,
-        isFinal: isFinal,
-        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+     
+         uploaderAvatar: currentUserAvatar,
+        estado: selectedState,
+        isFinal: isFinal // Guardar booleano de Final
     };
-    
-    if(demoSelect) {
-        anime.genres = anime.genres.filter(g => g !== demoSelect);
-        anime.genres.push(demoSelect);
-    }
-    
-    // <-- CORREGIDO: ahora anime.music
-    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.music.push(i.value.trim()); });
-    
-    let globalOrder = 1;
+    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.musica.push(i.value.trim()); });
+    let globalOrder = 1, seasonCountVP = 0, ovaCountVP = 0, movieCountVP = 0, specialCountVP = 0, spinOffCount = 0;
     document.querySelectorAll('.season-card').forEach(card => {
         const eps = [];
         const sName = card.querySelector('.s-name').value;
         const sType = card.querySelector('.s-type').value;
-        const sCover = card.querySelector('.s-img').value;
         const startSel = card.querySelector('.s-start-index');
         const startNum = startSel ? parseInt(startSel.value) : 1;
+
+        if(sType === 'Temporada') seasonCountVP++;
+        if(sType === 'OVA') ovaCountVP++;
+        if(sType === 'Pelicula') movieCountVP++;
+      
+         if(sType === 'Especial') specialCountVP++;
 
         card.querySelectorAll('.chapter-row').forEach((row, idx) => {
             const lat = row.querySelector('.c-link-lat').value.trim();
             const sub = row.querySelector('.c-link-sub').value.trim();
             let customTitleInput = row.querySelector('.c-title-ov').value.trim();
-            let detailTitle = ""; 
+            let playerTitle = "", detailTitle = ""; 
             let currentEpNum = startNum + idx;
+   
          
-            if (sType === 'Temporada' || sType === 'Spin-Off') {
+            if (sType === 'Temporada') {
                 detailTitle = `Capítulo ${currentEpNum}`;
-            } else {
-                detailTitle = customTitleInput || sName;
+                playerTitle = `${anime.titulo} T${seasonCountVP} Cap ${currentEpNum}`;
+            } else if (sType === 'Spin-Off') {
+                detailTitle = `Capítulo ${currentEpNum}`;
+                playerTitle = `${anime.titulo} ${sName} Cap ${currentEpNum}`;
+            } else if (sType === 'OVA') {
+                detailTitle = customTitleInput ||
+ sName;
+                playerTitle = `${anime.titulo} OVA ${ovaCountVP}` + (customTitleInput ? ` "${customTitleInput}"` : "");
+            } else if (sType === 'Pelicula') {
+                detailTitle = customTitleInput ||
+ sName;
+                playerTitle = `${anime.titulo} Película ${movieCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
+            } else if (sType === 'Especial') {
+                detailTitle = customTitleInput ||
+ sName;
+                playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
             }
 
             if(sub || lat) {
-                eps.push({ 
-                    title: detailTitle, 
-                    link: lat, 
-                    link2: sub 
-                });
+                eps.push({ num: idx + 1, link: lat, link2: sub, title: detailTitle, playerTitle: playerTitle });
             }
         });
-        
-        if(eps.length > 0 || anime.updateType === 'PRÓXIMAMENTE ⏳') {
-            anime.seasons.push({ 
-                num: globalOrder++, 
-                name: sName, 
-                type: sType, 
-                cover: sCover, 
-                eps: eps 
-            });
+        if(eps.length > 0) {
+            anime.temporadas.push({ num: globalOrder++, name: sName, type: sType, cover: card.querySelector('.s-img').value, eps: eps });
         }
     });
-    
-    if (anime.seasons.length > 0) {
-        const lastSeason = anime.seasons[anime.seasons.length - 1];
-        anime.latestSeasonCover = lastSeason.cover || anime.img;
-        anime.latestBlockName = lastSeason.name;
-        if (lastSeason.eps.length > 0) {
-            anime.latestEpTitle = lastSeason.eps[lastSeason.eps.length - 1].title;
-        }
-    }
-    
     return anime;
 }
 
-// ============================================
-// GUARDAR EN FIRESTORE
-// ============================================
-async function guardarEnFirestore() {
+function highlightLogoutButton() {
+    const headerBtns = document.querySelectorAll('#userHeader button');
+    const logoutBtn = Array.from(headerBtns).find(btn => btn.getAttribute('onclick') === 'logout()');
+    if (logoutBtn) {
+        logoutBtn.style.transition = 'all 0.5s ease';
+        logoutBtn.style.border = '2px solid #00f0ff';
+        logoutBtn.style.boxShadow = '0 0 20px #00f0ff, inset 0 0 10px #00f0ff';
+        logoutBtn.style.color = '#00f0ff';
+        logoutBtn.style.transform = 'scale(1.2)';
+        let visible = true;
+        setInterval(() => {
+            logoutBtn.style.opacity = visible ? '0.5' : '1';
+            visible = !visible;
+        }, 500);
+        const tip = document.createElement('div');
+        tip.innerHTML = "⬇ CLIC AQUÍ ⬇";
+        tip.style.position = 'absolute';
+        tip.style.top = '50px';
+        tip.style.right = '10px';
+        tip.style.background = '#00f0ff';
+        tip.style.color = '#000';
+        tip.style.padding = '5px 10px';
+        tip.style.borderRadius = '5px';
+        tip.style.fontWeight = 'bold';
+        tip.style.zIndex = '9999';
+        tip.style.pointerEvents = 'none';
+        document.body.appendChild(tip);
+    }
+}
+
+async function subirAGithHub() {
     const btn = document.getElementById('btnSaveAction');
     if(btn.disabled) return showToast("Edición Bloqueada o Sin Cambios", true);
-    
+    const token = currentUserToken;
+    if(!token) return showToast("Error de sesión", true);
     const nuevoAnime = generateData();
+    if(!nuevoAnime.titulo) return showToast("Falta Título", true);
+    if(!nuevoAnime.portada) return showToast("Falta Portada", true);
+    if(!nuevoAnime.sinopsis) return showToast("Falta Sinopsis", true);
+    if(!nuevoAnime.demografia) return showToast("Elige Demografía", true);
+    if(nuevoAnime.rating < 1.0 || nuevoAnime.rating > 5.0) return showToast("Valoración inválida", true);
+    if(nuevoAnime.generos.length === 0) return showToast("Elige Géneros", true);
     
-    if(!nuevoAnime.title) return showToast("Falta Título", true);
-    if(!nuevoAnime.img) return showToast("Falta Portada", true);
-    if(!nuevoAnime.desc) return showToast("Falta Sinopsis", true);
-    if(nuevoAnime.genres.length === 0) return showToast("Elige Géneros", true);
-    
-    if(nuevoAnime.updateType !== 'PRÓXIMAMENTE ⏳') {
-        if(nuevoAnime.seasons.length === 0) return showToast("Agrega contenido", true);
+    if(nuevoAnime.estado !== 'PRÓXIMAMENTE ⏳') {
+        if(nuevoAnime.temporadas.length === 0) return showToast("Agrega contenido", true);
     }
 
-    if(!confirm(`¿Deseas ${isEditMode ? 'actualizar' : 'crear'} "${nuevoAnime.title}"?`)) return;
+    if(!confirm(`¿Deseas compilar y subir los datos de "${nuevoAnime.titulo}"?`)) return;
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    
+    document.getElementById('statusLog').innerHTML = "🚀 Iniciando...<br>";
     try {
-        let finalId = nuevoAnime.id;
-        
+        let FINAL_ID = nuevoAnime.id;
+        let UPDATE_LABEL = nuevoAnime.estado;
         if (!isEditMode) {
-            const snapshot = await db.collection('catalogo')
-                .orderBy('id', 'desc')
-                .limit(1)
-                .get();
-            
-            if (!snapshot.empty) {
-                finalId = snapshot.docs[0].data().id + 1;
-            } else {
-                finalId = 1;
-            }
-            nuevoAnime.id = finalId;
-        }
-        
-        nuevoAnime.lastUpdate = Date.now();
-        
-        await db.collection('catalogo').doc(String(finalId)).set(nuevoAnime, { merge: true });
-        
-        showToast(`¡Anime ${isEditMode ? 'actualizado' : 'creado'} correctamente!`, false);
-        
-        await loadCatalogForSearch();
-        
-        if (!isEditMode) {
-            exitEditMode();
+            log("1/6 Calculando ID...");
+            const indexFile = await getGithubFile(token, OWNER, REPO, 'index-data.js');
+            const indexData = safeEval(indexFile.content);
+            let maxId = 0;
+            indexData.forEach(item => { if(item.id > maxId) maxId = item.id; });
+            FINAL_ID = maxId + 1;
+            log(`✅ ID: ${FINAL_ID}`);
         } else {
-            originalAnimeState = JSON.stringify(nuevoAnime);
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-check"></i> Sin cambios pendientes';
-            btn.style.opacity = '0.5';
+            log(`📝 Editando ID: ${FINAL_ID}`);
         }
         
-    } catch (error) {
-        console.error('Error al guardar:', error);
-        showToast('Error al guardar: ' + error.message, true);
-        btn.disabled = false;
-        btn.innerHTML = isEditMode ? 'GUARDAR CAMBIOS' : 'COMPILAR Y SUBIR';
-        btn.style.opacity = '1';
+        log(`📢 Tipo de Evento: ${UPDATE_LABEL}`);
+        let lastSeasonCover = nuevoAnime.portada;
+        let lastBlockName = "Novedad";
+        let lastEpTitle = "Nuevo Contenido";
+        if (nuevoAnime.temporadas && nuevoAnime.temporadas.length > 0) {
+            const lastSeason = nuevoAnime.temporadas[nuevoAnime.temporadas.length - 1];
+            if (lastSeason.cover) lastSeasonCover = lastSeason.cover;
+            if (lastSeason.name) lastBlockName = lastSeason.name;
+            if (lastSeason.eps && lastSeason.eps.length > 0) {
+                const lastEp = lastSeason.eps[lastSeason.eps.length - 1];
+                if (lastEp.title) lastEpTitle = lastEp.title;
+            }
+        }
+
+        log("2/6 Actualizando Index...");
+        await updateGithubFile(token, OWNER, REPO, 'index-data.js', (content) => {
+            const indexList = safeEval(content);
+            let finalGenres = [...nuevoAnime.generos];
+            if(nuevoAnime.demografia) {
+                 finalGenres = finalGenres.filter(g => g !== nuevoAnime.demografia);
+                 finalGenres.push(nuevoAnime.demografia);
+          
+            }
+            const newIndexEntry = {
+                id: FINAL_ID,
+                title: nuevoAnime.titulo,
+                img: nuevoAnime.portada,
+                rating: nuevoAnime.rating,
+               
+                 uploader: nuevoAnime.uploader,
+                uploaderImg: nuevoAnime.uploaderAvatar, 
+                genres: finalGenres,
+                lastUpdate: Date.now(), 
+                updateType: UPDATE_LABEL, 
+                latestSeasonCover: lastSeasonCover, 
+         
+                 latestBlockName: lastBlockName,     
+                latestEpTitle: lastEpTitle,
+                isFinal: nuevoAnime.isFinal // Guardar propiedad isFinal
+            };
+            if(nuevoAnime.aliases.length > 0) newIndexEntry.aliases = nuevoAnime.aliases;
+            const existingIdx = indexList.findIndex(x => x.id === FINAL_ID);
+            if (existingIdx !== -1) indexList[existingIdx] = newIndexEntry;
+            else indexList.push(newIndexEntry);
+            return `const animes = ${JSON.stringify(indexList, null, 4)};`;
+        });
+
+        log("3/6 Actualizando Detalles...");
+        await updateGithubFile(token, OWNER, REPO, 'anime-detail-data.js', (content) => {
+            const detailsObj = safeEval(content);
+            const seasonsArr = nuevoAnime.temporadas.map(t => {
+                const epsArr = t.eps.map(e => ({ title: e.title }));
+                const sObj = { num: t.num, cover: t.cover, eps: epsArr };
+           
+                 if(t.name) sObj.name = t.name;
+                return sObj;
+            });
+            const newDetailEntry = {
+                title: nuevoAnime.titulo,
+                desc: nuevoAnime.sinopsis,
+              
+                 cover: nuevoAnime.portada,
+                uploader: nuevoAnime.uploader,
+                seasons: seasonsArr
+            };
+            detailsObj[FINAL_ID] = newDetailEntry;
+            return `const data = ${JSON.stringify(detailsObj, null, 4)};`;
+        });
+        log("4/6 Actualizando Player...");
+        await updateGithubFile(token, OWNER, REPO, 'video-player-data.js', (content) => {
+            const playersObj = safeEval(content);
+            const newPlayerEntry = {};
+            nuevoAnime.temporadas.forEach(t => {
+                newPlayerEntry[t.num] = {};
+                t.eps.forEach(e => {
+          
+                    newPlayerEntry[t.num][e.num] = { link: e.link, link2: e.link2, title: e.playerTitle };
+                });
+            });
+            playersObj[FINAL_ID] = newPlayerEntry;
+            return `const players = ${JSON.stringify(playersObj, null, 4)};`;
+        });
+        log("5/6 Actualizando Música...");
+        await updateGithubFile(token, OWNER, REPO, 'musica-data.js', (content) => {
+            const musicObj = safeEval(content);
+            musicObj[FINAL_ID] = nuevoAnime.musica;
+            return `const audioPlaylists = ${JSON.stringify(musicObj, null, 4)};`;
+        });
+        log("✨ ¡EXITO! YA PUEDES CERRAR SESIÓN");
+        showToast("¡Datos subidos! Cierra sesión para refrescar.", false);
+        alert("✅ Cambios guardados correctamente.\n\nPor favor, presiona el botón de 'CERRAR SESIÓN'.");
+        highlightLogoutButton();
+    } catch (e) {
+        console.error(e);
+        log(`❌ ERROR: ${e.message}`);
+        showToast("Error crítico (ver log)", true);
     }
 }
-
-window.subirAGithHub = guardarEnFirestore;
-
-// Inicialización segura después de que el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Las inyecciones se harán en showCMS()
-    });
-} else {
-    // Ya está listo, pero showCMS se encargará
-}
+// Inicializar la inyección
+injectStateSelect();
+injectFinalBlock();
