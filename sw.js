@@ -1,5 +1,6 @@
-const CACHE_NAME = 'archinime-os-v' + Date.now();
+const CACHE_NAME = 'archinime-os-v' + Date.now(); // Fuerza renovación de caché
 const urlsToCache = [
+  // No cacheamos index.html intencionalmente para evitar versión antigua
   'styles-index.css',
   'Logo_Archinime.avif'
 ];
@@ -29,13 +30,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  // ⭐ NUEVO: Los archivos de anuncios SIEMPRE se piden a internet
-  if (url.pathname.includes('anuncios_index.js')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-  
-  // Nunca devolver index.html desde caché
+  // Nunca devolver index.html desde caché, siempre ir a la red
   if (url.pathname === '/' || url.pathname === '/index.html') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -43,7 +38,7 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Para el resto: primero internet, si falla, caché
+  // Para el resto de recursos, usar network-first
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {
