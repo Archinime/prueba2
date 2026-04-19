@@ -129,7 +129,6 @@
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
       z-index: -5; opacity: 0;
-      /* Aumentado el brillo de 0.6 a 0.85 */
       filter: contrast(1.2) brightness(1.25) saturate(1.4);
       transition: opacity 1.2s ease;
       background: url('galaxia-morado1.avif') no-repeat center center / cover; 
@@ -652,6 +651,12 @@
     <option value="good">🔥 A-TIER (4.6+)</option>
     <option value="regular">📀 B-TIER (&lt;4.5)</option>
   </select>
+  <!-- NUEVO SELECTOR DE FONDO DE VIDEO -->
+  <select id="selectorFondo" class="custom-select-trigger" style="background: rgba(10,10,15,0.85); border-radius:40px; padding:12px 20px; color:#e0e0e0;">
+    <option value="galaxia">🌌 Galaxia</option>
+    <option value="cyberpunk">🌃 Cyberpunk</option>
+    <option value="abstracto">✨ Abstracto</option>
+  </select>
 </div>
 
 <main class="container">
@@ -707,7 +712,7 @@
   window.videoList = [
     {
       id: "rem",
-      src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4", // Video de ejemplo con chroma green (pixabay)
+      src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4",
       keyColor: "green",
       preset: { threshold: 0.4, diff: 30, soft: 30 }
     },
@@ -745,6 +750,21 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 <script src="anuncios_index.js"></script>
+<!-- NUEVO SCRIPT PARA CAMBIO DE FONDO DE VIDEO -->
+<script src="background-video.js"></script>
+<script>
+  // Conectar el selector de fondo con las funciones
+  const selectorFondo = document.getElementById('selectorFondo');
+  if (selectorFondo && window.fondosDisponibles) {
+    selectorFondo.addEventListener('change', (e) => {
+      const videoSeleccionado = window.fondosDisponibles.find(v => v.id === e.target.value);
+      if (videoSeleccionado) {
+        window.cambiarFondoVideo(videoSeleccionado.url);
+        window.guardarFondoPreferido(videoSeleccionado.id);
+      }
+    });
+  }
+</script>
 
 <script>
   // ==================== REGISTRO DEL SERVICE WORKER ====================
@@ -839,7 +859,6 @@
     currentAudio = new Audio(track);
     currentAudio.volume = 0.3;
     currentAudio.onended = () => {
-      // Cuando termina una canción, iniciar otra (solo si ya se empezó)
       if (isMusicStarted) {
         const nextTrack = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
         currentAudio = new Audio(nextTrack);
@@ -850,7 +869,6 @@
     currentAudio.play().catch(e => console.log("Error al iniciar música", e));
   }
 
-  // Escuchar el primer clic en cualquier parte del documento
   document.addEventListener('click', startMusic, { once: true });
   document.addEventListener('touchstart', startMusic, { once: true });
 
