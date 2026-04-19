@@ -422,6 +422,16 @@ const players = {
                 "link": "https://odysee.com/$/embed/@any:a/jjk310:2",
                 "link2": "",
                 "title": "Jujutsu Kaisen T3 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/jj311:2",
+                "link2": "",
+                "title": "Jujutsu Kaisen T3 Cap 11"
+            },
+            "12": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/jjk312:e",
+                "link2": "",
+                "title": "Jujutsu Kaisen T3 Cap 12"
             }
         }
     },
@@ -688,349 +698,357 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1QSqA9_BZA-q4mZ_I-sETRFf9YB7EGhze/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zrgyad07wgax0x3tant33/ReZero-Temporada-1-Capitulo-1-Espa-ol-Latino.mp4?rlkey=3r6mgn7utdabl6sgdovs08jyz&st=b99od388&raw=1",
-                "title": "Re:Zero T1 Cap 1"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/17ALtN3qn6E_v8Zuul0U3gFJEbfQvDd_3/preview",
                 "link2": "https://www.dropbox.com/scl/fi/yxu2x1fdgjigk8qoc8mnj/ReZero-Temporada-1-Capitulo-2-Espa-ol-Latino.mp4?rlkey=q2h3atsz2w55ka0f3br10yei6&st=z6fie2kb&raw=1",
-                "title": "Re:Zero T1 Cap 2"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1-qTELKlGJtqqndtjnQM85MV3Yji-J1w2/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ung8oin2v68b9bn8h10ul/ReZero-Temporada-1-Capitulo-3-Espa-ol-Latino.mp4?rlkey=1kxsyhj3oxe87vu8pml0adgof&st=3msq0buc&raw=1",
-                "title": "Re:Zero T1 Cap 3"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1KboWPX1TdHeainiL0s8Wwakw4IdrMyk7/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hrd1wpz46n7hi38u4w7by/ReZero-Temporada-1-Capitulo-4-Espa-ol-Latino.mp4?rlkey=taydzmxnvucghvpwuf0gx9r4q&st=lgi8ndrp&raw=1",
-                "title": "Re:Zero T1 Cap 4"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1RoI5Fw70D5lrcfj_lu2puPNZcT9_3xP-/preview",
                 "link2": "https://www.dropbox.com/scl/fi/h7aolyl3gn7wzmn30otyl/ReZero-Temporada-1-Capitulo-5-Espa-ol-Latino.mp4?rlkey=y5r5mkkcm3r5i2c4mun8vvfcz&st=3lyzt26r&raw=1",
-                "title": "Re:Zero T1 Cap 5"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1tmwdTZdkT4fr625ItELCVZzgdtC_hRBn/preview",
                 "link2": "https://www.dropbox.com/scl/fi/dg7pxjm2giv16hcttve8s/ReZero-Temporada-1-Capitulo-6-Espa-ol-Latino.mp4?rlkey=im44td6hqckq8xuvphomwzcur&st=mz2jmugz&raw=1",
-                "title": "Re:Zero T1 Cap 6"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/17NIzoDNlqDphaHpgOo0yrGEe2wFlDKLh/preview",
                 "link2": "https://www.dropbox.com/scl/fi/vsfuzhju9rrhnj9kan5cp/ReZero-Temporada-1-Capitulo-7-Espa-ol-Latino.mp4?rlkey=ocxdqrpr6hwle0ygosxdf8suy&st=2ouhs0pe&raw=1",
-                "title": "Re:Zero T1 Cap 7"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/10qemyJoGTmkxv6RPcL39tMVRvO_fMFJZ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/8ti116jjme5cyi1uo0yb4/ReZero-Temporada-1-Capitulo-8-Espa-ol-Latino.mp4?rlkey=rjds2iqtfxuc3ae7j2ykb2fau&st=caltzwr3&raw=1",
-                "title": "Re:Zero T1 Cap 8"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1V9P40lhp1DZkJqg8OrWwDj-FwH605EMK/preview",
                 "link2": "https://www.dropbox.com/scl/fi/jedn8jdujd7r7yaes4jla/ReZero-Temporada-1-Capitulo-9-Espa-ol-Latino.mp4?rlkey=n7hqe3mbmu067nn5s5thy7b7q&st=cynqm3bx&raw=1",
-                "title": "Re:Zero T1 Cap 9"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1eF37U-GRU06v5pfHaC_bHRupQwm_8XOj/preview",
                 "link2": "https://www.dropbox.com/scl/fi/9318wxghqyna2x8wwtytq/ReZero-Temporada-1-Capitulo-10-Espa-ol-Latino.mp4?rlkey=6ahczms2679oy1x9ww9bzr1lg&st=u995ys9h&raw=1",
-                "title": "Re:Zero T1 Cap 10"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1s586njQYgotbumWJiVBmDyhcWz4Nsw6F/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ndwb0y6uyrwtdz8vfbp1i/ReZero-Temporada-1-Capitulo-11-Espa-ol-Latino.mp4?rlkey=3ozyzwg04yymp6vg7emgticpn&st=xk2p0obd&raw=1",
-                "title": "Re:Zero T1 Cap 11"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1D6-d2oFHtWAlCv-gSsKEdNGiaYzlj0w5/preview",
                 "link2": "https://www.dropbox.com/scl/fi/w7r6aj9ykuczfuumgz7yf/ReZero-Temporada-1-Capitulo-12-Espa-ol-Latino.mp4?rlkey=1wingrvdtdrkmf0a5mjvdggrx&st=oun4z01t&raw=1",
-                "title": "Re:Zero T1 Cap 12"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/17jDjib5lr-T0YrXCYRBAaP0_y5sTvDyB/preview",
                 "link2": "https://www.dropbox.com/scl/fi/io9kh7d0povt5excw6qiz/ReZero-Temporada-1-Capitulo-13-Espa-ol-Latino.mp4?rlkey=aa6lu9ueonnlvmkohq1mkqr0m&st=wonf1ob0&raw=1",
-                "title": "Re:Zero T1 Cap 13"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/183Pvl3egAQPna1hw6N2obCRs_m1eg01z/preview",
                 "link2": "https://www.dropbox.com/scl/fi/5y1ykfaq0m5gulrujcte8/ReZero-Temporada-1-Capitulo-14-Espa-ol-Latino.mp4?rlkey=czx41rep09c71xki0mybb8gft&st=ysrt1ssr&raw=1",
-                "title": "Re:Zero T1 Cap 14"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1latBYqJhArVnmw0EW2noNnYT-un6QK6X/preview",
                 "link2": "https://www.dropbox.com/scl/fi/mecovbhxxbvc4d68dae2v/ReZero-Temporada-1-Capitulo-15-Espa-ol-Latino.mp4?rlkey=108eujwuthyqobjn5unizn1sm&st=a5721h8w&raw=1",
-                "title": "Re:Zero T1 Cap 15"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1UKu-B7yiI_nmHuQQwm0Y6vwgOmwjE1fr/preview",
                 "link2": "https://www.dropbox.com/scl/fi/c8subdb32qq3orgf85h14/ReZero-Temporada-1-Capitulo-16-Espa-ol-Latino.mp4?rlkey=pupweem5sve5toy40huhgvxem&st=8mta3uj5&raw=1",
-                "title": "Re:Zero T1 Cap 16"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1KyJ01_GTVosZSG3uga9yrjh9lmJgWpM_/preview",
                 "link2": "https://www.dropbox.com/scl/fi/dskoys2oc2q73sedf1hah/ReZero-Temporada-1-Capitulo-17-Espa-ol-Latino.mp4?rlkey=o3tapg7n5jb4vpoq7xfrs179v&st=vz46iijm&raw=1",
-                "title": "Re:Zero T1 Cap 17"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1EJ0sh7P5BcDUQvSEz56keYPUUQfhTvE1/preview",
                 "link2": "https://www.dropbox.com/scl/fi/uru2i8yrmrmyw14181kc4/ReZero-Temporada-1-Capitulo-18-Espa-ol-Latino.mp4?rlkey=hlpha90785h2qnnmt9hdfaq8j&st=khtbof0j&raw=1",
-                "title": "Re:Zero T1 Cap 18"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1lTzgYsqpXA2qXQ9aWTy1PZrog9lK6Bts/preview",
                 "link2": "https://www.dropbox.com/scl/fi/l7g1aokxystbz8e0op04h/ReZero-Temporada-1-Capitulo-19-Espa-ol-Latino.mp4?rlkey=0ki9jynw1c8tdcdkwd6h5ps32&st=h4pfpuhx&raw=1",
-                "title": "Re:Zero T1 Cap 19"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/1M1QM1boQYzEgHQh1w8Jd7XzJTRxY2rFw/preview",
-                "title": "Re:Zero T1 Cap 20"
+                "link2": "",
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1zNeRGRmxQQY7It12OacUy9tsYv7PUy_z/preview",
                 "link2": "https://www.dropbox.com/scl/fi/cj3e4a2m87h5s1o4lxyjf/ReZero-Temporada-1-Capitulo-21-Espa-ol-Latino.mp4.rlkey=0vwquoh9cxbpsc74vby3veo2u&st=sl1uwrzp&raw=1",
-                "title": "Re:Zero T1 Cap 21"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/17szqUrIev7XAtwwFyoiaCGINQgtnvb0B/preview",
                 "link2": "https://www.dropbox.com/scl/fi/pe8sauxuevta5ajf2asvs/ReZero-Temporada-1-Capitulo-22-Espa-ol-Latino.mp4?rlkey=gh54t3hvenb2y3i866zubl3ox&st=q1zmbxvk&raw=1",
-                "title": "Re:Zero T1 Cap 22"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1NeloUH7wIOR1-Yb170jjXHWwCPwMiI7V/preview",
                 "link2": "https://www.dropbox.com/scl/fi/wnmcmc155ouhf6g1h6z15/ReZero-Temporada-1-Capitulo-23-Espa-ol-Latino.mp4?rlkey=1reputj9hjauvsyzwzpxgkhvv&st=jsw86qcz&raw=1",
-                "title": "Re:Zero T1 Cap 23"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1SmSKcQLAzHHUFjcpHaKuhgr8O6dJf7QJ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ev0ezspz3b2gbeazjwokt/ReZero-Temporada-1-Capitulo-24-Espa-ol-Latino.mp4?rlkey=io71hjm1wdag84q4gl7m3yq4w&st=7s5ni4lj&raw=1",
-                "title": "Re:Zero T1 Cap 24"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1ScsUG1Z-IiEPWoILuIJqlPKoYcy6trRU/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hp3dsakkzaolj3ti8uaxn/ReZero-Temporada-1-Capitulo-25-Espa-ol-Latino.mp4?rlkey=4w2epb31k0kw26plsvb6zd79a&st=t7vi8yl7&raw=1",
-                "title": "Re:Zero T1 Cap 25"
+                "title": "Re:Zero − Empezar vida en otro mundo T1 Cap 25"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/17pwDCce4-6_dH6nvCpSZyggGwCfQtZkD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/dx5fu7ncxmjupsnakoz3x/ReZero-Temporada-1-OVA-1-Memory-Snow-Espa-ol-Latino.mp4?rlkey=q6nk3vye9e5udpi8h6wq39jyw&st=4veo55yj&raw=1",
-                "title": "Re:Zero OVA 1 \"Memory Snow\""
+                "title": "Re:Zero − Empezar vida en otro mundo OVA 1 \"Memory Snow\""
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1YJeNO_sj97Mcd2BOk1WgPugIvdBPVVRi/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ujeugofjinpckpobxtgvy/ReZero-Temporada-1-OVA-2-Frozen-Bonds-Espa-ol-Latino.mp4?rlkey=6b8j4cakykc7ib45fbkkc2q3s&st=fbh3v6m0&raw=1",
-                "title": "Re:Zero OVA 2 \"Frozen Bonds\""
+                "title": "Re:Zero − Empezar vida en otro mundo OVA 2 \"The Frozen Bond\""
             }
         },
         "4": {
             "1": {
                 "link": "https://drive.google.com/file/d/1E9p7MGtV0hPGrJVqETyCFI7hZGXIfcTj/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ly4c1u5a9btdevpsp5aex/ReZero-Temporada-2-Capitulo-1-Espa-ol-Latino.mp4?rlkey=j7jwh0swz15soxvlc0j52lr64&st=zux5xker&raw=1",
-                "title": "Re:Zero T2 Cap 1"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1DDcW-_ic_g2creYdw51ERy0qIWLy-NyO/preview",
                 "link2": "https://www.dropbox.com/scl/fi/uhv5bmmuwagi0b4pfr4nj/ReZero-Temporada-2-Capitulo-2-Espa-ol-Latino.mp4?rlkey=7xkcaw729cosltf73qtk0k9h7&st=1fvgh9gn&raw=1",
-                "title": "Re:Zero T2 Cap 2"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/118EN-Oau01fDPS8aq2__1baNxwBVaFyV/preview",
                 "link2": "https://www.dropbox.com/scl/fi/g228hkid7p4vvjj6iit3o/ReZero-Temporada-2-Capitulo-3-Espa-ol-Latino.mp4?rlkey=nnh6wyrr2ob5dpzzargg1dyzk&st=gir4hgoq&raw=1",
-                "title": "Re:Zero T2 Cap 3"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/17qiYJBVZOSXD0fPBn0rqYSMI6CuC88XD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3iz1eyjio77qdts70sf4l/ReZero-Temporada-2-Capitulo-4-Espa-ol-Latino.mp4?rlkey=3lp6n8wylvwza567r24krjzri&st=7umxzfpq&raw=1",
-                "title": "Re:Zero T2 Cap 4"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1A_XSFbNS__1KpsQJ0SyaVkMFkw6eyXIM/preview",
                 "link2": "https://www.dropbox.com/scl/fi/t5o3wsgk2exavuypecik8/ReZero-Temporada-2-Capitulo-5-Espa-ol-Latino.mp4?rlkey=0l2gzvujf1qlcpvfhrbym1jb6&st=amjtklrk&raw=1",
-                "title": "Re:Zero T2 Cap 5"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/12FfwMuiJzpytg-nQlT6uuL36-dVR8_Bw/preview",
                 "link2": "https://www.dropbox.com/scl/fi/rm8xdfpbiukkh578k6vi8/ReZero-Temporada-2-Capitulo-6-Espa-ol-Latino.mp4?rlkey=eiu9tyri5qr532bslzkgv370g&st=cj6lfwjq&raw=1",
-                "title": "Re:Zero T2 Cap 6"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1X1TI6eu9TymNUNiQVaQrPTxF6Wt0eYGr/preview",
                 "link2": "https://www.dropbox.com/scl/fi/pma8mz4hlxogclqc0hi92/ReZero-Temporada-2-Capitulo-7-Espa-ol-Latino.mp4?rlkey=od4xczzf8al3l76koeato4dht&st=bl9vnutc&raw=1",
-                "title": "Re:Zero T2 Cap 7"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1S7L7xXz3rf9l-WN92Iux1BlGPAMHLtfk/preview",
                 "link2": "https://www.dropbox.com/scl/fi/st6fljeskjqu3v3j19khx/ReZero-Temporada-2-Capitulo-8-Espa-ol-Latino.mp4?rlkey=jbaqprkwcql8wf708tlzsayqb&st=0pzuadtw&raw=1",
-                "title": "Re:Zero T2 Cap 8"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1VUayBq9whvClHkZvTn_46AZlWrjXrP68/preview",
                 "link2": "https://www.dropbox.com/scl/fi/a16syaov60nv19omjmc83/ReZero-Temporada-2-Capitulo-9-Espa-ol-Latino.mp4?rlkey=x415f1dnfptr933nt4710mmd8&st=qjbvq3z7&raw=1",
-                "title": "Re:Zero T2 Cap 9"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1Du_4FAbHVPvBgAdi3NyHphjuwCwOLQQY/preview",
                 "link2": "https://www.dropbox.com/scl/fi/axu1hwcyu0aov4j4qg6qj/ReZero-Temporada-2-Capitulo-10-Espa-ol-Latino.mp4?rlkey=f9tqodqfkmhgsbqnjelvg6ez5&st=mo7luzpp&raw=1",
-                "title": "Re:Zero T2 Cap 10"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/10RPw8w6nSrZXsmCuzDE5C735pNq1UA6X/preview",
                 "link2": "https://www.dropbox.com/scl/fi/prualfobxqjo0fp5ufk8m/ReZero-Temporada-2-Capitulo-11-Espa-ol-Latino.mp4?rlkey=4w31luj0exjoqdm9ie90qvuz7&st=4n8sbxaf&raw=1",
-                "title": "Re:Zero T2 Cap 11"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1A-vtsIVLb5ErlmMklRsX63fKilkttWDb/preview",
                 "link2": "https://www.dropbox.com/scl/fi/b9693nvxc28kx79qkuhoj/ReZero-Temporada-2-Capitulo-12-Espa-ol-Latino.mp4?rlkey=bc8agghtf6a7o947n09crx7t4&st=xoe99g9a&raw=1",
-                "title": "Re:Zero T2 Cap 12"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1GNXAEF3JlRlaJEhwl8LkDmWQUguEM3t3/preview",
                 "link2": "https://www.dropbox.com/scl/fi/dox8paoe1kfj1yttjlyt4/ReZero-Temporada-2-Capitulo-13-Espa-ol-Latino.mp4?rlkey=tlxjt3mrfnfx9tk2vyw6ieio8&st=7apn7525&raw=1",
-                "title": "Re:Zero T2 Cap 13"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/120XaGFRFnZ4tYpWywzAAfLpnQy9TolhV/preview",
                 "link2": "https://www.dropbox.com/scl/fi/0l72h7ix4kg78ih225ob0/ReZero-Temporada-2-Capitulo-14-Espa-ol-Latino.mp4?rlkey=ssdbd534l54vig5pyekyly2vx&st=j3woa6gc&raw=1",
-                "title": "Re:Zero T2 Cap 14"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1zvWUQPTkp9g80nbrB1jz5pcZWEXPyYLZ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/92zzvn4q8zdqrza5em2p6/ReZero-Temporada-2-Capitulo-15-Espa-ol-Latino.mp4?rlkey=ezdodnevq7j4i0jya7ycgx4fk&st=1l8tmapj&raw=1",
-                "title": "Re:Zero T2 Cap 15"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/15VFKzniX-oW0UvPa4HIQXYvtzNmbOe3S/preview",
                 "link2": "https://www.dropbox.com/scl/fi/t6f1di802naq1eiw1f3z5/ReZero-Temporada-2-Capitulo-16-Espa-ol-Latino.mp4?rlkey=rya1ms5mjggipo4k77lhv101x&st=pjvnbs6d&raw=1",
-                "title": "Re:Zero T2 Cap 16"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1VbnTrdMDhPu8Yx5m4MfnO1JONy5YMyW4/preview",
                 "link2": "https://www.dropbox.com/scl/fi/lgccpp1pju2q67yy8nayv/ReZero-Temporada-2-Capitulo-17-Espa-ol-Latino.mp4?rlkey=729fy51k4hdrn58jb7umo42lz&st=lfu2bq0q&raw=1",
-                "title": "Re:Zero T2 Cap 17"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1z94Pp152q3DT1VDgIVTRks_8ApaY_Mtx/preview",
                 "link2": "https://www.dropbox.com/scl/fi/m1tuvrs3vnptgefxhdsfq/ReZero-Temporada-2-Capitulo-18-Espa-ol-Latino.mp4?rlkey=qo3pfheyiza2snt4j68b72nd4&st=jpmo1kv0&raw=1",
-                "title": "Re:Zero T2 Cap 18"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1M6N5Ev8sDLzsFcUbRplGZuIJBadM8Bik/preview",
                 "link2": "https://www.dropbox.com/scl/fi/bzi0gov0cxft0agkbedsd/ReZero-Temporada-2-Capitulo-19-Espa-ol-Latino.mp4?rlkey=rpm9h46uyvrna1dz8pnb7veki&st=63ienowv&raw=1",
-                "title": "Re:Zero T2 Cap 19"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/1OSupjJnda3yusX0NMsvz4oeA8jvdlW0Z/preview",
                 "link2": "https://www.dropbox.com/scl/fi/c70ma4c50nfbd5zlzat7z/ReZero-Temporada-2-Capitulo-20-Espa-ol-Latino.mp4?rlkey=1jwi0i18ff236ly1qr0i72pgb&st=heae10ax&raw=1",
-                "title": "Re:Zero T2 Cap 20"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1cfvRrbyKTqwGWbPxcojWg5lNC-goFSfd/preview",
                 "link2": "https://www.dropbox.com/scl/fi/hf8iwpbqgr56uo4emtnyg/ReZero-Temporada-2-Capitulo-21-Espa-ol-Latino.mp4?rlkey=m2s0bpeazjgvbz4hzzvq1zj8d&st=sus8vhdx&raw=1",
-                "title": "Re:Zero T2 Cap 21"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/11TPsXV8lF3kiuoJQHEx4BCJkjg-_H3yf/preview",
                 "link2": "https://www.dropbox.com/scl/fi/u9udkecuktvkjxlhzy21m/ReZero-Temporada-2-Capitulo-22-Espa-ol-Latino.mp4?rlkey=fhdp0rs0gsd9t48k57nwbhvp9&st=xw09v5oi&raw=1",
-                "title": "Re:Zero T2 Cap 22"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1B8cPLB-NhUgLon9M57EyzJtCFAUxD-NS/preview",
                 "link2": "https://www.dropbox.com/scl/fi/delyxo1r5ff8ivvdzunr6/ReZero-Temporada-2-Capitulo-23-Espa-ol-Latino.mp4?rlkey=1wfvjmdbzhkfdtgcjasrzrjq9&st=e7kz062x&raw=1",
-                "title": "Re:Zero T2 Cap 23"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1EP-40bgyYuRr5fjoo7pqNbxIXBbSfIVr/preview",
                 "link2": "https://www.dropbox.com/scl/fi/cvvsxfuem7kq4bpyq8yc3/ReZero-Temporada-2-Capitulo-24-Espa-ol-Latino.mp4?rlkey=vlh2mf96bh8z3bzv6mpe5idja&st=ejn2jkr5&raw=1",
-                "title": "Re:Zero T2 Cap 24"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1rZU9TlHQJ3DkKLLsjo-UB8CITs4gmac2/preview",
                 "link2": "https://www.dropbox.com/scl/fi/uzq9pnmwurzlrmkkzam4e/ReZero-Temporada-2-Capitulo-25-Espa-ol-Latino.mp4?rlkey=9ee5wcy05xqiim80j6vksq9nn&st=63d9ftkn&raw=1",
-                "title": "Re:Zero T2 Cap 25"
+                "title": "Re:Zero − Empezar vida en otro mundo T2 Cap 25"
             }
         },
         "5": {
             "1": {
                 "link": "https://drive.google.com/file/d/1qxJAGMfPu-fkVbCcBXAY3sf4kiHEQm27/preview",
                 "link2": "https://www.dropbox.com/scl/fi/x4ff752jbur4ij4lpmecn/ReZero-Temporada-3-Capitulo-1-Espa-ol-Latino.mp4?rlkey=o9edg4c3u2gi9a5vclpfuceow&st=7ywl9tda&raw=1",
-                "title": "Re:Zero T3 Cap 1"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1Pi22uERY0dSyYPSQRroL1QsotVJDOTgV/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zuuu01c7bz43svh6fc114/ReZero-Temporada-3-Capitulo-2-Espa-ol-Latino.mp4?rlkey=jjf4ym712fs1e47ncyooh3r3v&st=u4j3pt21&raw=1",
-                "title": "Re:Zero T3 Cap 2"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1jv_aNA78wKh5U06FF8HpLeYI_mIf1rdX/preview",
                 "link2": "https://www.dropbox.com/scl/fi/2gf5hq3hre1k58oakvcts/ReZero-Temporada-3-Capitulo-3-Espa-ol-Latino.mp4?rlkey=dwwr6pfl54nzvaii4vwk51l3k&st=70au1qax&raw=1",
-                "title": "Re:Zero T3 Cap 3"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1LiKmcfwUY7GFARRRiPok5MVB7FPGMQS_/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ofnv2yp5x5g8yql8fa8cy/ReZero-Temporada-3-Capitulo-4-Espa-ol-Latino.mp4?rlkey=j2in90g3iuxzpyfmwsalpmtac&st=4rgvsb4j&raw=1",
-                "title": "Re:Zero T3 Cap 4"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1AhqYiuJCK53jVUn4uQ9-AjU2NYhHdgQc/preview",
                 "link2": "https://www.dropbox.com/scl/fi/kg64c0v02srrzt7xza1v6/ReZero-Temporada-3-Capitulo-5-Espa-ol-Latino.mp4?rlkey=2xp5ypptd1yz40aobfkwqlcct&st=lk5uyz2w&raw=1",
-                "title": "Re:Zero T3 Cap 5"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1u396Lmywv7dfFJqQQyZSC7EtApc4ViAN/preview",
                 "link2": "https://www.dropbox.com/scl/fi/krxbixrzckp0olanz0xri/ReZero-Temporada-3-Capitulo-6-Espa-ol-Latino.mp4?rlkey=kvwi1bhf3s8z8yzan5zvhh2uf&st=13vuz935&raw=1",
-                "title": "Re:Zero T3 Cap 6"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1yQxRi6IECUvJjDIy13ioATbnxNH-MRzA/preview",
                 "link2": "https://www.dropbox.com/scl/fi/jo1ufc1b0xllqggm890xa/ReZero-Temporada-3-Capitulo-7-Espa-ol-Latino.mp4?rlkey=h36k51bc98epclmy9v2p3x4j9&st=mp64g9v1&raw=1",
-                "title": "Re:Zero T3 Cap 7"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1FLrFoKKd0HmuRZmMETkSUG_kBtaJfRMc/preview",
                 "link2": "https://www.dropbox.com/scl/fi/v8ib6dcpaufzwuxeqfwx6/ReZero-Temporada-3-Capitulo-8-Espa-ol-Latino.mp4?rlkey=4qthkjkwmks4vmx8w4o1tnbly&st=juu988z5&raw=1",
-                "title": "Re:Zero T3 Cap 8"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1YqFU22_Qt0j7mSdVzcDJOO6TdPSq4uNG/preview",
                 "link2": "https://www.dropbox.com/scl/fi/rfjhimip5l33pixxuyuyp/ReZero-Temporada-3-Capitulo-9-Espa-ol-Latino.mp4?rlkey=ni2a1kts4ejazf4h9ik7b41i1&st=t0ik0ds8&raw=1",
-                "title": "Re:Zero T3 Cap 9"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1djugAq3JixzbGpXntaY_RGk-Xq4xrO0s/preview",
                 "link2": "https://www.dropbox.com/scl/fi/t1rkab120l5i7vrwm6ra6/ReZero-Temporada-3-Capitulo-10-Espa-ol-Latino.mp4?rlkey=c11z06t071frr9qqh7f123caz&st=rmkpeox7&raw=1",
-                "title": "Re:Zero T3 Cap 10"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1IdMyhuQeujycfoUEHfSDHoIJwdiQU92K/preview",
                 "link2": "https://www.dropbox.com/scl/fi/f3p1b1ak75h7eouanvs74/ReZero-Temporada-3-Capitulo-11-Espa-ol-Latino.mp4?rlkey=ejsp7zz1kypwigdj0dthf7yfj&st=cvfdtxzp&raw=1",
-                "title": "Re:Zero T3 Cap 11"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1etCWepzP0bC4WdB4H1pgXhNa1a1posar/preview",
                 "link2": "https://www.dropbox.com/scl/fi/kp7bkf59sjbsfqi7fosmw/ReZero-Temporada-3-Capitulo-12-Espa-ol-Latino.mp4?rlkey=82ftjitnuzlmlp6767gag61ub&st=053et5td&raw=1",
-                "title": "Re:Zero T3 Cap 12"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/10pK_UR-WphniS5rWPg9YdIySvkEuvIpX/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zh8nctko2jnt6077jxys8/ReZero-Temporada-3-Capitulo-13-Espa-ol-Latino.mp4?rlkey=tjrs6cj7ju6ldlb7ko102lqkq&st=o8bshtbq&raw=1",
-                "title": "Re:Zero T3 Cap 13"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1i3ZbIt5oukh75OhcORScHH7nbQbUoE23/preview",
                 "link2": "https://www.dropbox.com/scl/fi/0tj2thdwzl1ot7xdvletn/ReZero-Temporada-3-Capitulo-14-Espa-ol-Latino.mp4?rlkey=8z60gr0sbww6hcws89mhtut78&st=epeuwm2b&raw=1",
-                "title": "Re:Zero T3 Cap 14"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1I11H06ub0J0HoosooW0FGU8hMMulDijp/preview",
                 "link2": "https://www.dropbox.com/scl/fi/texmatvri4y2eyfhpruro/ReZero-Temporada-3-Capitulo-15-Espa-ol-Latino.mp4?rlkey=e6ubakhu9u7ex1uqqt6pm6hno&st=znur3gvx&raw=1",
-                "title": "Re:Zero T3 Cap 15"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1PWWUrFjQB_HcuKDf6bddWvwzo1__L_lI/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ypdzpqn428vcb760dr8yi/ReZero-Temporada-3-Capitulo-16-Espa-ol-Latino.mp4?rlkey=qgwbt32ob5mgz41yc7yfp9mv4&st=c79g5b09&raw=1",
-                "title": "Re:Zero T3 Cap 16"
+                "title": "Re:Zero − Empezar vida en otro mundo T3 Cap 16"
+            }
+        },
+        "6": {
+            "1": {
+                "link": "https://odysee.com/$/embed/rzo41:b",
+                "link2": "",
+                "title": "Re:Zero − Empezar vida en otro mundo T4 Cap 1"
             }
         }
     },
@@ -1450,17 +1468,17 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1DAOXIRNPIVf5Hk0F7NUA8nKr7Hvr_BNm/preview",
                 "link2": "",
-                "title": "Tensei Shitara Slime Datta Ken Especial 1 - 3 Cap 1"
+                "title": "Tensei Shitara Slime Datta Ken Especial 1: Capítulo 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/16P9EcxLwnXrbSpNlhrp6WlcQtajbtunl/preview",
                 "link2": "",
-                "title": "Tensei Shitara Slime Datta Ken Especial 1 - 3 Cap 2"
+                "title": "Tensei Shitara Slime Datta Ken Especial 1: Capítulo 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/199mFTTI00pn3wn1OkT01RsUryA7Yhe0n/preview",
                 "link2": "",
-                "title": "Tensei Shitara Slime Datta Ken Especial 1 - 3 Cap 3"
+                "title": "Tensei Shitara Slime Datta Ken Especial 1: Capítulo 3"
             }
         },
         "6": {
@@ -1787,76 +1805,76 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1XstjlK7gADavzLFlgON50jZ-uBY9sqAb/preview",
                 "link2": "https://www.dropbox.com/scl/fi/cwloo9f61zbq16pk02ymg/Youjo-Senki-T1-Cap-1.mp4?rlkey=ws7dj41kz96o682mgryaexyv8&st=l9fnlr2e&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 1"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1Qey3l1qgHEhUR1E3Xh_hHklZVxlFyV4W/preview",
                 "link2": "https://www.dropbox.com/scl/fi/wedbnkmetzklli9sl2zeu/Youjo-Senki-T1-Cap-2.mp4?rlkey=jj5h7lfux5pnl7utkbjn31cj1&st=5vx77qxs&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 2"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1VfnU5Gn8DW5PGAwWiTzuNDpXlnVf3g5d/preview",
                 "link2": "https://www.dropbox.com/scl/fi/c7z9dzmv08wdwzn2jpdx6/Youjo-Senki-T1-Cap-3.mp4?rlkey=xnw9uyo6en0j7ofbb4lv14fvs&st=93dcpil2&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 3"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1fOZXchBRAZdiazNQf9z7WpF3BCEpE6fp/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ohkkuvu4bq03tf35iyuu8/Youjo-Senki-T1-Cap-4.mp4?rlkey=1aeehf3c4t4y3xc1kwu4sw6i7&st=zevggehd&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 4"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1Mp6LsHex9zy9wsO8ZpjI71VvZqw6pgpa/preview",
                 "link2": "https://www.dropbox.com/scl/fi/x51hvj9popylg23jtxv4o/Youjo-Senki-T1-Cap-5.mp4?rlkey=uxtzqpleynxyzs3isccmqrx2a&st=3yty0yat&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 5"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1J7XeFMZGmfTyyZH-1f5H7TvHa1aM0laR/preview",
                 "link2": "https://www.dropbox.com/scl/fi/h41ppi21nb31j7bg5wd4y/Youjo-Senki-T1-Cap-6.mp4?rlkey=i3igqmmttmfq4gt3u8mhiagcr&st=wa1v8dwi&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 6"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1yLFzTxEno7wIEFfhS4ec4sXfK7YZmUw7/preview",
                 "link2": "https://www.dropbox.com/scl/fi/p5xiwa7q0m84illeananc/Youjo-Senki-T1-Cap-7.mp4?rlkey=n56c9qmnurj8v7n094ywyj5cu&st=8u110tq9&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 7"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1ZJ-FlmOQUYTKA6hxAtq796-YscCaposH/preview",
                 "link2": "https://www.dropbox.com/scl/fi/vq2n6h53jlswdzn580v8h/Youjo-Senki-T1-Cap-8.mp4?rlkey=gpzgxr75ozy1zgbx56k3xwclx&st=6xiuq3ta&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 8"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1rhr21r4m4eRgcX7hIjZfB1c5_EUyLRkd/preview",
                 "link2": "https://www.dropbox.com/scl/fi/bq1a5mxnj4u7j5m0qkpjy/Youjo-Senki-T1-Cap-9.mp4?rlkey=f7afgptopsnfa595hkxh3vs7l&st=hk6wfszm&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 9"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1jXyzPAtrep4Wsf9sRAThIdOFtTUnhue4/preview",
                 "link2": "https://www.dropbox.com/scl/fi/1o2rbohpe7ex1ln9b4fyl/Youjo-Senki-T1-Cap-10.mp4?rlkey=j2xioeeavkgl2qty6rnir72x1&st=ojrirudw&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 10"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/16XoJm26z24_MDSWZD0FnCO4SsOxkLxKJ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zxgjyfdogpmqtsqff2uev/Youjo-Senki-T1-Cap-11.mp4?rlkey=fm79ti0hgij2p2xpd0qtyjyuc&st=v2ow0lnv&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 11"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1KbSBTJJQ1d3efgzSvTgiNixttN6jOKU6/preview",
                 "link2": "https://www.dropbox.com/scl/fi/v816agopxg8uroibqvk7j/Youjo-Senki-T1-Cap-12.mp4?rlkey=6ezog4aqfpsaxl8jfuy3lle83&st=ifdm9i9i&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) T1 Cap 12"
+                "title": "Saga of Tanya the Evil (Youjo Senki) T1 Cap 12"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1sfVVvTlmVGKWgwZ2fqwNHKHnxh4Ae6zM/preview",
                 "link2": "https://www.dropbox.com/scl/fi/qosr7biv96np4err6zznk/Youjo-Senki-Pelicula.mp4?rlkey=9gmwjse1yer6wuw679ziwzytn&st=bzx5kstk&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) Pelicula"
+                "title": "Saga of Tanya the Evil (Youjo Senki) Película 1: Película"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1bHckqCGvg_FRdxjREVHUIrea3HwwvwUW/preview",
                 "link2": "https://www.dropbox.com/scl/fi/uci3pxlcdmcoxulkqypf0/Youjo-Senki-Ova-1.mp4?rlkey=dkl33xtpjdt4lz7e0iz9n960c&st=i02t9230&raw=1",
-                "title": "Saga of Tanya the Evil (Yōjo Senki) OVA SUB"
+                "title": "Saga of Tanya the Evil (Youjo Senki) Ova 1 Cap 1"
             }
         }
     },
@@ -2481,62 +2499,62 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/13cHjl_5fCDW2L_REKpDNkyZJ_KSOCrya/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zev8r3fa3crktbjzaunj7/tsue-to-tsurugi-no-wistoria-capitulo-1.mp4?rlkey=67vk0o60azy4tv0pieiih3q96&st=yhuzzn6v&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 1"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1EmQ-nJB0R2P2Cmy2dn7pEUS-8lnJCfAN/preview",
                 "link2": "https://www.dropbox.com/scl/fi/8idhpxnv5dwufik69s96b/tsue-to-tsurugi-no-wistoria-capitulo-2.mp4?rlkey=m8dgfb523e7w0hs9ad4ksvif0&st=ugad7am1&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 2"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/12YrcM2F0f7CHkGB7k6lt7eVEY5LtjAWE/preview",
                 "link2": "https://www.dropbox.com/scl/fi/9uee9h943qj7q2e1ecp13/Tsue-to-Tsurugi-no-Wistoria-Cap-3.mp4?rlkey=fia2ibz370mk4nwt3503hs886&st=g3uta009&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 3"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1OliQoOnjtm5u8FfBi2R8OPlxlwr97vBT/preview",
                 "link2": "https://www.dropbox.com/scl/fi/bl97wjhhb1bz99uzvlev4/Tsue-to-Tsurugi-no-Wistoria-cap-4.mp4?rlkey=p4i4zlohw18yk15v0jwj9urri&st=ma2kvpl6&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 4"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1UIP0D-hkjReLvOwdxLX7htSlgM9phxIV/preview",
                 "link2": "https://www.dropbox.com/scl/fi/yt583jrswcytrjydnwdpe/Tsue-to-Tsurugi-no-Wistoria-cap-5.mp4?rlkey=kxv71ubizd0gt0vzmaa6yxn7m&st=0d9fhayo&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 5"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1cYB5MV-25-6nxCAILufAVvySH2NzKSyg/preview",
                 "link2": "https://www.dropbox.com/scl/fi/a79802bnyda5tukze7fzc/Tsue-to-Tsurugi-no-Wistoria-cap-6.mp4?rlkey=6if0l6ul0d00mj0wggr16cwdh&st=7m2hdrja&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 6"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1CDasuv9_yH9onnP4sYDn4rzFA7XsWi7q/preview",
                 "link2": "https://www.dropbox.com/scl/fi/cpax56hdmbf712ka5f2jv/Tsue-to-Tsurugi-no-Wistoria-cap-7.mp4?rlkey=c1iatfsgn5kf1hrffy50tvvql&st=ign9qdqv&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 7"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1Z8Zq9KVb91phe83vNb2OZi9Retrfce9G/preview",
                 "link2": "https://www.dropbox.com/scl/fi/lla02ppxgye21mwxn93hc/Tsue-to-Tsurugi-no-Wistoria-cap-8.mp4?rlkey=v7e5fkznq1uljwbrry60s6kp3&st=bh0vb81r&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 8"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1uO5S_4D85ywDs1YkbgL-mswjUKngKDDg/preview",
                 "link2": "https://www.dropbox.com/scl/fi/p4srcnjy7n1fhp0wfpmsu/Tsue-to-Tsurugi-no-Wistoria-cap-9.mp4?rlkey=31uljois7r6n7ui702i0rblmv&st=sy6eesj2&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 9"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1vjqL5P82QiawAPTd1VCV0FU3Evd3503B/preview",
                 "link2": "https://www.dropbox.com/scl/fi/i21z47j0edido2v5nj9er/Tsue-to-Tsurugi-no-Wistoria-cap-10.mp4?rlkey=eezs9sittoiqxof8u255cm3j0&st=9ag3y7t6&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 10"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1Ooe8rK0Kd6oISY6QI2wTagUqbbu-VS-R/preview",
                 "link2": "https://www.dropbox.com/scl/fi/tm3qre7j40nv1xxbeq2s1/Tsue-to-Tsurugi-no-Wistoria-cap-11.mp4?rlkey=xjd0ik8gult8h23j45oksmamj&st=xlmu9r5c&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 11"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/15v-OS40pEarHAVBddRy8ohfvmvZe_SHz/preview",
                 "link2": "https://www.dropbox.com/scl/fi/rwyg3nemerjiz7vq5rsim/Tsue-to-Tsurugi-no-Wistoria-cap-12.mp4?rlkey=3czuw7yudpub0u3x46wu8gk32&st=d1yx1mte&raw=1",
-                "title": "Wistoria: Wand and Sword T1 Cap 12"
+                "title": "Tsue to Tsurugi no Wistoria T1 Cap 12"
             }
         }
     },
@@ -2673,129 +2691,129 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1AXQuFYco9BJsBLemZ4tdUkI-1leio-eI/preview",
                 "link2": "https://www.dropbox.com/scl/fi/v1b55og1pzpkqdve462qx/T1-Cap-1-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=5gazf3htteac64x92llc63n1b&st=z9c8bdyu&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 1"
+                "title": "Reborn as a Vending Machine T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/102R0AhBHsFkakh582wQ2YJ2oA8VAkdkl/preview",
                 "link2": "https://www.dropbox.com/scl/fi/muapi036coq4futwa91vn/T1-Cap-2-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=w8kw9twk771ae8n00e1f82goi&st=1mlz9qd6&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 2"
+                "title": "Reborn as a Vending Machine T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1yJoGs0QQCv860lfOeH23Hh3N10JviZQO/preview",
                 "link2": "https://www.dropbox.com/scl/fi/ruyqldm991cehym12b9xr/T1-Cap-3-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=40d39mqgj4dand7bikjryi05t&st=qhtgequg&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 3"
+                "title": "Reborn as a Vending Machine T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1KitDTyXJrw6zaIW8VTWPGffb5uhodFvS/preview",
                 "link2": "https://www.dropbox.com/scl/fi/1je8pxhww3d11agu73pkm/T1-Cap-4-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=y5j2jdxcn35ucv0saqtnj4ys6&st=dbjpvte1&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 4"
+                "title": "Reborn as a Vending Machine T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1mDf6MY7vwuPKJRAhRjpOOpnsD7rPa_8L/preview",
                 "link2": "https://www.dropbox.com/scl/fi/u9hjjuw7d3ab0am79pbqz/T1-Cap-5-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=1pbqxfgb4k9p5m5rjoceeubzg&st=omkp9hgd&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 5"
+                "title": "Reborn as a Vending Machine T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1QSDI-fwRWJzBGLD8sS2q6Ga09jz7XV53/preview",
                 "link2": "https://www.dropbox.com/scl/fi/tsy25xnqbylvyt9tuzumr/T1-Cap-6-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=aw68q2pju96nmq2u3fy0s6yct&st=7x8k71nd&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 6"
+                "title": "Reborn as a Vending Machine T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1xiEkOrcWNODzMODGcMMr4AoCFRc4VBfy/preview",
                 "link2": "https://www.dropbox.com/scl/fi/5k5hsbjpx6dmj74lj7kg8/T1-Cap-7-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=f8x0urihm350spn6sse4dgfbu&st=hrt7ur15&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 7"
+                "title": "Reborn as a Vending Machine T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1KnlSNjdDvsdFfrG8VriEFXJkC4D-hpH0/preview",
                 "link2": "https://www.dropbox.com/scl/fi/mwddyveu5fwwvzz0u8nea/T1-Cap-8-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=naha64tyw3ez2phkr1widb8h5&st=o5li66nc&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 8"
+                "title": "Reborn as a Vending Machine T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1CsdyVdSHj5DedH4UsHZMQ7pfZATQ_uht/preview",
                 "link2": "https://www.dropbox.com/scl/fi/08147a8lmjyzngxvvfdov/T1-Cap-9-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=ypbj4y4sczv7x1n514qk1jhqf&st=buyup2ss&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 9"
+                "title": "Reborn as a Vending Machine T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1hg3zus6QsX_XXKji2cf0RnBkdlXvB5DL/preview",
                 "link2": "https://www.dropbox.com/scl/fi/omlx6zpwb1oija101q675/T1-Cap-10-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=x5iz2p2r6erbxbbqyj6s832x3&st=jnfregr8&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 10"
+                "title": "Reborn as a Vending Machine T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1JHsEaNX9GQ3X5BOaEJRy6Zx5pDyfd9hp/preview",
                 "link2": "https://www.dropbox.com/scl/fi/e13vgzbwqn435bo626h3n/T1-Cap-11-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=tu56uqz6j7zo2at5rxwqkm625&st=qvepzfei&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 11"
+                "title": "Reborn as a Vending Machine T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1NE9m9HbJeg-qCdeEUNX98a0oipwSO6Rg/preview",
                 "link2": "https://www.dropbox.com/scl/fi/g6yappi9y3yrnmwie1f3k/T1-Cap-12-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=ftnjkhc42htb81oz95rn3kii7&st=4lbaeodu&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 12"
+                "title": "Reborn as a Vending Machine T1 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1XyTPjMZbSewm1jJDIgbx4_AB8VAwdkDs/preview",
                 "link2": "https://www.dropbox.com/scl/fi/d6k7tjsg1d5cdeolkrlry/T1-Cap-13-jidou-hanbaiki-ni-umarekawatta-ore-wa-meikyuu-wo-samayou.mp4?rlkey=lwv1jbw41vctzm6ybxvmheeuk&st=15z89fmg&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T1 Cap 13"
+                "title": "Reborn as a Vending Machine T1 Cap 13"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1gKbVHMUQk-nV29uExl1oYwT9YJjC1vPf/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fiv2247eihrew5apl7qu9/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-1.mp4?rlkey=mfpi5nq7992ms6fs56urmhpeb&st=yanf15xm&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 1"
+                "title": "Reborn as a Vending Machine T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1MoklqIpTIHqug4aas0osC4zVn5tbie4M/preview",
                 "link2": "https://www.dropbox.com/scl/fi/4mcfklbb0ea6jv9eebcgu/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-2.mp4?rlkey=tt27wzcn68e4i17mjj8mkhwds&st=0e47xmnb&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 2"
+                "title": "Reborn as a Vending Machine T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1wFDxziXg8oEb3GYJM3WVkVDPE28LJ2Jd/preview",
                 "link2": "https://www.dropbox.com/scl/fi/6g5teh707c7qaqf30vx18/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-3.mp4?rlkey=lfzc2l3k152n5rzybon2wyx00&st=2g38ha0q&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 3"
+                "title": "Reborn as a Vending Machine T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1un6Nt6Ad49PyNiLSVrJm1B4xm44r21T8/preview",
                 "link2": "https://www.dropbox.com/scl/fi/1p54i3haxxiipa4rob8d7/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-4.mp4?rlkey=p2x1vljnpepvvikui0wsgacj7&st=gjgq4tbu&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 4"
+                "title": "Reborn as a Vending Machine T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/18umtrpig4MdB6ioQ17_dBXrZDM9rL0xy/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fd8z2gghd2y7cuzs05vu8/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-5.mp4?rlkey=it83bbnvf7w5bft1boop4987e&st=b80aikp6&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 5"
+                "title": "Reborn as a Vending Machine T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1YDh8Je7kINy8tCrpkK73Y74bPfSCDTtH/preview",
                 "link2": "https://www.dropbox.com/scl/fi/4iyxp3ak3k2tw8kic17jx/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-6.mp4?rlkey=xtgk8ftjeo56rupgv3im1mvhq&st=gh126rf6&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 6"
+                "title": "Reborn as a Vending Machine T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1qfH85YShLI68NkwK_TSby62BmHOdEbiq/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3941pm4ury4h8uy32pzs2/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-7.mp4?rlkey=2slgm2g96ludmwudfic6kz0mq&st=xttmwbnz&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 7"
+                "title": "Reborn as a Vending Machine T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/15-x8SXdL9SLFTw24uZTL8sCiykUrTWo8/preview",
                 "link2": "https://www.dropbox.com/scl/fi/90e58n1aanwtcaowp9zlb/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-8.mp4?rlkey=i26dhb4a1rgblyvg1e7kmi51h&st=bwokt6ld&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 8"
+                "title": "Reborn as a Vending Machine T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1hXsQc2O8qqpqh2NKV-Va7rL_SMMBD0Yd/preview",
                 "link2": "https://www.dropbox.com/scl/fi/urwt2uoir4ykxk8at4n0y/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-9.mp4?rlkey=q4ug2eu1waazp4r2vpkopvx6f&st=fuhdxlue&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 9"
+                "title": "Reborn as a Vending Machine T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1MvSPs95ZQRR6UllGrdsKd1_qjCX-MItT/preview",
                 "link2": "https://www.dropbox.com/scl/fi/spam75xphrw6y1tdn0s80/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-10.mp4?rlkey=bf8peymo2p94leittco7ed2w5&st=erpheq6a&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 10"
+                "title": "Reborn as a Vending Machine T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1YYV-FYkjHh1KVB8Y0PmAxfqEksnpq7-u/preview",
                 "link2": "https://www.dropbox.com/scl/fi/vv9frwkxnropfx3g102kb/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-11.mp4?rlkey=y7dmffaflyjt4b9tpnm8x8ytx&st=acovu8fb&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 11"
+                "title": "Reborn as a Vending Machine T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1h4ujMB27n26EDGjerlcPZc7qEO_Yova9/preview",
                 "link2": "https://www.dropbox.com/scl/fi/7wf73dr5mhiz3ismtkg2b/Reborn-as-a-Vending-Machine-I-Now-Wander-the-Dungeon-T2-Cap-12.mp4?rlkey=hj8452bn4nkq2kbh07clmj4wc&st=3emg4oae&raw=1",
-                "title": "Reborn as a Vending Machine, I Now Wander the Dungeon T2 Cap 12"
+                "title": "Reborn as a Vending Machine T2 Cap 12"
             }
         }
     },
@@ -2930,7 +2948,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1_l2Nzm1PGq1OXmV97pLVISg2uRHtkN9H/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3g5jiioc6njk3cej30rsp/Gorilla-no-Kami-Kara-Kago-Sareta-Cap-1.mp4?rlkey=yje8x14i5rrtbvbtqkr4dlm72&st=0wvkg08l&raw=1",
-                "title": "The Gorilla God's Go-To Girl T1 Cap 1"
+                "title": "The Gorila God's Go- To Girl T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1VQrBLVQm0PBc7EHA3DnSyGhAM-L1ei1T/preview",
@@ -3055,7 +3073,8 @@ const players = {
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1kMmV1TX0SXqSQSDMBgOBW6mPJlhet66x/preview",
-                "title": "Chainsaw Man La Película: El Arco de Reze"
+                "link2": "",
+                "title": "Chainsaw Man Película 1: El Arco de Reze"
             }
         }
     },
@@ -3173,14 +3192,17 @@ const players = {
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1frdFkG0CYnMfKinpkkGR7kJ2PQn41Q9T/preview",
+                "link2": "",
                 "title": "The Rising of the Shield Hero T1 Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1heu-7bboZwPkO4h8XGISmCqLWiKwceGH/preview",
+                "link2": "",
                 "title": "The Rising of the Shield Hero T1 Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1V-HU6-IgKQQo6j4YjdQhzl-FzmvLCKr8/preview",
+                "link2": "",
                 "title": "The Rising of the Shield Hero T1 Cap 25"
             }
         },
@@ -3479,6 +3501,7 @@ const players = {
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1aPo-7hYNfyY3lVI3OJ9BQgrRLo-gz1bx/preview",
+                "link2": "",
                 "title": "Shiunji-ke no Kodomotachi T1 Cap 12"
             }
         }
@@ -3550,7 +3573,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1bwxQwD2-dwkRTFirFNDMwKa_2-xmOpin/preview",
                 "link2": "https://www.dropbox.com/scl/fi/051otbpbx8r44fs3qvv7v/Goblin-Slayer-Goblins-CROWN-la-Pel-cula-en-Castellano.mp4?rlkey=7igfrqrsebubwyog7i6mmsz48&st=e7d0kzmj&raw=1",
-                "title": "Película: Goblin's Crown (Castellano)"
+                "title": "Goblin Slayer Película 1: Película"
             }
         },
         "3": {
@@ -3818,7 +3841,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1_aGhuBR0Cwp4H9_TVHrE12muKAz0csCY/preview",
                 "link2": "https://www.dropbox.com/scl/fi/5hn50c6xouhn8jtud1obz/Kaiju-No.-8-Ova-Hoshina-s-Day-Off.mp4?rlkey=166iwumudtt7yyd32lhjakdb9&st=62u8qimo&raw=1",
-                "title": "Kaiju No. 8 Ova : Hoshina's Day Off"
+                "title": "Kaiju No. 8 Ova 1 Cap 1"
             }
         },
         "3": {
@@ -4262,62 +4285,62 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1gJcuM8PFMY0T5yHeSoulJ8mho8bthosi/preview",
                 "link2": "https://www.dropbox.com/scl/fi/t6k44f4me7n2syky58067/Dr.-Stone-Temporada-4-Capitulo-1.mp4?rlkey=h3us38696qunlxa07s73nmzfl&st=5br2jk3i&raw=1",
-                "title": "Dr. Stone T4 Cap 1"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1Lccn9Ns6swMdosHZa0SntkXydjuSX2Uk/preview",
                 "link2": "https://www.dropbox.com/scl/fi/eob9e74n46yxtv6gom8x1/Dr.-Stone-Temporada-4-Capitulo-2.mp4?rlkey=rs4h6qxwsabz6fyczg7846det&st=1ynp83e6&raw=1",
-                "title": "Dr. Stone T4 Cap 2"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1y_VuMe1G4YwuGw41pqPVGGi-cNlo-NO9/preview",
                 "link2": "https://www.dropbox.com/scl/fi/urjemxvk1fi5lqtre0zby/Dr.-Stone-Temporada-4-Capitulo-3.mp4?rlkey=sooycrmqup5nw7dp171iqw4r1&st=8tz5c3mv&raw=1",
-                "title": "Dr. Stone T4 Cap 3"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1OhI_AFHn_vd883CcN6Xra5edQjIloX4o/preview",
                 "link2": "https://www.dropbox.com/scl/fi/6fewioc9x2psq99s76tcm/Dr.-Stone-Temporada-4-Capitulo-4.mp4?rlkey=i2y2jvxpsjx4uzlcg0tr1g4xy&st=jo0egluk&raw=1",
-                "title": "Dr. Stone T4 Cap 4"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/19xBJ2oi-qXTAFsg5fpia4QMxNRH3frzJ/preview",
                 "link2": "https://www.dropbox.com/scl/fi/z6p1icfcz47v2o4tdo4il/Dr.-Stone-Temporada-4-Capitulo-5.mp4?rlkey=aulpwrj8bbip5shjed34cao7p&st=l02u13ql&raw=1",
-                "title": "Dr. Stone T4 Cap 5"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/12jHj_QCbgXJT3hia1dAKEyWQqcaeDRXa/preview",
                 "link2": "https://www.dropbox.com/scl/fi/k5bdboay3ft6n7kn6svf7/Dr.-Stone-Temporada-4-Capitulo-6.mp4?rlkey=c8rymhfz8a70zgc4w038gwvpi&st=9dc8majv&raw=1",
-                "title": "Dr. Stone T4 Cap 6"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1OroLgsm_RrgKg4k3Et8d077epI1ZL1cs/preview",
                 "link2": "https://www.dropbox.com/scl/fi/lb08veoot6w2b6l07kyr8/Dr.-Stone-Temporada-4-Capitulo-7.mp4?rlkey=j3e6pywnel9gip52u2qkc8x60&st=rr40daq9&raw=1",
-                "title": "Dr. Stone T4 Cap 7"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1vGPlbCUaSKraBD6xuDkwAHzvnVoXjC4Q/preview",
                 "link2": "https://www.dropbox.com/scl/fi/plpchvyqjmk5aodc4ewx0/Dr.-Stone-Temporada-4-Capitulo-8.mp4?rlkey=jqq91pqmqmbyfqgwyk90aqs71&st=y0c79ld1&raw=1",
-                "title": "Dr. Stone T4 Cap 8"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1JcIr-9XKEgG3rVO5MQpXuZHFikbxiKoj/preview",
                 "link2": "https://www.dropbox.com/scl/fi/zd29wmdq6poaufvdamf25/Dr.-Stone-Temporada-4-Capitulo-9.mp4?rlkey=x2hxh2aw22gty5raje09inhas&st=3ufty3op&raw=1",
-                "title": "Dr. Stone T4 Cap 9"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1ZiMNFgF_rXzQMqIxr13Cbdp94MC3q0Ot/preview",
                 "link2": "https://www.dropbox.com/scl/fi/xv5xykemzk90kcfl9dij0/Dr.-Stone-Temporada-4-Capitulo-10.mp4?rlkey=w0zztn6d7kd9kph2tlx7b5j63&st=gxppzuql&raw=1",
-                "title": "Dr. Stone T4 Cap 10"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1CGipAz4tZM2f2DpCaLtTGMitjaIADFuR/preview",
                 "link2": "https://www.dropbox.com/scl/fi/isg0mu7rd2l4xt6aw4qc5/Dr.-Stone-Temporada-4-Capitulo-11.mp4?rlkey=nsxqvvd6k0ba5y32fjbigowoo&st=w3xa85je&raw=1",
-                "title": "Dr. Stone T4 Cap 11"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1achqUcQYqE14rcPer2G3MKfiE4fOLz74/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fnq50t4of0y1m9eu4wewx/Dr.-Stone-Temporada-4-Capitulo-12.mp4?rlkey=emqowfzxq2us7ytjt17fwcfus&st=gkkqfxle&raw=1",
-                "title": "Dr. Stone T4 Cap 12"
+                "title": "Dr. Stone Temporada 4 Parte I Cap 12"
             }
         },
         "6": {
@@ -4386,7 +4409,12 @@ const players = {
             "1": {
                 "link": "https://odysee.com/$/embed/@any:a/Drst425:5",
                 "link2": "",
-                "title": "Dr. Stone Temporada 4 Parte III - FInal Cap 1"
+                "title": "Dr. Stone Temporada 4 Parte III - FINAL Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/drst426:7",
+                "link2": "",
+                "title": "Dr. Stone Temporada 4 Parte III - FINAL Cap 2"
             }
         }
     },
@@ -4481,27 +4509,27 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1MHT1yZHIcM90WDy4Kb6NgEyzsxFGpmJ3/preview",
                 "link2": "https://www.dropbox.com/scl/fi/tlnut3bzb13xfv26bhgcm/Shoujo-Ramune-01-Audio-Latino-1080p-LatinoHentai.mp4?rlkey=8zytsseg2kx0gtne5rk90gtvg&st=50bjf2pi&raw=1",
-                "title": "Shoujo Ramune ESPAÑOL T1 Cap 1"
+                "title": "Shoujo Ramune T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1lXOVeXg_2foWKBzfSnn8GOa6EubCNROk/preview",
                 "link2": "https://www.dropbox.com/scl/fi/wlkyg9ywcpcqhvwlc13hp/shoujoramuness-01.mp4?rlkey=82jdrgrl5q2vraljjzm85llt8&st=sjou2cqk&raw=1",
-                "title": "Shoujo Ramune SUB T1 Cap 1"
+                "title": "Shoujo Ramune T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/17V_QYmym1M2lfESWgGnb_VLND3Gtn4-P/preview",
                 "link2": "https://www.dropbox.com/scl/fi/jraramv6b5uwt4rkubr1a/shoujoramuness-02.mp4?rlkey=r0rf6h8rfy0mwkqkzgz14cqx0&st=mdgk1hsp&raw=1",
-                "title": "Shoujo Ramune SUB T1 Cap 2"
+                "title": "Shoujo Ramune T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/188T2-RuivfFi-oXcM8vOBv-1o_H-Oe-b/preview",
                 "link2": "https://www.dropbox.com/scl/fi/728kl0dztz3po9x58a1ct/shoujoramuness-03.mp4?rlkey=9dpcv1r2r6vh07m2reom8dfmb&st=6b2f5o2e&raw=1",
-                "title": "Shoujo Ramune SUB T1 Cap 3"
+                "title": "Shoujo Ramune T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1URAydZR1W-MYIJrU-Ou0p__1jqTMEZB8/preview",
                 "link2": "https://www.dropbox.com/scl/fi/n2iaalss7ez17ib1ceolk/shoujoramuness-04.mp4?rlkey=klvlmhftp91dzfodk99s0fz78&st=5b9pc2bn&raw=1",
-                "title": "Shoujo Ramune SUB T1 Cap 4"
+                "title": "Shoujo Ramune T1 Cap 5"
             }
         }
     },
@@ -4828,28 +4856,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1LAgAYWuQ4wgJK4QD9949DbSNFYGn8Eob/preview",
                 "link2": "https://www.dropbox.com/scl/fi/kj79c7ts1h7p70wtqbb3y/Tsugunai-Subbed-Cap-1.mp4?rlkey=eog59ldhku6wwqovibjfgr9r1&st=4vunfix2&raw=1",
-                "title": "Tsugunai Subbed SUB Cap 1"
-            }
-        },
-        "2": {
-            "2": {
-                "link": "https://drive.google.com/file/d/1kOM5TV5yRvWH6C_2ODqzNOoMdFNojW9O/preview",
-                "link2": "https://www.dropbox.com/scl/fi/8trdqujmfiac8zmwqk55f/Tsugunai-Subbed-Cap-2.mp4?rlkey=44ggx7uhpwwpeyg8bf10r8s3p&st=jcdeqcr1&raw=1",
-                "title": "Tsugunai Subbed SUB Cap 2"
-            }
-        },
-        "3": {
-            "3": {
-                "link": "https://drive.google.com/file/d/1HndZ94GpgAIzMA3_m0RP6HTKJmPWNFoD/preview",
-                "link2": "https://www.dropbox.com/scl/fi/6lqaol686fkktk16o2jgl/Tsugunai-Subbed-Cap-3.mp4?rlkey=kmpx130t8n8vknwu5pnswy4qv&st=59c1uubg&raw=1",
-                "title": "Tsugunai Subbed SUB Cap 3"
-            }
-        },
-        "4": {
-            "4": {
-                "link": "https://drive.google.com/file/d/1Nd3EAd9lIBlBO9crEugmyOqC8llgFO-Z/preview",
-                "link2": "https://www.dropbox.com/scl/fi/ytpnotvj9rurxs20nwxmk/Tsugunai-Subbed-Cap-4.mp4?rlkey=f9h9k3olzzyzlosstu3u34g0v&st=eb8imc60&raw=1",
-                "title": "Tsugunai Subbed SUB Cap 4"
+                "title": "Tsugunai Subbed Episodio 1 Cap 1"
             }
         }
     },
@@ -4980,7 +4987,7 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1E5rWiC2i_AGBfsswSKf31p30mW2Ey2mg/preview",
                 "link2": "https://www.dropbox.com/scl/fi/kx1ws1iu15zwtikdpip9o/Blue-Lock-La-Pel-cula-Episodio-Nagi.mp4?rlkey=b0vv98lw53qbn018dbya4yxwn&st=imp3xbyc&raw=1",
-                "title": "Blue Lock La Película: Episodio Nagi"
+                "title": "Blue Lock Película 1: Episodio Nagi"
             }
         },
         "3": {
@@ -5453,62 +5460,62 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1TirmkEKzvfEuwgiyhszC5wsuG3Qxqk8P/preview",
                 "link2": "https://www.dropbox.com/scl/fi/eanzirqj3bdlfq2b2b0or/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-1.mp4?rlkey=7mvdwl8885e7sqfkklgz6vb91&st=m6b46m4z&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 1"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1WsouJMa49H3snfKO_BAIeKk3Tw93tMvf/preview",
                 "link2": "https://www.dropbox.com/scl/fi/oupy2vbx7lglb9r3mcwrv/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-2.mp4?rlkey=gwzpb0b5lkn2f82987k2or99t&st=1gsdwyym&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 2"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1aXKLSEITH2KUfYMusvqZEtH_H_uq0MuP/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fam3xggazllkhx8bvoukc/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-3.mp4?rlkey=porva9g30uoajgk5mu8c1blbm&st=44vm29i8&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 3"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/16AaYMJtGJ7m8Zx2Qoj5KomqWAqYYeeuG/preview",
                 "link2": "https://www.dropbox.com/scl/fi/l6js7r80fktoibccv5h5n/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-4.mp4?rlkey=v04jg4p66kcn7zg90kfhx2spa&st=bnpeggoi&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 4"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1tAHN1kZNnFcM1VJLWcb9DHoI08BDe8PM/preview",
                 "link2": "https://www.dropbox.com/scl/fi/2a5cwig01gk3y6me1rgct/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-5.mp4?rlkey=bfd4kzmdy0tjizm70pivnb98x&st=8std2ony&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 5"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/15ly6yT-bSfE6vNadc381cZ-C1bBB0B-X/preview",
                 "link2": "https://www.dropbox.com/scl/fi/3vsn2xrjz389w2hclcke1/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-6.mp4?rlkey=8khb7gvemnyl98bdes9nd5o81&st=kjez41cz&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 6"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1CW_CiXFcgooSaS9guXeDhbav8439BKNH/preview",
                 "link2": "https://www.dropbox.com/scl/fi/i59kf0mn06sx54luy5kaw/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-7.mp4?rlkey=47bombg5t2g4wuakvu3jo0peo&st=h1v1ieue&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 7"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1qjC-f_USGLuftZ9AlLRKhifWcx7ZJboD/preview",
                 "link2": "https://www.dropbox.com/scl/fi/fkdebrj207y9jxxm4ynar/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-8.mp4?rlkey=tm208y6o02zcoe4deoibvpbrp&st=6r19mmkz&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 8"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1z53BpQTc8N3mlBXLFKX8BmbNK79yOzUv/preview",
                 "link2": "https://www.dropbox.com/scl/fi/0g4mekxk6obxqicysfurd/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-9.mp4?rlkey=2qv19e5kjv4s3zcyae1vzl16a&st=jlcejcfy&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 9"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1kgEpTxFdinEtxiRmqY-eQ9Pp4fyylGBr/preview",
                 "link2": "https://www.dropbox.com/scl/fi/k4qb14wc99e5r6fcsvo67/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-10.mp4?rlkey=wr0o95te52au4o9v88ggtucyl&st=g09bd3g1&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 10"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1ChDfmF6Zb1lvytRbbFlPDCXh2RBc1E4C/preview",
                 "link2": "https://www.dropbox.com/scl/fi/580afhv9dazfpymylm21b/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-11.mp4?rlkey=sf0ehgfkh9w7s52434sqc4kdg&st=36ydi6q9&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 11"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1HkI2oV8psFwTOALm6jsraBGTbNAf05RK/preview",
                 "link2": "https://www.dropbox.com/scl/fi/9bpz0xsez77kac32spn8l/Ore-dake-Haireru-Kakushi-Dungeon-T1-Cap-12.mp4?rlkey=nwmxngz5gqvqzyyb0fdcue1nc&st=t15zwdpt&raw=1",
-                "title": "Kami-tachi ni Hirowareta Otoko T1 Cap 12"
+                "title": "Ore dake Haireru Kakushi Dungeon T1 Cap 12"
             }
         }
     },
@@ -6382,50 +6389,62 @@ const players = {
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/13p62SAsPVrqdMxQN0h4KRAFQo-SlAvKA/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1KHtj4Petg8_kCnVpx42AEiOaNSFKb9aZ/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1_cgLB9waxS_DZyMmmF-d5aBn4o7TPsRF/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1tZFLQPLyou1bSyINdAqFYeDK8lBqpZgr/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1GGh6uepZ8GWxo6xq2Xrru4vormzDkaVO/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/13sDRuJxXqWbp_DoGECmF2w_sQbLDCB8w/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1GslHg_1MVbqMKi9LEbnLqMbZIeW5Qtt-/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1qLOBU3QJgWAidGhhXchDtZEkWtd6mBL1/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1Wj5IA3QpanA9OaV9MaCx8-F6S9mzdHC5/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1_p10aXWcOhUtz6kE2qV4xMkEcBkmHoMX/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/18Om1_898VXKGo0eo_7V2IjIaRrUjNONw/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1w9nZ_ewQ_4Dstvh3UBJ_a1Yi-83jQaRM/preview",
+                "link2": "",
                 "title": "Tondemo Skill de Isekai Hourou Meshi T2 Cap 12"
             }
         }
@@ -7077,695 +7096,716 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1Okk-3meCaTGFrNfyV5C2Uokn1DAxDWbI/preview",
-                "title": "Black Clover T1 Cap 1"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1xpzflbrlfvtyBmAnpPOdp0-E57gaQ9AN/preview",
-                "title": "Black Clover T1 Cap 2"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1O8v25aOFR6kDbwSJYOsLmql0lEFBRu5z/preview",
-                "title": "Black Clover T1 Cap 3"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1kTOMF9xAOney8XPtc2A23DU8vC69zZEC/preview",
-                "title": "Black Clover T1 Cap 4"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1JBNAVjMCMTAW0bGBms3I3imEYd5shZV_/preview",
-                "title": "Black Clover T1 Cap 5"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1JJCfygxegenyOokfI6Iy2rn1WBVyQBDt/preview",
-                "title": "Black Clover T1 Cap 6"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/18pS_xP6gaF-cvSt_9fi962dLS9k3tPzk/preview",
-                "title": "Black Clover T1 Cap 7"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/10sNooAZD-1qfUgYXqw0tICVESwWKNMqo/preview",
-                "title": "Black Clover T1 Cap 8"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1bJ2O8EH8NSHpQbjhkA8XxJIF5XDDrPRq/preview",
-                "title": "Black Clover T1 Cap 9"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/15FEgPpwS0xYXvtk8kTAUFM_l2Kae8ybc/preview",
-                "title": "Black Clover T1 Cap 10"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1zhcnh2fDreHWkOO8GzpYPpu2UgkNJDbK/preview",
-                "title": "Black Clover T1 Cap 11"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1fEeBfjWhDcJ_hOfOyq669J61I_E1PpDx/preview",
-                "title": "Black Clover T1 Cap 12"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1QDr8qsogB1GVanRlQ8kWNzIMcJM0tm-o/preview",
-                "title": "Black Clover T1 Cap 13"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1o1RJ4XYmC5BO0zIZEu6iwL9BXlG0cGHt/preview",
-                "title": "Black Clover T1 Cap 14"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/11fvJQBzwonhr63-9V6i2wwbtqCP3R79p/preview",
-                "title": "Black Clover T1 Cap 15"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/16mGE2B7AjhJpqtGsKz1pJlIK1MwYW1kK/preview",
-                "title": "Black Clover T1 Cap 16"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1xM-m3oQ6rGq6WTgZFzSPCPlouS6b10dv/preview",
-                "title": "Black Clover T1 Cap 17"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1guKmP2N341Wast0I7gBouAno1i7tfldf/preview",
-                "title": "Black Clover T1 Cap 18"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1djkxMlchQrsyVAqBukOaSZCuYLkEeceZ/preview",
-                "title": "Black Clover T1 Cap 19"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/123DSD0zVWpV2g9JIbCrmE2Wl3UG7U7nc/preview",
-                "title": "Black Clover T1 Cap 20"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1EhVYQl6Nc90tg_bRN7s0VkfRUEZR5HJI/preview",
-                "title": "Black Clover T1 Cap 21"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/1cb-K_3t6TU8dk8u6UHnOXMhbFxqi3PFY/preview",
-                "title": "Black Clover T1 Cap 22"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1ONIN-M892mfSnFMCw4Ks5BnxqBjFitr8/preview",
-                "title": "Black Clover T1 Cap 23"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1gJvAvBHIiE7DyYJHaIOpOrJmjwechiRt/preview",
-                "title": "Black Clover T1 Cap 24"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1xFcewXwU8TUmOvTINWT198vueNa2xo9s/preview",
-                "title": "Black Clover T1 Cap 25"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 25"
             },
             "26": {
                 "link": "https://drive.google.com/file/d/1XbrECJfBGDJyaGWc72foG80Xjrsndf4J/preview",
-                "title": "Black Clover T1 Cap 26"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 26"
             },
             "27": {
                 "link": "https://drive.google.com/file/d/1MIdKch5ftr4YLVhro811PWGh03V_tvIy/preview",
-                "title": "Black Clover T1 Cap 27"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 27"
             },
             "28": {
                 "link": "https://drive.google.com/file/d/1O-izmsci-fissgg096B45iwsstgfXEb-/preview",
-                "title": "Black Clover T1 Cap 28"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 28"
             },
             "29": {
                 "link": "https://drive.google.com/file/d/18JHxRJq6Lg5S5AwtIYNMuomm6eIqb58H/preview",
-                "title": "Black Clover T1 Cap 29"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 29"
             },
             "30": {
                 "link": "https://drive.google.com/file/d/1HuQopDXQkA7mZw_HA8H9QFwluHAU_wRM/preview",
-                "title": "Black Clover T1 Cap 30"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 30"
             },
             "31": {
                 "link": "https://drive.google.com/file/d/1Ou1vnHRdkpLW_LxY7gSM_M36E1vJ1FxN/preview",
-                "title": "Black Clover T1 Cap 31"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 31"
             },
             "32": {
                 "link": "https://drive.google.com/file/d/1WoVz1lIIy-kwnOYpTNs9RqtLUFQVZLOb/preview",
-                "title": "Black Clover T1 Cap 32"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 32"
             },
             "33": {
                 "link": "https://drive.google.com/file/d/1tqqmOtMpL0c6sdrlQsi-UyYIU0SXofHN/preview",
-                "title": "Black Clover T1 Cap 33"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 33"
             },
             "34": {
                 "link": "https://drive.google.com/file/d/1JDLBd33w-pANf3R30M1P_jkYQKuLQOm7/preview",
-                "title": "Black Clover T1 Cap 34"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 34"
             },
             "35": {
                 "link": "https://drive.google.com/file/d/16YiieljI2zjEqa8XHqtwHqhXdkUSB-9R/preview",
-                "title": "Black Clover T1 Cap 35"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 35"
             },
             "36": {
                 "link": "https://drive.google.com/file/d/1CBwc4i9qPenn-U3ZOuSy0GxUkpq6uehh/preview",
-                "title": "Black Clover T1 Cap 36"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 36"
             },
             "37": {
                 "link": "https://drive.google.com/file/d/1_aiGVZJK4sgxRe0YphXxbxo2zDnkr6cw/preview",
-                "title": "Black Clover T1 Cap 37"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 37"
             },
             "38": {
                 "link": "https://drive.google.com/file/d/1RZvkI51Z4qbEl646zEsIKoVhfL25BD7B/preview",
-                "title": "Black Clover T1 Cap 38"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 38"
             },
             "39": {
                 "link": "https://drive.google.com/file/d/1S7ta9ESIJFxRRYBawlS87R6-kteIn6A6/preview",
-                "title": "Black Clover T1 Cap 39"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 39"
             },
             "40": {
                 "link": "https://drive.google.com/file/d/1e5tDfGV9rF3UcXOL0V4bLcjKV1cpLu1x/preview",
-                "title": "Black Clover T1 Cap 40"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 40"
             },
             "41": {
                 "link": "https://drive.google.com/file/d/1j2Cmb7Mhw9Gc4SmvCLcGnk1_BzybOCuk/preview",
-                "title": "Black Clover T1 Cap 41"
-            },
-            "42": {
-                "link": "https://drive.google.com/file/d/1KtDgePGAyJ0aKhWf6nNyq_j3F6YWBc9H/preview",
-                "title": "Black Clover T1 Cap 42"
-            },
-            "43": {
-                "link": "https://drive.google.com/file/d/1RSNxPCgJas3IXNd4F-UhQCFXFG3Cg3DK/preview",
-                "title": "Black Clover T1 Cap 43"
-            },
-            "44": {
-                "link": "https://drive.google.com/file/d/1PUx3XVo2pF9EzjcuI4uwLuDA0R48p6Dz/preview",
-                "title": "Black Clover T1 Cap 44"
-            },
-            "45": {
-                "link": "https://drive.google.com/file/d/1fOgcFKuq4MsNViBNaHJUMLXAoWnNLSyA/preview",
-                "title": "Black Clover T1 Cap 45"
-            },
-            "46": {
-                "link": "https://drive.google.com/file/d/1CzEuYzft3afNgNDu6uKkeMy9mSgsVfzN/preview",
-                "title": "Black Clover T1 Cap 46"
-            },
-            "47": {
-                "link": "https://drive.google.com/file/d/1EYDJfFe_1-35CGV6qoYRJOfRi8JSb-hZ/preview",
-                "title": "Black Clover T1 Cap 47"
-            },
-            "48": {
-                "link": "https://drive.google.com/file/d/11VYG8qUMPPTFiOl_MktZsihEigQ4FwjC/preview",
-                "title": "Black Clover T1 Cap 48"
-            },
-            "49": {
-                "link": "https://drive.google.com/file/d/1Tg5OzLrLy_BjqTyN7Fn-KeDBD9LF3kzX/preview",
-                "title": "Black Clover T1 Cap 49"
-            },
-            "50": {
-                "link": "https://drive.google.com/file/d/1QSs1qWzwZLgXFfeDTmi6VLgeoBi_QOq6/preview",
-                "title": "Black Clover T1 Cap 50"
-            },
-            "51": {
-                "link": "https://drive.google.com/file/d/1Krk9eAuyWcbp-_sye9NNMhBxvODhqoFp/preview",
-                "title": "Black Clover T1 Cap 51"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco I Cap 41"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1KnuWuykToIAu6dN8GjwRJkXn3wyTduSV/preview",
-                "title": "Black Clover T2 Cap 1"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1augpqWt65eyxB1UygblWSgwSjcfHox3u/preview",
-                "title": "Black Clover T2 Cap 2"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1ae2kx34csWz3EVvFQ9d6EtsulkiDPOR6/preview",
-                "title": "Black Clover T2 Cap 3"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1AiOMM6hloQ-_RBnnrm88LTgbwKDYP-MK/preview",
-                "title": "Black Clover T2 Cap 4"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1TovV8rQONhx2nXItjpeKohQ5W78DwaAZ/preview",
-                "title": "Black Clover T2 Cap 5"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1i0d7EUAJVS3x_TEnn8uhfNYogo-8gAge/preview",
-                "title": "Black Clover T2 Cap 6"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/11Fr_qkKfmahkTYF1gO6MPmWaaFv8JBP3/preview",
-                "title": "Black Clover T2 Cap 7"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1GmMnTCtK-bvkulKXCFt_x0-hTUcz4-8r/preview",
-                "title": "Black Clover T2 Cap 8"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1H8lhDGZWJQo8zqbievlGGYbd6Uk3AMTP/preview",
-                "title": "Black Clover T2 Cap 9"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/12qQR9hqOgMox5TfT1LV0NYOfWk7Fhcqf/preview",
-                "title": "Black Clover T2 Cap 10"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/12eAd_9dbPBs1_2rFp-e2KCriMDbF0vTv/preview",
-                "title": "Black Clover T2 Cap 11"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1wr9Kma92HloGYyaYJXpiUCwVHT10S8im/preview",
-                "title": "Black Clover T2 Cap 12"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1ohrrdH_Q-nsP_7vBG4IjuFkGMrbxTQVj/preview",
-                "title": "Black Clover T2 Cap 13"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/10_-sWNftjAOQiymgg0Ky8QJ74aotHeKx/preview",
-                "title": "Black Clover T2 Cap 14"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1SsSoEKJvdVwzFFabpx22p4Qf3DhxEnKU/preview",
-                "title": "Black Clover T2 Cap 15"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1QH9GIXF2_y4tOuiEfX94XOR8VP-xjfaC/preview",
-                "title": "Black Clover T2 Cap 16"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1K1yjBHdkPIlUmydBEE-zIVClFnMXS8Bs/preview",
-                "title": "Black Clover T2 Cap 17"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1b7990dxD8HX3iLSRslBwKJ4OfFMDR-LZ/preview",
-                "title": "Black Clover T2 Cap 18"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1ilOOZng5xGKrJ45Kq538hUsJw1nnZeYR/preview",
-                "title": "Black Clover T2 Cap 19"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/14INcAxBRjmhSPmaMngZifCOO2gEBzN6u/preview",
-                "title": "Black Clover T2 Cap 20"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1ykr_yZeciRmoKQ2oXGDcklafbD0vx6bt/preview",
-                "title": "Black Clover T2 Cap 21"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/1-qyVE0wshIRbXYBtmj5WP-ZuaHn6be1C/preview",
-                "title": "Black Clover T2 Cap 22"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1ONIN-M892mfSnFMCw4Ks5BnxqBjFitr8/preview",
-                "title": "Black Clover T2 Cap 23"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1vcpESlKeR_mDb8ZGwD1oc5Dk946Q_1HS/preview",
-                "title": "Black Clover T2 Cap 24"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1bfF9WnwCBUcUCmm5BS1x3Z8uWFuqjlBK/preview",
-                "title": "Black Clover T2 Cap 25"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 25"
             },
             "26": {
                 "link": "https://drive.google.com/file/d/11tRXhJW50wMgpjmsPBhIOUwI5WptVBhP/preview",
-                "title": "Black Clover T2 Cap 26"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 26"
             },
             "27": {
                 "link": "https://drive.google.com/file/d/1CujkwRCz7qPge7XFBIIwM6cL1xamUIkk/preview",
-                "title": "Black Clover T2 Cap 27"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 27"
             },
             "28": {
                 "link": "https://drive.google.com/file/d/1hQBglyg2imbdxneDj8VU51oRPaz7jy5F/preview",
-                "title": "Black Clover T2 Cap 28"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 28"
             },
             "29": {
                 "link": "https://drive.google.com/file/d/1mSH0N9D5t4aAW4WmxxPucQcQfEZTZ3B3/preview",
-                "title": "Black Clover T2 Cap 29"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 29"
             },
             "30": {
                 "link": "https://drive.google.com/file/d/1Je7ek0vvOp_KxVuD9_R4fP3Q52YFuD8Q/preview",
-                "title": "Black Clover T2 Cap 30"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 30"
             },
             "31": {
                 "link": "https://drive.google.com/file/d/1KNUDgEAPFXVNUsT9PivkxIihnau8z3R_/preview",
-                "title": "Black Clover T2 Cap 31"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 31"
             },
             "32": {
                 "link": "https://drive.google.com/file/d/1WoVz1lIIy-kwnOYpTNs9RqtLUFQVZLOb/preview",
-                "title": "Black Clover T2 Cap 32"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 32"
             },
             "33": {
                 "link": "https://drive.google.com/file/d/1tqqmOtMpL0c6sdrlQsi-UyYIU0SXofHN/preview",
-                "title": "Black Clover T2 Cap 33"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 33"
             },
             "34": {
                 "link": "https://drive.google.com/file/d/12VNMn-E0lsgRaGdMgAf0PPtURPuhzrAc/preview",
-                "title": "Black Clover T2 Cap 34"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 34"
             },
             "35": {
                 "link": "https://drive.google.com/file/d/1GEULLu0-OUK1F3C9Bn4fMwn3hPZuh2nT/preview",
-                "title": "Black Clover T2 Cap 35"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 35"
             },
             "36": {
                 "link": "https://drive.google.com/file/d/1GGkpgv1Ww5w1yNyfY7F_8cQSJWNGoUIT/preview",
-                "title": "Black Clover T2 Cap 36"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 36"
             },
             "37": {
                 "link": "https://drive.google.com/file/d/1KzCEQDvEq0RzjelGLHMFhPqDmAU3LpTb/preview",
-                "title": "Black Clover T2 Cap 37"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 37"
             },
             "38": {
                 "link": "https://drive.google.com/file/d/1wZE6kDj12-wtIXk186AHlnN9Q0gRyGi-/preview",
-                "title": "Black Clover T2 Cap 38"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 38"
             },
             "39": {
                 "link": "https://drive.google.com/file/d/1VEX8CbQoeYjnP1SuZyI5D9h5pR2Xec1W/preview",
-                "title": "Black Clover T2 Cap 39"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 39"
             },
             "40": {
                 "link": "https://drive.google.com/file/d/1KurEGgyP_7N-coKcPK3pStRYXWPf9hkK/preview",
-                "title": "Black Clover T2 Cap 40"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 40"
             },
             "41": {
                 "link": "https://drive.google.com/file/d/1StXtDRlC3G0-mH_Rs28qgES-PZMnn9r1/preview",
-                "title": "Black Clover T2 Cap 41"
-            },
-            "42": {
-                "link": "https://drive.google.com/file/d/1iNnKEHEZYWgH8uO___sCtNjv6njaYWJa/preview",
-                "title": "Black Clover T2 Cap 42"
-            },
-            "43": {
-                "link": "https://drive.google.com/file/d/19guXWVWbPOrDd3_Hdf58l8d2UPKg2TbW/preview",
-                "title": "Black Clover T2 Cap 43"
-            },
-            "44": {
-                "link": "https://drive.google.com/file/d/11CQejr7kXEhEhglbsqm7RWvtssCGQ39-/preview",
-                "title": "Black Clover T2 Cap 44"
-            },
-            "45": {
-                "link": "https://drive.google.com/file/d/1kSQloaopr-eYk3Tdqc1LKf79Rl4tM-Mm/preview",
-                "title": "Black Clover T2 Cap 45"
-            },
-            "46": {
-                "link": "https://drive.google.com/file/d/17u53hxeLGZJVmGA79g7dzBZRL_INfHf3/preview",
-                "title": "Black Clover T2 Cap 46"
-            },
-            "47": {
-                "link": "https://drive.google.com/file/d/1FIElwz_Uk7m_1tYUjqsJ4wBW11ug7f8q/preview",
-                "title": "Black Clover T2 Cap 47"
-            },
-            "48": {
-                "link": "https://drive.google.com/file/d/1AyGgQx7DozMgHol79d0fPsHsoG-l-opg/preview",
-                "title": "Black Clover T2 Cap 48"
-            },
-            "49": {
-                "link": "https://drive.google.com/file/d/12-ltCLGWL_N5h53ACbUi_wkumvckCrTf/preview",
-                "title": "Black Clover T2 Cap 49"
-            },
-            "50": {
-                "link": "https://drive.google.com/file/d/1zAEfFrh-lvy88x0oVMO8o9xcmKjgk6OO/preview",
-                "title": "Black Clover T2 Cap 50"
-            },
-            "51": {
-                "link": "https://drive.google.com/file/d/14pT6KxLklVTamHgmyQQ5YSN5TgFPUKY1/preview",
-                "title": "Black Clover T2 Cap 51"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco II Cap 41"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1Cqs1KS-hcjrydR3OSU6-zkVYxU-VYnW-/preview",
-                "title": "Black Clover T3 Cap 1"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1o8d789yHnJWvrYTHovKrIhMPms2reKYx/preview",
-                "title": "Black Clover T3 Cap 2"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1gzxsbPE8EVRhV7aPBdDAiGtzVHEdn0mt/preview",
-                "title": "Black Clover T3 Cap 3"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1Cr5ksprzuYw9iBNMfLHHLk6L1MhCxCtY/preview",
-                "title": "Black Clover T3 Cap 4"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1JevhWFji1ew9cBX6lpSHOL2kgYPhUC_Z/preview",
-                "title": "Black Clover T3 Cap 5"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1Z47F2gu8xIy44vrA2ZKH0tQF8v45H2XQ/preview",
-                "title": "Black Clover T3 Cap 6"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1JevhWFji1ew9cBX6lpSHOL2kgYPhUC_Z/preview",
-                "title": "Black Clover T3 Cap 7"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1_F7TD94UWgg2Ih6JE8MvS9eeaYlBxmRQ/preview",
-                "title": "Black Clover T3 Cap 8"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1N0SC4qAY9PBtr5XQTF4N_Q4e2C0SXlwE/preview",
-                "title": "Black Clover T3 Cap 9"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1U57Z84I0qzK6tDbqXRgG2qTQsqahVPMx/preview",
-                "title": "Black Clover T3 Cap 10"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1YExJXX0hUzJ7JWlOYpAsg8gJ1dYWQ_q1/preview",
-                "title": "Black Clover T3 Cap 11"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1EIr2q0beMrbJiUgy1q0gAayCLNK3KWYa/preview",
-                "title": "Black Clover T3 Cap 12"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1IQ28d_et868WZivyzZa4XWxymNqRcZmf/preview",
-                "title": "Black Clover T3 Cap 13"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1hFMZ37oa-pBX8gFyqsDsi-D_6KFLtNS7/preview",
-                "title": "Black Clover T3 Cap 14"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1nnw-3nvg3nwHloVkvsNXDviqdYqsM0Ya/preview",
-                "title": "Black Clover T3 Cap 15"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1GOfD_kf2JPlXXSFHvM9VZaOKRQTK76QZ/preview",
-                "title": "Black Clover T3 Cap 16"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1WjM4JLBHHJhEjWi08OhBdAPpdijMPjBh/preview",
-                "title": "Black Clover T3 Cap 17"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1H3ktq-MVHLuZCRRmhYgsw25nyf6rHsud/preview",
-                "title": "Black Clover T3 Cap 18"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1zIkbKHdqsQBsTLEe7d37-GVAhhQZd0Xn/preview",
-                "title": "Black Clover T3 Cap 19"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/1J-OT_DnXLqSHyKuMOu_7GrN6fWg6DwmH/preview",
-                "title": "Black Clover T3 Cap 20"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1F4WhTttbsysOnNf1uJ0j9vKA3cf-gYVc/preview",
-                "title": "Black Clover T3 Cap 21"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/18EhBubwvJdiHjvGHHdcLuBVzYeECgKEE/preview",
-                "title": "Black Clover T3 Cap 22"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/13B7LCuzpbrS95_SJxfu-p1QC8RSxVFzy/preview",
-                "title": "Black Clover T3 Cap 23"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/10f0vnqP4YCufMGFi4Qc9k7ypqm-3HJ2o/preview",
-                "title": "Black Clover T3 Cap 24"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/15a5b7VJdO0AH2OqdsnbzpZqtebK2a8Iq/preview",
-                "title": "Black Clover T3 Cap 25"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 25"
             },
             "26": {
                 "link": "https://drive.google.com/file/d/1zJ79cu48TstH-qgeomSO954d_knD7uGi/preview",
-                "title": "Black Clover T3 Cap 26"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 26"
             },
             "27": {
                 "link": "https://drive.google.com/file/d/1f0Q9v4PJ5zFZDUWYgp9SjL5KzjDI97Gj/preview",
-                "title": "Black Clover T3 Cap 27"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 27"
             },
             "28": {
                 "link": "https://drive.google.com/file/d/12lKwCgPQMhqv8kv-dxEMbF1AMdMXn2a1/preview",
-                "title": "Black Clover T3 Cap 28"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 28"
             },
             "29": {
                 "link": "https://drive.google.com/file/d/14jrNRNZzFIKaY51YomgCXCIHmF38PL5H/preview",
-                "title": "Black Clover T3 Cap 29"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 29"
             },
             "30": {
                 "link": "https://drive.google.com/file/d/1UakBRyT7Iu_-AxYbVi0RZKSdSN7IflAe/preview",
-                "title": "Black Clover T3 Cap 30"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 30"
             },
             "31": {
                 "link": "https://drive.google.com/file/d/1dFmBE_ww9LFg0nwVPtvMYmUBfqJQsM7b/preview",
-                "title": "Black Clover T3 Cap 31"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 31"
             },
             "32": {
                 "link": "https://drive.google.com/file/d/1-MAUFlHd79TwFGQWzipvOxxtQkcNTjma/preview",
-                "title": "Black Clover T3 Cap 32"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 32"
             },
             "33": {
                 "link": "https://drive.google.com/file/d/1z93idfB0zJTY17AnY441ozL2hHM6hKLf/preview",
-                "title": "Black Clover T3 Cap 33"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 33"
             },
             "34": {
                 "link": "https://drive.google.com/file/d/1Mm2JQuu0C_6KiL4KxIy9BTot0gpJGd5w/preview",
-                "title": "Black Clover T3 Cap 34"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 34"
             },
             "35": {
                 "link": "https://drive.google.com/file/d/1qoVLOzcj9a--kpptP_pJfMjYrwACYOf3/preview",
-                "title": "Black Clover T3 Cap 35"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 35"
             },
             "36": {
                 "link": "https://drive.google.com/file/d/1haFBSHs_90pOfJPs_yqXaWd65QdYJKHm/preview",
-                "title": "Black Clover T3 Cap 36"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 36"
             },
             "37": {
                 "link": "https://drive.google.com/file/d/11bqpzCDPXA-uy3UMgUwyHJE5paX5bsvS/preview",
-                "title": "Black Clover T3 Cap 37"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 37"
             },
             "38": {
                 "link": "https://drive.google.com/file/d/1Dxq4o7GHCaUqgpa6PPDn8leZSYJnkrxu/preview",
-                "title": "Black Clover T3 Cap 38"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 38"
             },
             "39": {
                 "link": "https://drive.google.com/file/d/1qqcCI5RsQiGWga-V-5N5GbdSNu3xKTyI/preview",
-                "title": "Black Clover T3 Cap 39"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 39"
             },
             "40": {
                 "link": "https://drive.google.com/file/d/1NTvtH-byhZbuSNeaIDipgH_b2TwcDZg7/preview",
-                "title": "Black Clover T3 Cap 40"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 40"
             },
             "41": {
                 "link": "https://drive.google.com/file/d/1OzNc8SKQJQoS24w1eE7EUybFTz6nMhpP/preview",
-                "title": "Black Clover T3 Cap 41"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 41"
             },
             "42": {
                 "link": "https://drive.google.com/file/d/1JXjBQMDyM9ltVMtMs_iZ8nOuabYdYH-A/preview",
-                "title": "Black Clover T3 Cap 42"
-            },
-            "43": {
-                "link": "https://drive.google.com/file/d/15OvbIPPSC1Nx6MosIbaYO9lob6oHxfCN/preview",
-                "title": "Black Clover T3 Cap 43"
-            },
-            "44": {
-                "link": "https://drive.google.com/file/d/1cK0FzlmvdCvvSgx4rEDUu2l4Dr_vFOsa/preview",
-                "title": "Black Clover T3 Cap 44"
-            },
-            "45": {
-                "link": "https://drive.google.com/file/d/1LYCgKl_iHnc9pM4TNP_xWB3iuqvmXXGw/preview",
-                "title": "Black Clover T3 Cap 45"
-            },
-            "46": {
-                "link": "https://drive.google.com/file/d/1prMD8Op8ck9nvCP3P3PcIpuzS2UOm-G4/preview",
-                "title": "Black Clover T3 Cap 46"
-            },
-            "47": {
-                "link": "https://drive.google.com/file/d/1UmcQwy7i1C3V5gFNsznnvgWZPT6WgzDq/preview",
-                "title": "Black Clover T3 Cap 47"
-            },
-            "48": {
-                "link": "https://drive.google.com/file/d/1wer87GEK7EZp77rGiBIWE9BKfZwQX83g/preview",
-                "title": "Black Clover T3 Cap 48"
-            },
-            "49": {
-                "link": "https://drive.google.com/file/d/1P1fwEiirdMPuJ4sN_mFF8TkphoPG8VwF/preview",
-                "title": "Black Clover T3 Cap 49"
-            },
-            "50": {
-                "link": "https://drive.google.com/file/d/1DZlZM2ivSrLc-MVQnkdTZ9NPY6PmPk_v/preview",
-                "title": "Black Clover T3 Cap 50"
-            },
-            "51": {
-                "link": "https://drive.google.com/file/d/15fulsWwV3eg8f_RywRYcP4ZqKsM5ZJ28/preview",
-                "title": "Black Clover T3 Cap 51"
-            },
-            "52": {
-                "link": "https://drive.google.com/file/d/1p1dQ_C62d6k6DyR_xq82f-7BpJXGPi_i/preview",
-                "title": "Black Clover T3 Cap 52"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco III Cap 42"
             }
         },
         "4": {
             "1": {
                 "link": "https://drive.google.com/file/d/1jYUCPo6tmxBBe9EYSAsD2pS1nGNr5yMl/preview",
-                "title": "Black Clover. La Película: La espada del rey mago"
+                "link2": "",
+                "title": "Black Clover Película 1: La espada del rey mago"
             }
         },
         "5": {
             "1": {
                 "link": "https://drive.google.com/file/d/12K1PmZEUW9djyK2FDgZP6bR5usbq4I92/preview",
-                "title": "Black Clover T4 Cap 1"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/19w8eH5FldMk2rSpxmNJeEQGYBfsHfRq4/preview",
-                "title": "Black Clover T4 Cap 2"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1aSH-rwxdOM_cp8zXTICu5RDQZfJ_4E2y/preview",
-                "title": "Black Clover T4 Cap 3"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1hGZAurHN6fBH-zdtF85ipun0Vp-Y7nBw/preview",
-                "title": "Black Clover T4 Cap 4"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1PDW0nZkubILCyhh1f078TVpluUNvMvns/preview",
-                "title": "Black Clover T4 Cap 5"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1oyGX6ea11r4AnDNe1_8xYuKuCwBinXaN/preview",
-                "title": "Black Clover T4 Cap 6"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1K0P91Ru5upWt3U6hh4EBGHj6HInp8t-C/preview",
-                "title": "Black Clover T4 Cap 7"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1T7kV9KFLeHKBxdRJsrSe2nuTRXWe-5yn/preview",
-                "title": "Black Clover T4 Cap 8"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1g2Ii5KkJHbUXY4ACTX7jSFa8BFEPLXZE/preview",
-                "title": "Black Clover T4 Cap 9"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1zrdj0LpK65NzpHD4L1MgN3YZUSMqQPUO/preview",
-                "title": "Black Clover T4 Cap 10"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1PtX8cCfe3H8yy3ETpbefZV2pGbGXu5Yn/preview",
-                "title": "Black Clover T4 Cap 11"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1OqaFDs1b_UIc22MwvR1MyYIHtDzXLKEU/preview",
-                "title": "Black Clover T4 Cap 12"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1yAjJN17doFGNATh7aSOea5P3cUISQ80p/preview",
-                "title": "Black Clover T4 Cap 13"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1ZpN4Ap64Ym5awRxuWJ8CmLKhTMXDFGR4/preview",
-                "title": "Black Clover T4 Cap 14"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/17m9yHaiTwbkFeTxSTQl-F-EfuTp3TJ52/preview",
-                "title": "Black Clover T4 Cap 15"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1G97D7hGxSaSsT4cD8W1Vj-JutLOsI561/preview",
-                "title": "Black Clover T4 Cap 16"
+                "link2": "",
+                "title": "Black Clover Temporada 1 - Arco IV Cap 16"
             }
         }
     },
@@ -8254,6 +8294,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/@any:a/ttw123:9",
                 "link2": "",
                 "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 23"
+            },
+            "24": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/toji124:4",
+                "link2": "",
+                "title": "Tojima Tanzaburō wa Kamen Rider ni Naritai T1 Cap 24"
             }
         }
     },
@@ -8320,103 +8365,128 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1w2dKPPq4VE1Ep2Vm8ZI9nIi_RE9YR87u/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1D12R4n8HbmLqPWQIt8t2O3FMo7Yh_wFT/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1C0JTi0olk0MoSKP7gwn0HiOvkLR36GaV/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1R82WtxDG7q_0H-RVrnjyp-GtJPjIoYl1/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1DqWuCyjGOxKSUtByq-070oJta1lXw4x0/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/15JOZAS3hKFN4UAghltVDaytioyG-TDHq/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/166l8NchxLFAQkCdIYkJkIUt2-M0vg9sl/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1FAaeMNavgaE85OCpMjZpotVGekBUYY2r/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1VdZNvNAsGWZJPPAkg3OcC1wl_WI40rhl/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/19DzLkbU2MgkooyfnfTaCRvxQDHSq92VX/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1hKGuI5Roij3WsJlN1t76Yhu5YL7_nY2S/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/11zG8Lbbvei5XR9soycL56KLlwDEsWHl6/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1JHX0v0IXV5GlwsN-vJzOArG_n23aHfsQ/preview",
+                "link2": "",
                 "title": "Spice and Wolf T1 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1pglakSh-bD0unhSIuBHomPUdIPtm40iV/preview",
-                "title": "Spice and Wolf T2 Cap 14"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1wNnt0rn84YzzTAOck6OgU3kTPykFOA0s/preview",
-                "title": "Spice and Wolf T2 Cap 15"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1HR_N7Y3iwQNAdm-UuzU_ILXJQ7Qa3X7I/preview",
-                "title": "Spice and Wolf T2 Cap 16"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1JYyO4-1ilWUdQYrxwIHorjweH8Q4jbE7/preview",
-                "title": "Spice and Wolf T2 Cap 17"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1v04Gbvg6knodhu71HC-RHZeQdvFPdLFL/preview",
-                "title": "Spice and Wolf T2 Cap 18"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1aYn9OkC20MRnILNC8f22IMbyTAQ2rPjp/preview",
-                "title": "Spice and Wolf T2 Cap 19"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/1GyFLmD18niH-s3f-irhMzlOYP-Obs7so/preview",
-                "title": "Spice and Wolf T2 Cap 20"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 20"
             },
             "21": {
                 "link": "https://drive.google.com/file/d/1ZWTAYc2Qkj61Z9cfIQyF9OXluPedrsve/preview",
-                "title": "Spice and Wolf T2 Cap 21"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 21"
             },
             "22": {
                 "link": "https://drive.google.com/file/d/1tpRqFwEpuQVjmkdvgGspg4HSmnKJRsxT/preview",
-                "title": "Spice and Wolf T2 Cap 22"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 22"
             },
             "23": {
                 "link": "https://drive.google.com/file/d/1AhERccJvIMI8u32agU-JgwC5dok6J_sJ/preview",
-                "title": "Spice and Wolf T2 Cap 23"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 23"
             },
             "24": {
                 "link": "https://drive.google.com/file/d/1ov0f9V3kcwTGx8KtMTDNJzLxFC2v4KlX/preview",
-                "title": "Spice and Wolf T2 Cap 24"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 24"
             },
             "25": {
                 "link": "https://drive.google.com/file/d/1UogckdZh4kQN7HFV42i4FZVmasGqmwb2/preview",
-                "title": "Spice and Wolf T2 Cap 25"
+                "link2": "",
+                "title": "Spice and Wolf T1 Cap 25"
             }
         }
     },
@@ -8448,340 +8518,421 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1P52gUvhzvK_3jUy7Rhn9F7zwmJmY6aKu/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/11osdRo1deBoKNPT1inl6EGy_F0N8vdPd/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/178ZHWpGSI4Spe_diQydFZmOYV-YY7bbR/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1MpPdbmEz8oq8nGRwU7oeVj1wlROC8zy6/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1x5OcHGJ4W1IwnsbFXIcZeIGnePue6Z-Z/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/14f7nEJGnS2JA1xU6PhPgiLSAt3J1P7lm/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/12TYCyGG8bsY4KXlDkjjLCUbw3zE8XBgs/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1fiai-_ooFpNrKeKvIv9eUd9ORgKvk9YU/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/13aEwc-TmTgHXrg92v6FR1j6q7bSQYBIS/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/12r0piptLyvWoFTzmULiIFHp7qfKHZ7v8/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1lDdz034nk4VOuvH1NA2MmY40Kfz6U5pr/preview",
+                "link2": "",
                 "title": "Rick and Morty T1 Cap 11"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1UtzepiQqd3k7A93zRrVoOVBp4LaOk4Tq/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1cTuFDVjFVGg5j21618t8SJ1Z0NgPopV_/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1urZmgsWI9E6HvK_AchxZXVCRQxXgNLc3/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1KPBCxmFG8ZGUcK32UOqTO1a2ckMxgEXv/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1nEKA8kszJmpHTIlcx0NJwl5gq9tP6ShD/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1ODdZa3ks3uwlzSJ2KmgWl7EOZSjHKJwT/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1W5s9pdmbhYTzFniI5pTyDx7PS_6VY_FX/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/15VEvk2Pf5iWJ_6AmlsVFlT4yHy6oJFpf/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/157QksXNJaEjeV11cX3IE2XLBGGwAhW_s/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1ve1vSylTVNm9bcevSC9G7w_IOq-xaZRR/preview",
+                "link2": "",
                 "title": "Rick and Morty T2 Cap 10"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1oGw2JOFbnqzW_phWXKvfDnYAfm9Gm_Kk/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1X5JtCPsyQsHF_REOz9SWI0QFt5OwPQ-a/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1mLENIt7zP2R6xZ85E2qxhiaxwJhMVyE6/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/164_jsQmYMvceWgck_iKCe1ffKdTfvhxh/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1etmwG49GbEvgjAw-BknR5sqoUF1ATWhX/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/15RRYykCt9XQiQtBs7brdMB7XKyP_7s3v/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/15EWtPUERDZmRXg86oD1IVJ9T8_HY5CKG/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1oPO6vw3J8Z-_qyAUGPSL-xOi4jimdUl_/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/186axWQhEiCUYmBadFpvh_N99c9w__RcE/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1pEW4aMcEVAGzH7uNh_N8UkIgr8oiUaoi/preview",
+                "link2": "",
                 "title": "Rick and Morty T3 Cap 10"
             }
         },
         "4": {
             "1": {
                 "link": "https://drive.google.com/file/d/1s1hSnDm2TPbh_eDzfr2tuvnGm9ML9xn2/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1QYQDkk5l_QNV2GimjNF8Yeo_bNO1Vz7m/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1W-a5X6zZDj20ch-hYh9Ka_7C6gQiaLJ3/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1Z__E_a5_wcNrTfTgtAe7GOkV-jE9ybJs/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1MuLzeMXmU0_GrW2_Z2UjwX6UGxATkAlV/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/174mxYgWWSiQbu_WtwFuslypfViU4BcoH/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/15GvNV4qALROCdjXM351T-XWXcZfA8aDL/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1e-ROYzDYsyK_SvYowmcbaisUCWA4kvo4/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1eMBpYZtWrjt_bwlhAj0gNh69DvNHQtER/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1ihMJjQ_IDCfbZgg4EWjbSctenZ2D_cjg/preview",
+                "link2": "",
                 "title": "Rick and Morty T4 Cap 10"
             }
         },
         "5": {
             "1": {
                 "link": "https://drive.google.com/file/d/1ZKlqVINC4FoK98GGplFxhQQzqNFzgHAk/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1VPpKX-2kuGleh51oGCkQ_AiUTWhlSTPP/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1nbj-W9jCj1HB9mU4WeN7xuBs2luoR3sd/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1ZzYAYvSIzVrbfBdukjIjxtxJ78n0tyIA/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1d_-r8h3STLSATDqCJHtwyTj5oROjELHt/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1LFPHpmfHeLyGaVpDiDUapIuvanjvDIKr/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1n-WH59EXu9secrQ09ZU-1Q5nBZLBSgEw/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/19ixjrmenU-hjLMrFzupCaNdVTqUU4O9K/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1hL1Ca0hGTlqTHiZRXRD0ciURzpiASJdu/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1TaZnPyN0DxfjKZ1MtCxmTidsbyJx-uf_/preview",
+                "link2": "",
                 "title": "Rick and Morty T5 Cap 10"
             }
         },
         "6": {
             "1": {
                 "link": "https://drive.google.com/file/d/1DWl8WsYd3Xh_bhCqaAYZwuxwfpW-oqHU/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1IiMy94gCogHGIHiMCTncuT8m93jHf628/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1iFLrriG54m2P7LmLqX7naONtFaW3YJAp/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/19Qce-63EOFXh1iSLUTrc3NMVUc87SS0M/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1q8dB0jA78Xn_2v3557mM2QytRPSm4Xt0/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/12SgK6FwBmIb2jmOZJLoBJka87Dom3no3/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1jw53Gr8orNAf1rOjh8-Xu5p1aLms7iaQ/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1mCXLO07-NI7GDGsuiZIESlsPzvrQD4Uo/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1PZzMyarCzpY9-fmvb_8ZarB-pEf-NHu0/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1BlziFCX3Dl7Ja4N3opDTPnt1yOw6hzg5/preview",
+                "link2": "",
                 "title": "Rick and Morty T6 Cap 10"
             }
         },
         "7": {
             "1": {
                 "link": "https://drive.google.com/file/d/1cBdsCKKR2_nRM2OluezLQWLxGFmpov1R/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1y9fX-e1ZqEp-iaUeC_UlnQne7hOPW-z1/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1dUjLQYlfpTuSsHX6tKem1wMtwVTzwYnX/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1Pao2jh3vk_HR7uqnoZ0J5eDKgP5QfGk_/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1tsD81WMrkIPIls-0toGxFCDcWMezkBm5/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1PuQh6YUe3KZ-8ZsRewQT1P3oQ7KDycwf/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1OsJv8OPSCbDUfEXuGsfmUJLMZQu5Bj4W/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1KBWkJARLVAdHnudsQxjMkcm21XKujXUR/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1z3-sfWx6GVJ0mUkn0MpkpoQghsEuyjPo/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1QwNGII-vtaw2Jh4CByhtV751oroz2iBs/preview",
+                "link2": "",
                 "title": "Rick and Morty T7 Cap 10"
             }
         },
         "8": {
             "1": {
                 "link": "https://drive.google.com/file/d/1KoHwJhoH0h_Vi5S0Ihv7oSwYHd4QjnUC/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1txhYHGX9Ov91WwtSfq7WFXxInmCl9luz/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1Gxq8OMo0GbNg1yCOrbCv0S0b9Z1GXBxt/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1Q-UrX31h8HfC-dHJcm8xwkXBGM4lXkD6/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1aglYjI_a2655-_H8_C7ThAk08DIeik8M/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1RDB3ue5eaNmr1udgwzgggeck6HpsxP0K/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1V1RqebDThzUOMryYHKjeK3zcES3qMjW8/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1OhWBKbs7cIw1qlL5mwq2RBraBptw-kNV/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1jtxao5crpqVVpDVH-z6G4_KI-CR_Y1ka/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1chuPssurZ6dnvn15rCZ8sTLGKpg8Qoax/preview",
+                "link2": "",
                 "title": "Rick and Morty T8 Cap 10"
             }
         }
@@ -8854,54 +9005,67 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1CatR182WKabtDm3HcBDkP7S5SH2w2fC4/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/12DG3cou1GHK7CTy6MIQvFJ0NCXgQ6OFE/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1NNUPy9hjoVe0b9bZ4Zd5QEQnygVEzTCH/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1GbhxT_ug4rX2NujQWpaRvPIxDecxAcsP/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1FZhIa1diZlUDgdDsnTJkMHThwGFpPyE0/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1VfmrjDVMxjjNfu-lLSuYg51F8a8W_m0D/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1RSdyLLSp9Nmxi_dfxzd2-LkxdYQsxKOF/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1Y0oJ1Me8rgweo3OaVWaoM-LJUFxhQrYO/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1__0eJzv7551bGYfkMIpMeyH-oCeYMAke/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/12Rrh0xj85a9WUXEZEARqliEsJfd4IW4Y/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1FDWj67l-uIUlXy92JDwREtgS4mF-iS2c/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1XqpWA9VyHLh8wAKfjQYEitdfczD0Q0gZ/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1gqh3LfEr2y887u165PVvMlmQSWRvFlp-/preview",
+                "link2": "",
                 "title": "Saigo ni Hitotsu dake Onegai shitemo Yoroshii deshou ka T1 Cap 13"
             }
         }
@@ -9386,174 +9550,216 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1bJfRss4sSJvFLTKyr991-ndEhDuhht5F/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/15yjcRp6FCXq60Zq-CzvewcKPx8DNCo-R/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1PQuanJWE56k5BF7seDj8--x7Da13vH55/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1gECR-_qV7qQyp7UibFYS2v8xabgP9IB2/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1Kv4ftC20DQgz6tk3_cZ8t67JzzZ412bC/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1NvHK0B6J5xQuTssHb-GU726aLcGKAOtl/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1h9l9pcaS2qdvXp5jzbHtNcxrjgRERIFE/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/17S8ef8BnVuqGQQ7_0-YVtz3VlNfZInEI/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1JB0BHTA5N0yHqj1ZRoWLzcJvto1pwpCd/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1P9HcJSwYj0EAuBc9chbgoJzfTBcMzLFf/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1PfEp-yFTjLWf3bst3jLT6lfmq-z_o-mz/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1RCrQySivSpdkhHNf2gV2H9DF-q3d6Uyb/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T1 Cap 12"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1zcw1vC_UsDs0BAML-2SRX2pJ8Rd8k0DP/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1_EBdWrkFMlV7jC-s2maEZkSljH9qB5si/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1n4GLxSY1zSlEX1meRPfcjOLlSi9w43c6/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1sRRe5YgiO6oZcXDU1Th33ktT2Nf40V7q/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1CJ38IF4xALg__9zVi2OEV7m0QKpJJp4j/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/13C6afqDjXnY_AtUErylIhz1Go-BtDZOH/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1lJsLO6kTmx_69X0hsMtD8_e8jhM5wyyb/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1eiIbeStOTxU40D-7G0XhF8ID-W7F9K3h/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/14vn2ZNUUoH0WChA74_eYUPQDPuroJM0P/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/11xChlg7wP8qzsJ1rZOsO0xI2_EhCNBfX/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1hvxIe4ZkFlRHck4h2-21f9sq-HXUDQKZ/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1L7-Xo9bNr3eQr13I-aLEJDCNoux4_fBs/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1OiV30O57voOLV9ixx6-UMcVzq8heJOZW/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1EzB2F8MnvN08nx98hpNRa2AG4f_aDciS/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/17eFGySleG2RgR7_ubKmCPrHmuIjkNrrU/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T2 Cap 15"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1qzUKzuzz0gqDaJWU26UAOWYAHhd_fyKA/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1DcooqI_Bfp8DVal6oG7QPbfPS3ZWyiPP/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/15a5eIVYxXkqVJurNuGusZCFY9H3ggJLj/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1gOQHZpIlXf0O7F3WXp9Iw0bthlSDWA6M/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1jh4L9BsnQB87uZFSxDoh4azpSRORAaz4/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1wWNiBAe_nm96nBzb2TamNULOhbUJ1SDd/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1BtU_LdKNVvvzGQeCazxcruI_jnFzNCv2/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1J_yi_vRoLGlEeCHmDu6HbEXOIfljgapx/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1KGaSd6aDHRrH7AMDegp1H9qU8bVvO9kT/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1-RTmij_woV-fUD7SquEoZ--G3PfdPZJ1/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1MuUZIrj_QLVN26I-KaUnQC7KcFHwCqUB/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1w6FHNCpv6w81Tb7qrXL77GoKHZQjjIwQ/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1ekRhrqXFtJrBhpvNHKvr9qmcHD1Kzt9u/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1WklxyeLw7i1visDEuUG377HHKZm_54ws/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1Gl5syJlG4VU80XhdceaNmppURs5qR5aR/preview",
+                "link2": "",
                 "title": "Record of Ragnarok T3 Cap 15"
             }
         }
@@ -9562,83 +9768,103 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1O_l3Q-tAqbq_Fx8bPN53qWr7ygxCIWvP/preview",
-                "title": "Fischl x Slime – Una entrega especial"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1Bq75jP0fgyTl99bXqJ7gJugyCJnhBCQV/preview",
-                "title": "Un Nuevo Hechizo de Mona"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1sqbXLEuesuiCpIYrZ8Y7yZCo7y-qSFZP/preview",
-                "title": "Raiden x Yae – Zorro travieso"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1jHWMWbGv4hOeWM5co8d0lJVl-1ajbi7d/preview",
-                "title": "Succubus HuTao – Una ganga"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1teBT9rLTYHe2akCqrJG7SZ9MYFELd-KN/preview",
-                "title": "Keqing y Ganyu"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1_YeoTOUQDxUB3V3rUoskgXTKzPiT2ZW9/preview",
-                "title": "No quiero un chupetín"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1pe5CSrzUW5ijfXKmavcc7D-7SpWgg5my/preview",
-                "title": "Eula y Hilichurl"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1PNQV3elJWnAARwYPM0C3eAfVtLza0dCN/preview",
-                "title": "Ganyu Solo – Deseos de Lavanda"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1R0L_sbch-7aFxJ-Yt9Q-uai-QnwRc792/preview",
-                "title": "Keqing ♡ Tentáculos de limo"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1vb10aHg3d0vcjt2jqkiMJD7fsX-O6-ix/preview",
-                "title": "Hutao X Slime Vicineko Limo"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1We7LXBKqfJjJWfc1tIQ-s2hUApgvwn8l/preview",
-                "title": "Melodía"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1OIshtdBFyL8Bf1n-YRkItDT5PE8rT306/preview",
-                "title": "Luciérnaga ¡déjame Entrar!"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1WszFxUCkgovxKJWDocGXS7SCRJCP3WGj/preview",
-                "title": "Yelan"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 13"
             },
             "14": {
                 "link": "https://drive.google.com/file/d/1xJQdoFTW-fLCHVmxxv4JDLWGILqdU3a7/preview",
-                "title": "Keqing y Ganyu 2"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 14"
             },
             "15": {
                 "link": "https://drive.google.com/file/d/1-P261LACDkmmn5HEh-jlUevL4Kfwn9j_/preview",
-                "title": "Mona Del Lago"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 15"
             },
             "16": {
                 "link": "https://drive.google.com/file/d/1FuPJWWPctDFPNGASUWB4rC6kA6cSXiYs/preview",
-                "title": "Yoimiya X Beat"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 16"
             },
             "17": {
                 "link": "https://drive.google.com/file/d/1DBib63lFs6MEXw2flAUY0kKyb6Nd1z_0/preview",
-                "title": "Furina x HuTao – Un sabor diabólico del cielo"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 17"
             },
             "18": {
                 "link": "https://drive.google.com/file/d/1Xejef_qaK9xVoNk8FHWV6Tik-qGcDARX/preview",
-                "title": "Riel estrella Honkai"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 18"
             },
             "19": {
                 "link": "https://drive.google.com/file/d/1fZjbN7km1NbPcTj7fubJ8zAqfIJiw4_N/preview",
-                "title": "Una noche en Mondstadt Un accidente feliz"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 19"
             },
             "20": {
                 "link": "https://drive.google.com/file/d/1sX90WFtMWV9yKV2LUq8JPIlAZqiUs6wq/preview",
-                "title": "Festival de Mondstadt"
+                "link2": "",
+                "title": "Genshin Impact Hentai Videos Cap 20"
             }
         }
     },
@@ -9755,158 +9981,196 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1zjyfjzhTu1k7vb4Va5v-0A-hEivXY3V7/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1RtOrnoChz92X6M4cg0f-paIvNcolK4o8/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1uN482BQj-qw0xAb8O4bT7aRc6XO9KWUA/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1mvC44GzAschPTCvx8BN6gvey1hnEAqNM/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1J52H9eL71cFB6c4H4eWvuKpiZDlaH8Bb/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1hCSbUWJZIVzqZfhcEIV-3DhnGd6kNqa4/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/18TpgrMee9iIKB5v-2NC7b2QZkj4qy25v/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1TuzQJTFckoc_erKo1eLILmUQSTBnwBDN/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1awGm-e4xPgcKJ5FVrF1oxWS4RGVvUwgg/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1dxUFZye23W3qD-tTSYKRCKRP5asyFlXy/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/19Eecj6SCslVjZPYrCiHc6bkwhs3d0ea-/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1u9v0Z69--n_PvP9lMouyWLUyE-QFNIky/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T1 Cap 12"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/11AKyJflDeDe5QNuCv9BV_QCoUYe5zI5f/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1lESx4bTU4pOHWSXHeNnLo6mfVAJHHkyF/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1IJbW32-ONnSYK3lDfRnQfKoM3lx0UptN/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/18Vv6DuZg5JD-1TJq7DVI4thnZQIB_S1J/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1xEIPZjsdoYajHcI1oTXLTZvPbst5v_6b/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1inQVUKkSWOXB1dBFN0nMSlicZ5EgYFNW/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1jYMWwMy6RrhVBdGNU1F6vHeV77P_55cB/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1Ulgo22UkPE2Mb9aNITbwpCPlQCt57aCz/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1iy2I219290kDqd3FbPsky0oA6hBqBw-t/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1ZHYGhIvRt8c5li2l8mo_03LGE2RIZKff/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1_V4cIgofxPLa2NTXqgwAtsBM5dPBnxKs/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1-jq3NngpxqcLLJm4RaHe6XWdXcAdXh6d/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1V4vMJQksyWyLbbkAkb3vSl-8IrR6BkrD/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T2 Cap 13"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1QHtfFPm6zB0Y5Yz3lKSoSeHA8C737naL/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1JTWx9clEjZJxIn4-qNI2ytnY43D20iMl/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/17ep4rqYdo79pI_cHoyQOb_C-COTQ_r12/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1HD28n-zxq0ZdO3h1acIrQJSXNkn7VIZR/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1RvbM7TOl_fDOL6VNN4LvFd6pqRRpZfKo/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1kg-eSvRA157LZByG6FwFF0RT1CqVy1Tt/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1JUxlWiKecfj--9BfmRPNVApuqSyP7v_c/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1PDMLcZhUnY_e11YIYe0qLfeZv1uPj3JQ/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1IeM1LBsU5CanPw-80UGRhkuV0Rk93lKp/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1wZC89YhIVsXve-IcBUT0Ha9IcaqgCr7q/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1SuLDRMylTfs1ke_zOSYEDV6nYUVClVJv/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1YzD4T1lx7OXoSW_8Zc_-2mCLPSf5JLma/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1Uo5hAK4uAKGdeQBG5LARPCfrZ9YjkBaP/preview",
+                "link2": "",
                 "title": "Classroom of the Elite T3 Cap 13"
             }
         }
@@ -10094,6 +10358,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/fr28:2",
                 "link2": "",
                 "title": "Frieren: Más allá del final del viaje T2 Cap 8"
+            },
+            "9": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/fr29:6",
+                "link2": "",
+                "title": "Frieren: Más allá del final del viaje T2 Cap 9"
             }
         }
     },
@@ -10101,105 +10370,130 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1831tHql76bHG9B8EAY49WksXu0InK6ID/preview",
-                "title": "Solo Leveling T1 Cap 1"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/14kygr2Gv4-PDGBcTleOWZyUYX_eC8Ph4/preview",
-                "title": "Solo Leveling T1 Cap 2"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1ZggR2UvLbxH2kCAYAetGePlwDq-1qixj/preview",
-                "title": "Solo Leveling T1 Cap 3"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1RK_8XGfV-019m3iioEWl0jZC3RtJYhiU/preview",
-                "title": "Solo Leveling T1 Cap 4"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1B_pomfkP_iMINhjsC2f_mcS71RfRlmrK/preview",
-                "title": "Solo Leveling T1 Cap 5"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1_R3-c_aqYODKxMxR4dyw8VOe5YM2Flpx/preview",
-                "title": "Solo Leveling T1 Cap 6"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1BOfrrdn3COl1alHEeDiZKiTTlIJbD8hk/preview",
-                "title": "Solo Leveling T1 Cap 7"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1SARlMg6h9QxI_E1RlspdluQ2mfNwcu8s/preview",
-                "title": "Solo Leveling T1 Cap 8"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1-T2UY7wHPFQAt7Gz4Hkvb7aTB2kyCXMA/preview",
-                "title": "Solo Leveling T1 Cap 9"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/16iwobqoYldND2yZdrStLuymUS8CvI_fr/preview",
-                "title": "Solo Leveling T1 Cap 10"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/13ngq33m-FGsU2ZIdUkOezrZsW5XxoChC/preview",
-                "title": "Solo Leveling T1 Cap 11"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1zh14T7VK5lYflFw4Czgmo-1yhvynY74G/preview",
-                "title": "Solo Leveling T1 Cap 12"
+                "link2": "",
+                "title": "Solo leveling T1 Cap 12"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1NtGKNuwnvmYZIafzwbseqTAiMsKu2qug/preview",
-                "title": "Solo Leveling T2 Cap 1"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/18x7JD_5n-DBDMFfWAlzHkGWKRalQMi7p/preview",
-                "title": "Solo Leveling T2 Cap 2"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1Zs22yqy2P1K-weH3ZyK9QAlT1FXu9XtV/preview",
-                "title": "Solo Leveling T2 Cap 3"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/15b9arlpzRlltbBC09zvSEPilPxIpxPVM/preview",
-                "title": "Solo Leveling T2 Cap 4"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1wCiVa0-XsX8nvqMvPYhO6uyNdLAo7zMl/preview",
-                "title": "Solo Leveling T2 Cap 5"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1YO5MwjFZemos-CehaUaGIXzJG7N64BIV/preview",
-                "title": "Solo Leveling T2 Cap 6"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1OphXlnf-SoXjMQ1_iXyKvL8vsxk5H9Xk/preview",
-                "title": "Solo Leveling T2 Cap 7"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1hnq3gDqz8aCyfPa8o5dV_kOs-MSvBrlT/preview",
-                "title": "Solo Leveling T2 Cap 8"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1S8uLRmrO2spTFFuL4tcKgYGxIcS2KT6C/preview",
-                "title": "Solo Leveling T2 Cap 9"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/1kNXcHYBMDy4cnvJKRlahpDZ6G1qLAUq7/preview",
-                "title": "Solo Leveling T2 Cap 10"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1zvYTFwzdsAkQbI8x5LaBTc1vQX22WyVw/preview",
-                "title": "Solo Leveling T2 Cap 11"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1mvbPkuXMQwo94hxZFeIPymTJiTagTDmQ/preview",
-                "title": "Solo Leveling T2 Cap 12"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 12"
             },
             "13": {
                 "link": "https://drive.google.com/file/d/1d6l0YJOHI3KRcdxp9JiJa7xYOfb6xVDy/preview",
-                "title": "Solo Leveling T2 Cap 13"
+                "link2": "",
+                "title": "Solo leveling T2 Cap 13"
             }
         }
     },
@@ -10207,34 +10501,42 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1c-f9LqX0yr0pzTf_UdE5_TXtnwfC5ssB/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/15RYzFhZFhvtaiovvRUfoA-eeec3N8sHK/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1VStC7Y65xYkFoIkGPhGOTMuuyswFn1d2/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1YjENQcOxYIsWp5trnfUEIhEerLjLWsMJ/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/1ofRdCfhReg7cVzg1T9Mw6riX9KlDpuP0/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1eyUQ3lQS8oVOgKdUgVeZJP7ETb1uP4n8/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1x245zGfkS59RoHqPtCnXCnOfEpvro9ss/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1B7coVAg2KnIluw7Dj53PQC3-hWiCvq_v/preview",
+                "link2": "",
                 "title": "It - Bienvenidos a Derry T1 Cap 8"
             }
         }
@@ -10243,19 +10545,22 @@ const players = {
         "1": {
             "1": {
                 "link": "https://drive.google.com/file/d/1S5pojtBClVB34_sFguRRk_B_4pcvkoKN/preview",
-                "title": "Cars Película 1"
+                "link2": "",
+                "title": "Cars Película 1: Película 1"
             }
         },
         "2": {
             "1": {
                 "link": "https://drive.google.com/file/d/1scE1xqNoWnQDGjRPHDR8AbL7l_X0_hWA/preview",
-                "title": "Cars Película 2"
+                "link2": "",
+                "title": "Cars Película 2: Película 2"
             }
         },
         "3": {
             "1": {
                 "link": "https://drive.google.com/file/d/1GOMOvEkGumhQO6pUgPw1BdhXc4lGJzE0/preview",
-                "title": "Cars Película 3"
+                "link2": "",
+                "title": "Cars Película 3: Película 3"
             }
         }
     },
@@ -10651,6 +10956,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/opp110:e",
                 "link2": "",
                 "title": "Seihantai na Kimi to Boku T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/snkimi111:5",
+                "link2": "",
+                "title": "Seihantai na Kimi to Boku T1 Cap 11"
             }
         }
     },
@@ -11790,6 +12100,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/hpr210:b",
                 "link2": "",
                 "title": "Hell's Paradise T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/hp211:8",
+                "link2": "",
+                "title": "Hell's Paradise T2 Cap 11"
             }
         }
     },
@@ -11860,62 +12175,62 @@ const players = {
             "1": {
                 "link": "https://drive.google.com/file/d/1GeGpDgKJIHOMEW50ng8mBxSxkJq5cDom/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 1"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 1"
             },
             "2": {
                 "link": "https://drive.google.com/file/d/1qSwRzIZvcLDHXR7fY36pAOg_gdtxUM7C/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 2"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 2"
             },
             "3": {
                 "link": "https://drive.google.com/file/d/1CoNCI3L_nPv2H6gUGso6jjIvdaFG_8bI/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 3"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 3"
             },
             "4": {
                 "link": "https://drive.google.com/file/d/1RwEykti-FlxNtj_2lvjSawjh4lrNYwi_/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 4"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 4"
             },
             "5": {
                 "link": "https://drive.google.com/file/d/17tmJNjgRUWF0cMFssPuadRBo4sM_oBGh/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 5"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 5"
             },
             "6": {
                 "link": "https://drive.google.com/file/d/1dsDhZufAu7YyfO8KfftoWCWUZ_fptxR0/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 6"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 6"
             },
             "7": {
                 "link": "https://drive.google.com/file/d/1BUXfGK6RMbRQiGBds9bWOJXbT-IV21hk/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 7"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 7"
             },
             "8": {
                 "link": "https://drive.google.com/file/d/1iPyCGR-nx7xEbCX_8DrPC2VTfShS08VD/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 8"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 8"
             },
             "9": {
                 "link": "https://drive.google.com/file/d/1nIbJGI-QNnjtQLSlUjlqNApyDwfSbC9-/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 9"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 9"
             },
             "10": {
                 "link": "https://drive.google.com/file/d/11dZ9V5TLhWnxVhKSUib5xNYoHJGxqdlX/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 10"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 10"
             },
             "11": {
                 "link": "https://drive.google.com/file/d/1Wi174ab6GX1Mkq5CWAwwW4n0lOBQqcNU/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 11"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 11"
             },
             "12": {
                 "link": "https://drive.google.com/file/d/1mIlQS0trkV_IbAwEx1CI2ePkR_FhxwKt/preview",
                 "link2": "",
-                "title": "NieR: Automata Ver1.1a T2 Cap 12"
+                "title": "NieR: Automata Ver1.1a Temporada 1 - Parte II Cap 12"
             }
         }
     },
@@ -12447,6 +12762,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/mrmik41:5",
                 "link2": "",
                 "title": "Mairimashita! Iruma-kun T4 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/irut4c2:c",
+                "link2": "",
+                "title": "Mairimashita! Iruma-kun T4 Cap 2"
             }
         }
     },
@@ -14437,6 +14757,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/@yudi:1/tsz210:7",
                 "link2": "",
                 "title": "Trigun Stampede T2 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/ts211:9",
+                "link2": "",
+                "title": "Trigun Stampede T2 Cap 11"
             }
         }
     },
@@ -14491,6 +14816,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/@any:a/oggm110:6",
                 "link2": "",
                 "title": "Roll Over and Die T1 Cap 10"
+            },
+            "11": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/og111:e",
+                "link2": "",
+                "title": "Roll Over and Die T1 Cap 11"
             }
         }
     },
@@ -14850,6 +15180,16 @@ const players = {
                 "link": "https://odysee.com/$/embed/osh36:9",
                 "link2": "",
                 "title": "Oshi no Ko T3 Cap 6"
+            },
+            "7": {
+                "link": "https://odysee.com/$/embed/oshi37:e",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 7"
+            },
+            "8": {
+                "link": "https://odysee.com/$/embed/oshi38:1",
+                "link2": "",
+                "title": "Oshi no Ko T3 Cap 8"
             }
         }
     },
@@ -14874,6 +15214,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/rf14:9",
                 "link2": "",
                 "title": "Rooster Fighter T1 Cap 4"
+            },
+            "5": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/pollo15:f",
+                "link2": "",
+                "title": "Rooster Fighter T1 Cap 5"
             }
         }
     },
@@ -15660,6 +16005,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/doro23:c",
                 "link2": "",
                 "title": "Dorohedoro T2 Cap 3"
+            },
+            "4": {
+                "link": "https://odysee.com/$/embed/doro24:7",
+                "link2": "",
+                "title": "Dorohedoro T2 Cap 4"
             }
         }
     },
@@ -15683,6 +16033,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/@any:a/knj11:e",
                 "link2": "",
                 "title": "Rompiendo el hielo T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/knj12:6",
+                "link2": "",
+                "title": "Rompiendo el hielo T1 Cap 2"
             }
         }
     },
@@ -15692,6 +16047,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/se11:c",
                 "link2": "",
                 "title": "Snowball Earth T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/sne12:c",
+                "link2": "",
+                "title": "Snowball Earth T1 Cap 2"
             }
         }
     },
@@ -15701,6 +16061,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/rlkk11:c",
                 "link2": "",
                 "title": "Rilakkuma T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/rlkk12:5",
+                "link2": "",
+                "title": "Rilakkuma T1 Cap 2"
             }
         }
     },
@@ -15710,6 +16075,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/@yudi:1/dots11:e",
                 "link2": "",
                 "title": "Daemons of the Shadow Realm T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/demons21:2",
+                "link2": "",
+                "title": "Daemons of the Shadow Realm T1 Cap 2"
             }
         }
     },
@@ -15719,6 +16089,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/npps11:9",
                 "link2": "",
                 "title": "Nippon Sangoku: Las tres naciones del sol carmesí T1 Cap 1"
+            },
+            "2": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/nps12:2",
+                "link2": "",
+                "title": "Nippon Sangoku: Las tres naciones del sol carmesí T1 Cap 2"
             }
         }
     },
@@ -15733,6 +16108,11 @@ const players = {
                 "link": "https://odysee.com/$/embed/wha12:3",
                 "link2": "",
                 "title": "Witch Hat Atelier T1 Cap 2"
+            },
+            "3": {
+                "link": "https://odysee.com/$/embed/@Leomord:6/awh13:8",
+                "link2": "",
+                "title": "Witch Hat Atelier T1 Cap 3"
             }
         }
     },
@@ -15871,6 +16251,188 @@ const players = {
                 "link": "https://odysee.com/$/embed/caja25:b",
                 "link2": "https://drive.google.com/file/d/1aj0_1PoD9tF5IQOeikD454Y33qwP7uOj/preview",
                 "title": "Blue Box T1 Cap 25"
+            }
+        }
+    },
+    "114": {
+        "1": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/14NoLEppytULPfI_f73Ole17ca9NBJyXq/preview",
+                "title": "The Boys T1 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1EJaHm9BNjoZS81234sHYauchMJ1JqBRn/preview",
+                "title": "The Boys T1 Cap 2"
+            },
+            "3": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1rCsQDySIul6qhthuLYAvMz0VlSGcUE3w/preview",
+                "title": "The Boys T1 Cap 3"
+            },
+            "4": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1wPLwZ-lLVqymviJVYJ2vb-Fyu-VThXj8/preview",
+                "title": "The Boys T1 Cap 4"
+            },
+            "5": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1zjGTQ5QJglzlCCcWCx4ekKS6UO9e_7H8/preview",
+                "title": "The Boys T1 Cap 5"
+            },
+            "6": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1Nyut4DwW9ek46JSFUIMTr8Mk6TzKHeT7/preview",
+                "title": "The Boys T1 Cap 6"
+            },
+            "7": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/11kHXhwk1PJUexwFHT1H9ngL-j5rO2fDt/preview",
+                "title": "The Boys T1 Cap 7"
+            },
+            "8": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1ecKl7TTrZt4IB4HoMgEOBZs7GzQUA8CT/preview",
+                "title": "The Boys T1 Cap 8"
+            }
+        },
+        "2": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1D7nsWaSVN7az125MyhwuYbil9DIs4Kqo/preview",
+                "title": "The Boys T2 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1XDJNVbHbIepmoHUnYCP1AULYig-B_QHT/preview",
+                "title": "The Boys T2 Cap 2"
+            },
+            "3": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1olYqSTQqI6-zUyKC-7EmjrLzg-Fa3Lx_/preview",
+                "title": "The Boys T2 Cap 3"
+            },
+            "4": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1JjJaq9DHKfhiZTicomATd0memrpR_jfH/preview",
+                "title": "The Boys T2 Cap 4"
+            },
+            "5": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/112LALC6Lqe3Fq289Pog5lWUSQL6A8MwZ/preview",
+                "title": "The Boys T2 Cap 5"
+            },
+            "6": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1h-EarXpF174WgAJOzXPBqAT3tnA5rTl0/preview",
+                "title": "The Boys T2 Cap 6"
+            },
+            "7": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1dxfantMoVudUfS2UhQreJy8V1rKh4-sP/preview",
+                "title": "The Boys T2 Cap 7"
+            },
+            "8": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1IkzcoVsYlKuE7HLdBV-RUk5g6PDpEiZ9/preview",
+                "title": "The Boys T2 Cap 8"
+            }
+        },
+        "3": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/10mMwW7Bv1V01lrszZ9Y6pjwLbPK5aC-Z/preview",
+                "title": "The Boys T3 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1r596kHDCAkoRGEd514haIwXvs86_Qytn/preview",
+                "title": "The Boys T3 Cap 2"
+            },
+            "3": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1lCAOXizAV_fSOlQWD5Ia3fqEyZv0YoqY/preview",
+                "title": "The Boys T3 Cap 3"
+            },
+            "4": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1v8oEeWx8iP5zp3lPxbDKipjCiLLGsJlJ/preview",
+                "title": "The Boys T3 Cap 4"
+            },
+            "5": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1x-8smOgc0ZGHzEkCp9ymkPfyVmZQIG-L/preview",
+                "title": "The Boys T3 Cap 5"
+            },
+            "6": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1FyjHPzEFZpO_agES4iVbkEawniL4GMRy/preview",
+                "title": "The Boys T3 Cap 6"
+            },
+            "7": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1wW-BUwZjVFap5d9WSJdphLKK18L9akVn/preview",
+                "title": "The Boys T3 Cap 7"
+            },
+            "8": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/122qAXE95UaSiL4diGOByP80cVz4qtdn2/preview",
+                "title": "The Boys T3 Cap 8"
+            }
+        },
+        "4": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1oKuKArbJ-30Lk9M_AGWnB6GJWsK68Hch/preview",
+                "title": "The Boys T4 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1EkHx1zCQuXk5CHhazJmOsBnok90bCC6c/preview",
+                "title": "The Boys T4 Cap 2"
+            },
+            "3": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1SAUZi0Np0gmBVrL3pnQdNJzRqfQxWjuO/preview",
+                "title": "The Boys T4 Cap 3"
+            },
+            "4": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1k__uf05GDE6Tb78E38HZcyUldGJc2tjs/preview",
+                "title": "The Boys T4 Cap 4"
+            },
+            "5": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1oKOcCHfTZr8G8B0Z5cOoUPCg_Q2YcOBm/preview",
+                "title": "The Boys T4 Cap 5"
+            },
+            "6": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/105DReCbk_9t2RZOkeuBUhPC-fK0wb9UU/preview",
+                "title": "The Boys T4 Cap 6"
+            },
+            "7": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1l_czC31eUE4QkAtF9kNTwEuDVr8_ZqVR/preview",
+                "title": "The Boys T4 Cap 7"
+            },
+            "8": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1XFIalvkvUd771DoJFItOXh0f-nT-VbJS/preview",
+                "title": "The Boys T4 Cap 8"
+            }
+        },
+        "5": {
+            "1": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1HRjZgKvMUpMaZzqgYuvW8H3wioer4eVl/preview",
+                "title": "The Boys T5 Cap 1"
+            },
+            "2": {
+                "link": "",
+                "link2": "https://drive.google.com/file/d/1UuVDB885FROLd_elWfRZv7sjjvINCx9Z/preview",
+                "title": "The Boys T5 Cap 2"
             }
         }
     }
