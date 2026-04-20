@@ -498,7 +498,7 @@
       will-change: transform;
     }
     .star.disabled {
-      cursor: not-allowed;
+      cursor: pointer; /* Permitir clic para abrir modal */
       opacity: 0.5;
     }
     #ratingMessage {
@@ -836,19 +836,27 @@
     </div>
     <div class="auth-providers">
       <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
+      <div class="provider-btn" onclick="loginWithGitHub()"><i class="fab fa-github"></i> Continuar con GitHub</div>
     </div>
     <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
   </div>
 </div>
 
+<!-- Firebase y dependencias -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<!-- Configuración de Firebase y Auth (app-core.js) -->
+<script src="app-core.js"></script>
 
+<!-- Anuncios -->
 <script src="anuncios_index.js"></script>
+
+<!-- Core de detalle de anime -->
 <script src="anime-detail-core.js?v=20250406"></script>
+
+<!-- GIFs aleatorios -->
 <script src="gifs.js"></script>
 
 <script>
@@ -873,7 +881,7 @@
     if (e.target === this) closeAuthModal();
   });
 
-  // Fallback para funciones de autenticación si app-core no las define
+  // Fallback para funciones de autenticación (por si app-core no las definió)
   if (typeof window.showAuthModal !== 'function') {
     window.showAuthModal = function() {
       document.getElementById('authModal').classList.add('show');
