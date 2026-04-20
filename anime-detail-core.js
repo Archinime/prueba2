@@ -1,11 +1,24 @@
 // anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
-// CORREGIDO: Usa la instancia de Firebase ya inicializada por app-core.js
 // Obtiene datos desde la colección 'catalogo'
+// MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
+// CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
+// NUEVO: Música cargada desde Firestore (campo "music")
+// MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
 
-// ---------- REFERENCIAS A FIREBASE (YA INICIALIZADO) ----------
-// app-core.js ha definido window.db y window.auth
-const db = window.db || firebase.firestore();
-const auth = window.auth || firebase.auth();
+// ---------- CONFIGURACIÓN FIREBASE ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+  authDomain: "login-admin-archinime.firebaseapp.com",
+  projectId: "login-admin-archinime",
+  storageBucket: "login-admin-archinime.firebasestorage.app",
+  messagingSenderId: "938164660242",
+  appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 // ---------- ANUNCIOS (INTEGRACIÓN EN RECOMENDACIONES) ----------
 let anuncioActual = null;
@@ -15,9 +28,9 @@ function inicializarAnuncio() {
   if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
     const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
     anuncioActual = window.listaAnuncios[randomIndex];
-    console.log('✅ Anuncio cargado en detalle:', anuncioActual.id);
+    console.log('Anuncio cargado en detalle:', anuncioActual.id);
   } else {
-    console.warn('⚠️ No hay anuncios definidos en anuncios_index.js');
+    console.warn('No hay anuncios definidos en anuncios_index.js');
   }
 }
 
@@ -29,6 +42,7 @@ function crearTarjetaAnuncio() {
   card.className = 'rec-card card-ad';
   card.style.cursor = 'default';
   
+  // Contenedor interno que ocupará todo el espacio
   const innerDiv = document.createElement('div');
   innerDiv.style.width = '100%';
   innerDiv.style.height = '100%';
@@ -38,8 +52,10 @@ function crearTarjetaAnuncio() {
   innerDiv.style.overflow = 'hidden';
   innerDiv.style.position = 'relative';
   
+  // Insertar el código del anuncio
   innerDiv.innerHTML = anuncioActual.codigo;
   
+  // Re-ejecutar scripts si los hay
   innerDiv.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script');
     if (oldScript.src) {
@@ -87,9 +103,9 @@ window._playUISound = function(type) {
 };
 window.playUISound = window._playUISound;
 
-// ---------- MÚSICA DE FONDO ----------
+// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) CON AUTOPLAY MEJORADO ----------
 let currentAudio = null, playlist = [], currentTrackIndex = -1;
-let userInteractedDetail = false;
+let userInteractedDetail = false;  // Bandera para saber si ya hubo interacción
 
 function playTrack(idx) {
   if (!playlist.length) return;
@@ -97,6 +113,7 @@ function playTrack(idx) {
     currentAudio.pause(); 
     currentAudio.onended = null; 
   }
+  // Construir URL completa si es ruta relativa
   let track = playlist[idx];
   const fullUrl = track.startsWith('http') ? track : `musica/${track}`;
   currentAudio = new Audio(fullUrl);
@@ -107,15 +124,18 @@ function playTrack(idx) {
     playTrack(currentTrackIndex);
   };
 
+  // Intentar reproducción automática inmediata
   const playPromise = currentAudio.play();
   if (playPromise !== undefined) {
     playPromise.catch(e => {
       console.log('Autoplay bloqueado en anime-detail, esperando interacción:', e);
+      // Si aún no se ha configurado el listener de interacción, lo hacemos
       if (!userInteractedDetail) {
         const resumeOnce = () => {
           if (!userInteractedDetail) {
             userInteractedDetail = true;
-            currentAudio.play().catch(err => console.warn('No se pudo reproducir:', err));
+            currentAudio.play().catch(err => console.warn('No se pudo reproducir después de interacción:', err));
+            // Limpiar listeners
             ['click', 'touchstart', 'keydown'].forEach(evt => {
               document.removeEventListener(evt, resumeOnce, { once: true });
             });
@@ -136,6 +156,21 @@ function playMusicFromArray(musicArray) {
   playTrack(currentTrackIndex);
 }
 
+// Función de compatibilidad (llamada desde renderMainContent)
+function playMusicForAnime(animeId) {
+  // Intentar obtener desde sessionStorage (guardado en renderMainContent)
+  let musicArray = [];
+  try {
+    const stored = sessionStorage.getItem('musicList');
+    if (stored) musicArray = JSON.parse(stored);
+  } catch (e) {}
+  
+  if (musicArray.length) {
+    playMusicFromArray(musicArray);
+  }
+  // Si no hay en sessionStorage, no se reproduce
+}
+
 // ---------- ESTADO GLOBAL ----------
 let currentUserId = null;
 let currentAnimeId = null;
@@ -146,7 +181,8 @@ const params = new URLSearchParams(location.search);
 const animeId = params.get('id');
 currentAnimeId = animeId;
 
-let searchCache = [];
+// Cache para búsqueda rápida
+let searchCache = []; // { id, title, img, aliases }
 
 // ---------- TOAST ----------
 function showToast(msg, isError = false) {
@@ -157,7 +193,7 @@ function showToast(msg, isError = false) {
   setTimeout(() => toast.style.display = 'none', 3000);
 }
 
-// ---------- HISTORIAL ----------
+// ---------- HISTORIAL DE VISUALIZACIÓN ----------
 function getLocalKey(animeId, s, e) { return `watched_${animeId}_${s}_${e}`; }
 async function markEpisodeWatched(animeId, s, e) {
   if (currentUserId) {
@@ -280,7 +316,7 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES ----------
+// ---------- VOTACIONES (SIN VOTO BASE Y CON TOGGLE CORREGIDO) ----------
 async function loadAnimeRating(animeId) {
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
@@ -328,10 +364,13 @@ function renderStars(currentValue = 0) {
     star.className = 'fas fa-star star';
     if (currentValue >= i) star.classList.add('selected');
     star.setAttribute('data-value', i);
-    // Siempre permitir clic (el modal se abre si no hay sesión)
-    star.addEventListener('mouseenter', () => highlightStars(i));
-    star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
-    star.addEventListener('click', () => voteAnime(i));
+    if (!currentUserId) {
+      star.classList.add('disabled');
+    } else {
+      star.addEventListener('mouseenter', () => highlightStars(i));
+      star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
+      star.addEventListener('click', () => voteAnime(i));
+    }
     container.appendChild(star);
   }
 }
@@ -351,11 +390,7 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    if (typeof window.showAuthModal === 'function') {
-      window.showAuthModal();
-    } else {
-      alert('Inicia sesión para votar');
-    }
+    document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
     return;
   }
   const ratingRef = db.collection('animeRatings').doc(String(currentAnimeId));
@@ -401,14 +436,25 @@ async function voteAnime(newVal) {
       }
       
       if (newCount === 0) {
-        t.set(ratingRef, { avg: 0, count: 0, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        t.set(ratingRef, {
+          avg: 0,
+          count: 0,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
         t.delete(userRef);
         animeRatingData = { avg: 0, count: 0 };
         currentUserRating = null;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
       } else {
-        t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        t.set(ratingRef, {
+          avg: newAvg,
+          count: newCount,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        t.set(userRef, {
+          value: newVal,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = newVal;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
@@ -423,9 +469,16 @@ async function voteAnime(newVal) {
         msg.innerHTML = '';
       }
     }, 3000);
+    
   } catch (error) {
-    console.error("Error en voteAnime:", error);
-    document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-times-circle"></i> Error: ${error.message}`;
+    console.error("Error detallado en voteAnime:", error);
+    let errorMsg = "Error al procesar el voto.";
+    if (error.code === "permission-denied") {
+      errorMsg = "Permiso denegado. Revisa las reglas de Firestore o inicia sesión nuevamente.";
+    } else if (error.message) {
+      errorMsg = `Error: ${error.message}`;
+    }
+    document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-times-circle"></i> ${errorMsg}`;
   }
 }
 
@@ -449,6 +502,7 @@ async function renderRecommendations(currentId) {
       .limit(50)
       .get();
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // 11 animes para dejar espacio al banner (total 12)
     const random = docs.sort(() => 0.5 - Math.random()).slice(0, 11);
     
     if (!random.length) {
@@ -462,6 +516,7 @@ async function renderRecommendations(currentId) {
       const minPos = 4;
       const maxPos = random.length - 1;
       adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
+      console.log(`Anuncio en recomendaciones: posición ${adPosition + 1} (índice ${adPosition})`);
     }
 
     const frag = document.createDocumentFragment();
@@ -478,7 +533,10 @@ async function renderRecommendations(currentId) {
       card.className = 'rec-card';
       card.setAttribute('onclick', `playUISound('click'); location.href='anime-detail.html?id=${a.id}'`);
       card.setAttribute('onmouseenter', `playUISound('hover')`);
-      card.innerHTML = `<img src="${a.img}" alt="${a.title}" loading="lazy"><p>${a.title}</p>`;
+      card.innerHTML = `
+        <img src="${a.img}" alt="${a.title}" loading="lazy">
+        <p>${a.title}</p>
+      `;
       frag.appendChild(card);
     }
     grid.innerHTML = '';
@@ -544,6 +602,7 @@ async function renderMainContent() {
     await loadUserRating(animeId, currentUserId);
   }
 
+  // 🎵 Reproducir música desde Firestore (campo "music")
   const musicList = animeData.music || [];
   sessionStorage.setItem('musicList', JSON.stringify(musicList));
   if (musicList.length > 0) {
@@ -559,13 +618,18 @@ async function renderMainContent() {
   });
 }
 
-// ---------- CACHÉ DE BÚSQUEDA ----------
+// ---------- CARGAR CACHÉ DE BÚSQUEDA ----------
 async function loadSearchCache() {
   try {
     const snapshot = await db.collection('catalogo').get();
     searchCache = snapshot.docs.map(doc => {
       const data = doc.data();
-      return { id: doc.id, title: data.title || '', img: data.img || '', aliases: data.aliases || [] };
+      return {
+        id: doc.id,
+        title: data.title || '',
+        img: data.img || '',
+        aliases: data.aliases || []
+      };
     });
     console.log(`📦 Caché de búsqueda cargada: ${searchCache.length} animes`);
   } catch(e) {
@@ -573,6 +637,7 @@ async function loadSearchCache() {
   }
 }
 
+// ---------- BÚSQUEDA RÁPIDA (prefijo + alias, en cliente) ----------
 function initSearch() {
   const searchInput = document.getElementById('quick-search');
   let floatingDropdown = null;
@@ -610,7 +675,9 @@ function initSearch() {
     floatingDropdown.innerHTML = results.map(item => `
       <div class="search-item" data-id="${item.id}">
         <img src="${item.img}" loading="lazy">
-        <div class="search-item-info"><span class="search-item-title">${item.title}</span></div>
+        <div class="search-item-info">
+          <span class="search-item-title">${item.title}</span>
+        </div>
       </div>
     `).join('');
     floatingDropdown.querySelectorAll('.search-item').forEach(el => {
@@ -625,11 +692,13 @@ function initSearch() {
   searchInput.addEventListener('input', function() {
     const q = this.value.trim().toLowerCase();
     if (!q) { hideDropdown(); return; }
+    
     const matches = searchCache.filter(item => {
       if (item.id === currentAnimeId) return false;
       const titlesToCheck = [item.title, ...(item.aliases || [])];
       return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
     }).slice(0, 10);
+    
     showDropdown(matches);
   });
 
@@ -647,35 +716,62 @@ function initSearch() {
   searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input')); });
 }
 
-// ---------- AUTENTICACIÓN ----------
+// ---------- AUTENTICACIÓN (usando ArchinimeState) ----------
 function initAuthListener() {
-  const updateUser = async (user) => {
-    const previousUserId = currentUserId;
-    currentUserId = user ? user.uid : null;
-    if (currentAnimeId && animeData) {
-      if (currentUserId && !previousUserId) await loadUserRating(currentAnimeId, currentUserId);
-      if (!currentUserId && previousUserId) { currentUserRating = null; renderStars(0); }
-      const details = document.querySelectorAll('details');
-      for (let d of details) {
-        if (d.open) {
-          const aid = d.dataset.animeId;
-          const sidx = d.dataset.seasonIndex;
-          if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+  if (window.ArchinimeState) {
+    ArchinimeState.on('currentUser', async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
+      
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
         }
       }
-    }
-  };
-  
-  if (window.ArchinimeState) {
-    ArchinimeState.on('currentUser', updateUser);
+    });
   } else {
-    auth.onAuthStateChanged(updateUser);
+    console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
+    auth.onAuthStateChanged(async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
+      
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
+        }
+      }
+    });
   }
 }
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
-  console.log('🚀 Iniciando anime-detail-core...');
   inicializarAnuncio();
   await loadSearchCache();
   initAuthListener();
@@ -685,15 +781,12 @@ function initAuthListener() {
     return;
   }
   try {
-    console.log(`🔍 Buscando anime ID: ${animeId}`);
     const doc = await db.collection('catalogo').doc(animeId).get();
     if (!doc.exists) {
-      console.warn('❌ Anime no encontrado');
       document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
       return;
     }
     animeData = { id: doc.id, ...doc.data() };
-    console.log('✅ Anime cargado:', animeData.title);
     await renderMainContent();
     initSearch();
     document.getElementById('share-detail')?.addEventListener('click', () => {
@@ -702,7 +795,11 @@ function initAuthListener() {
       showToast('Enlace copiado');
     });
   } catch(e) {
-    console.error('🔥 Error crítico cargando anime:', e);
-    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error: ${e.message}</h2>`;
+    console.error('Error crítico cargando anime:', e);
+    let errorMsg = e.message;
+    if (errorMsg.includes('permission') || errorMsg.includes('Missing or insufficient permissions')) {
+      errorMsg = 'No tienes permisos para ver este anime. Por favor, inicia sesión o contacta al administrador.';
+    }
+    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${errorMsg}</h2>`;
   }
 })();
