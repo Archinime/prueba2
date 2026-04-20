@@ -1,7 +1,12 @@
-// anime-detail-core.js - Versión Firestore optimizada (fluida)
+// anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
 // Obtiene datos desde la colección 'catalogo'
-// OPTIMIZACIONES: requestIdleCallback, IntersectionObserver, debounce, caché local, etc.
-// MANTIENE TODAS LAS FUNCIONALIDADES ORIGINALES
+// MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
+// CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
+// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
+// NUEVO: Música cargada desde Firestore (campo "music")
+// MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
+// MEJORA: Al votar sin sesión se abre el modal de autenticación
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -16,39 +21,42 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ---------- UTILIDADES DE RENDIMIENTO ----------
-const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-const debounce = (fn, delay) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
-
-// ---------- ANUNCIOS ----------
+// ---------- ANUNCIOS (INTEGRACIÓN EN RECOMENDACIONES) ----------
 let anuncioActual = null;
 let cachedAdCard = null;
 
 function inicializarAnuncio() {
-  idleCallback(() => {
-    if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
-      const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
-      anuncioActual = window.listaAnuncios[randomIndex];
-      console.log('Anuncio cargado en detalle:', anuncioActual.id);
-    } else {
-      console.warn('No hay anuncios definidos');
-    }
-  });
+  if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
+    const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
+    anuncioActual = window.listaAnuncios[randomIndex];
+    console.log('Anuncio cargado en detalle:', anuncioActual.id);
+  } else {
+    console.warn('No hay anuncios definidos en anuncios_index.js');
+  }
 }
 
 function crearTarjetaAnuncio() {
-  if (cachedAdCard) return cachedAdCard.cloneNode(true); // devolver clon para evitar reutilización problemática
+  if (cachedAdCard) return cachedAdCard;
   if (!anuncioActual) return null;
   
   const card = document.createElement('div');
   card.className = 'rec-card card-ad';
   card.style.cursor = 'default';
   
+  // Contenedor interno que ocupará todo el espacio
   const innerDiv = document.createElement('div');
-  innerDiv.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;';
+  innerDiv.style.width = '100%';
+  innerDiv.style.height = '100%';
+  innerDiv.style.display = 'flex';
+  innerDiv.style.alignItems = 'center';
+  innerDiv.style.justifyContent = 'center';
+  innerDiv.style.overflow = 'hidden';
+  innerDiv.style.position = 'relative';
+  
+  // Insertar el código del anuncio
   innerDiv.innerHTML = anuncioActual.codigo;
   
-  // Re-ejecutar scripts
+  // Re-ejecutar scripts si los hay
   innerDiv.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script');
     if (oldScript.src) {
@@ -63,7 +71,7 @@ function crearTarjetaAnuncio() {
   
   card.appendChild(innerDiv);
   cachedAdCard = card;
-  return card.cloneNode(true);
+  return card;
 }
 
 // ---------- AUDIO CONTEXT (SONIDOS UI) ----------
@@ -73,10 +81,7 @@ function initAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 window._playUISound = function(type) {
-  if (!audioCtx) {
-    try { initAudio(); } catch(e) { return; }
-  }
-  if (audioCtx.state === 'closed') { audioCtx = null; initAudio(); }
+  initAudio();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
@@ -99,9 +104,9 @@ window._playUISound = function(type) {
 };
 window.playUISound = window._playUISound;
 
-// ---------- MÚSICA DE FONDO ----------
+// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) CON AUTOPLAY MEJORADO ----------
 let currentAudio = null, playlist = [], currentTrackIndex = -1;
-let userInteractedDetail = false;
+let userInteractedDetail = false;  // Bandera para saber si ya hubo interacción
 
 function playTrack(idx) {
   if (!playlist.length) return;
@@ -109,6 +114,7 @@ function playTrack(idx) {
     currentAudio.pause(); 
     currentAudio.onended = null; 
   }
+  // Construir URL completa si es ruta relativa
   let track = playlist[idx];
   const fullUrl = track.startsWith('http') ? track : `musica/${track}`;
   currentAudio = new Audio(fullUrl);
@@ -119,15 +125,18 @@ function playTrack(idx) {
     playTrack(currentTrackIndex);
   };
 
+  // Intentar reproducción automática inmediata
   const playPromise = currentAudio.play();
   if (playPromise !== undefined) {
     playPromise.catch(e => {
       console.log('Autoplay bloqueado en anime-detail, esperando interacción:', e);
+      // Si aún no se ha configurado el listener de interacción, lo hacemos
       if (!userInteractedDetail) {
         const resumeOnce = () => {
           if (!userInteractedDetail) {
             userInteractedDetail = true;
             currentAudio.play().catch(err => console.warn('No se pudo reproducir después de interacción:', err));
+            // Limpiar listeners
             ['click', 'touchstart', 'keydown'].forEach(evt => {
               document.removeEventListener(evt, resumeOnce, { once: true });
             });
@@ -148,6 +157,21 @@ function playMusicFromArray(musicArray) {
   playTrack(currentTrackIndex);
 }
 
+// Función de compatibilidad (llamada desde renderMainContent)
+function playMusicForAnime(animeId) {
+  // Intentar obtener desde sessionStorage (guardado en renderMainContent)
+  let musicArray = [];
+  try {
+    const stored = sessionStorage.getItem('musicList');
+    if (stored) musicArray = JSON.parse(stored);
+  } catch (e) {}
+  
+  if (musicArray.length) {
+    playMusicFromArray(musicArray);
+  }
+  // Si no hay en sessionStorage, no se reproduce
+}
+
 // ---------- ESTADO GLOBAL ----------
 let currentUserId = null;
 let currentAnimeId = null;
@@ -159,21 +183,15 @@ const animeId = params.get('id');
 currentAnimeId = animeId;
 
 // Cache para búsqueda rápida
-let searchCache = [];
-let searchCacheLoaded = false;
+let searchCache = []; // { id, title, img, aliases }
 
 // ---------- TOAST ----------
-let toastEl = null;
 function showToast(msg, isError = false) {
-  if (!toastEl) {
-    toastEl = document.createElement('div');
-    toastEl.id = 'toast';
-    toastEl.className = 'toast';
-    document.body.appendChild(toastEl);
-  }
-  toastEl.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
-  toastEl.style.display = 'block';
-  setTimeout(() => toastEl.style.display = 'none', 3000);
+  let toast = document.getElementById('toast');
+  if (!toast) { toast = document.createElement('div'); toast.id = 'toast'; toast.className = 'toast'; document.body.appendChild(toast); }
+  toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 3000);
 }
 
 // ---------- HISTORIAL DE VISUALIZACIÓN ----------
@@ -251,68 +269,56 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
     return;
   }
   const episodes = season.eps;
+  const total = episodes.length;
   const seasonNum = season.num;
   const watched = await loadWatchedEpisodes(animeId);
-  
-  // Optimización: Usar IntersectionObserver para cargar episodios bajo demanda
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const btn = entry.target;
-        const epNum = parseInt(btn.dataset.ep);
-        const ep = episodes[epNum-1];
-        if (!btn.dataset.loaded) {
-          // Rellenar contenido del botón si aún no está
-          const isWatched = watched[seasonNum]?.includes(epNum);
-          btn.classList.add('ep-btn');
-          if (isWatched) btn.classList.add('watched');
-          btn.innerHTML = `
-            <button class="ep-action-btn">${isWatched ? '<i class="fas fa-trash-alt"></i>' : '<i class="fas fa-check-circle"></i>'}</button>
-            <span>▶ ${ep.title || `Episodio ${epNum}`}</span>
-            ${isWatched ? '<div class="watched-tag"><i class="fas fa-check"></i> VISTO</div>' : ''}
-          `;
-          btn.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
-          btn.onclick = null; // se maneja con href
-          btn.querySelector('.ep-action-btn').onclick = async (e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (isWatched) await removeEpisodeWatched(animeId, seasonNum, epNum);
-            else await markEpisodeWatched(animeId, seasonNum, epNum);
-            await reloadSeason(details, animeId, seasonIdx);
-          };
-          btn.dataset.loaded = 'true';
-        }
-        observer.unobserve(btn);
-      }
-    });
-  }, { rootMargin: '100px' });
+  let processed = 0;
+  const CHUNK = 30;
 
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < episodes.length; i++) {
-    const ep = episodes[i];
-    const epNum = i+1;
-    const btn = document.createElement('a');
-    btn.className = 'ep-btn-placeholder'; // estilo básico mientras carga
-    btn.style.cssText = 'display:block; height:60px; background:rgba(0,0,0,0.2); border-radius:12px;';
-    btn.dataset.ep = epNum;
-    btn.setAttribute('aria-label', `Episodio ${epNum}`);
-    btn.onmouseenter = () => playUISound('hover');
-    frag.appendChild(btn);
-    observer.observe(btn);
+  function chunk() {
+    const frag = document.createDocumentFragment();
+    const end = Math.min(processed+CHUNK, total);
+    for (let i=processed; i<end; i++) {
+      const ep = episodes[i];
+      const epNum = i+1;
+      const isWatched = watched[seasonNum]?.includes(epNum);
+      const btn = document.createElement('a');
+      btn.href = `video-player.html?anime=${animeId}&s=${seasonNum}&e=${epNum}`;
+      btn.className = 'ep-btn' + (isWatched ? ' watched' : '');
+      btn.onmouseenter = () => playUISound('hover');
+      
+      const action = document.createElement('button');
+      action.className = 'ep-action-btn';
+      action.innerHTML = isWatched ? '<i class="fas fa-trash-alt"></i>' : '<i class="fas fa-check-circle"></i>';
+      action.onclick = async (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (isWatched) await removeEpisodeWatched(animeId, seasonNum, epNum);
+        else await markEpisodeWatched(animeId, seasonNum, epNum);
+        await reloadSeason(details, animeId, seasonIdx);
+      };
+      btn.appendChild(action);
+      
+      const span = document.createElement('span');
+      span.textContent = `▶ ${ep.title || `Episodio ${epNum}`}`;
+      btn.appendChild(span);
+      if (isWatched) {
+        const tag = document.createElement('div');
+        tag.className = 'watched-tag';
+        tag.innerHTML = '<i class="fas fa-check"></i> VISTO';
+        btn.appendChild(tag);
+      }
+      frag.appendChild(btn);
+    }
+    list.appendChild(frag);
+    processed += CHUNK;
+    if (processed < total) requestAnimationFrame(chunk);
+    else if (loading) loading.style.display = 'none';
   }
-  list.appendChild(frag);
-  if (loading) loading.style.display = 'none';
+  requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES ----------
+// ---------- VOTACIONES (SIN VOTO BASE Y CON TOGGLE CORREGIDO) ----------
 async function loadAnimeRating(animeId) {
-  const cacheKey = `rating_${animeId}`;
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    animeRatingData = JSON.parse(cached);
-    updateRatingDisplay();
-    updateRatingLabel(animeRatingData.avg);
-    return;
-  }
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
     if (doc.exists) {
@@ -320,7 +326,6 @@ async function loadAnimeRating(animeId) {
     } else {
       animeRatingData = { avg: 0, count: 0 };
     }
-    sessionStorage.setItem(cacheKey, JSON.stringify(animeRatingData));
     updateRatingDisplay();
     updateRatingLabel(animeRatingData.avg);
   } catch (error) {
@@ -351,11 +356,10 @@ function updateRatingLabel(avg) {
   labelSpan.style.color = color;
 }
 
-let starContainer = null;
 function renderStars(currentValue = 0) {
-  if (!starContainer) starContainer = document.getElementById('starRatingWidget');
-  if (!starContainer) return;
-  starContainer.innerHTML = '';
+  const container = document.getElementById('starRatingWidget');
+  if (!container) return;
+  container.innerHTML = '';
   for (let i=1; i<=5; i++) {
     const star = document.createElement('i');
     star.className = 'fas fa-star star';
@@ -368,7 +372,7 @@ function renderStars(currentValue = 0) {
       star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
       star.addEventListener('click', () => voteAnime(i));
     }
-    starContainer.appendChild(star);
+    container.appendChild(star);
   }
 }
 
@@ -387,7 +391,13 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
+    // Abrir modal de autenticación en lugar de solo mostrar mensaje
+    if (typeof window.showAuthModal === 'function') {
+      window.showAuthModal();
+    } else {
+      // Fallback por si app-core no está cargado
+      alert('Inicia sesión para votar');
+    }
     return;
   }
   const ratingRef = db.collection('animeRatings').doc(String(currentAnimeId));
@@ -458,7 +468,6 @@ async function voteAnime(newVal) {
       }
     });
     
-    sessionStorage.setItem(`rating_${currentAnimeId}`, JSON.stringify(animeRatingData));
     updateRatingDisplay();
     renderStars(currentUserRating || 0);
     setTimeout(() => {
@@ -469,10 +478,13 @@ async function voteAnime(newVal) {
     }, 3000);
     
   } catch (error) {
-    console.error("Error en voteAnime:", error);
+    console.error("Error detallado en voteAnime:", error);
     let errorMsg = "Error al procesar el voto.";
-    if (error.code === "permission-denied") errorMsg = "Permiso denegado.";
-    else if (error.message) errorMsg = `Error: ${error.message}`;
+    if (error.code === "permission-denied") {
+      errorMsg = "Permiso denegado. Revisa las reglas de Firestore o inicia sesión nuevamente.";
+    } else if (error.message) {
+      errorMsg = `Error: ${error.message}`;
+    }
     document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-times-circle"></i> ${errorMsg}`;
   }
 }
@@ -497,6 +509,7 @@ async function renderRecommendations(currentId) {
       .limit(50)
       .get();
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // 11 animes para dejar espacio al banner (total 12)
     const random = docs.sort(() => 0.5 - Math.random()).slice(0, 11);
     
     if (!random.length) {
@@ -507,22 +520,30 @@ async function renderRecommendations(currentId) {
     const shouldInsertAd = anuncioActual !== null && random.length >= 5;
     let adPosition = -1;
     if (shouldInsertAd) {
-      const minPos = 4, maxPos = random.length - 1;
+      const minPos = 4;
+      const maxPos = random.length - 1;
       adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
+      console.log(`Anuncio en recomendaciones: posición ${adPosition + 1} (índice ${adPosition})`);
     }
 
     const frag = document.createDocumentFragment();
     for (let i = 0; i < random.length; i++) {
       if (shouldInsertAd && i === adPosition) {
         const adCard = crearTarjetaAnuncio();
-        if (adCard) frag.appendChild(adCard);
+        if (adCard) {
+          if (adCard.parentNode) adCard.remove();
+          frag.appendChild(adCard.cloneNode(true));
+        }
       }
       const a = random[i];
       const card = document.createElement('div');
       card.className = 'rec-card';
       card.setAttribute('onclick', `playUISound('click'); location.href='anime-detail.html?id=${a.id}'`);
       card.setAttribute('onmouseenter', `playUISound('hover')`);
-      card.innerHTML = `<img src="${a.img}" alt="${a.title}" loading="lazy"><p>${a.title}</p>`;
+      card.innerHTML = `
+        <img src="${a.img}" alt="${a.title}" loading="lazy">
+        <p>${a.title}</p>
+      `;
       frag.appendChild(card);
     }
     grid.innerHTML = '';
@@ -579,20 +600,19 @@ async function renderMainContent() {
     });
   }
   container.innerHTML = html;
-  starContainer = document.getElementById('starRatingWidget');
 
-  // Cargar datos en paralelo
-  await Promise.all([
-    renderRecommendations(animeId),
-    loadAnimeRating(animeId),
-    currentUserId ? loadUserRating(animeId, currentUserId) : Promise.resolve()
-  ]);
-  renderStars(currentUserRating || 0);
+  renderStars(0);
+  await renderRecommendations(animeId);
+  await loadAnimeRating(animeId);
+  
+  if (currentUserId) {
+    await loadUserRating(animeId, currentUserId);
+  }
 
-  // Música
+  // 🎵 Reproducir música desde Firestore
   const musicList = animeData.music || [];
-  if (musicList.length) {
-    sessionStorage.setItem('musicList', JSON.stringify(musicList));
+  sessionStorage.setItem('musicList', JSON.stringify(musicList));
+  if (musicList.length > 0) {
     playMusicFromArray(musicList);
   }
 
@@ -607,7 +627,6 @@ async function renderMainContent() {
 
 // ---------- CARGAR CACHÉ DE BÚSQUEDA ----------
 async function loadSearchCache() {
-  if (searchCacheLoaded) return;
   try {
     const snapshot = await db.collection('catalogo').get();
     searchCache = snapshot.docs.map(doc => {
@@ -619,19 +638,17 @@ async function loadSearchCache() {
         aliases: data.aliases || []
       };
     });
-    searchCacheLoaded = true;
-    console.log(`📦 Caché de búsqueda: ${searchCache.length} animes`);
+    console.log(`📦 Caché de búsqueda cargada: ${searchCache.length} animes`);
   } catch(e) {
     console.error('Error cargando caché de búsqueda:', e);
   }
 }
 
-// ---------- BÚSQUEDA RÁPIDA OPTIMIZADA ----------
+// ---------- BÚSQUEDA RÁPIDA (prefijo + alias, en cliente) ----------
 function initSearch() {
   const searchInput = document.getElementById('quick-search');
   let floatingDropdown = null;
   let isScrolling = false;
-  let currentQuery = '';
 
   function createFloatingDropdown() {
     if (floatingDropdown) floatingDropdown.remove();
@@ -640,7 +657,6 @@ function initSearch() {
     document.body.appendChild(floatingDropdown);
     return floatingDropdown;
   }
-
   function updateDropdownPosition() {
     if (!floatingDropdown || floatingDropdown.style.display === 'none') return;
     const rect = searchInput.getBoundingClientRect();
@@ -655,30 +671,20 @@ function initSearch() {
     if (window.innerWidth <= 768) {
       floatingDropdown.style.width = '90%';
       floatingDropdown.style.left = '5%';
+      floatingDropdown.style.right = '5%';
     } else {
       floatingDropdown.style.width = rect.width + 'px';
     }
   }
-
-  const performSearch = debounce(() => {
-    const q = currentQuery;
-    if (!q) { if (floatingDropdown) floatingDropdown.style.display = 'none'; return; }
-    
-    const matches = searchCache.filter(item => {
-      if (item.id === currentAnimeId) return false;
-      const titlesToCheck = [item.title, ...(item.aliases || [])];
-      return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
-    }).slice(0, 10);
-    
+  function showDropdown(results) {
     if (!floatingDropdown) createFloatingDropdown();
-    if (!matches.length) {
-      floatingDropdown.style.display = 'none';
-      return;
-    }
-    floatingDropdown.innerHTML = matches.map(item => `
+    if (!results.length) { floatingDropdown.style.display = 'none'; return; }
+    floatingDropdown.innerHTML = results.map(item => `
       <div class="search-item" data-id="${item.id}">
         <img src="${item.img}" loading="lazy">
-        <div class="search-item-info"><span class="search-item-title">${item.title}</span></div>
+        <div class="search-item-info">
+          <span class="search-item-title">${item.title}</span>
+        </div>
       </div>
     `).join('');
     floatingDropdown.querySelectorAll('.search-item').forEach(el => {
@@ -687,11 +693,20 @@ function initSearch() {
     });
     updateDropdownPosition();
     floatingDropdown.style.display = 'block';
-  }, 200);
+  }
+  function hideDropdown() { if (floatingDropdown) floatingDropdown.style.display = 'none'; }
 
   searchInput.addEventListener('input', function() {
-    currentQuery = this.value.trim().toLowerCase();
-    performSearch();
+    const q = this.value.trim().toLowerCase();
+    if (!q) { hideDropdown(); return; }
+    
+    const matches = searchCache.filter(item => {
+      if (item.id === currentAnimeId) return false;
+      const titlesToCheck = [item.title, ...(item.aliases || [])];
+      return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
+    }).slice(0, 10);
+    
+    showDropdown(matches);
   });
 
   const scrollHandler = () => {
@@ -703,51 +718,69 @@ function initSearch() {
   window.addEventListener('resize', scrollHandler, { passive: true });
   window.addEventListener('scroll', scrollHandler, { passive: true });
   document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !floatingDropdown?.contains(e.target)) {
-      if (floatingDropdown) floatingDropdown.style.display = 'none';
-    }
+    if (!searchInput.contains(e.target) && !floatingDropdown?.contains(e.target)) hideDropdown();
   });
-  searchInput.addEventListener('focus', () => { if (currentQuery) performSearch(); });
+  searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) searchInput.dispatchEvent(new Event('input')); });
 }
 
-// ---------- AUTENTICACIÓN ----------
+// ---------- AUTENTICACIÓN (usando ArchinimeState) ----------
 function initAuthListener() {
-  const handleUser = async (user) => {
-    const previousUserId = currentUserId;
-    currentUserId = user ? user.uid : null;
-    
-    if (currentAnimeId && animeData) {
-      if (currentUserId && !previousUserId) {
-        await loadUserRating(currentAnimeId, currentUserId);
-      }
-      if (!currentUserId && previousUserId) {
-        currentUserRating = null;
-        renderStars(0);
-      }
+  if (window.ArchinimeState) {
+    ArchinimeState.on('currentUser', async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
       
-      const details = document.querySelectorAll('details');
-      for (let d of details) {
-        if (d.open) {
-          const aid = d.dataset.animeId;
-          const sidx = d.dataset.seasonIndex;
-          if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
         }
       }
-    }
-  };
-
-  if (window.ArchinimeState) {
-    ArchinimeState.on('currentUser', handleUser);
+    });
   } else {
-    auth.onAuthStateChanged(handleUser);
+    console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
+    auth.onAuthStateChanged(async (user) => {
+      const previousUserId = currentUserId;
+      currentUserId = user ? user.uid : null;
+      
+      if (currentAnimeId && animeData) {
+        if (currentUserId && !previousUserId) {
+          await loadUserRating(currentAnimeId, currentUserId);
+        }
+        if (!currentUserId && previousUserId) {
+          currentUserRating = null;
+          renderStars(0);
+        }
+        
+        const details = document.querySelectorAll('details');
+        for (let d of details) {
+          if (d.open) {
+            const aid = d.dataset.animeId;
+            const sidx = d.dataset.seasonIndex;
+            if (aid && sidx) await reloadSeason(d, aid, parseInt(sidx));
+          }
+        }
+      }
+    });
   }
 }
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
-  // Carga temprana del caché de búsqueda en idle
-  idleCallback(() => loadSearchCache());
   inicializarAnuncio();
+  await loadSearchCache();
   initAuthListener();
 
   if (!animeId) {
@@ -772,7 +805,7 @@ function initAuthListener() {
     console.error('Error crítico cargando anime:', e);
     let errorMsg = e.message;
     if (errorMsg.includes('permission') || errorMsg.includes('Missing or insufficient permissions')) {
-      errorMsg = 'No tienes permisos para ver este anime.';
+      errorMsg = 'No tienes permisos para ver este anime. Por favor, inicia sesión o contacta al administrador.';
     }
     document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${errorMsg}</h2>`;
   }

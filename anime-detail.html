@@ -630,7 +630,6 @@
       display: flex;
       flex-direction: column;
       aspect-ratio: 2/3;
-      /* Proporción fija como en index */
       width: 100%;
       will-change: transform;
     }
@@ -646,7 +645,7 @@
       flex-shrink: 0;
     }
     .rec-card p {
-      padding: 25px 8px 8px; /* Ajustado superior para el efecto del degradado */
+      padding: 25px 8px 8px;
       margin: 0;
       text-align: center;
       font-size: 0.8rem;
@@ -655,14 +654,13 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%); /* Sombra degradada */
+      background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
       flex-shrink: 0;
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
     }
-    /* Ajuste para que el texto no tape la imagen completamente */
     .rec-card {
       position: relative;
     }
@@ -685,7 +683,6 @@
       align-items: center !important;
       justify-content: center !important;
       overflow: hidden !important;
-      /* Recorta el contenido que sobresalga */
       position: relative;
     }
     .rec-card.card-ad iframe,
@@ -694,9 +691,8 @@
       width: 100% !important;
       height: 100% !important;
       border: none;
-      object-fit: cover;            /* Ajusta sin deformar */
+      object-fit: cover;
     }
-    /* Asegurar que el contenedor del anuncio no tenga padding/margen extra */
     .rec-card.card-ad [id^="container-"] {
       display: flex !important;
       align-items: center !important;
@@ -720,6 +716,59 @@
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 0 12px rgba(0,243,255,0.15);
     }
+
+    /* ===== MODAL DE AUTENTICACIÓN ===== */
+    .auth-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px); z-index: 100001;
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px;
+    }
+    .auth-modal.show { opacity: 1; pointer-events: auto; }
+    .auth-card {
+      background: rgba(15, 15, 19, 0.95); border: 1px solid var(--neon-purple);
+      border-radius: 28px; width: 100%; max-width: 440px; padding: 35px;
+      position: relative; transform: scale(0.96); transition: transform 0.3s;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.9); display: flex; flex-direction: column;
+    }
+    .auth-modal.show .auth-card { transform: scale(1); }
+    .auth-close {
+      position: absolute; top: 15px; right: 15px; width: 36px; height: 36px;
+      background: rgba(255,255,255,0.05); border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer;
+      color: #aaa; transition: 0.2s; border: 1px solid transparent; z-index: 10;
+    }
+    .auth-close:hover { color: white; background: var(--neon-pink); border-color: var(--neon-pink); transform: rotate(90deg); }
+    .auth-tabs {
+      display: flex; justify-content: space-around; gap: 10px; margin-bottom: 25px;
+      border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%;
+    }
+    .auth-tab {
+      padding: 12px 15px; cursor: pointer; font-weight: 800; color: #aaa;
+      border-bottom: 2px solid transparent; transition: 0.2s; font-size: 1.1rem;
+      flex-grow: 1; text-align: center;
+    }
+    .auth-tab.active { color: var(--neon-cyan); border-bottom-color: var(--neon-cyan); }
+    .auth-form { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+    .auth-form input {
+      width: 100%; background: #181920; border: 1px solid #2a2b35; padding: 14px;
+      border-radius: 16px; color: white; font-size: 1rem; transition: 0.2s;
+    }
+    .auth-form input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 12px rgba(0,243,255,0.2); }
+    .auth-form button {
+      width: 100%; background: linear-gradient(135deg, var(--neon-cyan), #0066ff);
+      color: #000; border: none; padding: 14px; border-radius: 40px; font-weight: 900;
+      cursor: pointer; transition: 0.2s; font-size: 1rem;
+    }
+    .auth-form button:hover { background: var(--neon-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,243,255,0.3); }
+    .auth-providers { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; width: 100%; }
+    .provider-btn {
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px; border-radius: 40px; display: flex; align-items: center; justify-content: center;
+      gap: 12px; cursor: pointer; transition: 0.2s; color: white; font-weight: 600;
+    }
+    .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
   </style>
 </head>
 <body>
@@ -766,6 +815,32 @@
 
 <div id="toast" class="toast">Enlace copiado</div>
 
+<!-- ========== MODAL DE AUTENTICACIÓN ========== -->
+<div id="authModal" class="auth-modal">
+  <div class="auth-card">
+    <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
+      <div class="auth-tab" data-tab="register">Registrarse</div>
+    </div>
+    <div id="authLoginForm" class="auth-form">
+      <input type="email" id="loginEmail" placeholder="Correo electrónico">
+      <input type="password" id="loginPassword" placeholder="Contraseña">
+      <button onclick="loginWithEmail()">Iniciar sesión</button>
+    </div>
+    <div id="authRegisterForm" class="auth-form" style="display:none;">
+      <input type="email" id="registerEmail" placeholder="Correo electrónico">
+      <input type="password" id="registerPassword" placeholder="Contraseña">
+      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
+      <button onclick="registerWithEmail()">Registrarse</button>
+    </div>
+    <div class="auth-providers">
+      <div class="provider-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Continuar con Google</div>
+    </div>
+    <div id="authError" class="auth-error" style="color: var(--neon-pink); text-align: center; margin-top: 15px; font-size: 0.9rem;"></div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -774,11 +849,44 @@
 
 <script src="anuncios_index.js"></script>
 <script src="anime-detail-core.js?v=20250406"></script>
-
 <script src="gifs.js"></script>
 
 <script>
-  // Lógica para cargar el GIF aleatorio antes de iniciar el progreso
+  // Lógica de pestañas del modal de autenticación
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.getAttribute('data-tab');
+      if (target === 'login') {
+        document.getElementById('authLoginForm').style.display = 'flex';
+        document.getElementById('authRegisterForm').style.display = 'none';
+      } else {
+        document.getElementById('authLoginForm').style.display = 'none';
+        document.getElementById('authRegisterForm').style.display = 'flex';
+      }
+    });
+  });
+
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('authModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAuthModal();
+  });
+
+  // Fallback para funciones de autenticación si app-core no las define
+  if (typeof window.showAuthModal !== 'function') {
+    window.showAuthModal = function() {
+      document.getElementById('authModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    };
+    window.closeAuthModal = function() {
+      document.getElementById('authModal').classList.remove('show');
+      document.body.style.overflow = '';
+      document.getElementById('authError').innerText = '';
+    };
+  }
+
+  // Cargar GIF aleatorio
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
