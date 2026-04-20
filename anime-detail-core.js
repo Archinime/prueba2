@@ -6,6 +6,7 @@
 // NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
 // NUEVO: Música cargada desde Firestore (campo "music")
 // MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
+// MEJORA: Mensaje de inicio de sesión al intentar votar sin cuenta
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -364,13 +365,12 @@ function renderStars(currentValue = 0) {
     star.className = 'fas fa-star star';
     if (currentValue >= i) star.classList.add('selected');
     star.setAttribute('data-value', i);
-    if (!currentUserId) {
-      star.classList.add('disabled');
-    } else {
-      star.addEventListener('mouseenter', () => highlightStars(i));
-      star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
-      star.addEventListener('click', () => voteAnime(i));
-    }
+    
+    // Siempre añadimos los eventos, incluso sin sesión, para poder mostrar el mensaje
+    star.addEventListener('mouseenter', () => highlightStars(i));
+    star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
+    star.addEventListener('click', () => voteAnime(i));
+    
     container.appendChild(star);
   }
 }
@@ -390,7 +390,10 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
+    // Mensaje claro para el usuario sin cuenta
+    const msg = 'Tienes que iniciar sesión para votar.';
+    showToast('🔐 ' + msg, true);
+    document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
     return;
   }
   const ratingRef = db.collection('animeRatings').doc(String(currentAnimeId));
