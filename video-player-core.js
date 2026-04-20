@@ -1,5 +1,7 @@
 // video-player-core.js - Versión Firestore + Estado central
 // Obtiene los enlaces desde la colección 'catalogo'
+// MEJORA: Restricción de descarga solo para usuarios autenticados
+// OPTIMIZACIÓN: Carga diferida de sistemas externos, validaciones mejoradas
 
 class VideoPlayer {
   constructor() {
@@ -12,7 +14,9 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
+    this.currentDownloadUrl = '#';       // Almacena la URL directa de descarga
     
+    // Variables de contexto para sistemas externos (comentarios, stickers)
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -22,6 +26,7 @@ class VideoPlayer {
     this.loadEpisodeData();
     this.setupAuthUI();
 
+    // Exponer métodos públicos para el HTML (manteniendo compatibilidad)
     window.videoPlayerMethods = {
       toggleStickerPanel: () => this.toggleStickerPanel(),
       enviarComentario: () => this.enviarComentario(),
@@ -58,13 +63,17 @@ class VideoPlayer {
     this.storage = firebase.storage();
     
     this.auth.onAuthStateChanged(user => {
+      // Actualizar estado global (ArchinimeState o respaldo)
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
       } else {
         this.currentUser = user;
       }
+      
+      // Refrescar UI según autenticación
       this.updateCommentFormVisibility();
       
+      // Inicializar sistemas dependientes de autenticación (carga diferida)
       if (typeof initComentariosSystem === 'function') {
         initComentariosSystem(this.db, this.auth);
       }
@@ -76,16 +85,19 @@ class VideoPlayer {
   }
   
   getCurrentUser() {
+    // Obtener usuario desde el estado central o respaldo local
     if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
     return this.currentUser;
   }
   
   initUI() {
+    // Configurar enlace "Volver"
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) {
       backLink.href = `anime-detail.html?id=${this.animeId}`;
     }
     
+    // Configurar envío con Enter en textarea de comentarios
     const textarea = document.getElementById('comentarioTexto');
     if (textarea) {
       textarea.addEventListener('keydown', (e) => {
@@ -97,6 +109,17 @@ class VideoPlayer {
       textarea.addEventListener('input', () => this.validateSendButton());
     }
     
+    // ***** NUEVO: Configurar botón de descarga con verificación de autenticación *****
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+      // Reemplazar cualquier listener previo y usar el nuestro
+      downloadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.handleDownloadClick();
+      });
+    }
+    
+    // Pestañas del panel de stickers
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
@@ -128,9 +151,10 @@ class VideoPlayer {
       document.getElementById('epTitle').innerText = episodeData.title || `Episodio ${this.episode}`;
       
       const initialLink = episodeData.link || episodeData.link2;
-      this.updateDownloadButton(initialLink);
+      this.updateDownloadUrl(initialLink);
       this.loadVideo(initialLink);
 
+      // Botones de servidores
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
@@ -156,7 +180,7 @@ class VideoPlayer {
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      this.updateDownloadButton(url);
+      this.updateDownloadUrl(url);
       this.loadVideo(url);
     };
     container.appendChild(btn);
@@ -186,11 +210,9 @@ class VideoPlayer {
     }
   }
   
-  updateDownloadButton(url) {
-    const btn = document.getElementById('downloadBtn');
-    const directLink = this.generateDirectLink(url);
-    btn.href = directLink;
-    if (this.isMobile()) btn.target = '_blank';
+  // Actualiza la URL de descarga interna (sin modificar el DOM directamente)
+  updateDownloadUrl(url) {
+    this.currentDownloadUrl = this.generateDirectLink(url);
   }
   
   generateDirectLink(url) {
@@ -203,6 +225,30 @@ class VideoPlayer {
       return url.replace('dl=0', 'dl=1');
     }
     return url;
+  }
+  
+  // ***** NUEVO: Manejador del clic en descarga *****
+  handleDownloadClick() {
+    const user = this.getCurrentUser();
+    
+    if (!user) {
+      // No autenticado: mostrar modal de inicio de sesión
+      this.openLoginModal();
+      return;
+    }
+    
+    // Usuario autenticado: proceder con la descarga
+    if (this.currentDownloadUrl && this.currentDownloadUrl !== '#') {
+      const link = document.createElement('a');
+      link.href = this.currentDownloadUrl;
+      link.download = '';               // Sugerir descarga
+      link.target = this.isMobile() ? '_blank' : '_self';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert('No hay enlace de descarga disponible para este servidor.');
+    }
   }
   
   isMobile() {
@@ -272,37 +318,62 @@ class VideoPlayer {
     });
   }
   
+  // --- Métodos de autenticación (invocados desde el HTML) ---
   openLoginModal() { document.getElementById('authModal').classList.add('show'); }
-  closeAuthModal() { document.getElementById('authModal').classList.remove('show'); document.getElementById('authError').innerText = ''; }
+  closeAuthModal() { 
+    document.getElementById('authModal').classList.remove('show'); 
+    const errEl = document.getElementById('authError');
+    if (errEl) errEl.innerText = '';
+  }
   
   async loginWithEmail() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
-    try { await this.auth.signInWithEmailAndPassword(email, pass); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
+    try { 
+      await this.auth.signInWithEmailAndPassword(email, pass); 
+      this.closeAuthModal(); 
+    } catch (e) { 
+      document.getElementById('authError').innerText = e.message; 
+    }
   }
   
   async registerWithEmail() {
     const email = document.getElementById('registerEmail').value;
     const pass = document.getElementById('registerPassword').value;
     const confirm = document.getElementById('registerConfirm').value;
-    if (pass !== confirm) { document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; return; }
-    try { await this.auth.createUserWithEmailAndPassword(email, pass); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
+    if (pass !== confirm) { 
+      document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
+      return; 
+    }
+    try { 
+      await this.auth.createUserWithEmailAndPassword(email, pass); 
+      this.closeAuthModal(); 
+    } catch (e) { 
+      document.getElementById('authError').innerText = e.message; 
+    }
   }
   
   async loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
+    try { 
+      await this.auth.signInWithPopup(provider); 
+      this.closeAuthModal(); 
+    } catch (e) { 
+      document.getElementById('authError').innerText = e.message; 
+    }
   }
   
   async loginWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
-    try { await this.auth.signInWithPopup(provider); this.closeAuthModal(); }
-    catch (e) { document.getElementById('authError').innerText = e.message; }
+    try { 
+      await this.auth.signInWithPopup(provider); 
+      this.closeAuthModal(); 
+    } catch (e) { 
+      document.getElementById('authError').innerText = e.message; 
+    }
   }
   
+  // --- Interfaz de comentarios y stickers ---
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -371,7 +442,7 @@ if (document.readyState === 'loading') {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
+// Funciones globales para compatibilidad con el HTML antiguo
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
-// NOTA: window.subirStickerDesdePC fue eliminado para dejar que stickers-system.js lo maneje.
+// NOTA: window.subirStickerDesdePC fue eliminado para que stickers-system.js lo maneje.

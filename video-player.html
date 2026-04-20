@@ -6,6 +6,7 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
+  <!-- Theme color dinámico -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -25,12 +26,10 @@
         const bigint = parseInt(hex.slice(1), 16);
         return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
       };
-      const rgbToHex = (r, g, b) => {
-        return "#" + [r, g, b].map(x => {
-          const hex = Math.round(x).toString(16);
-          return hex.length === 1 ? "0" + hex : hex;
-        }).join('');
-      };
+      const rgbToHex = (r, g, b) => "#" + [r, g, b].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      }).join('');
       const lerp = (start, end, t) => start + (end - start) * t;
       setInterval(() => {
         currentProgress += step;
@@ -47,6 +46,7 @@
     })();
   </script>
 
+  <!-- Precargas para mejorar rendimiento -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -55,18 +55,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+  <!-- Firebase (compat) -->
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-<script src="dompurify-config.js"></script>
+  <!-- Librerías -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <script src="dompurify-config.js"></script>
 
+  <!-- Estado global y core -->
   <script src="state.js"></script>
   <script src="app-core.js"></script>
 
   <style>
+    /* ===== ESTILOS OPTIMIZADOS (idénticos visualmente, con mejoras de rendimiento) ===== */
     :root {
       --primary-color: #00fff7;
       --accent-color: #ff0055;
@@ -95,6 +99,7 @@
       z-index: -10;
       filter: contrast(1.2) brightness(1.25) saturate(1.4);
       opacity: 0.5;
+      pointer-events: none;
     }
 
     #overlay {
@@ -147,6 +152,7 @@
       background: linear-gradient(45deg, var(--primary-color), #bc13fe, var(--accent-color));
       animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
       box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
+      will-change: transform, filter;
     }
     .gif-inner {
       width: 100%;
@@ -420,7 +426,7 @@
 
     #prevBtn { justify-self: start; }
     #nextBtn { justify-self: end; }
-    #downloadBtn { justify-self: center; cursor: pointer; }
+    #downloadBtn { justify-self: center; }
 
     .btn {
       padding: 12px 28px;
@@ -438,6 +444,7 @@
       backdrop-filter: blur(5px);
       font-weight: 600;
       min-width: 100px;
+      cursor: pointer;
     }
 
     .nav-btn { border-color: rgba(0, 255, 247, 0.3); }
@@ -896,7 +903,7 @@
       font-weight: 600;
     }
 
-    /* ===== ESTILOS PARA PREVIEW DE STICKER EN EL FORMULARIO ===== */
+    /* ===== ESTILOS PARA PREVIEW DE STICKER ===== */
     .comentario-sticker-preview {
       margin: 12px 0;
       padding: 8px;
@@ -952,9 +959,7 @@
       background: #ff3366;
     }
 
-    /* ======================================================= */
-    /* AJUSTES MÓVILES PARA LOS STICKERS Y SUS TAMAÑOS        */
-    /* ======================================================= */
+    /* ===== AJUSTES MÓVILES ===== */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
@@ -1029,7 +1034,8 @@
 
   <div class="controls">
     <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-    <a id="downloadBtn" class="btn" href="#">⬇ Descargar</a>
+    <!-- Cambiado a <button> para controlar la descarga con JS -->
+    <button id="downloadBtn" class="btn">⬇ Descargar</button>
     <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
   </div>
 
@@ -1104,6 +1110,7 @@
   </div>
 </div>
 
+<!-- Modal de autenticación -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
     <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
@@ -1134,6 +1141,7 @@
   </div>
 </div>
 
+<!-- Scripts específicos del reproductor -->
 <script defer src="stickers-system.js"></script>
 <script defer src="reacciones.js"></script>
 <script defer src="comentarios.js"></script>
@@ -1141,14 +1149,13 @@
 <script src="gifs.js"></script>
 
 <script>
-  // Configuración de drag & drop para la zona de subida de stickers
+  // Configuración de drag & drop para stickers
   (function() {
     const dropZone = document.getElementById('dragDropZone');
     const fileInput = document.getElementById('stickerFileInput');
     
     if (!dropZone || !fileInput) return;
     
-    // Prevenir comportamiento por defecto en toda la página para evitar que el navegador abra el archivo
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
       document.body.addEventListener(eventName, preventDefaults, false);
     });
@@ -1158,7 +1165,6 @@
       e.stopPropagation();
     }
     
-    // Resaltar zona al arrastrar sobre ella
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, highlight, false);
     });
@@ -1177,7 +1183,6 @@
       dropZone.classList.remove('drag-over');
     }
     
-    // Manejar el soltado del archivo
     dropZone.addEventListener('drop', handleDrop, false);
     
     function handleDrop(e) {
@@ -1203,11 +1208,13 @@
     };
   })();
 
+  // Selección aleatoria de GIF de carga
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
   }
 
+  // Progreso de carga
   let loadingCompleted = false;
   const loadingScreen = document.getElementById('loadingScreen');
   const percentEl = document.getElementById('loadingPercentage');
