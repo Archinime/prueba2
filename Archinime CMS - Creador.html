@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase: solo necesitas App, Auth y Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -17,7 +16,7 @@
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        /* tus estilos extra (se mantienen igual) */
+        /* ESTILOS EXTRA PARA EL MODAL DE PERFIL */
         #profileSetupModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
@@ -43,21 +42,6 @@
             width: 80px;
             height: 80px; border-radius: 50%; object-fit: cover;
             border: 2px solid #00f0ff; margin: 0 auto 20px; display: block; background: #000;
-        }
-        .rating-container {
-            display: flex;
-            align-items: flex-end; gap: 10px;
-        }
-        .rating-box {
-            width: 60px;
-            text-align: center; font-size: 1.5rem; font-weight: 800;
-            padding: 10px 5px; background: #181920; border: 2px solid #2a2b35;
-            border-radius: 12px; color: #fff;
-            appearance: none;
-        }
-        .rating-box:focus { border-color: #facc15; outline: none;
-        }
-        .rating-dot { font-size: 2rem; font-weight: 800; color: #fff; padding-bottom: 10px;
         }
     </style>
 </head>
@@ -215,14 +199,7 @@
                     <option value="Seijin">Seijin</option>
                 </select>
             </div>
-            <div class="col-flex">
-                <label>Valoración (Ej: 4.5) <span>*</span></label>
-                <div class="rating-container">
-                     <input type="number" id="ratingInt" class="rating-box" min="1" max="5" placeholder="4" oninput="limitRating(this, 1, 5); requestPreviewUpdate()">
-                    <span class="rating-dot">.</span>
-                    <input type="number" id="ratingDec" class="rating-box" min="0" max="9" placeholder="5" oninput="limitRating(this, 0, 9); requestPreviewUpdate()">
-                </div>
-            </div>
+            <!-- ELIMINADO EL BLOQUE DE VALORACIÓN -->
         </div>
 
         <h2 style="margin-top:50px"><i class="fas fa-layer-group"></i> 2. Estructura</h2>
@@ -253,7 +230,7 @@
                 
                 <div style="display:flex; justify-content:space-between; margin-top:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span id="webDemography" style="color:var(--accent); font-weight:700; font-size:0.8em">DEMO</span>
-                    <span id="webRating" style="color:#facc15; font-size:0.8em">⭐ --</span>
+                    <!-- ELIMINADO EL RATING DE LA VISTA PREVIA -->
                 </div>
                 <div id="webTags" style="display:flex; flex-wrap:wrap; gap:6px; margin:15px 0;"></div>
                 

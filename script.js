@@ -77,7 +77,6 @@ async function checkAccess(user) {
             showCMS();
         } 
         else if (ALLOWED_USERS.includes(email)) {
-            // Primer acceso de un administrador: crear perfil automáticamente
             currentUserNick = email === "archinime12@gmail.com" ? "Archinime" : email.split('@')[0];
             currentUserAvatar = user.photoURL || "Logo_Archinime.avif";
             await db.collection('users').doc(currentUserUid).set({
@@ -169,7 +168,6 @@ async function saveUserProfile() {
         }
     }
 
-    // Verificar nombre único
     const usersSnapshot = await db.collection('users').get();
     let isTaken = false;
     usersSnapshot.forEach(doc => {
@@ -232,7 +230,7 @@ function logout() {
 }
 
 // ============================================
-// FUNCIONES DE INTERFAZ (se mantienen exactamente igual)
+// FUNCIONES DE INTERFAZ (sin rating)
 // ============================================
 
 function injectStateSelect() {
@@ -344,14 +342,6 @@ function showToast(msg, isError = false) {
 
 function autoCap(input) {
     if(input.value) input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
-}
-
-function limitRating(input, min, max) {
-    if(input.value.length > 1) input.value = input.value.slice(0,1);
-    const val = parseInt(input.value);
-    if(isNaN(val)) return;
-    if (val < min) input.value = min;
-    if (val > max) input.value = max;
 }
 
 function validate(input) {
@@ -490,7 +480,7 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
-function addSeason(data = null) {
+function addSeason(data = null, customType = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
     div.className = 'season-card';
@@ -539,17 +529,22 @@ function addSeason(data = null) {
         <div class="chapters-grid" style="margin-top:20px;"></div>
     `;
     container.appendChild(div);
+    
     if(data) {
-        let selectedType = 'Spin-Off';
-        if(data.name.startsWith('Temporada')) selectedType = 'Temporada';
-        else if(data.name.startsWith('Película')) selectedType = 'Pelicula';
-        else if(data.name.startsWith('OVA')) selectedType = 'OVA';
-        else if(data.name.startsWith('Especial')) selectedType = 'Especial';
+        // Si se proporciona un tipo explícito, usarlo; si no, adivinar por nombre
+        let selectedType = customType;
+        if (!selectedType) {
+            if(data.name && data.name.startsWith('Temporada')) selectedType = 'Temporada';
+            else if(data.name && data.name.startsWith('Película')) selectedType = 'Pelicula';
+            else if(data.name && data.name.startsWith('OVA')) selectedType = 'OVA';
+            else if(data.name && data.name.startsWith('Especial')) selectedType = 'Especial';
+            else selectedType = 'Spin-Off';
+        }
         const typeSel = div.querySelector('.s-type');
         typeSel.value = selectedType;
         const nameInp = div.querySelector('.s-name');
-        nameInp.value = data.name;
-        div.querySelector('.s-img').value = data.cover;
+        nameInp.value = data.name || "";
+        div.querySelector('.s-img').value = data.cover || "";
         handleSeasonTypeChange(typeSel);
         const startSel = div.querySelector('.s-start-index');
         if(data.eps && data.eps.length > 0) {
@@ -558,8 +553,8 @@ function addSeason(data = null) {
             else startSel.value = "1";
         }
         const countInp = div.querySelector('.s-count');
-        countInp.value = data.eps.length;
-        renderChapters(countInp, data.eps);
+        countInp.value = data.eps ? data.eps.length : 0;
+        if(data.eps) renderChapters(countInp, data.eps);
     }
     updateAllBlockNames();
     requestPreviewUpdate();
@@ -748,10 +743,7 @@ function updateWebPreview() {
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliases.push(i.value.trim()) });
     const prevAlias = document.getElementById('previewAliasesList');
     if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
-    const ri = document.getElementById('ratingInt').value;
-    const rd = document.getElementById('ratingDec').value;
-    const wRat = document.getElementById('webRating');
-    if(wRat) wRat.innerText = `⭐ ${ri || 0}.${rd || 0}`;
+    // ELIMINADO RATING
     const tagsContainer = document.getElementById('webTags');
     if(tagsContainer) {
         tagsContainer.innerHTML = '';
@@ -820,7 +812,6 @@ async function loadIndexForSearch() {
                 id: anime.id,
                 title: anime.title,
                 img: anime.img,
-                rating: anime.rating,
                 uploader: anime.uploader,
                 uploaderImg: anime.uploaderImg,
                 genres: anime.genres,
@@ -932,15 +923,12 @@ async function loadAnimeForEditing(id) {
                 cb.checked = loadedGenres.includes(cb.value);
             });
         }
-        let r = animeData.rating || 0;
-        const intPart = Math.floor(r);
-        const decPart = Math.round((r - intPart) * 10);
-        document.getElementById('ratingInt').value = intPart || "";
-        document.getElementById('ratingDec').value = decPart;
+        // ELIMINADO RATING
         document.getElementById('seasonsContainer').innerHTML = '';
         if(animeData.seasons && Array.isArray(animeData.seasons)) {
             animeData.seasons.forEach(s => {
-                addSeason({ name: s.name, cover: s.cover, eps: s.eps });
+                // Pasar el tipo si existe, si no se adivinará
+                addSeason({ name: s.name, cover: s.cover, eps: s.eps }, s.type);
             });
         }
         document.getElementById('musicContainer').innerHTML = '';
@@ -1001,9 +989,6 @@ function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
     const demoSelect = document.getElementById('demografiaAnime').value;
-    const iVal = document.getElementById('ratingInt').value || "0";
-    const dVal = document.getElementById('ratingDec').value || "0";
-    const ratingVal = parseFloat(iVal + "." + dVal);
     const aliasList = [];
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliasList.push(i.value.trim()) });
     let selectedState = "ESTRENO 🚨";
@@ -1020,7 +1005,6 @@ function generateData() {
         sinopsis: document.getElementById('sinopsisAnime').value.trim(),
         demografia: demoSelect, 
         generos: selectedGenres,
-        rating: ratingVal,
         musica: [],
         temporadas: [],
         uploader: currentUserEmail, 
@@ -1067,7 +1051,13 @@ function generateData() {
             }
         });
         if(eps.length > 0) {
-            anime.temporadas.push({ num: globalOrder++, name: sName, type: sType, cover: card.querySelector('.s-img').value, eps: eps });
+            anime.temporadas.push({ 
+                num: globalOrder++, 
+                name: sName, 
+                type: sType, 
+                cover: card.querySelector('.s-img').value, 
+                eps: eps 
+            });
         }
     });
     return anime;
@@ -1112,7 +1102,6 @@ async function subirAGithHub() {
     if(!nuevoAnime.portada) return showToast("Falta Portada", true);
     if(!nuevoAnime.sinopsis) return showToast("Falta Sinopsis", true);
     if(!nuevoAnime.demografia) return showToast("Elige Demografía", true);
-    if(nuevoAnime.rating < 1.0 || nuevoAnime.rating > 5.0) return showToast("Valoración inválida", true);
     if(nuevoAnime.generos.length === 0) return showToast("Elige Géneros", true);
     if(nuevoAnime.estado !== 'PRÓXIMAMENTE ⏳') {
         if(nuevoAnime.temporadas.length === 0) return showToast("Agrega contenido", true);
@@ -1159,7 +1148,6 @@ async function subirAGithHub() {
             title: nuevoAnime.titulo,
             desc: nuevoAnime.sinopsis,
             img: nuevoAnime.portada,
-            rating: nuevoAnime.rating,
             uploader: nuevoAnime.uploader,
             uploaderImg: nuevoAnime.uploaderAvatar,
             genres: finalGenres,
@@ -1173,6 +1161,7 @@ async function subirAGithHub() {
             seasons: nuevoAnime.temporadas.map(t => ({
                 num: t.num,
                 name: t.name,
+                type: t.type,   // Guardar el tipo de bloque (Temporada, Pelicula, etc.)
                 cover: t.cover,
                 eps: t.eps.map(e => ({ title: e.title, link: e.link, link2: e.link2 }))
             }))
