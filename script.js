@@ -230,7 +230,7 @@ function logout() {
 }
 
 // ============================================
-// FUNCIONES DE INTERFAZ (sin rating)
+// FUNCIONES DE INTERFAZ
 // ============================================
 
 function injectStateSelect() {
@@ -480,7 +480,8 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
-function addSeason(data = null, customType = null) {
+// addSeason modificado para aceptar 'type' explícito
+function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
     div.className = 'season-card';
@@ -529,23 +530,24 @@ function addSeason(data = null, customType = null) {
         <div class="chapters-grid" style="margin-top:20px;"></div>
     `;
     container.appendChild(div);
-    
+
     if(data) {
-        // Si se proporciona un tipo explícito, usarlo; si no, adivinar por nombre
-        let selectedType = customType;
+        // Usar el tipo proporcionado en data, o inferir del nombre (para compatibilidad)
+        let selectedType = data.type;
         if (!selectedType) {
-            if(data.name && data.name.startsWith('Temporada')) selectedType = 'Temporada';
-            else if(data.name && data.name.startsWith('Película')) selectedType = 'Pelicula';
-            else if(data.name && data.name.startsWith('OVA')) selectedType = 'OVA';
-            else if(data.name && data.name.startsWith('Especial')) selectedType = 'Especial';
+            if(data.name.startsWith('Temporada')) selectedType = 'Temporada';
+            else if(data.name.startsWith('Película')) selectedType = 'Pelicula';
+            else if(data.name.startsWith('OVA')) selectedType = 'OVA';
+            else if(data.name.startsWith('Especial')) selectedType = 'Especial';
             else selectedType = 'Spin-Off';
         }
         const typeSel = div.querySelector('.s-type');
         typeSel.value = selectedType;
         const nameInp = div.querySelector('.s-name');
-        nameInp.value = data.name || "";
-        div.querySelector('.s-img').value = data.cover || "";
+        nameInp.value = data.name;
+        div.querySelector('.s-img').value = data.cover;
         handleSeasonTypeChange(typeSel);
+        
         const startSel = div.querySelector('.s-start-index');
         if(data.eps && data.eps.length > 0) {
             const firstTitle = data.eps[0].title || "";
@@ -553,8 +555,8 @@ function addSeason(data = null, customType = null) {
             else startSel.value = "1";
         }
         const countInp = div.querySelector('.s-count');
-        countInp.value = data.eps ? data.eps.length : 0;
-        if(data.eps) renderChapters(countInp, data.eps);
+        countInp.value = data.eps.length;
+        renderChapters(countInp, data.eps);
     }
     updateAllBlockNames();
     requestPreviewUpdate();
@@ -743,7 +745,7 @@ function updateWebPreview() {
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliases.push(i.value.trim()) });
     const prevAlias = document.getElementById('previewAliasesList');
     if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
-    // ELIMINADO RATING
+    // Eliminado el rating
     const tagsContainer = document.getElementById('webTags');
     if(tagsContainer) {
         tagsContainer.innerHTML = '';
@@ -812,6 +814,7 @@ async function loadIndexForSearch() {
                 id: anime.id,
                 title: anime.title,
                 img: anime.img,
+                rating: anime.rating || 0,
                 uploader: anime.uploader,
                 uploaderImg: anime.uploaderImg,
                 genres: anime.genres,
@@ -923,12 +926,12 @@ async function loadAnimeForEditing(id) {
                 cb.checked = loadedGenres.includes(cb.value);
             });
         }
-        // ELIMINADO RATING
+        // El rating ya no se carga ni se muestra
         document.getElementById('seasonsContainer').innerHTML = '';
         if(animeData.seasons && Array.isArray(animeData.seasons)) {
             animeData.seasons.forEach(s => {
-                // Pasar el tipo si existe, si no se adivinará
-                addSeason({ name: s.name, cover: s.cover, eps: s.eps }, s.type);
+                // Pasar también el tipo si existe en los datos guardados
+                addSeason({ name: s.name, cover: s.cover, eps: s.eps, type: s.type });
             });
         }
         document.getElementById('musicContainer').innerHTML = '';
@@ -1005,6 +1008,7 @@ function generateData() {
         sinopsis: document.getElementById('sinopsisAnime').value.trim(),
         demografia: demoSelect, 
         generos: selectedGenres,
+        rating: 0, // Valor por defecto, será reemplazado por los votos de usuarios
         musica: [],
         temporadas: [],
         uploader: currentUserEmail, 
@@ -1051,13 +1055,7 @@ function generateData() {
             }
         });
         if(eps.length > 0) {
-            anime.temporadas.push({ 
-                num: globalOrder++, 
-                name: sName, 
-                type: sType, 
-                cover: card.querySelector('.s-img').value, 
-                eps: eps 
-            });
+            anime.temporadas.push({ num: globalOrder++, name: sName, type: sType, cover: card.querySelector('.s-img').value, eps: eps });
         }
     });
     return anime;
@@ -1148,6 +1146,7 @@ async function subirAGithHub() {
             title: nuevoAnime.titulo,
             desc: nuevoAnime.sinopsis,
             img: nuevoAnime.portada,
+            rating: 0, // inicialmente 0, los usuarios votarán
             uploader: nuevoAnime.uploader,
             uploaderImg: nuevoAnime.uploaderAvatar,
             genres: finalGenres,
@@ -1161,7 +1160,7 @@ async function subirAGithHub() {
             seasons: nuevoAnime.temporadas.map(t => ({
                 num: t.num,
                 name: t.name,
-                type: t.type,   // Guardar el tipo de bloque (Temporada, Pelicula, etc.)
+                type: t.type,   // Guardamos el tipo explícitamente
                 cover: t.cover,
                 eps: t.eps.map(e => ({ title: e.title, link: e.link, link2: e.link2 }))
             }))
