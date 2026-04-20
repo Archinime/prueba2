@@ -1,5 +1,6 @@
 // notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS REDISEÑADOS
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// CORREGIDO: Sello "FINALIZADO" ahora visible en el popup (overflow visible)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -442,7 +443,7 @@ function createPopupHTML(notif) {
               </div>
             </div>`;
     } else {
-        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (INTACTO)
+        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (CON SELLO FINALIZADO VISIBLE)
         let infoString = "";
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -454,7 +455,7 @@ function createPopupHTML(notif) {
         
         modal.innerHTML = `
             <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-              <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+              <div class="event-visuals" style="overflow: visible !important;"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
                 <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
                 <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
               </div>
