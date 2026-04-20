@@ -73,7 +73,7 @@ async function checkAccess(user) {
         if (userDoc.exists) {
             const userData = userDoc.data();
             currentUserNick = userData.nick;
-            currentUserAvatar = userData.avatar;
+            currentUserAvatar = userData.avatar || "Logo_Archinime.avif";
             showCMS();
         } 
         else if (ALLOWED_USERS.includes(email)) {
@@ -480,7 +480,6 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
-// addSeason modificado para aceptar 'type' explícito
 function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
@@ -532,7 +531,6 @@ function addSeason(data = null) {
     container.appendChild(div);
 
     if(data) {
-        // Usar el tipo proporcionado en data, o inferir del nombre (para compatibilidad)
         let selectedType = data.type;
         if (!selectedType) {
             if(data.name.startsWith('Temporada')) selectedType = 'Temporada';
@@ -745,7 +743,6 @@ function updateWebPreview() {
     document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliases.push(i.value.trim()) });
     const prevAlias = document.getElementById('previewAliasesList');
     if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
-    // Eliminado el rating
     const tagsContainer = document.getElementById('webTags');
     if(tagsContainer) {
         tagsContainer.innerHTML = '';
@@ -926,11 +923,9 @@ async function loadAnimeForEditing(id) {
                 cb.checked = loadedGenres.includes(cb.value);
             });
         }
-        // El rating ya no se carga ni se muestra
         document.getElementById('seasonsContainer').innerHTML = '';
         if(animeData.seasons && Array.isArray(animeData.seasons)) {
             animeData.seasons.forEach(s => {
-                // Pasar también el tipo si existe en los datos guardados
                 addSeason({ name: s.name, cover: s.cover, eps: s.eps, type: s.type });
             });
         }
@@ -1008,11 +1003,11 @@ function generateData() {
         sinopsis: document.getElementById('sinopsisAnime').value.trim(),
         demografia: demoSelect, 
         generos: selectedGenres,
-        rating: 0, // Valor por defecto, será reemplazado por los votos de usuarios
+        rating: 0,
         musica: [],
         temporadas: [],
         uploader: currentUserEmail, 
-        uploaderAvatar: currentUserAvatar,
+        uploaderAvatar: currentUserAvatar || "Logo_Archinime.avif",
         estado: selectedState,
         isFinal: isFinal
     };
@@ -1146,9 +1141,9 @@ async function subirAGithHub() {
             title: nuevoAnime.titulo,
             desc: nuevoAnime.sinopsis,
             img: nuevoAnime.portada,
-            rating: 0, // inicialmente 0, los usuarios votarán
+            rating: 0,
             uploader: nuevoAnime.uploader,
-            uploaderImg: nuevoAnime.uploaderAvatar,
+            uploaderImg: nuevoAnime.uploaderAvatar || "Logo_Archinime.avif",
             genres: finalGenres,
             lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
             updateType: UPDATE_LABEL,
@@ -1160,7 +1155,7 @@ async function subirAGithHub() {
             seasons: nuevoAnime.temporadas.map(t => ({
                 num: t.num,
                 name: t.name,
-                type: t.type,   // Guardamos el tipo explícitamente
+                type: t.type,
                 cover: t.cover,
                 eps: t.eps.map(e => ({ title: e.title, link: e.link, link2: e.link2 }))
             }))
