@@ -5,6 +5,7 @@
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
 // NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
 // NUEVO: Música cargada desde Firestore (campo "music")
+// MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -102,8 +103,9 @@ window._playUISound = function(type) {
 };
 window.playUISound = window._playUISound;
 
-// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) ----------
+// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) CON AUTOPLAY MEJORADO ----------
 let currentAudio = null, playlist = [], currentTrackIndex = -1;
+let userInteractedDetail = false;  // Bandera para saber si ya hubo interacción
 
 function playTrack(idx) {
   if (!playlist.length) return;
@@ -121,7 +123,30 @@ function playTrack(idx) {
     currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
     playTrack(currentTrackIndex);
   };
-  currentAudio.play().catch(e => console.log('Reproducción automática bloqueada:', e));
+
+  // Intentar reproducción automática inmediata
+  const playPromise = currentAudio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(e => {
+      console.log('Autoplay bloqueado en anime-detail, esperando interacción:', e);
+      // Si aún no se ha configurado el listener de interacción, lo hacemos
+      if (!userInteractedDetail) {
+        const resumeOnce = () => {
+          if (!userInteractedDetail) {
+            userInteractedDetail = true;
+            currentAudio.play().catch(err => console.warn('No se pudo reproducir después de interacción:', err));
+            // Limpiar listeners
+            ['click', 'touchstart', 'keydown'].forEach(evt => {
+              document.removeEventListener(evt, resumeOnce, { once: true });
+            });
+          }
+        };
+        ['click', 'touchstart', 'keydown'].forEach(evt => {
+          document.addEventListener(evt, resumeOnce, { once: true });
+        });
+      }
+    });
+  }
 }
 
 function playMusicFromArray(musicArray) {
@@ -143,7 +168,7 @@ function playMusicForAnime(animeId) {
   if (musicArray.length) {
     playMusicFromArray(musicArray);
   }
-  // Si no hay en sessionStorage, no se reproduce (ya no usamos audioPlaylists)
+  // Si no hay en sessionStorage, no se reproduce
 }
 
 // ---------- ESTADO GLOBAL ----------
@@ -577,7 +602,7 @@ async function renderMainContent() {
     await loadUserRating(animeId, currentUserId);
   }
 
-  // 🎵 Reproducir música desde Firestore
+  // 🎵 Reproducir música desde Firestore (campo "music")
   const musicList = animeData.music || [];
   sessionStorage.setItem('musicList', JSON.stringify(musicList));
   if (musicList.length > 0) {
