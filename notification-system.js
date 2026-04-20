@@ -1,6 +1,5 @@
 // notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS REDISEÑADOS
 // ACTUALIZADO: Usa ArchinimeState para el estado del usuario
-// CORREGIDO: Sello "FINALIZADO" ahora visible en el popup (overflow visible)
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -162,7 +161,8 @@ function loadHistoryFromStorage() {
         try { 
             notificationsHistory = JSON.parse(stored);
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        } catch(e) { notificationsHistory = []; }
+        } catch(e) { notificationsHistory = [];
+        }
     }
 }
 
@@ -214,7 +214,8 @@ async function syncNotificationsWithCloud(uid) {
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-    } catch (e) { console.error("Error sync notif:", e); }
+    } catch (e) { console.error("Error sync notif:", e);
+    }
 }
 
 function listenForReplies(uid) {
@@ -252,7 +253,8 @@ function listenForReplies(uid) {
                                 let pText = parentDoc.data().texto || "";
                                 originalText = pText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                             }
-                        } catch(e) { console.error("Error obteniendo comentario padre:", e); }
+                        } catch(e) { console.error("Error obteniendo comentario padre:", e);
+                        }
                     }
 
                     let timestampMs = data.timestamp?.toMillis() || Date.now();
@@ -272,7 +274,6 @@ function listenForReplies(uid) {
                         isFinal: false,
                         url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
                     };
-                    
                     notificationsHistory.unshift(newNotif);
                     hasNew = true;
 
@@ -280,7 +281,6 @@ function listenForReplies(uid) {
                     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
                     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-                    
                     if (!seenNotifIds.includes(notifId)) {
                         seenNotifIds.push(notifId);
                         if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
@@ -400,7 +400,6 @@ function createPopupHTML(notif) {
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = 'eventModal';
-
     // RENDERIZADO CONDICIONAL: RESPUESTA VS ANIME
     if (notif.type === 'RESPUESTA') {
         // DISEÑO EXCLUSIVO Y MEJORADO PARA RESPUESTAS A COMENTARIOS
@@ -443,7 +442,7 @@ function createPopupHTML(notif) {
               </div>
             </div>`;
     } else {
-        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (CON SELLO FINALIZADO VISIBLE)
+        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (SE APLICA ESTILO DIRECTO AL TEXTO "FINALIZADO")
         let infoString = "";
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -452,16 +451,17 @@ function createPopupHTML(notif) {
         let badgeColor = "#bc13fe";
         if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
         else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
-        
+  
         modal.innerHTML = `
             <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-              <div class="event-visuals" style="overflow: visible !important;"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+              <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
                 <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
-                <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div class="final-stamp">FINALIZADO</div>' : ''}
+                <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div style="position: absolute; bottom: 15px; right: 15px; z-index: 20; color: #fff; background: rgba(255, 0, 0, 0.8); border: 2px solid #ff0000; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 0.85rem; transform: rotate(-10deg); box-shadow: 0 0 15px #ff0000; letter-spacing: 1px;">FINALIZADO</div>' : ''}
               </div>
               <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
                 <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
                 <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
+             
               </div>
             </div>`;
     }
