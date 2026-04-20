@@ -7,6 +7,7 @@
 // NUEVO: Música cargada desde Firestore (campo "music")
 // MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
 // MEJORA: Al votar sin sesión se abre el modal de autenticación
+// CORRECCIÓN: Las estrellas ahora son clickeables aunque no haya sesión, abriendo el modal
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -365,9 +366,19 @@ function renderStars(currentValue = 0) {
     star.className = 'fas fa-star star';
     if (currentValue >= i) star.classList.add('selected');
     star.setAttribute('data-value', i);
+    
     if (!currentUserId) {
+      // Usuario no autenticado: mostrar estrellas atenuadas pero clickeables para abrir modal
       star.classList.add('disabled');
+      star.addEventListener('click', () => {
+        if (typeof window.showAuthModal === 'function') {
+          window.showAuthModal();
+        } else {
+          alert('Inicia sesión para votar');
+        }
+      });
     } else {
+      // Usuario autenticado: comportamiento normal de votación
       star.addEventListener('mouseenter', () => highlightStars(i));
       star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
       star.addEventListener('click', () => voteAnime(i));
@@ -391,11 +402,11 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    // Abrir modal de autenticación en lugar de solo mostrar mensaje
+    // Esto ya no debería ejecutarse porque las estrellas no autenticadas llaman directo al modal,
+    // pero lo dejamos como respaldo.
     if (typeof window.showAuthModal === 'function') {
       window.showAuthModal();
     } else {
-      // Fallback por si app-core no está cargado
       alert('Inicia sesión para votar');
     }
     return;
