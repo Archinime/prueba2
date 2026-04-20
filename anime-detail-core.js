@@ -6,6 +6,7 @@
 // NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
 // NUEVO: Música cargada desde Firestore (campo "music")
 // MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
+// MEJORA: Mensaje claro al intentar votar sin sesión
 
 // ---------- CONFIGURACIÓN FIREBASE ----------
 const firebaseConfig = {
@@ -390,7 +391,12 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Inicia sesión para votar.';
+    // Mensaje claro para usuarios no autenticados
+    const msgElement = document.getElementById('ratingMessage');
+    if (msgElement) {
+      msgElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Debes iniciar sesión para calificar.';
+    }
+    showToast('Debes iniciar sesión para calificar', true);
     return;
   }
   const ratingRef = db.collection('animeRatings').doc(String(currentAnimeId));
