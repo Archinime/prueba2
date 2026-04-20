@@ -228,7 +228,6 @@ function listenForReplies(uid) {
             let hasNew = false;
             let shouldShowPopup = false;
             
-            // Usamos un bucle for...of para poder usar await y obtener el comentario original
             for (const change of snapshot.docChanges()) {
                 if (change.type === 'added') {
                     const data = change.doc.data();
@@ -243,7 +242,6 @@ function listenForReplies(uid) {
                     let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
                     
-                    // Extraer el texto original al que se responde (Búsqueda en Firestore si no existe en data)
                     let originalText = data.replyToText || data.textoOriginal || "";
                     
                     if (!originalText && data.replyToId) {
@@ -277,7 +275,6 @@ function listenForReplies(uid) {
                     notificationsHistory.unshift(newNotif);
                     hasNew = true;
 
-                    // LÓGICA DE POPUPS PARA RESPUESTAS
                     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
                     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -286,7 +283,6 @@ function listenForReplies(uid) {
                         if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
                         localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
 
-                        // Mostrar el popup si no es la primera visita, el comentario es reciente y no pasamos el límite
                         if (!isFirstVisitGlobal && timestampMs > thirtyDaysAgo && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                             notificationQueue.push(newNotif);
                             popupsShownCount++;
@@ -303,7 +299,6 @@ function listenForReplies(uid) {
                 if (!isMenuOpen) updateBellBadge();
             }
 
-            // Si hay popups nuevos en cola, arrancar la secuencia
             if (shouldShowPopup && notificationQueue.length === 1) {
                 showNextPopup();
             }
@@ -400,9 +395,8 @@ function createPopupHTML(notif) {
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = 'eventModal';
-    // RENDERIZADO CONDICIONAL: RESPUESTA VS ANIME
+
     if (notif.type === 'RESPUESTA') {
-        // DISEÑO EXCLUSIVO Y MEJORADO PARA RESPUESTAS A COMENTARIOS
         modal.innerHTML = `
             <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
               <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
@@ -421,7 +415,6 @@ function createPopupHTML(notif) {
               </div>
               
               <div style="padding: 20px; text-align: left;">
-                
                 <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.15); padding: 12px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
                     <i class="fas fa-quote-left" style="position: absolute; top: 10px; right: 15px; font-size: 1.2rem; color: rgba(255,255,255,0.03);"></i>
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tu comentario</div>
@@ -442,7 +435,7 @@ function createPopupHTML(notif) {
               </div>
             </div>`;
     } else {
-        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (SE APLICA ESTILO DIRECTO AL TEXTO "FINALIZADO")
+        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME
         let infoString = "";
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -453,16 +446,20 @@ function createPopupHTML(notif) {
         else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
   
         modal.innerHTML = `
-            <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-              <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+            <div class="event-card" style="position: relative;">
+              <button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+              <div class="event-visuals">
+                <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
                 <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
-                <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div style="position: absolute; bottom: 15px; right: 15px; z-index: 20; color: #fff; background: rgba(255, 0, 0, 0.8); border: 2px solid #ff0000; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 0.85rem; transform: rotate(-10deg); box-shadow: 0 0 15px #ff0000; letter-spacing: 1px;">FINALIZADO</div>' : ''}
+                <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>
               </div>
-              <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
+              <div class="event-info">
+                <h2 class="event-title">${notif.title}</h2>
+                <div class="event-meta">${infoString}</div>
                 <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
                 <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
-             
               </div>
+              ${notif.isFinal ? '<div style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); z-index: 50; color: #ff0055; background: rgba(10, 10, 15, 0.9); border: 4px solid #ff0055; padding: 15px 35px; border-radius: 12px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 2.2rem; box-shadow: 0 0 30px #ff0055, inset 0 0 15px #ff0055; letter-spacing: 5px; text-shadow: 0 0 15px #ff0055; pointer-events: none; white-space: nowrap; text-transform: uppercase;">FINALIZADO</div>' : ''}
             </div>`;
     }
 
@@ -490,7 +487,6 @@ function goToAnimeFromPopup(animeId, notifId) {
     
     notificationQueue = [];
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    // Si la notificación contiene una URL exacta (ej. comentarios), se utiliza esa
     if (targetNotif && targetNotif.url) {
         window.location.href = targetNotif.url;
     } else {
