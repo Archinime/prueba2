@@ -1,5 +1,7 @@
-// notification-system.js - FIX: SCROLL Y LAYOUT MÓVIL OPTIMIZADO + POPUPS DE RESPUESTAS REDISEÑADOS
-// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
+// notification-system.js - FIX: POPUPS PERSISTENTES AL REGRESAR + PUNTO ROJO EN NOTIFICACIONES
+// ACTUALIZADO: Persistencia de cola de popups en sessionStorage, seen=false en primera visita,
+// restauración de popups al volver a la página (pageshow), y badge de no leídos funcional.
+
 let notificationQueue = [];
 let notificationsHistory = [];
 let isMenuOpen = false;
@@ -12,7 +14,8 @@ let firstVisitInitialized = false;
 
 // BANDERA DE CARGA DE PÁGINA
 let pageFullyLoaded = false;
-// FIX: FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
+
+// FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -33,10 +36,53 @@ function getCurrentUser() {
   return null;
 }
 
+// ========== PERSISTENCIA DE COLA DE POPUPS (sessionStorage) ==========
+function saveQueueToStorage() {
+  if (notificationQueue.length > 0) {
+    const queueData = notificationQueue.map(n => ({
+      notifId: n.notifId,
+      animeId: n.animeId,
+      title: n.title,
+      img: n.img,
+      seasonCover: n.seasonCover,
+      blockName: n.blockName,
+      epTitle: n.epTitle,
+      type: n.type,
+      date: n.date,
+      isFinal: n.isFinal,
+      url: n.url || null,
+      originalText: n.originalText || null
+    }));
+    sessionStorage.setItem('archinime_popup_queue', JSON.stringify(queueData));
+  } else {
+    sessionStorage.removeItem('archinime_popup_queue');
+  }
+  sessionStorage.setItem('archinime_popups_shown', popupsShownCount.toString());
+}
+
+function loadQueueFromStorage() {
+  const storedQueue = sessionStorage.getItem('archinime_popup_queue');
+  if (storedQueue) {
+    try {
+      notificationQueue = JSON.parse(storedQueue);
+      // Restaurar también el contador
+      const storedCount = sessionStorage.getItem('archinime_popups_shown');
+      if (storedCount) popupsShownCount = parseInt(storedCount, 10) || 0;
+    } catch (e) {
+      console.warn("Error al restaurar cola de popups:", e);
+      notificationQueue = [];
+    }
+  }
+  // Limpiar después de cargar para evitar duplicados en recargas normales
+  sessionStorage.removeItem('archinime_popup_queue');
+}
+
+// ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
-    
+    loadQueueFromStorage(); // Restaurar popups pendientes si la página se recargó
+
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
         console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
@@ -46,6 +92,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         renderNotificationList();
         updateBellBadge();
+        // Si hay popups pendientes en cola (restaurados), iniciar secuencia
+        if (notificationQueue.length > 0) {
+            // Asegurar que no exceda el límite
+            if (popupsShownCount >= MAX_POPUPS) {
+                notificationQueue = [];
+            } else {
+                showNextPopup();
+            }
+        }
     }
 
     listenForCatalogUpdates();
@@ -72,9 +127,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// Manejar el evento pageshow para reanudar popups al volver a la página (bfcache)
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        // La página fue restaurada desde caché, recargar cola y continuar
+        console.log("🔄 Página restaurada desde bfcache, reanudando popups...");
+        loadQueueFromStorage();
+        if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
+            showNextPopup();
+        }
+        updateBellBadge();
+        renderNotificationList();
+    }
+});
+
+// Guardar cola antes de salir de la página
+window.addEventListener('beforeunload', () => {
+    saveQueueToStorage();
+});
+
 // ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
 async function initFirstVisitNotifications() {
-    // Marcar todas las notificaciones existentes como vistas
+    // Marcar todas las notificaciones existentes como vistas (solo las antiguas)
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -122,7 +196,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: true,
+                seen: false,        // ← CAMBIO: ahora no se marcan como vistas automáticamente
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -228,7 +302,6 @@ function listenForReplies(uid) {
             let hasNew = false;
             let shouldShowPopup = false;
             
-            // Usamos un bucle for...of para poder usar await y obtener el comentario original
             for (const change of snapshot.docChanges()) {
                 if (change.type === 'added') {
                     const data = change.doc.data();
@@ -243,7 +316,6 @@ function listenForReplies(uid) {
                     let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
                     
-                    // Extraer el texto original al que se responde (Búsqueda en Firestore si no existe en data)
                     let originalText = data.replyToText || data.textoOriginal || "";
                     
                     if (!originalText && data.replyToId) {
@@ -277,7 +349,6 @@ function listenForReplies(uid) {
                     notificationsHistory.unshift(newNotif);
                     hasNew = true;
 
-                    // LÓGICA DE POPUPS PARA RESPUESTAS
                     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
                     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
                     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
@@ -286,7 +357,6 @@ function listenForReplies(uid) {
                         if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
                         localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
 
-                        // Mostrar el popup si no es la primera visita, el comentario es reciente y no pasamos el límite
                         if (!isFirstVisitGlobal && timestampMs > thirtyDaysAgo && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                             notificationQueue.push(newNotif);
                             popupsShownCount++;
@@ -303,7 +373,6 @@ function listenForReplies(uid) {
                 if (!isMenuOpen) updateBellBadge();
             }
 
-            // Si hay popups nuevos en cola, arrancar la secuencia
             if (shouldShowPopup && notificationQueue.length === 1) {
                 showNextPopup();
             }
@@ -346,7 +415,7 @@ function procesarActualizacionCatalogo(anime) {
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) return;
     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
-    const markAsSeen = isFirstVisitGlobal;
+    const markAsSeen = false; // ← CAMBIO: nunca marcar como visto automáticamente
     
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
@@ -360,7 +429,7 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: markAsSeen,
+        seen: markAsSeen,        // false para mostrar punto rojo
         isFinal: anime.isFinal || false,
         popupShown: false
     };
@@ -400,9 +469,7 @@ function createPopupHTML(notif) {
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = 'eventModal';
-    // RENDERIZADO CONDICIONAL: RESPUESTA VS ANIME
     if (notif.type === 'RESPUESTA') {
-        // DISEÑO EXCLUSIVO Y MEJORADO PARA RESPUESTAS A COMENTARIOS
         modal.innerHTML = `
             <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
               <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
@@ -442,7 +509,6 @@ function createPopupHTML(notif) {
               </div>
             </div>`;
     } else {
-        // DISEÑO ESTÁNDAR PARA ACTUALIZACIONES DE ANIME (SE APLICA ESTILO DIRECTO AL TEXTO "FINALIZADO")
         let infoString = "";
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -478,8 +544,11 @@ function closePopup() {
 
     setTimeout(() => {
         modal.remove();
+        // Quitar el popup actual de la cola
         notificationQueue.shift();
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
+        // Guardar cola actualizada antes de mostrar el siguiente
+        saveQueueToStorage();
         showNextPopup();
     }, 300);
 }
@@ -488,9 +557,11 @@ function goToAnimeFromPopup(animeId, notifId) {
     const targetNotif = notificationsHistory.find(n => n.notifId === notifId);
     if (targetNotif && !targetNotif.seen) markAsRead(notifId);
     
-    notificationQueue = [];
+    // NO vaciar la cola; solo eliminar el popup actual (se hará al cerrar, pero aquí forzamos guardado)
+    // Guardar la cola restante en sessionStorage para restaurar al volver
+    saveQueueToStorage();
+    
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    // Si la notificación contiene una URL exacta (ej. comentarios), se utiliza esa
     if (targetNotif && targetNotif.url) {
         window.location.href = targetNotif.url;
     } else {
