@@ -1,7 +1,6 @@
 // notification-system.js - FIX: POPUPS PERSISTENTES AL REGRESAR + PUNTO ROJO EN NOTIFICACIONES
-// ACTUALIZADO: Persistencia de cola de popups en sessionStorage, seen=false en primera visita,
-// restauración de popups al volver a la página (pageshow), y badge de no leídos funcional.
-// CORRECCIÓN: Los popups restantes se muestran automáticamente al regresar a index.
+// CORRECCIÓN CRÍTICA: El contador de popups mostrados ahora se incrementa al MOSTRAR, no al encolar.
+// Esto asegura que los popups pendientes siempre aparezcan al volver a la página.
 
 let notificationQueue = [];
 let notificationsHistory = [];
@@ -13,7 +12,7 @@ let popupsShownCount = 0;
 const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
 
-// BANDERA DE CARGA DE PÁGINA
+// BANDERA DE CARGA DE PÁGINA (ya no es crítica para mostrar popups, pero se mantiene)
 let pageFullyLoaded = false;
 
 // FUNCIÓN DE SCROLLBAR SIN SALTO PARA LA BARRA DE NAVEGACIÓN
@@ -66,16 +65,14 @@ function loadQueueFromStorage() {
   if (storedQueue) {
     try {
       notificationQueue = JSON.parse(storedQueue);
-      // Restaurar también el contador
       const storedCount = sessionStorage.getItem('archinime_popups_shown');
       if (storedCount) popupsShownCount = parseInt(storedCount, 10) || 0;
-      console.log(`📦 Cola de popups restaurada: ${notificationQueue.length} pendientes, mostrados: ${popupsShownCount}`);
+      console.log(`📦 Cola restaurada: ${notificationQueue.length} pendientes, mostrados: ${popupsShownCount}`);
     } catch (e) {
       console.warn("Error al restaurar cola de popups:", e);
       notificationQueue = [];
     }
   }
-  // NO borramos el storage aquí; se mantiene hasta que se vacíe la cola explícitamente.
 }
 
 // ========== INICIALIZACIÓN ==========
@@ -93,15 +90,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         renderNotificationList();
         updateBellBadge();
-        // Si hay popups pendientes en cola (restaurados) y no se ha alcanzado el límite, iniciar secuencia
+        // Si hay popups pendientes y no se ha llegado al límite, mostrarlos inmediatamente
         if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
-            // Si la página ya está completamente cargada, mostrar inmediatamente
-            if (pageFullyLoaded) {
-                showNextPopup();
-            } else {
-                // Esperar a que startNotificationSequence sea llamado
-                console.log("⏳ Esperando carga completa para mostrar popups...");
-            }
+            console.log("🎬 Reanudando secuencia de popups...");
+            showNextPopup();
         }
     }
 
@@ -118,7 +110,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     } else if (typeof auth !== 'undefined') {
-        // Fallback: usar auth directamente
         console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
         auth.onAuthStateChanged(async user => {
             if (user) {
@@ -131,18 +122,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Manejar el evento pageshow para reanudar popups al volver a la página (bfcache)
 window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-        // La página fue restaurada desde caché, recargar cola y continuar
-        console.log("🔄 Página restaurada desde bfcache, reanudando popups...");
-        loadQueueFromStorage();
-        if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
-            // Forzar pageFullyLoaded a true porque la página ya estaba cargada
-            pageFullyLoaded = true;
-            showNextPopup();
+    // Recargar siempre la cola por si acaso
+    loadQueueFromStorage();
+    console.log(`🔄 pageshow (persisted: ${event.persisted}) - cola: ${notificationQueue.length}, mostrados: ${popupsShownCount}`);
+    if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
+        // Si hay un modal abierto, lo cerramos para mostrar el siguiente
+        const existingModal = document.getElementById('eventModal');
+        if (existingModal) {
+            existingModal.remove();
+            if (typeof enableBodyScroll === 'function') enableBodyScroll();
         }
-        updateBellBadge();
-        renderNotificationList();
+        showNextPopup();
     }
+    updateBellBadge();
+    renderNotificationList();
 });
 
 // Guardar cola antes de salir de la página
@@ -152,7 +145,7 @@ window.addEventListener('beforeunload', () => {
 
 // ========== PRIMERA VISITA: máximo 5 popups de los animes más recientes ==========
 async function initFirstVisitNotifications() {
-    // Marcar todas las notificaciones existentes como vistas (solo las antiguas)
+    // Marcar todas las notificaciones existentes como vistas
     let anyChanged = false;
     for (let notif of notificationsHistory) {
         if (!notif.seen) {
@@ -169,7 +162,6 @@ async function initFirstVisitNotifications() {
     notificationQueue = [];
     popupsShownCount = 0;
     try {
-        // Obtener los 5 animes más recientes (ordenados por lastUpdate desc)
         const snapshot = await db.collection('catalogo')
             .orderBy('lastUpdate', 'desc')
             .limit(MAX_POPUPS)
@@ -200,7 +192,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: false,        // ← No se marcan como vistas automáticamente
+                seen: false,
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -214,10 +206,10 @@ async function initFirstVisitNotifications() {
                 localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
             }
 
-            if (popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
+            // Encolar sin aumentar el contador de mostrados aún
+            if (notificationQueue.length < MAX_POPUPS) {
                 notificationQueue.push(newNotif);
-                popupsShownCount++;
-                console.log(`➕ Popup #${popupsShownCount} encolado para: ${anime.title}`);
+                console.log(`➕ Popup encolado para: ${anime.title}`);
             }
         }
 
@@ -226,11 +218,8 @@ async function initFirstVisitNotifications() {
         updateBellBadge();
 
         if (notificationQueue.length > 0) {
-            // Guardar cola en storage antes de mostrar
             saveQueueToStorage();
-            if (pageFullyLoaded) {
-                showNextPopup();
-            }
+            showNextPopup(); // Aquí se incrementará el contador al mostrar
         }
     } catch (error) {
         console.error("❌ Error al obtener los últimos animes para primera visita:", error);
@@ -243,20 +232,18 @@ function loadHistoryFromStorage() {
         try { 
             notificationsHistory = JSON.parse(stored);
             if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-        } catch(e) { notificationsHistory = [];
-        }
+        } catch(e) { notificationsHistory = []; }
     }
 }
 
 function saveHistoryToStorage() {
     localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
-    let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     updateBellBadge();
     const user = getCurrentUser();
     if (user) {
         db.collection('users').doc(user.uid).set({
             notifHistory: notificationsHistory,
-            seenNotifIds: seenNotifIds
+            seenNotifIds: JSON.parse(localStorage.getItem('archinime_seen_notif_ids') || '[]')
         }, { merge: true }).catch(e => console.error("Error guardando en nube", e));
     }
 }
@@ -282,7 +269,6 @@ async function syncNotificationsWithCloud(uid) {
         }
 
         if (isNewUser && notificationsHistory.length > 0) {
-            console.log("🆕 Usuario nuevo en la nube. Marcando notificaciones existentes como vistas.");
             let changed = false;
             for (let notif of notificationsHistory) {
                 if (!notif.seen) {
@@ -296,8 +282,7 @@ async function syncNotificationsWithCloud(uid) {
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-    } catch (e) { console.error("Error sync notif:", e);
-    }
+    } catch (e) { console.error("Error sync notif:", e); }
 }
 
 function listenForReplies(uid) {
@@ -325,7 +310,6 @@ function listenForReplies(uid) {
                     if (!cleanText) cleanText = "🖼️ (Sticker)";
                     
                     let originalText = data.replyToText || data.textoOriginal || "";
-                    
                     if (!originalText && data.replyToId) {
                         try {
                             const parentDoc = await db.collection('comments').doc(data.replyToId).get();
@@ -333,8 +317,7 @@ function listenForReplies(uid) {
                                 let pText = parentDoc.data().texto || "";
                                 originalText = pText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
                             }
-                        } catch(e) { console.error("Error obteniendo comentario padre:", e);
-                        }
+                        } catch(e) {}
                     }
 
                     let timestampMs = data.timestamp?.toMillis() || Date.now();
@@ -367,9 +350,8 @@ function listenForReplies(uid) {
 
                         if (!isFirstVisitGlobal && timestampMs > thirtyDaysAgo && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
                             notificationQueue.push(newNotif);
-                            popupsShownCount++;
                             shouldShowPopup = true;
-                            saveQueueToStorage(); // Guardar cola actualizada
+                            saveQueueToStorage();
                         }
                     }
                 }
@@ -383,7 +365,7 @@ function listenForReplies(uid) {
             }
 
             if (shouldShowPopup && notificationQueue.length === 1) {
-                if (pageFullyLoaded) showNextPopup();
+                showNextPopup();
             }
         }, error => console.error("Error replies:", error));
 }
@@ -406,8 +388,6 @@ function listenForCatalogUpdates() {
 }
 
 function procesarActualizacionCatalogo(anime) {
-    console.log(`🔔 Procesando anime: ${anime.title}`);
-    
     let lastUpdateMs = anime.lastUpdate;
     if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
         lastUpdateMs = anime.lastUpdate.toMillis();
@@ -424,7 +404,6 @@ function procesarActualizacionCatalogo(anime) {
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) return;
     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
-    const markAsSeen = false; // ← nunca marcar como visto automáticamente
     
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
@@ -438,7 +417,7 @@ function procesarActualizacionCatalogo(anime) {
         epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType,
         date: lastUpdateMs,
-        seen: markAsSeen,        // false para mostrar punto rojo
+        seen: false,
         isFinal: anime.isFinal || false,
         popupShown: false
     };
@@ -449,44 +428,37 @@ function procesarActualizacionCatalogo(anime) {
     const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
     if (shouldEnqueuePopup) {
         notificationQueue.push(newNotif);
-        popupsShownCount++;
-        console.log(`🔔 NUEVO POPUP #${popupsShownCount}: ${anime.title}`);
-        saveQueueToStorage(); // Guardar cola
-    } else {
-        console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado): ${anime.title}`);
+        console.log(`🔔 NUEVO POPUP encolado: ${anime.title}`);
+        saveQueueToStorage();
     }
     
     saveHistoryToStorage();
     renderNotificationList();
     updateBellBadge();
     if (shouldEnqueuePopup && notificationQueue.length === 1) {
-        if (pageFullyLoaded) showNextPopup();
+        showNextPopup();
     }
 }
 
 window.startNotificationSequence = () => {
     pageFullyLoaded = true;
-    // Si hay popups en cola y no se ha mostrado ninguno actualmente, iniciar
-    if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
+    // Ya no es estrictamente necesario, pero se mantiene por compatibilidad
+    if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
         showNextPopup();
     }
 };
 
 function showNextPopup() {
-    if (!pageFullyLoaded) {
-        console.log("⏸️ Página no completamente cargada, esperando...");
-        return;
-    }
-    if (notificationQueue.length === 0) {
-        console.log("✅ Cola de popups vacía.");
-        return;
-    }
+    if (notificationQueue.length === 0) return;
     if (popupsShownCount >= MAX_POPUPS) {
-        console.log("⛔ Límite de popups alcanzado.");
-        notificationQueue = []; // Limpiar cola
+        console.log("⛔ Límite de popups alcanzado, limpiando cola.");
+        notificationQueue = [];
         saveQueueToStorage();
         return;
     }
+    // Incrementar contador justo antes de mostrar
+    popupsShownCount++;
+    saveQueueToStorage();
     createPopupHTML(notificationQueue[0]);
 }
 
@@ -499,7 +471,6 @@ function createPopupHTML(notif) {
         modal.innerHTML = `
             <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
               <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
-
               <div style="background: linear-gradient(135deg, rgba(0,243,255,0.1) 0%, transparent 100%); padding: 25px 20px 15px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; align-items: center; gap: 15px; position: relative;">
                 <div style="position: relative; flex-shrink: 0;">
                     <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
@@ -512,26 +483,16 @@ function createPopupHTML(notif) {
                     <h2 style="font-size: 1.05rem; color: #fff; margin: 0; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${notif.title}</h2>
                 </div>
               </div>
-              
               <div style="padding: 20px; text-align: left;">
-                
                 <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.15); padding: 12px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
                     <i class="fas fa-quote-left" style="position: absolute; top: 10px; right: 15px; font-size: 1.2rem; color: rgba(255,255,255,0.03);"></i>
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tu comentario</div>
-                    <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">
-                        ${notif.originalText}
-                    </span>
+                    <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">${notif.originalText}</span>
                 </div>
-
                 <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">
-                        ${notif.epTitle}
-                    </p>
+                    <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">${notif.epTitle}</p>
                 </div>
-                
-                <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 0 25px rgba(0,243,255,0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 0 15px rgba(0,243,255,0.3)';">
-                    <i class="fas fa-comments"></i> VER CONVERSACIÓN
-                </button>
+                <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"> <i class="fas fa-comments"></i> VER CONVERSACIÓN </button>
               </div>
             </div>`;
     } else {
@@ -539,11 +500,9 @@ function createPopupHTML(notif) {
         if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
         if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
         else if (!infoString) infoString = "Nuevo Contenido";
-        
         let badgeColor = "#bc13fe";
         if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
         else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
-  
         modal.innerHTML = `
             <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
               <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
@@ -553,11 +512,9 @@ function createPopupHTML(notif) {
               <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
                 <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
                 <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
-             
               </div>
             </div>`;
     }
-
     document.body.appendChild(modal);
     if (typeof disableBodyScroll === 'function') disableBodyScroll();
     setTimeout(() => modal.classList.add('show'), 50);
@@ -567,13 +524,10 @@ function closePopup() {
     const modal = document.getElementById('eventModal');
     if (!modal) return;
     modal.classList.remove('show');
-
     setTimeout(() => {
         modal.remove();
-        // Quitar el popup actual de la cola
-        notificationQueue.shift();
+        notificationQueue.shift(); // Eliminar el popup actual de la cola
         if (typeof enableBodyScroll === 'function') enableBodyScroll();
-        // Guardar cola actualizada antes de mostrar el siguiente
         saveQueueToStorage();
         showNextPopup();
     }, 300);
@@ -582,14 +536,11 @@ function closePopup() {
 function goToAnimeFromPopup(animeId, notifId) {
     const targetNotif = notificationsHistory.find(n => n.notifId === notifId);
     if (targetNotif && !targetNotif.seen) markAsRead(notifId);
-    
     // Quitar el popup actual de la cola antes de navegar
     if (notificationQueue.length > 0 && notificationQueue[0].notifId === notifId) {
         notificationQueue.shift();
     }
-    // Guardar la cola restante en sessionStorage para restaurar al volver
     saveQueueToStorage();
-    
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
     if (targetNotif && targetNotif.url) {
         window.location.href = targetNotif.url;
@@ -630,7 +581,6 @@ function markAllAsRead() {
         saveHistoryToStorage();
         renderNotificationList();
         updateBellBadge();
-        console.log("✅ Todas las notificaciones marcadas como vistas.");
     }
 }
 
@@ -644,23 +594,11 @@ function renderNotificationList() {
             btn.className = 'mark-all-btn';
             btn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todo';
             btn.title = 'Marcar todas las notificaciones como vistas';
-     
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                markAllAsRead();
-            };
-            
+            btn.onclick = (e) => { e.stopPropagation(); markAllAsRead(); };
             btn.style.cssText = `
-                background: rgba(0,243,255,0.1);
-                border: 1px solid var(--neon-cyan);
-                color: var(--neon-cyan);
-                border-radius: 20px;
-                padding: 4px 12px;
-                font-size: 0.7rem;
-                font-family: 'Orbitron', sans-serif;
-                cursor: pointer;
-                transition: all 0.2s;
-                margin-left: 10px;
+                background: rgba(0,243,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+                border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; font-family: 'Orbitron', sans-serif;
+                cursor: pointer; transition: all 0.2s; margin-left: 10px;
                 ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
             `;
             btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
