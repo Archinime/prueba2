@@ -3,36 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exportar Catálogo de Firestore → JS</title>
+    <title>Exportar Catálogo Ordenado → JS</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #0a0a0f; color: #eee; font-family: 'Segoe UI', system-ui, monospace; padding: 30px; }
-        h1 { color: #00f3ff; font-weight: 400; letter-spacing: 1px; }
-        .card { background: #151520; border-radius: 20px; padding: 25px; max-width: 700px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid #2a2a3a; }
-        button { background: #00f3ff; color: #000; border: none; padding: 14px 28px; border-radius: 40px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; border: 1px solid #00f3ff; }
-        button:hover { background: transparent; color: #00f3ff; box-shadow: 0 0 15px #00f3ff66; }
-        button:disabled { opacity: 0.5; pointer-events: none; }
-        #log { background: #0b0b12; border-radius: 16px; padding: 20px; margin-top: 25px; height: 350px; overflow-y: auto; font-family: 'JetBrains Mono', 'Cascadia Code', monospace; font-size: 0.9rem; border: 1px solid #2e2e44; }
+        * { box-sizing: border-box; }
+        body {
+            background: #0c0c14;
+            color: #e0e0e0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #15151f;
+            border-radius: 28px;
+            padding: 30px;
+            max-width: 750px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px #2a2a40;
+        }
+        h1 {
+            color: #00f3ff;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 i { font-size: 1.8rem; }
+        .sub {
+            color: #a0a0b0;
+            margin-bottom: 28px;
+            border-left: 3px solid #bc13fe;
+            padding-left: 16px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+        .select-wrapper {
+            background: #1e1e2a;
+            border-radius: 40px;
+            padding: 4px;
+            border: 1px solid #3a3a55;
+            flex: 2;
+            min-width: 200px;
+        }
+        select {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        option { background: #1e1e2a; }
+        button {
+            background: #00f3ff;
+            color: #000;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #00f3ff;
+            flex: 1;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,243,255,0.2);
+            letter-spacing: 0.3px;
+        }
+        button:hover {
+            background: transparent;
+            color: #00f3ff;
+            box-shadow: 0 0 20px #00f3ff66;
+        }
+        button:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+        #log {
+            background: #0b0b12;
+            border-radius: 18px;
+            padding: 18px;
+            height: 340px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Cascadia Mono', monospace;
+            font-size: 0.85rem;
+            border: 1px solid #2a2a40;
+            margin-top: 25px;
+            line-height: 1.5;
+        }
         .success { color: #2ecc71; }
         .error { color: #ff6b6b; }
-        .info { color: #aaa; }
-        .highlight { color: #f1c40f; }
+        .info { color: #b0b0d0; }
+        .highlight { color: #f1c40f; font-weight: 500; }
+        .badge {
+            background: #bc13fe22;
+            color: #bc13fe;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            border: 1px solid #bc13fe55;
+        }
+        .footer-note {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: #6a6a8a;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div class="card">
-    <h1>📤 Exportar Colección "catalogo" → archivo JS</h1>
-    <p style="margin-bottom: 25px; color: #ccc;">Este proceso <strong>no incluye ratings</strong> ni otras colecciones. Solo descarga los documentos de <code>catalogo</code> y genera un archivo <code>catalogo-export.js</code> listo para respaldo.</p>
+    <h1>
+        <i>📦</i> Exportar Catálogo Ordenado
+        <span class="badge">sin ratings</span>
+    </h1>
+    <div class="sub">Descarga un archivo JS con todos los animes de <code>catalogo</code> ordenados y limpios.</div>
     
-    <button id="exportBtn" onclick="exportarCatalogo()">⬇️ Iniciar Exportación</button>
+    <div class="controls">
+        <div class="select-wrapper">
+            <select id="sortSelect">
+                <option value="title" selected>🔤 Ordenar por Título (A-Z)</option>
+                <option value="id">🆔 Ordenar por ID</option>
+                <option value="lastUpdate">📅 Ordenar por Última Actualización (más reciente primero)</option>
+            </select>
+        </div>
+        <button id="exportBtn" onclick="exportarCatalogo()">⬇️ Exportar Ahora</button>
+    </div>
+    
     <div id="log">
-        <span class="info">⏳ Esperando acción...</span>
+        <span class="info">⏳ Selecciona el criterio de orden y haz clic en "Exportar Ahora".</span>
+    </div>
+    <div class="footer-note">
+        ✅ El archivo generado incluye temporadas y episodios ordenados internamente.
     </div>
 </div>
 
 <script>
-    // Configuración de Firebase (misma que tu proyecto)
+    // ================= CONFIGURACIÓN FIREBASE =================
     const firebaseConfig = {
         apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
         authDomain: "login-admin-archinime.firebaseapp.com",
@@ -42,7 +168,6 @@
         appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
     };
 
-    // Inicializar Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -54,13 +179,32 @@
     // Función para loguear mensajes
     function log(msg, tipo = 'info') {
         const clase = tipo === 'error' ? 'error' : (tipo === 'success' ? 'success' : 'info');
-        logEl.innerHTML += `<div class="${clase}">${msg}</div>`;
+        const div = document.createElement('div');
+        div.className = clase;
+        div.innerHTML = msg;
+        logEl.appendChild(div);
         logEl.scrollTop = logEl.scrollHeight;
     }
 
-    // Función para limpiar el log (opcional)
     function clearLog() {
         logEl.innerHTML = '';
+    }
+
+    // Función auxiliar: ordena las seasons por num y los episodios ya están en orden (por índice)
+    function ordenarEstructuraInterna(anime) {
+        const animeOrdenado = { ...anime };
+        if (animeOrdenado.seasons && Array.isArray(animeOrdenado.seasons)) {
+            // Ordenar seasons por num
+            animeOrdenado.seasons = [...animeOrdenado.seasons].sort((a, b) => (a.num || 0) - (b.num || 0));
+            // Asegurar que cada season tenga 'eps' como array (si no, lo inicializamos)
+            animeOrdenado.seasons = animeOrdenado.seasons.map(season => {
+                const s = { ...season };
+                if (!s.eps || !Array.isArray(s.eps)) s.eps = [];
+                // Los episodios se mantienen en el orden del array original (que ya viene por índice)
+                return s;
+            });
+        }
+        return animeOrdenado;
     }
 
     // Función principal de exportación
@@ -68,91 +212,123 @@
         exportBtn.disabled = true;
         exportBtn.textContent = '⏳ Exportando...';
         clearLog();
-        log('🔍 Conectando a Firestore y leyendo colección "catalogo"...');
         
+        const criterio = document.getElementById('sortSelect').value;
+        log(`🔍 Conectando a Firestore y leyendo colección "catalogo"...`, 'info');
+        log(`📌 Criterio de ordenamiento: <span class="highlight">${criterio}</span>`);
+
         try {
-            // Obtener todos los documentos de la colección 'catalogo'
             const snapshot = await db.collection('catalogo').get();
             
             if (snapshot.empty) {
-                log('⚠️ La colección "catalogo" está vacía. No hay nada que exportar.', 'error');
+                log('⚠️ La colección "catalogo" está vacía.', 'error');
                 exportBtn.disabled = false;
-                exportBtn.textContent = '⬇️ Iniciar Exportación';
+                exportBtn.textContent = '⬇️ Exportar Ahora';
                 return;
             }
 
             const docs = snapshot.docs;
-            log(`📦 Se encontraron ${docs.length} documentos. Procesando...`);
+            log(`📦 Documentos obtenidos: ${docs.length}. Procesando y ordenando...`);
 
-            // Convertir cada documento a un objeto plano (incluyendo el ID)
-            const catalogoData = {};
-            let count = 0;
-            
-            docs.forEach(doc => {
+            // 1. Convertir a array de objetos con ID + datos, y limpiar timestamps
+            const animesArray = docs.map(doc => {
                 const data = doc.data();
-                // Guardamos el ID como clave (o podemos usar un array, pero objeto es más fácil para búsquedas)
-                catalogoData[doc.id] = {
-                    id: doc.id,        // incluimos el id por comodidad
-                    ...data
-                };
-                count++;
+                const anime = { id: doc.id, ...data };
+                
+                // Convertir Timestamp de Firestore a número (milisegundos)
+                if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
+                    anime.lastUpdate = anime.lastUpdate.toMillis();
+                }
+                // Si no tiene lastUpdate, asignamos 0 para que el orden no falle
+                if (anime.lastUpdate === undefined || anime.lastUpdate === null) {
+                    anime.lastUpdate = 0;
+                }
+                
+                // Ordenar seasons y estructura interna
+                return ordenarEstructuraInterna(anime);
             });
 
-            log(`✅ ${count} documentos procesados. Preparando archivo JS...`, 'success');
-
-            // Convertir timestamps de Firestore a números (milliseconds) para que sea serializable y fácil de leer
-            // También podemos mantenerlos como Timestamp pero en JSON se perdería el tipo.
-            const datosParaExportar = {};
-            for (const [id, anime] of Object.entries(catalogoData)) {
-                const animeLimpio = { ...anime };
-                
-                // Convertir campos Timestamp a número (milisegundos)
-                if (animeLimpio.lastUpdate && typeof animeLimpio.lastUpdate.toMillis === 'function') {
-                    animeLimpio.lastUpdate = animeLimpio.lastUpdate.toMillis();
-                }
-                // Si hay otros campos Timestamp, se pueden tratar aquí.
-                
-                // También podríamos dejar seasons tal cual, ya que es un array de objetos simple.
-                datosParaExportar[id] = animeLimpio;
+            // 2. Ordenar según el criterio seleccionado
+            let animesOrdenados;
+            switch (criterio) {
+                case 'title':
+                    animesOrdenados = animesArray.sort((a, b) => 
+                        (a.title || '').localeCompare(b.title || '', 'es', { sensitivity: 'base' })
+                    );
+                    break;
+                case 'id':
+                    animesOrdenados = animesArray.sort((a, b) => 
+                        (a.id || '').localeCompare(b.id || '', undefined, { numeric: true })
+                    );
+                    break;
+                case 'lastUpdate':
+                    animesOrdenados = animesArray.sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0));
+                    break;
+                default:
+                    animesOrdenados = animesArray;
             }
 
-            // Crear el contenido del archivo JS
-            const fecha = new Date().toISOString().split('T')[0];
-            const contenidoJS = `// Archivo exportado de Firestore - Colección "catalogo"\n` +
-                `// Fecha de exportación: ${new Date().toLocaleString()}\n` +
-                `// Total de animes: ${Object.keys(datosParaExportar).length}\n` +
-                `// ⚠️ Este archivo NO incluye ratings ni otras colecciones.\n\n` +
-                `const catalogoExport = ${JSON.stringify(datosParaExportar, null, 2)};\n\n` +
-                `// Si necesitas usarlo como array:\n` +
-                `// const catalogoArray = Object.values(catalogoExport);\n`;
+            log(`✅ ${animesOrdenados.length} animes ordenados. Generando archivo JS...`, 'success');
 
-            // Crear blob y descargar
+            // 3. Preparar el contenido del archivo JS
+            const fecha = new Date();
+            const fechaStr = fecha.toISOString().split('T')[0];
+            const horaStr = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+            
+            // Cabecera explicativa
+            const cabecera = `// ============================================================
+// ARCHINIME - CATÁLOGO EXPORTADO DESDE FIRESTORE
+// ============================================================
+// Fecha de exportación: ${fecha.toLocaleString('es')}
+// Total de animes: ${animesOrdenados.length}
+// Criterio de orden: ${criterio}
+// 
+// ⚠️  Este archivo NO incluye ratings ni otras colecciones.
+//     Contiene únicamente los documentos de la colección "catalogo".
+// 
+// 📌 Estructura: Array de objetos Anime.
+//    Cada anime tiene 'id', 'title', 'img', 'desc', 'genres',
+//    'seasons' (array ordenado por num), 'lastUpdate' (ms), etc.
+// ============================================================
+
+`;
+
+            // Convertir a JSON formateado con 2 espacios
+            const jsonString = JSON.stringify(animesOrdenados, null, 2);
+            
+            // Contenido final del archivo
+            const contenidoJS = cabecera + 
+                `const catalogoArray = ${jsonString};\n\n` +
+                `// Si prefieres un objeto indexado por ID:\n` +
+                `// const catalogoObj = Object.fromEntries(catalogoArray.map(a => [a.id, a]));\n`;
+
+            // 4. Descargar como archivo .js
             const blob = new Blob([contenidoJS], { type: 'application/javascript' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `catalogo-export-${fecha}.js`;
+            a.download = `catalogo-ordenado-${criterio}-${fechaStr}.js`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            log(`🎉 ¡Exportación completada! Archivo "catalogo-export-${fecha}.js" generado.`, 'success');
-            log(`💾 Puedes usar este archivo como respaldo o para migrar a otro proyecto.`, 'info');
+            log(`🎉 ¡Archivo generado! <strong>catalogo-ordenado-${criterio}-${fechaStr}.js</strong>`, 'success');
+            log(`📁 Puedes importar este array en cualquier proyecto.`, 'info');
+            log(`💡 Ejemplo de uso: <code>catalogoArray.forEach(anime => console.log(anime.title))</code>`, 'info');
             
         } catch (error) {
             console.error(error);
-            log(`❌ Error durante la exportación: ${error.message}`, 'error');
+            log(`❌ Error: ${error.message}`, 'error');
             if (error.message.includes('permission-denied')) {
-                log(`🔐 Verifica que las reglas de Firestore permitan lectura en "catalogo".`, 'error');
+                log(`🔐 Verifica los permisos de lectura en Firestore.`, 'error');
             }
         } finally {
             exportBtn.disabled = false;
-            exportBtn.textContent = '⬇️ Iniciar Exportación';
+            exportBtn.textContent = '⬇️ Exportar Ahora';
         }
     }
 
-    // Exponer función global
     window.exportarCatalogo = exportarCatalogo;
 </script>
 </body>
