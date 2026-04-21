@@ -1,6 +1,7 @@
 // notification-system.js - FIX: POPUPS PERSISTENTES AL REGRESAR + PUNTO ROJO EN NOTIFICACIONES
 // ACTUALIZADO: Persistencia de cola de popups en sessionStorage, seen=false en primera visita,
 // restauración de popups al volver a la página (pageshow), y badge de no leídos funcional.
+// CORRECCIÓN: Los popups restantes se muestran automáticamente al regresar a index.
 
 let notificationQueue = [];
 let notificationsHistory = [];
@@ -68,20 +69,20 @@ function loadQueueFromStorage() {
       // Restaurar también el contador
       const storedCount = sessionStorage.getItem('archinime_popups_shown');
       if (storedCount) popupsShownCount = parseInt(storedCount, 10) || 0;
+      console.log(`📦 Cola de popups restaurada: ${notificationQueue.length} pendientes, mostrados: ${popupsShownCount}`);
     } catch (e) {
       console.warn("Error al restaurar cola de popups:", e);
       notificationQueue = [];
     }
   }
-  // Limpiar después de cargar para evitar duplicados en recargas normales
-  sessionStorage.removeItem('archinime_popup_queue');
+  // NO borramos el storage aquí; se mantiene hasta que se vacíe la cola explícitamente.
 }
 
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🔔 Inicializando sistema de notificaciones...");
     loadHistoryFromStorage();
-    loadQueueFromStorage(); // Restaurar popups pendientes si la página se recargó
+    loadQueueFromStorage(); // Restaurar popups pendientes
 
     const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
     if (isFirstVisit && !firstVisitInitialized) {
@@ -92,13 +93,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         renderNotificationList();
         updateBellBadge();
-        // Si hay popups pendientes en cola (restaurados), iniciar secuencia
-        if (notificationQueue.length > 0) {
-            // Asegurar que no exceda el límite
-            if (popupsShownCount >= MAX_POPUPS) {
-                notificationQueue = [];
-            } else {
+        // Si hay popups pendientes en cola (restaurados) y no se ha alcanzado el límite, iniciar secuencia
+        if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
+            // Si la página ya está completamente cargada, mostrar inmediatamente
+            if (pageFullyLoaded) {
                 showNextPopup();
+            } else {
+                // Esperar a que startNotificationSequence sea llamado
+                console.log("⏳ Esperando carga completa para mostrar popups...");
             }
         }
     }
@@ -134,6 +136,8 @@ window.addEventListener('pageshow', (event) => {
         console.log("🔄 Página restaurada desde bfcache, reanudando popups...");
         loadQueueFromStorage();
         if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
+            // Forzar pageFullyLoaded a true porque la página ya estaba cargada
+            pageFullyLoaded = true;
             showNextPopup();
         }
         updateBellBadge();
@@ -196,7 +200,7 @@ async function initFirstVisitNotifications() {
                 epTitle: anime.latestEpTitle || "Nuevo Contenido",
                 type: anime.updateType,
                 date: lastUpdateMs,
-                seen: false,        // ← CAMBIO: ahora no se marcan como vistas automáticamente
+                seen: false,        // ← No se marcan como vistas automáticamente
                 isFinal: anime.isFinal || false,
                 popupShown: false
             };
@@ -222,7 +226,11 @@ async function initFirstVisitNotifications() {
         updateBellBadge();
 
         if (notificationQueue.length > 0) {
-            showNextPopup();
+            // Guardar cola en storage antes de mostrar
+            saveQueueToStorage();
+            if (pageFullyLoaded) {
+                showNextPopup();
+            }
         }
     } catch (error) {
         console.error("❌ Error al obtener los últimos animes para primera visita:", error);
@@ -361,6 +369,7 @@ function listenForReplies(uid) {
                             notificationQueue.push(newNotif);
                             popupsShownCount++;
                             shouldShowPopup = true;
+                            saveQueueToStorage(); // Guardar cola actualizada
                         }
                     }
                 }
@@ -374,7 +383,7 @@ function listenForReplies(uid) {
             }
 
             if (shouldShowPopup && notificationQueue.length === 1) {
-                showNextPopup();
+                if (pageFullyLoaded) showNextPopup();
             }
         }, error => console.error("Error replies:", error));
 }
@@ -415,7 +424,7 @@ function procesarActualizacionCatalogo(anime) {
     let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
     if (seenNotifIds.includes(notifId)) return;
     const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
-    const markAsSeen = false; // ← CAMBIO: nunca marcar como visto automáticamente
+    const markAsSeen = false; // ← nunca marcar como visto automáticamente
     
     seenNotifIds.push(notifId);
     if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
@@ -442,6 +451,7 @@ function procesarActualizacionCatalogo(anime) {
         notificationQueue.push(newNotif);
         popupsShownCount++;
         console.log(`🔔 NUEVO POPUP #${popupsShownCount}: ${anime.title}`);
+        saveQueueToStorage(); // Guardar cola
     } else {
         console.log(`🔔 NOTIFICACIÓN SIN POPUP (límite ${MAX_POPUPS} alcanzado): ${anime.title}`);
     }
@@ -450,18 +460,34 @@ function procesarActualizacionCatalogo(anime) {
     renderNotificationList();
     updateBellBadge();
     if (shouldEnqueuePopup && notificationQueue.length === 1) {
-        showNextPopup();
+        if (pageFullyLoaded) showNextPopup();
     }
 }
 
 window.startNotificationSequence = () => {
     pageFullyLoaded = true;
-    showNextPopup();
+    // Si hay popups en cola y no se ha mostrado ninguno actualmente, iniciar
+    if (notificationQueue.length > 0 && !document.getElementById('eventModal')) {
+        showNextPopup();
+    }
 };
 
 function showNextPopup() {
-    if (!pageFullyLoaded) return;
-    if (notificationQueue.length) createPopupHTML(notificationQueue[0]);
+    if (!pageFullyLoaded) {
+        console.log("⏸️ Página no completamente cargada, esperando...");
+        return;
+    }
+    if (notificationQueue.length === 0) {
+        console.log("✅ Cola de popups vacía.");
+        return;
+    }
+    if (popupsShownCount >= MAX_POPUPS) {
+        console.log("⛔ Límite de popups alcanzado.");
+        notificationQueue = []; // Limpiar cola
+        saveQueueToStorage();
+        return;
+    }
+    createPopupHTML(notificationQueue[0]);
 }
 
 function createPopupHTML(notif) {
@@ -557,7 +583,10 @@ function goToAnimeFromPopup(animeId, notifId) {
     const targetNotif = notificationsHistory.find(n => n.notifId === notifId);
     if (targetNotif && !targetNotif.seen) markAsRead(notifId);
     
-    // NO vaciar la cola; solo eliminar el popup actual (se hará al cerrar, pero aquí forzamos guardado)
+    // Quitar el popup actual de la cola antes de navegar
+    if (notificationQueue.length > 0 && notificationQueue[0].notifId === notifId) {
+        notificationQueue.shift();
+    }
     // Guardar la cola restante en sessionStorage para restaurar al volver
     saveQueueToStorage();
     
