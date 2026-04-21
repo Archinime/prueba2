@@ -748,6 +748,7 @@
     { id: "rem", src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4", keyColor: "green", preset: { threshold: 0.4, diff: 30, soft: 30 } },
     { id: "hola", src: "https://cdn.pixabay.com/video/2023/02/03/149220-797461338_large.mp4", keyColor: "blue", preset: { threshold: 0.45, diff: 35, soft: 35 } }
   ];
+  // La lista real de música se cargará desde musica_fondo.js
   window.musicListGlobal = [
     "https://cdn.pixabay.com/download/audio/2022/05/27/audio_0b7c1e5c5c.mp3",
     "https://cdn.pixabay.com/download/audio/2022/03/17/audio_3a4b5c6d7e.mp3"
@@ -834,27 +835,108 @@
   window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
   window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MÚSICA ====================
-  let isMusicStarted = false;
-  let currentAudio = null;
-  function startMusic() {
-    if (isMusicStarted) return;
-    isMusicStarted = true;
-    const track = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
-    currentAudio = new Audio(track);
-    currentAudio.volume = 0.3;
-    currentAudio.onended = () => {
-      if (isMusicStarted) {
-        const nextTrack = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
-        currentAudio = new Audio(nextTrack);
-        currentAudio.volume = 0.3;
-        currentAudio.play().catch(e => console.log("Error", e));
+  // ==================== MÚSICA (NUEVA LÓGICA) ====================
+  (function() {
+    // Esperar a que la lista de música esté disponible (desde musica_fondo.js)
+    let musicList = window.musicListGlobal || [];
+    let currentAudio = null;
+    let currentIndex = -1;
+    let isMusicStarted = false;
+    let autoplayBlocked = true;
+
+    // Función para obtener el siguiente índice secuencial
+    function getNextIndex() {
+      if (musicList.length === 0) return -1;
+      if (currentIndex === -1) {
+        // Primera vez: elegir aleatorio
+        return Math.floor(Math.random() * musicList.length);
+      } else {
+        // Secuencial: siguiente, volver al principio si es necesario
+        return (currentIndex + 1) % musicList.length;
       }
-    };
-    currentAudio.play().catch(e => console.log("Error al iniciar música", e));
-  }
-  document.addEventListener('click', startMusic, { once: true });
-  document.addEventListener('touchstart', startMusic, { once: true });
+    }
+
+    // Reproducir la pista en el índice dado
+    function playTrack(index) {
+      if (!musicList.length || index < 0 || index >= musicList.length) return;
+      
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = '';
+        currentAudio = null;
+      }
+      
+      const track = musicList[index];
+      currentAudio = new Audio(track);
+      currentAudio.volume = 0.3;
+      currentIndex = index;
+      
+      currentAudio.onended = () => {
+        if (isMusicStarted) {
+          const nextIdx = getNextIndex();
+          playTrack(nextIdx);
+        }
+      };
+      
+      currentAudio.play().then(() => {
+        autoplayBlocked = false;
+        console.log(`🎵 Reproduciendo: ${track}`);
+      }).catch(e => {
+        console.warn('Autoplay bloqueado, esperando interacción del usuario.');
+        autoplayBlocked = true;
+        // Si falla, programar reintento con la primera interacción
+        if (!isMusicStarted) {
+          const resumeOnce = () => {
+            if (currentAudio && autoplayBlocked) {
+              currentAudio.play().catch(() => {});
+            }
+            document.removeEventListener('click', resumeOnce);
+            document.removeEventListener('touchstart', resumeOnce);
+            document.removeEventListener('keydown', resumeOnce);
+          };
+          document.addEventListener('click', resumeOnce, { once: true });
+          document.addEventListener('touchstart', resumeOnce, { once: true });
+          document.addEventListener('keydown', resumeOnce, { once: true });
+        }
+      });
+    }
+
+    // Iniciar la reproducción
+    function startMusic() {
+      if (isMusicStarted) return;
+      isMusicStarted = true;
+      
+      // Asegurarse de que la lista esté actualizada (por si se cargó después)
+      if (window.musicListGlobal && window.musicListGlobal.length) {
+        musicList = window.musicListGlobal;
+      }
+      
+      if (musicList.length === 0) {
+        console.warn('Lista de música vacía.');
+        return;
+      }
+      
+      const startIdx = getNextIndex();
+      playTrack(startIdx);
+    }
+
+    // Intentar iniciar automáticamente después de que la página cargue
+    window.addEventListener('load', () => {
+      // Pequeño retraso para que el navegador considere la página interactiva
+      setTimeout(startMusic, 100);
+    });
+
+    // También intentar en DOMContentLoaded por si acaso
+    document.addEventListener('DOMContentLoaded', () => {
+      // Si la lista ya está definida, intentar rápido
+      if (window.musicListGlobal && window.musicListGlobal.length) {
+        setTimeout(startMusic, 50);
+      }
+    });
+
+    // Exponer función para iniciar manualmente si es necesario
+    window.forceStartMusic = startMusic;
+  })();
 
   // ==================== GIF ALEATORIO ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
