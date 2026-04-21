@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Firestore a JS - Archinime</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #fff;
+            font-family: 'Segoe UI', monospace;
+            padding: 20px;
+        }
+        h1 { color: #00f3ff; }
+        button {
+            background: #00f3ff;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #log {
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+        }
+        .success { color: #00ff9d; }
+        .error { color: #ff4757; }
+        .info { color: #aaa; }
+        .highlight { color: #f1c40f; }
+        a {
+            color: #00f3ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>📤 Exportar Firestore (catalogo + ratings) a archivo JS</h1>
+    <p>Haz clic para obtener un archivo <code>catalogo-export.js</code> con todos los datos.</p>
+    
+    <button id="btnExport">🚀 Iniciar Exportación</button>
+    <button id="btnCopy" style="display:none;">📋 Copiar al portapapeles</button>
+    <pre id="log">Conectando a Firebase...</pre>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+            authDomain: "login-admin-archinime.firebaseapp.com",
+            projectId: "login-admin-archinime",
+            storageBucket: "login-admin-archinime.firebasestorage.app",
+            messagingSenderId: "938164660242",
+            appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const logEl = document.getElementById('log');
+        const btnExport = document.getElementById('btnExport');
+        const btnCopy = document.getElementById('btnCopy');
+
+        let exportedData = null;
+        let exportedString = '';
+
+        function log(msg, tipo = 'info') {
+            const clase = tipo === 'error' ? 'error' : (tipo === 'success' ? 'success' : (tipo === 'highlight' ? 'highlight' : ''));
+            logEl.innerHTML += `<span class="${clase}">${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function exportData() {
+            log('🔄 Iniciando exportación...', 'highlight');
+            btnExport.disabled = true;
+            
+            try {
+                // 1. Obtener catálogo
+                log('📚 Leyendo colección "catalogo"...');
+                const catalogSnapshot = await db.collection('catalogo').get();
+                const catalogo = {};
+                
+                catalogSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Convertir Timestamps a números (milisegundos) para que sea serializable
+                    const cleanData = { ...data };
+                    if (cleanData.lastUpdate && typeof cleanData.lastUpdate.toMillis === 'function') {
+                        cleanData.lastUpdate = cleanData.lastUpdate.toMillis();
+                    }
+                    // Limpiar posibles campos undefined
+                    Object.keys(cleanData).forEach(key => {
+                        if (cleanData[key] === undefined) delete cleanData[key];
+                    });
+                    
+                    catalogo[doc.id] = cleanData;
+                });
+                
+                log(`✅ Catálogo leído: ${Object.keys(catalogo).length} documentos`, 'success');
+                
+                // 2. Obtener ratings
+                log('⭐ Leyendo colección "animeRatings"...');
+                const ratingsSnapshot = await db.collection('animeRatings').get();
+                const ratings = {};
+                
+                ratingsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const cleanData = { ...data };
+                    if (cleanData.updatedAt && typeof cleanData.updatedAt.toMillis === 'function') {
+                        cleanData.updatedAt = cleanData.updatedAt.toMillis();
+                    }
+                    ratings[doc.id] = cleanData;
+                });
+                
+                log(`✅ Ratings leídos: ${Object.keys(ratings).length} documentos`, 'success');
+
+                // 3. Construir el objeto final
+                const exportObject = {
+                    version: "2025-04-06",
+                    exportDate: new Date().toISOString(),
+                    catalogo: catalogo,
+                    ratings: ratings
+                };
+
+                // 4. Convertir a string JS legible
+                const jsonString = JSON.stringify(exportObject, null, 2);
+                exportedString = `// Archinime - Datos exportados de Firestore\n// Fecha: ${new Date().toLocaleString()}\n// Total animes: ${Object.keys(catalogo).length}\n\nconst archinimeData = ${jsonString};\n\n// Para acceder: archinimeData.catalogo["id"], archinimeData.ratings["id"]\n`;
+                
+                exportedData = exportObject;
+                
+                log('🎉 ¡Exportación completada!', 'success');
+                log(`📊 Resumen: ${Object.keys(catalogo).length} animes, ${Object.keys(ratings).length} ratings`, 'highlight');
+                
+                // 5. Crear enlace de descarga
+                const blob = new Blob([exportedString], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `catalogo-export-${new Date().toISOString().slice(0,10)}.js`;
+                a.textContent = '💾 Haz clic aquí para descargar el archivo';
+                a.style.display = 'block';
+                a.style.marginTop = '15px';
+                a.style.fontSize = '1.1rem';
+                
+                // Reemplazar el botón de copiar si existe
+                const existingLink = document.querySelector('a[download]');
+                if (existingLink) existingLink.remove();
+                logEl.parentNode.insertBefore(a, logEl.nextSibling);
+                
+                btnCopy.style.display = 'inline-block';
+                
+            } catch (error) {
+                log(`❌ Error durante la exportación: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btnExport.disabled = false;
+            }
+        }
+
+        function copyToClipboard() {
+            if (!exportedString) {
+                alert('Primero debes exportar los datos.');
+                return;
+            }
+            navigator.clipboard.writeText(exportedString).then(() => {
+                log('📋 Contenido copiado al portapapeles.', 'success');
+            }).catch(err => {
+                log(`❌ No se pudo copiar: ${err}`, 'error');
+            });
+        }
+
+        btnExport.addEventListener('click', exportData);
+        btnCopy.addEventListener('click', copyToClipboard);
+
+        // Verificar conexión inicial
+        db.collection('catalogo').limit(1).get()
+            .then(() => log('✅ Conexión a Firestore establecida.', 'success'))
+            .catch(err => log(`❌ Error de conexión: ${err.message}`, 'error'));
+    </script>
+</body>
+</html>
