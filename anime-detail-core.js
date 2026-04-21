@@ -1,14 +1,8 @@
-// anime-detail-core.js - Versión Firestore (búsqueda por prefijo + alias)
-// Obtiene datos desde la colección 'catalogo'
-// MODIFICADO: Sin voto base. Los animes comienzan sin votos (avg=0, count=0)
-// CORREGIDO: Al quitar el voto (hacer clic en la misma estrella) se actualiza el documento a count=0 en lugar de borrarlo
-// ACTUALIZADO: Usa ArchinimeState para el estado del usuario
-// NUEVO: Integración de anuncios en la sección de recomendaciones con 11 animes + 1 banner
-// NUEVO: Música cargada desde Firestore (campo "music")
-// MEJORA: Música con autoplay inmediato y fallback a interacción de usuario
-// MEJORA: Mensaje de inicio de sesión al intentar votar sin cuenta
+// anime-detail-core.js - Versión con catálogo local (catalogo.js)
+// Obtiene los datos del anime desde catalogoArray (archivo estático)
+// Los ratings, comentarios y autenticación siguen usando Firestore.
 
-// ---------- CONFIGURACIÓN FIREBASE ----------
+// ---------- CONFIGURACIÓN FIREBASE (para ratings, auth, etc.) ----------
 const firebaseConfig = {
   apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
   authDomain: "login-admin-archinime.firebaseapp.com",
@@ -30,8 +24,6 @@ function inicializarAnuncio() {
     const randomIndex = Math.floor(Math.random() * window.listaAnuncios.length);
     anuncioActual = window.listaAnuncios[randomIndex];
     console.log('Anuncio cargado en detalle:', anuncioActual.id);
-  } else {
-    console.warn('No hay anuncios definidos en anuncios_index.js');
   }
 }
 
@@ -43,7 +35,6 @@ function crearTarjetaAnuncio() {
   card.className = 'rec-card card-ad';
   card.style.cursor = 'default';
   
-  // Contenedor interno que ocupará todo el espacio
   const innerDiv = document.createElement('div');
   innerDiv.style.width = '100%';
   innerDiv.style.height = '100%';
@@ -53,10 +44,8 @@ function crearTarjetaAnuncio() {
   innerDiv.style.overflow = 'hidden';
   innerDiv.style.position = 'relative';
   
-  // Insertar el código del anuncio
   innerDiv.innerHTML = anuncioActual.codigo;
   
-  // Re-ejecutar scripts si los hay
   innerDiv.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script');
     if (oldScript.src) {
@@ -104,9 +93,9 @@ window._playUISound = function(type) {
 };
 window.playUISound = window._playUISound;
 
-// ---------- MÚSICA DE FONDO (DESDE FIRESTORE) CON AUTOPLAY MEJORADO ----------
+// ---------- MÚSICA DE FONDO (DESDE DATOS LOCALES) ----------
 let currentAudio = null, playlist = [], currentTrackIndex = -1;
-let userInteractedDetail = false;  // Bandera para saber si ya hubo interacción
+let userInteractedDetail = false;
 
 function playTrack(idx) {
   if (!playlist.length) return;
@@ -114,7 +103,6 @@ function playTrack(idx) {
     currentAudio.pause(); 
     currentAudio.onended = null; 
   }
-  // Construir URL completa si es ruta relativa
   let track = playlist[idx];
   const fullUrl = track.startsWith('http') ? track : `musica/${track}`;
   currentAudio = new Audio(fullUrl);
@@ -125,18 +113,15 @@ function playTrack(idx) {
     playTrack(currentTrackIndex);
   };
 
-  // Intentar reproducción automática inmediata
   const playPromise = currentAudio.play();
   if (playPromise !== undefined) {
     playPromise.catch(e => {
-      console.log('Autoplay bloqueado en anime-detail, esperando interacción:', e);
-      // Si aún no se ha configurado el listener de interacción, lo hacemos
+      console.log('Autoplay bloqueado, esperando interacción:', e);
       if (!userInteractedDetail) {
         const resumeOnce = () => {
           if (!userInteractedDetail) {
             userInteractedDetail = true;
-            currentAudio.play().catch(err => console.warn('No se pudo reproducir después de interacción:', err));
-            // Limpiar listeners
+            currentAudio.play().catch(err => console.warn('No se pudo reproducir:', err));
             ['click', 'touchstart', 'keydown'].forEach(evt => {
               document.removeEventListener(evt, resumeOnce, { once: true });
             });
@@ -157,21 +142,6 @@ function playMusicFromArray(musicArray) {
   playTrack(currentTrackIndex);
 }
 
-// Función de compatibilidad (llamada desde renderMainContent)
-function playMusicForAnime(animeId) {
-  // Intentar obtener desde sessionStorage (guardado en renderMainContent)
-  let musicArray = [];
-  try {
-    const stored = sessionStorage.getItem('musicList');
-    if (stored) musicArray = JSON.parse(stored);
-  } catch (e) {}
-  
-  if (musicArray.length) {
-    playMusicFromArray(musicArray);
-  }
-  // Si no hay en sessionStorage, no se reproduce
-}
-
 // ---------- ESTADO GLOBAL ----------
 let currentUserId = null;
 let currentAnimeId = null;
@@ -182,7 +152,7 @@ const params = new URLSearchParams(location.search);
 const animeId = params.get('id');
 currentAnimeId = animeId;
 
-// Cache para búsqueda rápida
+// Cache para búsqueda rápida (se llenará con catalogoArray)
 let searchCache = []; // { id, title, img, aliases }
 
 // ---------- TOAST ----------
@@ -194,7 +164,7 @@ function showToast(msg, isError = false) {
   setTimeout(() => toast.style.display = 'none', 3000);
 }
 
-// ---------- HISTORIAL DE VISUALIZACIÓN ----------
+// ---------- HISTORIAL DE VISUALIZACIÓN (Firestore / localStorage) ----------
 function getLocalKey(animeId, s, e) { return `watched_${animeId}_${s}_${e}`; }
 async function markEpisodeWatched(animeId, s, e) {
   if (currentUserId) {
@@ -317,7 +287,7 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES (SIN VOTO BASE Y CON TOGGLE CORREGIDO) ----------
+// ---------- VOTACIONES (Firestore) ----------
 async function loadAnimeRating(animeId) {
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
@@ -366,7 +336,6 @@ function renderStars(currentValue = 0) {
     if (currentValue >= i) star.classList.add('selected');
     star.setAttribute('data-value', i);
     
-    // Siempre añadimos los eventos, incluso sin sesión, para poder mostrar el mensaje
     star.addEventListener('mouseenter', () => highlightStars(i));
     star.addEventListener('mouseleave', () => resetStars(currentUserRating || 0));
     star.addEventListener('click', () => voteAnime(i));
@@ -390,7 +359,6 @@ function resetStars(val) {
 
 async function voteAnime(newVal) {
   if (!currentUserId) {
-    // Mensaje claro para el usuario sin cuenta
     const msg = 'Tienes que iniciar sesión para votar.';
     showToast('🔐 ' + msg, true);
     document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
@@ -496,17 +464,15 @@ async function loadUserRating(animeId, userId) {
   }
 }
 
-// ---------- RENDER PRINCIPAL ----------
+// ---------- RENDER PRINCIPAL (usando catalogoArray) ----------
 async function renderRecommendations(currentId) {
   const grid = document.getElementById('rec-grid');
   try {
-    const snapshot = await db.collection('catalogo')
-      .where(firebase.firestore.FieldPath.documentId(), '!=', currentId)
-      .limit(50)
-      .get();
-    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // 11 animes para dejar espacio al banner (total 12)
-    const random = docs.sort(() => 0.5 - Math.random()).slice(0, 11);
+    // Obtener recomendaciones del catálogo local
+    const allAnimes = (typeof catalogoArray !== 'undefined') ? catalogoArray : [];
+    // Filtrar el anime actual y tomar 11 aleatorios
+    const others = allAnimes.filter(a => String(a.id) !== String(currentId));
+    const random = others.sort(() => 0.5 - Math.random()).slice(0, 11);
     
     if (!random.length) {
       grid.innerHTML = '<p style="color:#666;">Sin recomendaciones</p>';
@@ -519,7 +485,6 @@ async function renderRecommendations(currentId) {
       const minPos = 4;
       const maxPos = random.length - 1;
       adPosition = Math.floor(Math.random() * (maxPos - minPos + 1)) + minPos;
-      console.log(`Anuncio en recomendaciones: posición ${adPosition + 1} (índice ${adPosition})`);
     }
 
     const frag = document.createDocumentFragment();
@@ -605,9 +570,8 @@ async function renderMainContent() {
     await loadUserRating(animeId, currentUserId);
   }
 
-  // 🎵 Reproducir música desde Firestore (campo "music")
+  // 🎵 Reproducir música desde el campo "music" del objeto local
   const musicList = animeData.music || [];
-  sessionStorage.setItem('musicList', JSON.stringify(musicList));
   if (musicList.length > 0) {
     playMusicFromArray(musicList);
   }
@@ -621,22 +585,18 @@ async function renderMainContent() {
   });
 }
 
-// ---------- CARGAR CACHÉ DE BÚSQUEDA ----------
-async function loadSearchCache() {
-  try {
-    const snapshot = await db.collection('catalogo').get();
-    searchCache = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title || '',
-        img: data.img || '',
-        aliases: data.aliases || []
-      };
-    });
-    console.log(`📦 Caché de búsqueda cargada: ${searchCache.length} animes`);
-  } catch(e) {
-    console.error('Error cargando caché de búsqueda:', e);
+// ---------- CARGAR CACHÉ DE BÚSQUEDA (desde catalogoArray) ----------
+function loadSearchCache() {
+  if (typeof catalogoArray !== 'undefined') {
+    searchCache = catalogoArray.map(item => ({
+      id: item.id,
+      title: item.title || '',
+      img: item.img || '',
+      aliases: item.aliases || []
+    }));
+    console.log(`📦 Caché de búsqueda cargada localmente: ${searchCache.length} animes`);
+  } else {
+    console.error('catalogoArray no está definido. Asegúrate de incluir catalogo.js');
   }
 }
 
@@ -697,7 +657,7 @@ function initSearch() {
     if (!q) { hideDropdown(); return; }
     
     const matches = searchCache.filter(item => {
-      if (item.id === currentAnimeId) return false;
+      if (String(item.id) === String(currentAnimeId)) return false;
       const titlesToCheck = [item.title, ...(item.aliases || [])];
       return titlesToCheck.some(t => t.toLowerCase().startsWith(q));
     }).slice(0, 10);
@@ -776,20 +736,29 @@ function initAuthListener() {
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
   inicializarAnuncio();
-  await loadSearchCache();
+  loadSearchCache(); // Ya no es async, se llena desde catalogoArray
   initAuthListener();
 
   if (!animeId) {
     document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>ID de anime no proporcionado</h2>";
     return;
   }
+  
+  // Obtener datos del anime desde catalogoArray
+  if (typeof catalogoArray === 'undefined') {
+    document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>Error: Catálogo no cargado</h2>";
+    return;
+  }
+  
+  const foundAnime = catalogoArray.find(a => String(a.id) === String(animeId));
+  if (!foundAnime) {
+    document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
+    return;
+  }
+  
+  animeData = foundAnime;
+  
   try {
-    const doc = await db.collection('catalogo').doc(animeId).get();
-    if (!doc.exists) {
-      document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>Anime no encontrado</h2>";
-      return;
-    }
-    animeData = { id: doc.id, ...doc.data() };
     await renderMainContent();
     initSearch();
     document.getElementById('share-detail')?.addEventListener('click', () => {
@@ -798,11 +767,7 @@ function initAuthListener() {
       showToast('Enlace copiado');
     });
   } catch(e) {
-    console.error('Error crítico cargando anime:', e);
-    let errorMsg = e.message;
-    if (errorMsg.includes('permission') || errorMsg.includes('Missing or insufficient permissions')) {
-      errorMsg = 'No tienes permisos para ver este anime. Por favor, inicia sesión o contacta al administrador.';
-    }
-    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${errorMsg}</h2>`;
+    console.error('Error crítico renderizando anime:', e);
+    document.getElementById('contenido').innerHTML = `<h2 style='text-align:center;padding:50px;color:red;'>Error al cargar el anime: ${e.message}</h2>`;
   }
 })();
