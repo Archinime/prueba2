@@ -7,5 +7,6 @@ const videoList = [
   { id: 'rimuru',  src: 'rimuru.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
   { id: 'reze',  src: 'reze.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
   { id: 'levi',  src: 'levi.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
+  { id: 'gojo',  src: 'gojo.mp4',  preset: { threshold: 0.10, diff: 0, soft: 100  } },
 
 ];

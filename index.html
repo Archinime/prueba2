@@ -852,7 +852,7 @@
   document.addEventListener('click', startMusic, { once: true });
   document.addEventListener('touchstart', startMusic, { once: true });
 
-  // ==================== RESTO DE TU CÓDIGO ORIGINAL (sin cambios, con chroma key) ====================
+  // ==================== RESTO DE TU CÓDIGO ORIGINAL (con shuffle añadido) ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
@@ -895,6 +895,16 @@
   setTimeout(() => {
     if (!loadingCompleted) finishLoading();
   }, 8000);
+  
+  // ==================== SHUFFLE (Fisher-Yates) ====================
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   let firestoreRatings = new Map();
   async function loadRatings() {
     try {
@@ -1053,7 +1063,17 @@
         return;
       }
       lastVisibleAnime = snapshot.docs[snapshot.docs.length - 1];
-      const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Aplicar shuffle solo cuando es una carga inicial (reset = true) o cuando no se está añadiendo más páginas (append = false)
+      if (reset) {
+        shuffleArray(animes);
+      } else {
+        // Para carga de scroll, también podemos mezclar para que no se repita el patrón de orden alfabético
+        // Pero mezclamos solo la nueva página, no todo el grid (para no desordenar lo ya mostrado)
+        shuffleArray(animes);
+      }
+      
       renderAnimes(animes, !reset);
       if (reset) {
         const event = new CustomEvent('firstAnimesLoaded');
@@ -1100,6 +1120,8 @@
           return true;
         });
       }
+      // Mezclar los resultados filtrados para que aparezcan en orden aleatorio
+      shuffleArray(animes);
       renderAnimes(animes, false);
       if (animes.length === 0) mostrarNoResultados();
     } catch (e) {
