@@ -1,7 +1,7 @@
-// notification-system.js - FIX DEFINITIVO: SECUENCIA COMPLETA DE POPUPS AL REGRESAR A INDEX
-// - La cola de popups se restaura desde sessionStorage al volver a la página.
-// - Se reanuda la secuencia automáticamente hasta vaciar la cola o alcanzar el límite de 5 mostrados.
-// - El punto rojo de notificaciones no leídas funciona correctamente.
+// notification-system.js - VERSIÓN ROBUSTA: SECUENCIA COMPLETA DE POPUPS AL REGRESAR
+// - Corrige la pérdida de popups al navegar y regresar.
+// - Garantiza que todos los popups pendientes (hasta 5) se muestren uno tras otro.
+// - Sincronización precisa entre sessionStorage y variables en memoria.
 
 let notificationQueue = [];
 let notificationsHistory = [];
@@ -11,8 +11,9 @@ let catalogoUnsubscribe = null;
 let popupsShownCount = 0;
 const MAX_POPUPS = 5;
 let firstVisitInitialized = false;
+let isShowingPopup = false; // Evita múltiples modales simultáneos
 
-// ========== SCROLL LOCK (SIN SALTO) ==========
+// ========== SCROLL LOCK ==========
 if (typeof disableBodyScroll !== 'function') {
   window.disableBodyScroll = function() {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -32,7 +33,7 @@ function getCurrentUser() {
   return null;
 }
 
-// ========== PERSISTENCIA DE COLA EN SESSIONSTORAGE ==========
+// ========== PERSISTENCIA ==========
 function saveQueueToStorage() {
   if (notificationQueue.length > 0) {
     const queueData = notificationQueue.map(n => ({
@@ -68,6 +69,9 @@ function loadQueueFromStorage() {
       console.warn("Error al restaurar cola de popups:", e);
       notificationQueue = [];
     }
+  } else {
+    // Si no hay cola en storage, asegurar que el contador sea coherente
+    popupsShownCount = 0;
   }
 }
 
@@ -86,17 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     renderNotificationList();
     updateBellBadge();
-    // Si hay cola pendiente y no se ha alcanzado el límite, reanudar secuencia
-    if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
-      console.log("🎬 Reanudando secuencia de popups tras DOMContentLoaded...");
-      // Forzar cierre de cualquier modal residual antes de empezar
-      const existingModal = document.getElementById('eventModal');
-      if (existingModal) {
-        existingModal.remove();
-        if (typeof enableBodyScroll === 'function') enableBodyScroll();
-      }
-      showNextPopup();
-    }
+    // Si hay cola pendiente, asegurar que se reanude
+    attemptResumeQueue('DOMContentLoaded');
   }
 
   listenForCatalogUpdates();
@@ -121,29 +116,59 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ========== AL REGRESAR A LA PÁGINA (BFCACHE O NORMAL) ==========
+// ========== AL REGRESAR A LA PÁGINA ==========
 window.addEventListener('pageshow', (event) => {
   console.log(`🔄 pageshow (persisted: ${event.persisted})`);
-  loadQueueFromStorage(); // Recargar cola por si cambió en otra pestaña
+  loadQueueFromStorage(); // Recargar por si hubo cambios en otra pestaña
   updateBellBadge();
   renderNotificationList();
-
-  // Si hay popups pendientes y no se ha llegado al límite, asegurar secuencia
-  if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
-    const existingModal = document.getElementById('eventModal');
-    if (existingModal) {
-      existingModal.remove();
-      if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    }
-    console.log(`🎬 Reanudando secuencia tras pageshow. Cola: ${notificationQueue.length}, mostrados: ${popupsShownCount}`);
-    showNextPopup();
-  }
+  attemptResumeQueue('pageshow');
 });
 
-// Guardar cola antes de salir
+// Guardar antes de salir
 window.addEventListener('beforeunload', () => {
   saveQueueToStorage();
 });
+
+// ========== INTENTAR REANUDAR COLA ==========
+function attemptResumeQueue(source) {
+  console.log(`🎬 [${source}] Intentando reanudar cola. Pendientes: ${notificationQueue.length}, Mostrados: ${popupsShownCount}`);
+  
+  // Limpiar cualquier modal residual
+  const existingModal = document.getElementById('eventModal');
+  if (existingModal) {
+    existingModal.remove();
+    if (typeof enableBodyScroll === 'function') enableBodyScroll();
+    isShowingPopup = false;
+  }
+  
+  if (notificationQueue.length === 0) {
+    console.log("✅ Cola vacía, nada que mostrar.");
+    return;
+  }
+  
+  // Corregir contador si es inconsistente (ej. mayor que lo esperado)
+  const expectedMaxShown = MAX_POPUPS - notificationQueue.length;
+  if (popupsShownCount > expectedMaxShown) {
+    console.warn(`⚠️ Contador inconsistente (${popupsShownCount} > ${expectedMaxShown}). Ajustando a ${expectedMaxShown}.`);
+    popupsShownCount = Math.max(0, expectedMaxShown);
+    saveQueueToStorage();
+  }
+  
+  if (popupsShownCount >= MAX_POPUPS) {
+    console.log("⛔ Límite de popups alcanzado. Limpiando cola.");
+    notificationQueue = [];
+    saveQueueToStorage();
+    return;
+  }
+  
+  // Si no se está mostrando ningún popup actualmente, mostrar el siguiente
+  if (!isShowingPopup) {
+    showNextPopup();
+  } else {
+    console.log("⏳ Ya hay un popup activo, esperando...");
+  }
+}
 
 // ========== PRIMERA VISITA ==========
 async function initFirstVisitNotifications() {
@@ -223,7 +248,7 @@ async function initFirstVisitNotifications() {
 
     if (notificationQueue.length > 0) {
       saveQueueToStorage();
-      showNextPopup(); // El contador se incrementa dentro de showNextPopup
+      showNextPopup();
     }
   } catch (error) {
     console.error("❌ Error al obtener los últimos animes para primera visita:", error);
@@ -290,7 +315,7 @@ async function syncNotificationsWithCloud(uid) {
   } catch (e) { console.error("Error sync notif:", e); }
 }
 
-// ========== RESPUESTAS A COMENTARIOS ==========
+// ========== RESPUESTAS ==========
 function listenForReplies(uid) {
   if (repliesUnsubscribe) repliesUnsubscribe();
   repliesUnsubscribe = db.collection('comments')
@@ -372,7 +397,7 @@ function listenForReplies(uid) {
       }, error => console.error("Error replies:", error));
 }
 
-// ========== ESCUCHA DE CATÁLOGO ==========
+// ========== CATÁLOGO ==========
 function listenForCatalogUpdates() {
   if (catalogoUnsubscribe) catalogoUnsubscribe();
   catalogoUnsubscribe = db.collection('catalogo')
@@ -447,16 +472,20 @@ function procesarActualizacionCatalogo(anime) {
 // ========== SECUENCIA DE POPUPS ==========
 window.startNotificationSequence = () => {
   // Llamado desde index.html cuando la página está lista
-  if (notificationQueue.length > 0 && popupsShownCount < MAX_POPUPS) {
-    showNextPopup();
-  }
+  attemptResumeQueue('startNotificationSequence');
 };
 
 function showNextPopup() {
+  if (isShowingPopup) {
+    console.warn("⚠️ Ya hay un popup en proceso de mostrarse.");
+    return;
+  }
+  
   if (notificationQueue.length === 0) {
     console.log("✅ Cola de popups vacía.");
     return;
   }
+  
   if (popupsShownCount >= MAX_POPUPS) {
     console.log("⛔ Límite de popups alcanzado. Limpiando cola.");
     notificationQueue = [];
@@ -464,10 +493,10 @@ function showNextPopup() {
     return;
   }
   
-  // Incrementar contador justo antes de mostrar
+  isShowingPopup = true;
   popupsShownCount++;
   saveQueueToStorage();
-  console.log(`🎬 Mostrando popup #${popupsShownCount} de ${notificationQueue.length} en cola.`);
+  console.log(`🎬 Mostrando popup #${popupsShownCount} de la cola (quedan ${notificationQueue.length-1})`);
   createPopupHTML(notificationQueue[0]);
 }
 
@@ -542,10 +571,13 @@ function closePopup() {
   setTimeout(() => {
     modal.remove();
     // Eliminar el popup actual de la cola
-    notificationQueue.shift();
+    if (notificationQueue.length > 0) {
+      notificationQueue.shift();
+    }
     if (typeof enableBodyScroll === 'function') enableBodyScroll();
+    isShowingPopup = false;
     saveQueueToStorage();
-    showNextPopup(); // Mostrar el siguiente automáticamente
+    showNextPopup(); // Mostrar el siguiente
   }, 300);
 }
 
@@ -553,11 +585,12 @@ function goToAnimeFromPopup(animeId, notifId) {
   const targetNotif = notificationsHistory.find(n => n.notifId === notifId);
   if (targetNotif && !targetNotif.seen) markAsRead(notifId);
   
-  // Eliminar el popup actual de la cola (ya que se va a navegar)
+  // Eliminar el popup actual de la cola
   if (notificationQueue.length > 0 && notificationQueue[0].notifId === notifId) {
     notificationQueue.shift();
   }
   saveQueueToStorage();
+  isShowingPopup = false;
   
   if (typeof enableBodyScroll === 'function') enableBodyScroll();
   if (targetNotif && targetNotif.url) {
@@ -691,7 +724,7 @@ function markAsRead(notifId) {
   }
 }
 
-// Exponer funciones globales
+// Exponer globales
 window.toggleNotifMenu = toggleNotifMenu;
 window.closePopup = closePopup;
 window.goToAnimeFromPopup = goToAnimeFromPopup;
