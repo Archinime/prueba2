@@ -3,6 +3,17 @@
 // Los ratings, comentarios y autenticación siguen usando Firestore.
 // Incluye mecanismo de espera para asegurar que catalogoArray esté disponible.
 
+// ---------- FUNCIÓN DE ESCAPE HTML (incluida para evitar dependencias) ----------
+function escapeHtml(text) {
+  if (!text) return text;
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // ---------- CONFIGURACIÓN FIREBASE (para ratings, auth, etc.) ----------
 const firebaseConfig = {
   apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -595,7 +606,6 @@ function loadSearchCache() {
     console.log(`📦 Caché de búsqueda cargada localmente: ${searchCache.length} animes`);
   } else {
     console.warn('catalogoArray no está definido aún. Se reintentará...');
-    // Reintentar en 100ms
     setTimeout(loadSearchCache, 100);
   }
 }
@@ -747,14 +757,13 @@ function waitForCatalog() {
           resolve();
         }
       }, 50);
-      // Timeout de seguridad después de 5 segundos
       setTimeout(() => {
         clearInterval(checkInterval);
         if (typeof catalogoArray === 'undefined') {
           console.error('❌ No se pudo cargar catalogoArray después de 5 segundos.');
           document.getElementById('contenido').innerHTML = '<h2 style="text-align:center;padding:50px;">Error: Catálogo no cargado. Recarga la página.</h2>';
         }
-        resolve(); // Resolver de todas formas para no bloquear
+        resolve();
       }, 5000);
     }
   });
@@ -764,7 +773,6 @@ function waitForCatalog() {
 (async function init() {
   inicializarAnuncio();
   
-  // Esperar a que el catálogo esté disponible
   await waitForCatalog();
   
   loadSearchCache();
