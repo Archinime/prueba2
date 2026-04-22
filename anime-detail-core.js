@@ -1,6 +1,7 @@
 // anime-detail-core.js - Versión con catálogo local (catalogo.js)
 // Obtiene los datos del anime desde catalogoArray (archivo estático)
 // Los ratings, comentarios y autenticación siguen usando Firestore.
+// Incluye mecanismo de espera para asegurar que catalogoArray esté disponible.
 
 // ---------- CONFIGURACIÓN FIREBASE (para ratings, auth, etc.) ----------
 const firebaseConfig = {
@@ -468,9 +469,7 @@ async function loadUserRating(animeId, userId) {
 async function renderRecommendations(currentId) {
   const grid = document.getElementById('rec-grid');
   try {
-    // Obtener recomendaciones del catálogo local
     const allAnimes = (typeof catalogoArray !== 'undefined') ? catalogoArray : [];
-    // Filtrar el anime actual y tomar 11 aleatorios
     const others = allAnimes.filter(a => String(a.id) !== String(currentId));
     const random = others.sort(() => 0.5 - Math.random()).slice(0, 11);
     
@@ -570,7 +569,6 @@ async function renderMainContent() {
     await loadUserRating(animeId, currentUserId);
   }
 
-  // 🎵 Reproducir música desde el campo "music" del objeto local
   const musicList = animeData.music || [];
   if (musicList.length > 0) {
     playMusicFromArray(musicList);
@@ -596,7 +594,9 @@ function loadSearchCache() {
     }));
     console.log(`📦 Caché de búsqueda cargada localmente: ${searchCache.length} animes`);
   } else {
-    console.error('catalogoArray no está definido. Asegúrate de incluir catalogo.js');
+    console.warn('catalogoArray no está definido aún. Se reintentará...');
+    // Reintentar en 100ms
+    setTimeout(loadSearchCache, 100);
   }
 }
 
@@ -733,10 +733,41 @@ function initAuthListener() {
   }
 }
 
+// ---------- Función para esperar a que catalogoArray esté disponible ----------
+function waitForCatalog() {
+  return new Promise((resolve) => {
+    if (typeof catalogoArray !== 'undefined') {
+      resolve();
+    } else {
+      console.log('⏳ Esperando a que catalogoArray esté disponible...');
+      const checkInterval = setInterval(() => {
+        if (typeof catalogoArray !== 'undefined') {
+          clearInterval(checkInterval);
+          console.log('✅ catalogoArray cargado.');
+          resolve();
+        }
+      }, 50);
+      // Timeout de seguridad después de 5 segundos
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        if (typeof catalogoArray === 'undefined') {
+          console.error('❌ No se pudo cargar catalogoArray después de 5 segundos.');
+          document.getElementById('contenido').innerHTML = '<h2 style="text-align:center;padding:50px;">Error: Catálogo no cargado. Recarga la página.</h2>';
+        }
+        resolve(); // Resolver de todas formas para no bloquear
+      }, 5000);
+    }
+  });
+}
+
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
   inicializarAnuncio();
-  loadSearchCache(); // Ya no es async, se llena desde catalogoArray
+  
+  // Esperar a que el catálogo esté disponible
+  await waitForCatalog();
+  
+  loadSearchCache();
   initAuthListener();
 
   if (!animeId) {
@@ -744,7 +775,6 @@ function initAuthListener() {
     return;
   }
   
-  // Obtener datos del anime desde catalogoArray
   if (typeof catalogoArray === 'undefined') {
     document.getElementById('contenido').innerHTML = "<h2 style='text-align:center;padding:50px;'>Error: Catálogo no cargado</h2>";
     return;
