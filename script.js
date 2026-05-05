@@ -954,23 +954,64 @@ async function loadAnimeForEditing(id) {
     }
 }
 
+// ============================================
+// ELIMINAR ANIME (CON REORDENAMIENTO DE IDs)
+// ============================================
 async function deleteCurrentAnime(idToDelete) {
-    if(currentUserEmail !== "archinime12@gmail.com") { alert("Acción no permitida."); return; }
-    if(!confirm(`⚠️ PELIGRO ⚠️\n\n¿Eliminar anime ID: ${idToDelete}?`)) return;
-    if(!confirm(`ÚLTIMA ADVERTENCIA.\n¿Confirmar borrado?`)) return;
-    showToast("Iniciando borrado...", false);
+    if(currentUserEmail !== "archinime12@gmail.com") {
+        alert("Acción no permitida.");
+        return;
+    }
+    if(!confirm(`⚠️ PELIGRO ⚠️\n\n¿Eliminar anime ID: ${idToDelete}? Esta acción no se puede deshacer.`)) return;
+    if(!confirm(`ÚLTIMA ADVERTENCIA.\n¿Confirmas el borrado y la reordenación de IDs?`)) return;
+
+    const docRef = db.collection('catalogo').doc(idToDelete.toString());
     try {
-        await db.collection('catalogo').doc(idToDelete.toString()).delete();
-        log("✅ ¡ELIMINADO DE FIRESTORE!");
-        alert("✅ Anime eliminado correctamente.");
-        exitEditMode();
+        // 1. Eliminar el documento
+        await docRef.delete();
+        log(`✅ Anime ID ${idToDelete} eliminado.`);
+        showToast(`Anime ${idToDelete} eliminado. Reordenando IDs...`, false);
+
+        // 2. Obtener todos los animes restantes ordenados por ID
+        const snapshot = await db.collection('catalogo')
+            .orderBy('id', 'asc')
+            .get();
+        
+        const batch = db.batch();
+        let expectedId = 1; // Comenzamos desde 1 para una secuencia limpia
+        const idsToUpdate = [];
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.id !== expectedId) {
+                // Necesitamos actualizar tanto el campo 'id' como mover el documento a un nuevo ID
+                const newDocRef = db.collection('catalogo').doc(expectedId.toString());
+                // Copiamos el documento con el nuevo ID
+                batch.set(newDocRef, { ...data, id: expectedId });
+                // Eliminamos el documento antiguo (con el ID viejo)
+                batch.delete(doc.ref);
+                idsToUpdate.push({ oldId: data.id, newId: expectedId });
+            }
+            expectedId++;
+        });
+
+        if (idsToUpdate.length > 0) {
+            await batch.commit();
+            log(`✅ IDs reordenados: ${idsToUpdate.map(x => `${x.oldId}→${x.newId}`).join(', ')}`);
+        } else {
+            log("ℹ️ Los IDs ya estaban en orden.");
+        }
+
+        alert("✅ Anime eliminado y catálogo reordenado correctamente.\n\nSe recomienda cerrar sesión para limpiar el formulario.");
+        exitEditMode(); // Recarga la página
     } catch(e) {
         console.error(e);
-        log(`❌ ERROR FATAL: ${e.message}`);
-        alert("Error crítico durante el borrado.");
+        log(`❌ ERROR CRÍTICO: ${e.message}`);
+        alert("Error durante la eliminación o reordenación.\n" + e.message);
     }
 }
 
+// La función exitEditMode fue movida antes, aquí solo la referencia
 function exitEditMode() {
     isEditMode = false;
     currentEditingId = null;
