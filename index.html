@@ -744,19 +744,7 @@
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
   const providerGitHub = new firebase.auth.GithubAuthProvider();
-</script>
 
-<!-- Catálogo local (reemplaza la consulta a Firestore) -->
-<script src="catalogo.js"></script>
-
-<!-- Otros scripts de la aplicación -->
-<script src="animaciones.js"></script>
-<script src="musica_fondo.js"></script>
-<script src="notification-system.js"></script>
-<script src="gifs.js"></script>
-<script src="anuncios_index.js"></script>
-
-<script>
   // Variables para paginación y música global (se mantienen)
   window.videoList = [
     { id: "rem", src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4", keyColor: "green", preset: { threshold: 0.4, diff: 30, soft: 30 } },
@@ -913,41 +901,42 @@
     return array;
   }
 
-  // ==================== RATINGS DESDE FIRESTORE (SE MANTIENE) ====================
+  // ==================== RATINGS DESDE FIRESTORE ====================
   let firestoreRatings = new Map();
+  let ratingsLoaded = false;
+
   async function loadRatings() {
     try {
       const snapshot = await db.collection('animeRatings').get();
+      firestoreRatings.clear(); // Limpiar antes de cargar
       snapshot.forEach(doc => {
         const data = doc.data();
         if (typeof data.avg === 'number') {
           firestoreRatings.set(parseInt(doc.id), { avg: data.avg, count: data.count || 0 });
         }
       });
+      ratingsLoaded = true;
     } catch (e) { console.warn('Error cargando ratings:', e); }
   }
-  loadRatings();
 
   function normalizeText(s) { 
     return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
   }
 
+  // Se eliminó el fallback al rating estático del catálogo local
   function getDisplayRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) {
       const ratingObj = firestoreRatings.get(animeId);
       if (ratingObj && typeof ratingObj.avg === 'number') return ratingObj.avg.toFixed(1);
     }
-    // Si no hay rating en Firestore, usar el campo 'rating' del catálogo local como fallback
-    if (anime.rating != null && typeof anime.rating === 'number' && !isNaN(anime.rating)) return anime.rating.toFixed(1);
     return '—';
   }
 
   function getNumericRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) return firestoreRatings.get(animeId).avg;
-    if (anime.rating != null && typeof anime.rating === 'number') return anime.rating;
-    return 0;
+    return 0; // Sin rating real, se considera 0 para filtros
   }
 
   // ==================== ANUNCIOS ====================
@@ -985,9 +974,9 @@
   }
 
   // ==================== VARIABLES GLOBALES DE PAGINACIÓN ====================
-  let allAnimes = [];               // Almacena todos los animes filtrados y mezclados
+  let allAnimes = [];
   let currentPage = 1;
-  const itemsPerPage = 35;
+  const itemsPerPage = 36;
   let totalPages = 1;
   let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
   let debounceTimer = null;
@@ -995,7 +984,6 @@
   const grid = document.getElementById('grid');
   const paginationContainer = document.getElementById('pagination');
 
-  // Función para renderizar la página actual
   function renderPage() {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -1005,7 +993,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Renderiza las tarjetas en el grid
   function renderAnimes(animes, append = false) {
     if (!append) grid.innerHTML = '';
     if (!animes.length) {
@@ -1035,7 +1022,7 @@
       card.className = 'card';
       card.dataset.id = anime.id;
       card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
-      const rating = getDisplayRating(anime);
+      const rating = getDisplayRating(anime);  // Ahora solo usa Firestore
       const imgUrl = anime.img || 'placeholder.webp';
       card.innerHTML = `
         <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
@@ -1099,16 +1086,14 @@
     renderPage();
   };
 
-  // ==================== CARGA DE DATOS (AHORA DESDE catalogoArray) ====================
+  // ==================== CARGA DE DATOS (DESDE catalogoArray) ====================
   async function cargarDatosYMostrar() {
     grid.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo...</div>';
     paginationContainer.innerHTML = '';
 
     try {
-      // Usar el array global catalogoArray (definido en catalogo.js)
       let animes = (typeof catalogoArray !== 'undefined') ? [...catalogoArray] : [];
 
-      // Aplicar filtros (todo en cliente)
       if (currentFilters.genre) {
         animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.genre));
       }
@@ -1124,7 +1109,7 @@
       }
       if (currentFilters.rating) {
         animes = animes.filter(a => {
-          const r = getNumericRating(a);
+          const r = getNumericRating(a); // ahora solo usa Firestore
           if (currentFilters.rating === 'excellent') return r >= 4.8;
           if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
           if (currentFilters.rating === 'regular') return r < 4.6;
@@ -1132,7 +1117,6 @@
         });
       }
 
-      // Mezclar aleatoriamente
       allAnimes = shuffleArray(animes);
       totalPages = Math.ceil(allAnimes.length / itemsPerPage);
       currentPage = 1;
@@ -1144,7 +1128,6 @@
         renderPage();
       }
 
-      // Disparar evento de carga inicial (para la pantalla de carga)
       if (!window.firstAnimesDispatched) {
         window.firstAnimesDispatched = true;
         window.dispatchEvent(new CustomEvent('firstAnimesLoaded'));
@@ -1155,13 +1138,11 @@
     }
   }
 
-  // Debounce para búsqueda
   function debouncedCargar() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => cargarDatosYMostrar(), 300);
   }
 
-  // Resetear filtros
   window.resetearFiltrosGlobal = function() {
     document.getElementById('search').value = '';
     document.getElementById('genre-select').value = '';
@@ -1171,7 +1152,6 @@
     cargarDatosYMostrar();
   };
 
-  // Event listeners de filtros
   const searchInput = document.getElementById('search');
   const genreSelect = document.getElementById('genre-select');
   const demographicSelect = document.getElementById('demographic-select');
@@ -1487,9 +1467,14 @@
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
-  // Inicializar anuncio y cargar datos
+  // Inicializar anuncio y cargar datos después de ratings
   inicializarAnuncio();
-  cargarDatosYMostrar();
+  loadRatings().then(() => {
+    cargarDatosYMostrar();
+  }).catch(err => {
+    console.error('Error al cargar ratings, mostrando sin ellos:', err);
+    cargarDatosYMostrar(); // De todas formas mostrar catálogo
+  });
 </script>
 </body>
 </html>
