@@ -91,7 +91,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
-  <!-- Estilos (los mismos que ya tienes, se omiten por brevedad pero están en el original) -->
+  <!-- Estilos -->
   <style>
     /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen exactamente igual) ===== */
     :root {
@@ -580,7 +580,7 @@
 <audio id="bg-music"></audio> 
 
 <nav class="cyber-nav">
-  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
+  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" id="mainLogo" title="Ir a Archinime">
     <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime" decoding="async">
     <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
   </a>
@@ -679,10 +679,71 @@
 <div class="controls-container controls" id="controls">
   <select id="genre-select">
       <option value="">🎭 Todos los géneros</option>
-      <option>Acción</option><option>Animación</option><option>Aventura</option><option>Ciencia ficción</option>
-      <option>Comedia</option><option>Drama</option><option>Fantasía</option><option>Horror</option>
-      <option>Isekai</option><option>Mecha</option><option>Misterio</option><option>Romance</option>
-      <option>Shōnen</option><option>Sobrenatural</option><option>Terror</option><option>Thriller</option>
+        <option>Acción</option>
+        <option>Animación</option>
+        <option>Artes Marciales</option>
+        <option>Aventura</option>
+        <option>Ciencia ficción</option>
+        <option>Cocina</option>
+        <option>Comedia</option>
+        <option>Comedia oscura</option>
+        <option>Coming-of-age</option>
+        <option>Cosplay</option>
+        <option>Crimen</option>
+        <option>Cyberpunk</option>
+        <option>Deducción Social</option>
+        <option>Deportivo</option>
+        <option>Divulgación Científica</option>
+        <option>Drama</option>
+        <option>Ecchi</option>
+        <option>Espionaje</option>
+        <option>Escolar</option>
+        <option>Fantasía</option>
+        <option>Fantasía oscura</option>
+        <option>Familiar</option>
+        <option>Gag</option>
+        <option>Gore</option>
+        <option>Harem</option>
+        <option>Hentai</option>
+        <option>Histórico</option>
+        <option>Horror</option>
+        <option>Incesto</option>
+        <option>Infantil</option>
+        <option>Isekai</option>
+        <option>Isekai Inverso</option>
+        <option>Kaiju</option>
+        <option>Mahō Shōjo</option>
+        <option>Mecha</option>
+        <option>Militar</option>
+        <option>Mitología</option>
+        <option>Misterio</option>
+        <option>Musical</option>
+        <option>Nekketsu</option>
+        <option>Parodia</option>
+        <option>Policial</option>
+        <option>Post-apocalíptico</option>
+        <option>Psicológico</option>
+        <option>Reverse Harem</option>
+        <option>Romance</option>
+        <option>RPG</option>
+        <option>Slice of Life</option>
+        <option>Sobrenatural</option>
+        <option>Steampunk</option>
+        <option>Superhéroes</option>
+        <option>Survival</option>
+        <option>Survival Game</option>
+        <option>Suspenso</option>
+        <option>Tentáculos</option>
+        <option>Terror</option>
+        <option>Terror psicológico</option>
+        <option>Thriller</option>
+        <option>Thriller psicológico</option>
+        <option>Tokusatsu</option>
+        <option>Tragedia</option>
+        <option>VRMMO</option>
+        <option>Yanki</option>
+        <option>Yaoi</option>
+        <option>Yuri</option>
   </select>
   <select id="demographic-select">
     <option value="">👥 Todas las demografías</option>
@@ -744,7 +805,19 @@
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
   const providerGitHub = new firebase.auth.GithubAuthProvider();
+</script>
 
+<!-- Catálogo local (reemplaza la consulta a Firestore) -->
+<script src="catalogo.js"></script>
+
+<!-- Otros scripts de la aplicación -->
+<script src="animaciones.js"></script>
+<script src="musica_fondo.js"></script>
+<script src="notification-system.js"></script>
+<script src="gifs.js"></script>
+
+
+<script>
   // Variables para paginación y música global (se mantienen)
   window.videoList = [
     { id: "rem", src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4", keyColor: "green", preset: { threshold: 0.4, diff: 30, soft: 30 } },
@@ -901,14 +974,14 @@
     return array;
   }
 
-  // ==================== RATINGS DESDE FIRESTORE ====================
+  // ==================== RATINGS DESDE FIRESTORE (SE MANTIENE) ====================
   let firestoreRatings = new Map();
   let ratingsLoaded = false;
 
   async function loadRatings() {
     try {
       const snapshot = await db.collection('animeRatings').get();
-      firestoreRatings.clear(); // Limpiar antes de cargar
+      firestoreRatings.clear();
       snapshot.forEach(doc => {
         const data = doc.data();
         if (typeof data.avg === 'number') {
@@ -923,7 +996,6 @@
     return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
   }
 
-  // Se eliminó el fallback al rating estático del catálogo local
   function getDisplayRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) {
@@ -936,7 +1008,7 @@
   function getNumericRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) return firestoreRatings.get(animeId).avg;
-    return 0; // Sin rating real, se considera 0 para filtros
+    return 0;
   }
 
   // ==================== ANUNCIOS ====================
@@ -1022,7 +1094,7 @@
       card.className = 'card';
       card.dataset.id = anime.id;
       card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
-      const rating = getDisplayRating(anime);  // Ahora solo usa Firestore
+      const rating = getDisplayRating(anime);
       const imgUrl = anime.img || 'placeholder.webp';
       card.innerHTML = `
         <img src="${imgUrl}" alt="${anime.title}" loading="lazy">
@@ -1086,7 +1158,7 @@
     renderPage();
   };
 
-  // ==================== CARGA DE DATOS (DESDE catalogoArray) ====================
+  // ==================== CARGA DE DATOS (AHORA DESDE catalogoArray) ====================
   async function cargarDatosYMostrar() {
     grid.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo...</div>';
     paginationContainer.innerHTML = '';
@@ -1109,7 +1181,7 @@
       }
       if (currentFilters.rating) {
         animes = animes.filter(a => {
-          const r = getNumericRating(a); // ahora solo usa Firestore
+          const r = getNumericRating(a);
           if (currentFilters.rating === 'excellent') return r >= 4.8;
           if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
           if (currentFilters.rating === 'regular') return r < 4.6;
@@ -1467,13 +1539,23 @@
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
+  // ==================== AJUSTAR ENLACE DEL LOGO EN MÓVIL ====================
+  (function() {
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || 
+                           (window.innerWidth <= 768);
+    const logoLink = document.getElementById('mainLogo');
+    if (logoLink && isMobileDevice) {
+      logoLink.removeAttribute('target'); // quita target="_blank" para que abra en la misma pestaña
+    }
+  })();
+
   // Inicializar anuncio y cargar datos después de ratings
   inicializarAnuncio();
   loadRatings().then(() => {
     cargarDatosYMostrar();
   }).catch(err => {
     console.error('Error al cargar ratings, mostrando sin ellos:', err);
-    cargarDatosYMostrar(); // De todas formas mostrar catálogo
+    cargarDatosYMostrar();
   });
 </script>
 </body>
