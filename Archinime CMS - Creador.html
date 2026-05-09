@@ -9,14 +9,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
+    <!-- Firebase (solo para autenticación y perfiles) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+    <!-- CATÁLOGO LOCAL (reemplaza la colección de Firestore) -->
+    <script src="catalogo.js"></script>
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        /* ESTILOS EXTRA PARA EL MODAL DE PERFIL */
+        /* (estilos del modal de perfil, sin cambios) */
         #profileSetupModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
@@ -34,10 +38,8 @@
             font-size: 1.5rem; margin-bottom: 10px; }
         .profile-card p { color: #888; font-size: 0.9rem;
             margin-bottom: 25px; }
-        .p-input-group { text-align: left; margin-bottom: 15px;
-        }
-        .p-input-group label { margin-top: 0; margin-bottom: 5px;
-        }
+        .p-input-group { text-align: left; margin-bottom: 15px; }
+        .p-input-group label { margin-top: 0; margin-bottom: 5px; }
         .profile-preview-img {
             width: 80px;
             height: 80px; border-radius: 50%; object-fit: cover;
@@ -46,6 +48,8 @@
     </style>
 </head>
 <body>
+
+<!-- (Pantalla de login, modal de perfil, header, modal de búsqueda, editor, etc. – TODO IGUAL) -->
 
 <div id="loginScreen">
     <div class="login-card">
@@ -211,7 +215,7 @@
         <button class="btn btn-add" style="border-color:var(--primary); color:var(--primary)" onclick="addMusic()"><i class="fas fa-music"></i> AGREGAR AUDIO</button>
 
         <button class="btn btn-gen" id="btnSaveAction" onclick="subirAGithHub()">
-            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y SUBIR</span>
+            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y DESCARGAR catalogo.js</span>
         </button>
         
         <div id="statusLog"></div>
