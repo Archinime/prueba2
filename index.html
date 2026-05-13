@@ -580,7 +580,7 @@
 <audio id="bg-music"></audio> 
 
 <nav class="cyber-nav">
-  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" id="mainLogo" title="Ir a Archinime">
+  <a href="https://archinime.github.io/ArchiPapu/index.html" target="_blank" class="nav-logo" title="Ir a Archinime">
     <img id="logo" src="Logo_Archinime.avif" alt="Logo Archinime" decoding="async">
     <h1 class="nav-logo-text" style="margin: 0; font-size: inherit; line-height: 1;">ARCHINIME</h1>
   </a>
@@ -808,7 +808,7 @@
 </script>
 
 <!-- Catálogo local (reemplaza la consulta a Firestore) -->
-<script src="catalogo.js"></script>
+<script src="catalogo.js?v=2025-04-06-v6.2"></script>
 
 <!-- Otros scripts de la aplicación -->
 <script src="animaciones.js"></script>
@@ -901,9 +901,10 @@
   window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
   window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MÚSICA ====================
+  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA) ====================
   let isMusicStarted = false;
   let currentAudio = null;
+
   function startMusic() {
     if (isMusicStarted) return;
     isMusicStarted = true;
@@ -915,13 +916,28 @@
         const nextTrack = musicListGlobal[Math.floor(Math.random() * musicListGlobal.length)];
         currentAudio = new Audio(nextTrack);
         currentAudio.volume = 0.3;
-        currentAudio.play().catch(e => console.log("Error", e));
+        currentAudio.play().catch(e => console.log("Error al cambiar de canción", e));
       }
     };
-    currentAudio.play().catch(e => console.log("Error al iniciar música", e));
+    currentAudio.play().catch(e => {
+      console.log("Error al reproducir música automáticamente:", e);
+      // Si el navegador bloquea el autoplay, reintentamos con un evento de clic global una sola vez
+      const oneClick = () => {
+        if (!isMusicStarted) {
+          startMusic();
+        }
+        document.removeEventListener('click', oneClick);
+        document.removeEventListener('touchstart', oneClick);
+      };
+      document.addEventListener('click', oneClick);
+      document.addEventListener('touchstart', oneClick);
+    });
   }
-  document.addEventListener('click', startMusic, { once: true });
-  document.addEventListener('touchstart', startMusic, { once: true });
+
+  // Iniciar música automáticamente al cargar la página
+  window.addEventListener('load', () => {
+    startMusic();
+  });
 
   // ==================== GIF ALEATORIO ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -1538,16 +1554,6 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
-
-  // ==================== AJUSTAR ENLACE DEL LOGO EN MÓVIL ====================
-  (function() {
-    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || 
-                           (window.innerWidth <= 768);
-    const logoLink = document.getElementById('mainLogo');
-    if (logoLink && isMobileDevice) {
-      logoLink.removeAttribute('target'); // quita target="_blank" para que abra en la misma pestaña
-    }
-  })();
 
   // Inicializar anuncio y cargar datos después de ratings
   inicializarAnuncio();
