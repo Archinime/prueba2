@@ -425,7 +425,7 @@
     #fgContainer {
       position: fixed;
       pointer-events: auto; display: flex; align-items: center; justify-content: center;
-      right: 20px; bottom: 20px; 
+      bottom: 20px;
       width: 280px; height: auto; max-height: 350px; overflow: hidden;
       background: transparent; border-radius: 10px;
       filter: drop-shadow(0 0 10px rgba(0,243,255,0.2));
@@ -436,6 +436,15 @@
       -webkit-tap-highlight-color: transparent;
       outline: none;
       user-select: none;
+    }
+    /* Posiciones aleatorias: izquierda o derecha */
+    #fgContainer.fg-left {
+      left: 20px;
+      right: auto;
+    }
+    #fgContainer.fg-right {
+      right: 20px;
+      left: auto;
     }
     #fgContainer.poof {
       transform: scale(1.15) translateZ(0);
@@ -532,7 +541,9 @@
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
       .profile-card { padding: 20px; }
-      #fgContainer { width: 180px; bottom: 10px; right: 10px; filter: none !important; position: fixed !important; }
+      #fgContainer { width: 180px; bottom: 10px; filter: none !important; position: fixed !important; }
+      #fgContainer.fg-left { left: 10px; }
+      #fgContainer.fg-right { right: 10px; }
       .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger {
         backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
       }
@@ -1474,7 +1485,18 @@
     });
   }
 
-  // Chroma key (sin cambios)
+  // ==================== NUEVA FUNCIÓN: POSICIÓN ALEATORIA (IZQUIERDA O DERECHA) ====================
+  function randomizeFgPosition() {
+    const fg = document.getElementById('fgContainer');
+    if (!fg) return;
+    // Eliminar clases existentes
+    fg.classList.remove('fg-left', 'fg-right');
+    // Elegir aleatoriamente left o right
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    fg.classList.add(`fg-${side}`);
+  }
+
+  // Chroma key (sin cambios relevantes, solo añadimos la aleatoriedad al cambiar de video)
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
   const fgCanvas = document.getElementById('fgCanvas');
@@ -1517,6 +1539,8 @@
     bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
     fgVideo.muted = true;
     fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+    // Posición aleatoria al inicio
+    randomizeFgPosition();
   }
   function createSparks(clientX, clientY) {
     const neonColors = ['#00f3ff', '#bc13fe', '#ff0055', '#f1c40f'];
@@ -1549,7 +1573,12 @@
       do { newAnim = videoList[Math.floor(Math.random() * videoList.length)]; } while (newAnim.id === currentAnim.id && videoList.length > 1);
       currentAnim = newAnim;
       fgVideo.src = currentAnim.src;
-      fgVideo.play().then(() => { isTransitioning = false; fgContainer.classList.remove('poof'); }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
+      fgVideo.play().then(() => {
+        isTransitioning = false;
+        fgContainer.classList.remove('poof');
+        // Cambiar también la posición aleatoriamente después de la transición
+        randomizeFgPosition();
+      }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
     }, 600);
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
