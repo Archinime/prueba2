@@ -1,731 +1,630 @@
-// notification-system.js - VERSIÓN ROBUSTA: SECUENCIA COMPLETA DE POPUPS AL REGRESAR
-// - Corrige la pérdida de popups al navegar y regresar.
-// - Garantiza que todos los popups pendientes (hasta 5) se muestren uno tras otro.
-// - Sincronización precisa entre sessionStorage y variables en memoria.
+// notification-system.js - Versión completa corregida con orden cronológico y sin límite de popups
+(function(global) {
+  'use strict';
 
-let notificationQueue = [];
-let notificationsHistory = [];
-let isMenuOpen = false;
-let repliesUnsubscribe = null;
-let catalogoUnsubscribe = null;
-let popupsShownCount = 0;
-const MAX_POPUPS = 5;
-let firstVisitInitialized = false;
-let isShowingPopup = false; // Evita múltiples modales simultáneos
-
-// ========== SCROLL LOCK ==========
-if (typeof disableBodyScroll !== 'function') {
-  window.disableBodyScroll = function() {
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.paddingRight = scrollbarWidth + 'px';
-    document.body.classList.add('modal-open');
-    document.documentElement.classList.add('modal-open');
+  const CONFIG = {
+    MAX_HISTORY_ITEMS: 50,
+    MAX_VISIBLE_NOTIFICATIONS: 30,
+    STORAGE_KEYS: {
+      QUEUE: 'archinime_popup_queue',
+      HISTORY: 'archinime_notif_history',
+      SEEN_IDS: 'archinime_seen_notif_ids',
+      FIRST_VISIT: 'archinime_notif_first_visit',
+      LAST_CATALOG_CHECK: 'archinime_last_catalog_check',
+      POPUP_SHOWN_IDS: 'archinime_popup_shown_ids'  // Nuevo: registro de qué notificaciones ya mostraron popup
+    },
+    ANIME_MAX_AGE_DAYS: 30,
+    CATALOG_CHECK_INTERVAL_HOURS: 6
   };
-  window.enableBodyScroll = function() {
-    document.body.style.paddingRight = '';
-    document.body.classList.remove('modal-open');
-    document.documentElement.classList.remove('modal-open');
-  };
-}
 
-function getCurrentUser() {
-  if (window.ArchinimeState) return ArchinimeState.get('currentUser');
-  return null;
-}
+  const getFirestore = () => global.db;
+  const getAuth = () => global.auth;
 
-// ========== PERSISTENCIA ==========
-function saveQueueToStorage() {
-  if (notificationQueue.length > 0) {
-    const queueData = notificationQueue.map(n => ({
-      notifId: n.notifId,
-      animeId: n.animeId,
-      title: n.title,
-      img: n.img,
-      seasonCover: n.seasonCover,
-      blockName: n.blockName,
-      epTitle: n.epTitle,
-      type: n.type,
-      date: n.date,
-      isFinal: n.isFinal,
-      url: n.url || null,
-      originalText: n.originalText || null
-    }));
-    sessionStorage.setItem('archinime_popup_queue', JSON.stringify(queueData));
-  } else {
-    sessionStorage.removeItem('archinime_popup_queue');
-  }
-  sessionStorage.setItem('archinime_popups_shown', popupsShownCount.toString());
-}
-
-function loadQueueFromStorage() {
-  const storedQueue = sessionStorage.getItem('archinime_popup_queue');
-  if (storedQueue) {
-    try {
-      notificationQueue = JSON.parse(storedQueue);
-      const storedCount = sessionStorage.getItem('archinime_popups_shown');
-      if (storedCount) popupsShownCount = parseInt(storedCount, 10) || 0;
-      console.log(`📦 Cola restaurada: ${notificationQueue.length} pendientes, mostrados: ${popupsShownCount}`);
-    } catch (e) {
-      console.warn("Error al restaurar cola de popups:", e);
-      notificationQueue = [];
+  const domUtils = {
+    disableScroll() {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = scrollbarWidth + 'px';
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+    },
+    enableScroll() {
+      document.body.style.paddingRight = '';
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+    },
+    sanitizeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+    debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => { clearTimeout(timeout); func(...args); };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
     }
-  } else {
-    // Si no hay cola en storage, asegurar que el contador sea coherente
-    popupsShownCount = 0;
-  }
-}
+  };
 
-// ========== INICIALIZACIÓN ==========
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("🔔 Inicializando sistema de notificaciones...");
-  loadHistoryFromStorage();
-  loadQueueFromStorage();
-
-  const isFirstVisit = !localStorage.getItem('archinime_notif_first_visit');
-  if (isFirstVisit && !firstVisitInitialized) {
-    console.log("🎉 Primera visita. Se mostrarán máximo 5 popups (los más recientes).");
-    firstVisitInitialized = true;
-    await initFirstVisitNotifications();
-    localStorage.setItem('archinime_notif_first_visit', 'true');
-  } else {
-    renderNotificationList();
-    updateBellBadge();
-    // Si hay cola pendiente, asegurar que se reanude
-    attemptResumeQueue('DOMContentLoaded');
+  class StorageManager {
+    static save(key, data) {
+      try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
+    }
+    static load(key, defaultValue = null) {
+      try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch (e) { return defaultValue; }
+    }
+    static saveSession(key, data) {
+      try { sessionStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
+    }
+    static loadSession(key, defaultValue = null) {
+      try { const item = sessionStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch (e) { return defaultValue; }
+    }
+    static removeSession(key) { sessionStorage.removeItem(key); }
   }
 
-  listenForCatalogUpdates();
+  class NotificationSystem {
+    constructor() {
+      this.queue = [];
+      this.history = [];
+      this.isMenuOpen = false;
+      this.isShowingPopup = false;
+      this.repliesUnsubscribe = null;
+      this.dom = { menu: null, list: null, badge: null, modal: null };
+      this.toggleMenu = this.toggleMenu.bind(this);
+      this.closePopup = this.closePopup.bind(this);
+      this.goToAnimeFromPopup = this.goToAnimeFromPopup.bind(this);
+      this.markAllAsRead = this.markAllAsRead.bind(this);
+      this.handleAuthChange = this.handleAuthChange.bind(this);
+      this.handlePageShow = this.handlePageShow.bind(this);
+      this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
+      this.handleClickOutside = this.handleClickOutside.bind(this);
+    }
 
-  if (window.ArchinimeState) {
-    ArchinimeState.on('currentUser', async user => {
-      if (user) {
-        await syncNotificationsWithCloud(user.uid);
-        listenForReplies(user.uid);
-      } else if (repliesUnsubscribe) {
-        repliesUnsubscribe();
+    async init() {
+      console.log('🔔 Inicializando NotificationSystem...');
+      this.cacheDOM();
+      this.loadPersistedData();
+      this.setupEventListeners();
+
+      const isFirstVisit = !localStorage.getItem(CONFIG.STORAGE_KEYS.FIRST_VISIT);
+      if (isFirstVisit) {
+        // Primera visita: marcar todas las notificaciones como vistas para no spamear
+        this.history.forEach(n => { if (!n.seen) n.seen = true; });
+        localStorage.setItem(CONFIG.STORAGE_KEYS.FIRST_VISIT, 'true');
+        this.queue = [];
+        this.persistQueue();
       }
-    });
-  } else if (typeof auth !== 'undefined') {
-    console.warn("ArchinimeState no encontrado, usando auth.onAuthStateChanged como fallback");
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        await syncNotificationsWithCloud(user.uid);
-        listenForReplies(user.uid);
-      } else if (repliesUnsubscribe) repliesUnsubscribe();
-    });
-  }
-});
 
-// ========== AL REGRESAR A LA PÁGINA ==========
-window.addEventListener('pageshow', (event) => {
-  console.log(`🔄 pageshow (persisted: ${event.persisted})`);
-  loadQueueFromStorage(); // Recargar por si hubo cambios en otra pestaña
-  updateBellBadge();
-  renderNotificationList();
-  attemptResumeQueue('pageshow');
-});
-
-// Guardar antes de salir
-window.addEventListener('beforeunload', () => {
-  saveQueueToStorage();
-});
-
-// ========== INTENTAR REANUDAR COLA ==========
-function attemptResumeQueue(source) {
-  console.log(`🎬 [${source}] Intentando reanudar cola. Pendientes: ${notificationQueue.length}, Mostrados: ${popupsShownCount}`);
-  
-  // Limpiar cualquier modal residual
-  const existingModal = document.getElementById('eventModal');
-  if (existingModal) {
-    existingModal.remove();
-    if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    isShowingPopup = false;
-  }
-  
-  if (notificationQueue.length === 0) {
-    console.log("✅ Cola vacía, nada que mostrar.");
-    return;
-  }
-  
-  // Corregir contador si es inconsistente (ej. mayor que lo esperado)
-  const expectedMaxShown = MAX_POPUPS - notificationQueue.length;
-  if (popupsShownCount > expectedMaxShown) {
-    console.warn(`⚠️ Contador inconsistente (${popupsShownCount} > ${expectedMaxShown}). Ajustando a ${expectedMaxShown}.`);
-    popupsShownCount = Math.max(0, expectedMaxShown);
-    saveQueueToStorage();
-  }
-  
-  if (popupsShownCount >= MAX_POPUPS) {
-    console.log("⛔ Límite de popups alcanzado. Limpiando cola.");
-    notificationQueue = [];
-    saveQueueToStorage();
-    return;
-  }
-  
-  // Si no se está mostrando ningún popup actualmente, mostrar el siguiente
-  if (!isShowingPopup) {
-    showNextPopup();
-  } else {
-    console.log("⏳ Ya hay un popup activo, esperando...");
-  }
-}
-
-// ========== PRIMERA VISITA ==========
-async function initFirstVisitNotifications() {
-  // Marcar antiguas como vistas
-  let anyChanged = false;
-  for (let notif of notificationsHistory) {
-    if (!notif.seen) {
-      notif.seen = true;
-      anyChanged = true;
+      await this.generateCatalogNotifications();
+      this.renderNotificationList();
+      this.updateBadge();
+      this.attemptResumeQueue('init');
+      this.setupAuthListener();
     }
-  }
-  if (anyChanged) {
-    saveHistoryToStorage();
-    renderNotificationList();
-    updateBellBadge();
-  }
 
-  notificationQueue = [];
-  popupsShownCount = 0;
-  try {
-    const snapshot = await db.collection('catalogo')
-        .orderBy('lastUpdate', 'desc')
-        .limit(MAX_POPUPS)
-        .get();
-    const animes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log(`📦 Primeros ${animes.length} animes más recientes para popups iniciales`);
-    
-    for (const anime of animes) {
-      if (!anime.updateType || anime.updateType === 'Ninguna') continue;
-      
-      let lastUpdateMs = anime.lastUpdate;
-      if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
-        lastUpdateMs = anime.lastUpdate.toMillis();
-      } else if (typeof anime.lastUpdate === 'number') {
-        lastUpdateMs = anime.lastUpdate;
+    cacheDOM() {
+      this.dom.menu = document.getElementById('notifMenu');
+      this.dom.list = document.getElementById('notifList');
+      this.dom.badge = document.getElementById('notifBadge');
+    }
+
+    loadPersistedData() {
+      this.history = StorageManager.load(CONFIG.STORAGE_KEYS.HISTORY, []);
+      // Ordenar por fecha descendente (más reciente primero)
+      this.history.sort((a, b) => b.date - a.date);
+      if (this.history.length > CONFIG.MAX_HISTORY_ITEMS) {
+        this.history = this.history.slice(0, CONFIG.MAX_HISTORY_ITEMS);
+      }
+      this.queue = StorageManager.loadSession(CONFIG.STORAGE_KEYS.QUEUE, []);
+      console.log(`📦 Estado: ${this.queue.length} en cola`);
+    }
+
+    setupEventListeners() {
+      window.addEventListener('pageshow', this.handlePageShow);
+      window.addEventListener('beforeunload', this.handleBeforeUnload);
+      document.addEventListener('click', this.handleClickOutside);
+      global.toggleNotifMenu = this.toggleMenu;
+      global.closePopup = this.closePopup;
+      global.goToAnimeFromPopup = this.goToAnimeFromPopup;
+      global.markAllAsRead = this.markAllAsRead;
+      global.startNotificationSequence = () => this.attemptResumeQueue('startNotificationSequence');
+    }
+
+    setupAuthListener() {
+      const auth = getAuth();
+      if (auth) auth.onAuthStateChanged(this.handleAuthChange);
+    }
+
+    async handleAuthChange(user) {
+      if (user) {
+        await this.syncWithCloud(user.uid);
+        this.listenForReplies(user.uid);
       } else {
-        lastUpdateMs = Date.now();
+        if (this.repliesUnsubscribe) { this.repliesUnsubscribe(); this.repliesUnsubscribe = null; }
+      }
+    }
+
+    handlePageShow(event) {
+      console.log(`🔄 pageshow (persisted: ${event.persisted})`);
+      this.loadPersistedData();
+      this.updateBadge();
+      this.renderNotificationList();
+      this.attemptResumeQueue('pageshow');
+    }
+
+    handleBeforeUnload() { this.persistQueue(); }
+
+    handleClickOutside(e) {
+      const wrapper = document.querySelector('.notif-wrapper');
+      if (wrapper && !wrapper.contains(e.target) && this.isMenuOpen) {
+        this.isMenuOpen = false;
+        if (this.dom.menu) this.dom.menu.classList.remove('active');
+      }
+    }
+
+    persistQueue() {
+      if (this.queue.length > 0) {
+        const serializable = this.queue.map(n => ({
+          notifId: n.notifId, animeId: n.animeId, title: n.title, img: n.img,
+          seasonCover: n.seasonCover, blockName: n.blockName, epTitle: n.epTitle,
+          type: n.type, date: n.date, isFinal: n.isFinal, url: n.url || null,
+          originalText: n.originalText || null
+        }));
+        StorageManager.saveSession(CONFIG.STORAGE_KEYS.QUEUE, serializable);
+      } else {
+        StorageManager.removeSession(CONFIG.STORAGE_KEYS.QUEUE);
+      }
+    }
+
+    persistHistory() {
+      // Ordenar antes de guardar
+      this.history.sort((a, b) => b.date - a.date);
+      StorageManager.save(CONFIG.STORAGE_KEYS.HISTORY, this.history);
+      this.updateBadge();
+      const user = this.getCurrentUser();
+      if (user) {
+        const db = getFirestore();
+        if (db) {
+          db.collection('users').doc(user.uid).set({
+            notifHistory: this.history,
+            seenNotifIds: StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, [])
+          }, { merge: true }).catch(e => console.error('[Firestore] Error guardando historial:', e));
+        }
+      }
+    }
+
+    // Inserta una notificación en el historial manteniendo orden cronológico descendente
+    addToHistory(notif) {
+      // Verificar si ya existe (por notifId)
+      const existingIndex = this.history.findIndex(n => n.notifId === notif.notifId);
+      if (existingIndex !== -1) {
+        // Actualizar la existente (por si cambió algo)
+        this.history[existingIndex] = notif;
+      } else {
+        this.history.push(notif);
+      }
+      // Reordenar por fecha
+      this.history.sort((a, b) => b.date - a.date);
+      // Limitar tamaño
+      if (this.history.length > CONFIG.MAX_HISTORY_ITEMS) {
+        this.history = this.history.slice(0, CONFIG.MAX_HISTORY_ITEMS);
+      }
+      this.persistHistory();
+    }
+
+    async generateCatalogNotifications() {
+      if (typeof catalogoArray === 'undefined' || catalogoArray.length === 0) {
+        console.warn('⏳ catalogoArray no disponible. Reintentando en 500ms...');
+        setTimeout(() => this.generateCatalogNotifications(), 500);
+        return;
       }
 
-      const notifId = `${anime.id}_${lastUpdateMs}`;
-      if (notificationsHistory.some(n => n.notifId === notifId)) continue;
+      console.log('📦 Revisando catálogo local...');
+      const now = Date.now();
+      const thirtyDaysAgo = now - (CONFIG.ANIME_MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
+      const seenIds = StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, []);
+      const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
 
-      const newNotif = {
-        notifId,
-        animeId: anime.id,
-        title: anime.title,
-        img: anime.img,
+      const candidatos = catalogoArray
+        .filter(a => a.updateType && a.updateType !== 'Ninguna')
+        .filter(a => this._getTimestamp(a.lastUpdate) > thirtyDaysAgo)
+        .filter(a => {
+          const notifId = `${a.id}_${this._getTimestamp(a.lastUpdate)}`;
+          return !seenIds.includes(notifId) && !this.history.some(n => n.notifId === notifId);
+        })
+        .sort((a, b) => this._getTimestamp(b.lastUpdate) - this._getTimestamp(a.lastUpdate));
+
+      console.log(`✨ ${candidatos.length} animes nuevos para notificar.`);
+
+      for (const anime of candidatos) {
+        const notif = this.createAnimeNotification(anime);
+        if (!notif) continue;
+        seenIds.push(notif.notifId);
+        this.addToHistory(notif);
+        
+        // Añadir a la cola de popups solo si no se ha mostrado antes
+        if (!popupShownIds.includes(notif.notifId)) {
+          this.queue.push(notif);
+          console.log(`🔔 Popup encolado: ${anime.title}`);
+        }
+      }
+
+      StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, seenIds.slice(-1000));
+      this.renderNotificationList();
+      this.updateBadge();
+      this.persistQueue();
+    }
+
+    _getTimestamp(value) {
+      if (!value) return 0;
+      if (typeof value.toMillis === 'function') return value.toMillis();
+      if (typeof value === 'number') return value;
+      return new Date(value).getTime() || 0;
+    }
+
+    createAnimeNotification(anime) {
+      const ts = this._getTimestamp(anime.lastUpdate);
+      const notifId = `${anime.id}_${ts}`;
+      return {
+        notifId, animeId: anime.id, title: anime.title, img: anime.img,
         seasonCover: anime.latestSeasonCover || anime.img,
-        blockName: anime.latestBlockName || "",
-        epTitle: anime.latestEpTitle || "Nuevo Contenido",
-        type: anime.updateType,
-        date: lastUpdateMs,
-        seen: false,
-        isFinal: anime.isFinal || false,
+        blockName: anime.latestBlockName || "", epTitle: anime.latestEpTitle || "Nuevo Contenido",
+        type: anime.updateType, date: ts, seen: false, isFinal: anime.isFinal || false,
         popupShown: false
       };
-      
-      notificationsHistory.unshift(newNotif);
-      if (notificationsHistory.length > 50) notificationsHistory.pop();
-
-      let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-      if (!seenNotifIds.includes(notifId)) {
-        seenNotifIds.push(notifId);
-        if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-      }
-
-      if (notificationQueue.length < MAX_POPUPS) {
-        notificationQueue.push(newNotif);
-        console.log(`➕ Popup encolado para: ${anime.title}`);
-      }
     }
 
-    saveHistoryToStorage();
-    renderNotificationList();
-    updateBellBadge();
-
-    if (notificationQueue.length > 0) {
-      saveQueueToStorage();
-      showNextPopup();
-    }
-  } catch (error) {
-    console.error("❌ Error al obtener los últimos animes para primera visita:", error);
-  }
-}
-
-// ========== HISTORIAL ==========
-function loadHistoryFromStorage() {
-  const stored = localStorage.getItem('archinime_notif_history');
-  if (stored) {
-    try { 
-      notificationsHistory = JSON.parse(stored);
-      if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-    } catch(e) { notificationsHistory = []; }
-  }
-}
-
-function saveHistoryToStorage() {
-  localStorage.setItem('archinime_notif_history', JSON.stringify(notificationsHistory));
-  updateBellBadge();
-  const user = getCurrentUser();
-  if (user) {
-    db.collection('users').doc(user.uid).set({
-      notifHistory: notificationsHistory,
-      seenNotifIds: JSON.parse(localStorage.getItem('archinime_seen_notif_ids') || '[]')
-    }, { merge: true }).catch(e => console.error("Error guardando en nube", e));
-  }
-}
-
-async function syncNotificationsWithCloud(uid) {
-  try {
-    const doc = await db.collection('users').doc(uid).get();
-    let isNewUser = !doc.exists;
-
-    if (doc.exists) {
-      const data = doc.data();
-      if (data.seenNotifIds) {
-        let localSeen = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-        let merged = Array.from(new Set([...localSeen, ...data.seenNotifIds])).slice(-1000);
-        localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(merged));
-      }
-      if (data.notifHistory) {
-        let merged = [...notificationsHistory, ...data.notifHistory];
-        let unique = new Map();
-        merged.forEach(n => unique.set(n.notifId, n));
-        notificationsHistory = Array.from(unique.values()).sort((a,b) => b.date - a.date).slice(0, 50);
-      }
-    }
-
-    if (isNewUser && notificationsHistory.length > 0) {
-      let changed = false;
-      for (let notif of notificationsHistory) {
-        if (!notif.seen) {
-          notif.seen = true;
-          changed = true;
+    async syncWithCloud(uid) {
+      try {
+        const db = getFirestore(); if (!db) return;
+        const doc = await db.collection('users').doc(uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.seenNotifIds) {
+            const localSeen = StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, []);
+            const merged = [...new Set([...localSeen, ...data.seenNotifIds])].slice(-1000);
+            StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, merged);
+          }
+          if (data.notifHistory) {
+            // Combinar y ordenar por fecha
+            const merged = [...this.history, ...data.notifHistory];
+            const uniqueMap = new Map();
+            merged.forEach(n => uniqueMap.set(n.notifId, n));
+            this.history = Array.from(uniqueMap.values())
+              .sort((a, b) => b.date - a.date)
+              .slice(0, CONFIG.MAX_HISTORY_ITEMS);
+            this.persistHistory();
+          }
         }
-      }
-      if (changed) saveHistoryToStorage();
+        this.renderNotificationList();
+        this.updateBadge();
+      } catch (e) { console.error('[Sync] Error:', e); }
     }
 
-    saveHistoryToStorage();
-    renderNotificationList();
-    updateBellBadge();
-  } catch (e) { console.error("Error sync notif:", e); }
-}
-
-// ========== RESPUESTAS ==========
-function listenForReplies(uid) {
-  if (repliesUnsubscribe) repliesUnsubscribe();
-  repliesUnsubscribe = db.collection('comments')
-      .where('replyToUserId', '==', uid)
-      .orderBy('timestamp', 'desc')
-      .limit(20)
-      .onSnapshot(async snapshot => {
-        let hasNew = false;
-        let shouldShowPopup = false;
-        
-        for (const change of snapshot.docChanges()) {
-          if (change.type === 'added') {
+    listenForReplies(uid) {
+      if (this.repliesUnsubscribe) this.repliesUnsubscribe();
+      const db = getFirestore(); if (!db) return;
+      this.repliesUnsubscribe = db.collection('comments')
+        .where('replyToUserId', '==', uid)
+        .orderBy('timestamp', 'desc')
+        .limit(20)
+        .onSnapshot(async snapshot => {
+          let hasNew = false;
+          for (const change of snapshot.docChanges()) {
+            if (change.type !== 'added') continue;
             const data = change.doc.data();
             if (data.userId === uid) continue;
-            
             const docId = change.doc.id;
             const notifId = `reply_${docId}`;
-            if (notificationsHistory.some(n => n.notifId === notifId)) continue;
+            if (this.history.some(n => n.notifId === notifId)) continue;
             
-            let rawText = data.texto || "";
-            let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
-            if (!cleanText) cleanText = "🖼️ (Sticker)";
+            const notif = await this.createReplyNotification(data, docId, notifId);
+            if (!notif) continue;
             
-            let originalText = data.replyToText || data.textoOriginal || "";
-            if (!originalText && data.replyToId) {
-              try {
-                const parentDoc = await db.collection('comments').doc(data.replyToId).get();
-                if (parentDoc.exists) {
-                  let pText = parentDoc.data().texto || "";
-                  originalText = pText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
-                }
-              } catch(e) {}
-            }
-
-            let timestampMs = data.timestamp?.toMillis() || Date.now();
-            const newNotif = {
-              notifId, type: 'RESPUESTA', animeId: data.animeId,
-              title: `¡${data.userName} te respondió!`,
-              img: data.userAvatar || 'invitado.avif',
-              seasonCover: data.userAvatar || 'invitado.avif',
-              blockName: 'Foro',
-              epTitle: `"${cleanText.substring(0,80)}${cleanText.length>80?'...':''}"`,
-              originalText: originalText ? `"${originalText.substring(0,60)}${originalText.length>60?'...':''}"` : `"Comentario original no disponible"`,
-              date: timestampMs,
-              seen: false,
-              isFinal: false,
-              url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
-            };
-            notificationsHistory.unshift(newNotif);
+            this.addToHistory(notif);
             hasNew = true;
-
-            let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-            const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
-            const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-            if (!seenNotifIds.includes(notifId)) {
-              seenNotifIds.push(notifId);
-              if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-              localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-
-              if (!isFirstVisitGlobal && timestampMs > thirtyDaysAgo && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS) {
-                notificationQueue.push(newNotif);
-                shouldShowPopup = true;
-                saveQueueToStorage();
-              }
+            this.markAsSeenInStorage(notifId);
+            
+            // Verificar si ya se mostró el popup para esta notificación
+            const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
+            if (!popupShownIds.includes(notifId)) {
+              this.queue.push(notif);
+              console.log(`🔔 Popup de respuesta encolado: ${notif.title}`);
+              this.persistQueue();
             }
           }
-        }
-        
-        if (hasNew) {
-          notificationsHistory = notificationsHistory.slice(0, 50);
-          saveHistoryToStorage();
-          renderNotificationList();
-          if (!isMenuOpen) updateBellBadge();
-        }
-
-        if (shouldShowPopup && notificationQueue.length === 1) {
-          showNextPopup();
-        }
-      }, error => console.error("Error replies:", error));
-}
-
-// ========== CATÁLOGO ==========
-function listenForCatalogUpdates() {
-  if (catalogoUnsubscribe) catalogoUnsubscribe();
-  catalogoUnsubscribe = db.collection('catalogo')
-      .orderBy('lastUpdate', 'desc')
-      .limit(50)
-      .onSnapshot(snapshot => {
-        snapshot.docChanges().forEach(change => {
-          if (change.type === 'added' || change.type === 'modified') {
-            const anime = { id: change.doc.id, ...change.doc.data() };
-            if (anime.updateType && anime.updateType !== 'Ninguna') {
-              procesarActualizacionCatalogo(anime);
-            }
+          if (hasNew) {
+            this.renderNotificationList();
+            if (!this.isMenuOpen) this.updateBadge();
+            this.attemptResumeQueue('reply');
           }
-        });
-      }, error => console.error('❌ Error escuchando catálogo:', error));
-}
+        }, error => console.error('[Replies] Error:', error));
+    }
 
-function procesarActualizacionCatalogo(anime) {
-  let lastUpdateMs = anime.lastUpdate;
-  if (anime.lastUpdate && typeof anime.lastUpdate.toMillis === 'function') {
-    lastUpdateMs = anime.lastUpdate.toMillis();
-  } else if (typeof anime.lastUpdate === 'number') {
-    lastUpdateMs = anime.lastUpdate;
-  } else {
-    lastUpdateMs = Date.now();
-  }
-  
-  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-  if (lastUpdateMs < thirtyDaysAgo) return;
-  
-  const notifId = `${anime.id}_${lastUpdateMs}`;
-  let seenNotifIds = JSON.parse(localStorage.getItem('archinime_seen_notif_ids')) || [];
-  if (seenNotifIds.includes(notifId)) return;
-  const isFirstVisitGlobal = !localStorage.getItem('archinime_notif_first_visit');
-  
-  seenNotifIds.push(notifId);
-  if (seenNotifIds.length > 1000) seenNotifIds = seenNotifIds.slice(-1000);
-  localStorage.setItem('archinime_seen_notif_ids', JSON.stringify(seenNotifIds));
-  if (notificationsHistory.some(n => n.notifId === notifId)) return;
-  
-  const newNotif = {
-    notifId, animeId: anime.id, title: anime.title, img: anime.img,
-    seasonCover: anime.latestSeasonCover || anime.img,
-    blockName: anime.latestBlockName || "",
-    epTitle: anime.latestEpTitle || "Nuevo Contenido",
-    type: anime.updateType,
-    date: lastUpdateMs,
-    seen: false,
-    isFinal: anime.isFinal || false,
-    popupShown: false
-  };
-  
-  notificationsHistory.unshift(newNotif);
-  if (notificationsHistory.length > 50) notificationsHistory = notificationsHistory.slice(0, 50);
-  
-  const shouldEnqueuePopup = (!isFirstVisitGlobal && popupsShownCount < MAX_POPUPS && notificationQueue.length < MAX_POPUPS);
-  if (shouldEnqueuePopup) {
-    notificationQueue.push(newNotif);
-    console.log(`🔔 NUEVO POPUP encolado: ${anime.title}`);
-    saveQueueToStorage();
-  }
-  
-  saveHistoryToStorage();
-  renderNotificationList();
-  updateBellBadge();
-  
-  if (shouldEnqueuePopup && notificationQueue.length === 1) {
-    showNextPopup();
-  }
-}
+    async createReplyNotification(data, docId, notifId) {
+      let rawText = data.texto || "";
+      let cleanText = rawText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+      if (!cleanText) cleanText = "🖼️ (Sticker)";
+      let originalText = data.replyToText || data.textoOriginal || "";
+      if (!originalText && data.replyToId) {
+        try {
+          const db = getFirestore();
+          const parentDoc = await db.collection('comments').doc(data.replyToId).get();
+          if (parentDoc.exists) {
+            let pText = parentDoc.data().texto || "";
+            originalText = pText.replace(/\[Sticker\]\([^)]+\)/g, '🖼️ (Sticker)').trim();
+          }
+        } catch (e) {}
+      }
+      const timestampMs = data.timestamp?.toMillis() || Date.now();
+      return {
+        notifId, type: 'RESPUESTA', animeId: data.animeId,
+        title: `¡${data.userName} te respondió!`,
+        img: data.userAvatar || 'invitado.avif',
+        seasonCover: data.userAvatar || 'invitado.avif',
+        blockName: 'Foro',
+        epTitle: `"${cleanText.substring(0, 80)}${cleanText.length > 80 ? '...' : ''}"`,
+        originalText: originalText ? `"${originalText.substring(0, 60)}${originalText.length > 60 ? '...' : ''}"` : `"Comentario original no disponible"`,
+        date: timestampMs, seen: false, isFinal: false,
+        url: `video-player.html?anime=${data.animeId}&s=${data.season}&e=${data.episode}&targetComment=${docId}`
+      };
+    }
 
-// ========== SECUENCIA DE POPUPS ==========
-window.startNotificationSequence = () => {
-  // Llamado desde index.html cuando la página está lista
-  attemptResumeQueue('startNotificationSequence');
-};
+    attemptResumeQueue(source) {
+      console.log(`🎬 [${source}] Reanudando cola. Pendientes: ${this.queue.length}`);
+      const existingModal = document.getElementById('eventModal');
+      if (existingModal) { existingModal.remove(); domUtils.enableScroll(); this.isShowingPopup = false; }
+      if (this.queue.length === 0) { console.log('✅ Cola vacía'); return; }
+      if (!this.isShowingPopup) this.showNextPopup();
+    }
 
-function showNextPopup() {
-  if (isShowingPopup) {
-    console.warn("⚠️ Ya hay un popup en proceso de mostrarse.");
-    return;
-  }
-  
-  if (notificationQueue.length === 0) {
-    console.log("✅ Cola de popups vacía.");
-    return;
-  }
-  
-  if (popupsShownCount >= MAX_POPUPS) {
-    console.log("⛔ Límite de popups alcanzado. Limpiando cola.");
-    notificationQueue = [];
-    saveQueueToStorage();
-    return;
-  }
-  
-  isShowingPopup = true;
-  popupsShownCount++;
-  saveQueueToStorage();
-  console.log(`🎬 Mostrando popup #${popupsShownCount} de la cola (quedan ${notificationQueue.length-1})`);
-  createPopupHTML(notificationQueue[0]);
-}
+    showNextPopup() {
+      if (this.isShowingPopup) return;
+      if (this.queue.length === 0) return;
+      
+      // Tomar el primer elemento de la cola
+      const notif = this.queue[0];
+      // Marcar que este popup ya se mostró
+      const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
+      if (!popupShownIds.includes(notif.notifId)) {
+        popupShownIds.push(notif.notifId);
+        StorageManager.save(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, popupShownIds.slice(-500));
+      }
+      
+      this.isShowingPopup = true;
+      console.log(`🎬 Mostrando popup: ${notif.title}`);
+      this.renderPopup(notif);
+    }
 
-function createPopupHTML(notif) {
-  const existing = document.getElementById('eventModal');
-  if (existing) existing.remove();
-  
-  const modal = document.createElement('div');
-  modal.id = 'eventModal';
-  
-  if (notif.type === 'RESPUESTA') {
-    modal.innerHTML = `
-      <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
-        <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
-        <div style="background: linear-gradient(135deg, rgba(0,243,255,0.1) 0%, transparent 100%); padding: 25px 20px 15px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; align-items: center; gap: 15px; position: relative;">
-          <div style="position: relative; flex-shrink: 0;">
-            <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
-            <div style="position: absolute; bottom: -2px; right: -2px; background: #0a0a0f; border-radius: 50%; padding: 4px; border: 1px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
-              <i class="fas fa-reply" style="color: var(--neon-cyan); font-size: 0.65rem;"></i>
+    renderPopup(notif) {
+      const existing = document.getElementById('eventModal');
+      if (existing) existing.remove();
+      const modal = document.createElement('div');
+      modal.id = 'eventModal';
+      modal.innerHTML = this.generatePopupHTML(notif);
+      document.body.appendChild(modal);
+      domUtils.disableScroll();
+      requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('show')));
+    }
+
+    generatePopupHTML(notif) {
+      // Popup para RESPUESTAS
+      if (notif.type === 'RESPUESTA') {
+        return `
+          <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
+            <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
+            <div style="background: linear-gradient(135deg, rgba(0,243,255,0.1) 0%, transparent 100%); padding: 25px 20px 15px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; align-items: center; gap: 15px; position: relative;">
+              <div style="position: relative; flex-shrink: 0;">
+                <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
+                <div style="position: absolute; bottom: -2px; right: -2px; background: #0a0a0f; border-radius: 50%; padding: 4px; border: 1px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
+                  <i class="fas fa-reply" style="color: var(--neon-cyan); font-size: 0.65rem;"></i>
+                </div>
+              </div>
+              <div style="flex: 1; text-align: left; padding-right: 20px; overflow: hidden;">
+                <div style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px;">NUEVA RESPUESTA</div>
+                <h2 style="font-size: 1.05rem; color: #fff; margin: 0; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${domUtils.sanitizeHTML(notif.title)}</h2>
+              </div>
             </div>
-          </div>
-          <div style="flex: 1; text-align: left; padding-right: 20px; overflow: hidden;">
-            <div style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px;">NUEVA RESPUESTA</div>
-            <h2 style="font-size: 1.05rem; color: #fff; margin: 0; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${notif.title}</h2>
-          </div>
-        </div>
-        <div style="padding: 20px; text-align: left;">
-          <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.15); padding: 12px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
-            <i class="fas fa-quote-left" style="position: absolute; top: 10px; right: 15px; font-size: 1.2rem; color: rgba(255,255,255,0.03);"></i>
-            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tu comentario</div>
-            <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">${notif.originalText}</span>
-          </div>
-          <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-            <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">${notif.epTitle}</p>
-          </div>
-          <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"> <i class="fas fa-comments"></i> VER CONVERSACIÓN </button>
-        </div>
-      </div>`;
-  } else {
-    let infoString = "";
-    if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
-    if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString?" • ":"") + `<span style="color:#fff">${notif.epTitle}</span>`;
-    else if (!infoString) infoString = "Nuevo Contenido";
-    
-    let badgeColor = "#bc13fe";
-    if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
-    else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
+            <div style="padding: 20px; text-align: left;">
+              <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(255,255,255,0.15); padding: 12px 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px; position: relative;">
+                <i class="fas fa-quote-left" style="position: absolute; top: 10px; right: 15px; font-size: 1.2rem; color: rgba(255,255,255,0.03);"></i>
+                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tu comentario</div>
+                <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">${domUtils.sanitizeHTML(notif.originalText)}</span>
+              </div>
+              <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">${domUtils.sanitizeHTML(notif.epTitle)}</p>
+              </div>
+              <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"> <i class="fas fa-comments"></i> VER CONVERSACIÓN </button>
+            </div>
+          </div>`;
+      }
 
-    modal.innerHTML = `
-      <div class="event-card"><button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
-        <div class="event-visuals"><div class="visual-bg" style="background-image: url('${notif.img}');"></div>
-          <div class="covers-container"><img src="${notif.img}" class="cover-back" alt="Poster"><img src="${notif.seasonCover}" class="cover-front" alt="Season"></div>
-          <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>${notif.isFinal ? '<div style="position: absolute; bottom: 15px; right: 15px; z-index: 20; color: #fff; background: rgba(255, 0, 0, 0.8); border: 2px solid #ff0000; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 0.85rem; transform: rotate(-10deg); box-shadow: 0 0 15px #ff0000; letter-spacing: 1px;">FINALIZADO</div>' : ''}
-        </div>
-        <div class="event-info"><h2 class="event-title">${notif.title}</h2><div class="event-meta">${infoString}</div>
-          <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
-          <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
-        </div>
-      </div>`;
-  }
-
-  document.body.appendChild(modal);
-  if (typeof disableBodyScroll === 'function') disableBodyScroll();
-  setTimeout(() => modal.classList.add('show'), 50);
-}
-
-function closePopup() {
-  const modal = document.getElementById('eventModal');
-  if (!modal) return;
-  modal.classList.remove('show');
-  
-  setTimeout(() => {
-    modal.remove();
-    // Eliminar el popup actual de la cola
-    if (notificationQueue.length > 0) {
-      notificationQueue.shift();
-    }
-    if (typeof enableBodyScroll === 'function') enableBodyScroll();
-    isShowingPopup = false;
-    saveQueueToStorage();
-    showNextPopup(); // Mostrar el siguiente
-  }, 300);
-}
-
-function goToAnimeFromPopup(animeId, notifId) {
-  const targetNotif = notificationsHistory.find(n => n.notifId === notifId);
-  if (targetNotif && !targetNotif.seen) markAsRead(notifId);
-  
-  // Eliminar el popup actual de la cola
-  if (notificationQueue.length > 0 && notificationQueue[0].notifId === notifId) {
-    notificationQueue.shift();
-  }
-  saveQueueToStorage();
-  isShowingPopup = false;
-  
-  if (typeof enableBodyScroll === 'function') enableBodyScroll();
-  if (targetNotif && targetNotif.url) {
-    window.location.href = targetNotif.url;
-  } else {
-    window.location.href = `anime-detail.html?id=${animeId}`;
-  }
-}
-
-// ========== MENÚ DE NOTIFICACIONES ==========
-function toggleNotifMenu() {
-  const menu = document.getElementById('notifMenu');
-  isMenuOpen = !isMenuOpen;
-  if (isMenuOpen) {
-    menu.classList.add('active');
-    renderNotificationList();
-  } else {
-    menu.classList.remove('active');
-  }
-}
-
-document.addEventListener('click', (e) => {
-  const wrapper = document.querySelector('.notif-wrapper');
-  const menu = document.getElementById('notifMenu');
-  if (wrapper && !wrapper.contains(e.target) && isMenuOpen) {
-    isMenuOpen = false;
-    if(menu) menu.classList.remove('active');
-  }
-});
-
-function markAllAsRead() {
-  let changed = false;
-  for (let notif of notificationsHistory) {
-    if (!notif.seen) {
-      notif.seen = true;
-      changed = true;
-    }
-  }
-  if (changed) {
-    saveHistoryToStorage();
-    renderNotificationList();
-    updateBellBadge();
-  }
-}
-
-function renderNotificationList() {
-  const container = document.getElementById('notifList');
-  if (!container) return;
-  
-  requestAnimationFrame(() => {
-    const header = document.querySelector('#notifMenu .notif-header');
-    if (header && !header.querySelector('.mark-all-btn')) {
-      const btn = document.createElement('button');
-      btn.className = 'mark-all-btn';
-      btn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todo';
-      btn.title = 'Marcar todas las notificaciones como vistas';
-      btn.onclick = (e) => { e.stopPropagation(); markAllAsRead(); };
-      btn.style.cssText = `
-        background: rgba(0,243,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-        border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; font-family: 'Orbitron', sans-serif;
-        cursor: pointer; transition: all 0.2s; margin-left: 10px;
-        ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
-      `;
-      btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
-      btn.onmouseleave = () => { btn.style.background = 'rgba(0,243,255,0.1)'; btn.style.transform = 'scale(1)'; };
-      header.appendChild(btn);
-    }
-
-    if (!notificationsHistory.length) {
-      container.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
-      return;
-    }
-    
-    const visible = notificationsHistory.slice(0, 30);
-    const fragment = document.createDocumentFragment();
-    visible.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'notif-item';
-      let imgClass = 'notif-img-box';
-      if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
-      
+      // Popup de anime normal
       let infoString = "";
-      if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
-      if (item.epTitle && item.epTitle !== "Nuevo Contenido") infoString += (infoString?" ":"") + `<span class="n-ep-title">${item.epTitle}</span>`;
-      else if (!infoString) infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
-      
-      let typeColor = "var(--neon-purple)";
-      if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
-      else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
-      else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
-      
-      div.innerHTML = `<div style="position:relative; display:inline-block;">${!item.seen?'<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>':''}<div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div></div>
-        <div class="notif-content"><div class="notif-header-line"><span class="n-title">${item.title}</span></div><div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal?'<span class="tag-final">FINALIZADO</span>':''}</div><div class="n-meta">${infoString}</div></div>`;
-      
-      div.addEventListener('click', () => {
-        if (!item.seen) { markAsRead(item.notifId); item.seen = true; updateBellBadge(); div.querySelector('.unread-dot')?.remove(); }
-        location.href = item.url || `anime-detail.html?id=${item.animeId}`;
-      });
-      fragment.appendChild(div);
-    });
-    container.innerHTML = '';
-    container.appendChild(fragment);
-    
-    if (notificationsHistory.length > 30) {
-      const more = document.createElement('div');
-      more.className = 'notif-item';
-      more.style.justifyContent = 'center';
-      more.style.opacity = '0.7';
-      more.innerHTML = `<div style="text-align:center;"><i class="fas fa-ellipsis-h"></i> ${notificationsHistory.length-30} notificaciones antiguas</div>`;
-      container.appendChild(more);
+      if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+      if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:#fff">${notif.epTitle}</span>`;
+      else if (!infoString) infoString = "Nuevo Contenido";
+
+      let badgeColor = "#bc13fe";
+      if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
+      else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
+
+      return `
+        <div class="event-card">
+          <button class="event-close" onclick="closePopup()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+          <div class="event-visuals">
+            <div class="visual-bg" style="background-image: url('${notif.img}');"></div>
+            <div class="covers-container">
+              <img src="${notif.img}" class="cover-back" alt="Poster">
+              <img src="${notif.seasonCover}" class="cover-front" alt="Season">
+            </div>
+            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>
+            ${notif.isFinal ? '<div style="position: absolute; bottom: 15px; right: 15px; z-index: 20; color: #fff; background: rgba(255, 0, 0, 0.8); border: 2px solid #ff0000; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 0.85rem; transform: rotate(-10deg); box-shadow: 0 0 15px #ff0000; letter-spacing: 1px;">FINALIZADO</div>' : ''}
+          </div>
+          <div class="event-info">
+            <h2 class="event-title">${domUtils.sanitizeHTML(notif.title)}</h2>
+            <div class="event-meta">${infoString}</div>
+            <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
+            <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
+          </div>
+        </div>`;
     }
-  });
-}
 
-function updateBellBadge() {
-  const unread = notificationsHistory.filter(n => !n.seen).length;
-  const badge = document.getElementById('notifBadge');
-  if (badge) {
-    badge.style.display = unread ? 'flex' : 'none';
-    if (unread) badge.textContent = unread > 9 ? '+9' : unread;
+    closePopup() {
+      const modal = document.getElementById('eventModal'); if (!modal) return;
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.remove();
+        if (this.queue.length > 0) this.queue.shift(); // Eliminar el que ya se mostró
+        domUtils.enableScroll();
+        this.isShowingPopup = false;
+        this.persistQueue();
+        this.showNextPopup(); // Mostrar el siguiente de la cola
+      }, 300);
+    }
+
+    goToAnimeFromPopup(animeId, notifId) {
+      const targetNotif = this.history.find(n => n.notifId === notifId);
+      if (targetNotif && !targetNotif.seen) this.markAsRead(notifId);
+      if (this.queue.length > 0 && this.queue[0].notifId === notifId) this.queue.shift();
+      this.persistQueue();
+      this.isShowingPopup = false;
+      domUtils.enableScroll();
+      if (targetNotif && targetNotif.url) window.location.href = targetNotif.url;
+      else window.location.href = `anime-detail.html?id=${animeId}`;
+    }
+
+    toggleMenu() {
+      this.isMenuOpen = !this.isMenuOpen;
+      if (this.isMenuOpen) { this.dom.menu?.classList.add('active'); this.renderNotificationList(); }
+      else this.dom.menu?.classList.remove('active');
+    }
+
+    markAllAsRead() {
+      let changed = false;
+      this.history.forEach(n => { if (!n.seen) { n.seen = true; changed = true; } });
+      if (changed) { this.persistHistory(); this.renderNotificationList(); this.updateBadge(); }
+    }
+
+    markAsRead(notifId) {
+      const target = this.history.find(n => n.notifId === notifId);
+      if (target && !target.seen) {
+        target.seen = true;
+        this.persistHistory();
+        this.updateBadge();
+        this.renderNotificationList();
+      }
+    }
+
+    renderNotificationList = domUtils.debounce(() => {
+      const container = this.dom.list; if (!container) return;
+      const header = this.dom.menu?.querySelector('.notif-header');
+      if (header && !header.querySelector('.mark-all-btn')) {
+        const btn = document.createElement('button');
+        btn.className = 'mark-all-btn';
+        btn.innerHTML = '<i class="fas fa-check-double"></i> Marcar todo';
+        btn.title = 'Marcar todas las notificaciones como vistas';
+        btn.onclick = (e) => { e.stopPropagation(); this.markAllAsRead(); };
+        btn.style.cssText = `
+          background: rgba(0,243,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+          border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; font-family: 'Orbitron', sans-serif;
+          cursor: pointer; transition: all 0.2s; margin-left: 10px;
+          ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
+        `;
+        btn.onmouseenter = () => { btn.style.background = 'rgba(0,243,255,0.3)'; btn.style.transform = 'scale(1.02)'; };
+        btn.onmouseleave = () => { btn.style.background = 'rgba(0,243,255,0.1)'; btn.style.transform = 'scale(1)'; };
+        header.appendChild(btn);
+      }
+
+      if (!this.history.length) {
+        container.innerHTML = '<div class="empty-notif"><i class="fas fa-satellite-dish"></i><br>Sin novedades por ahora.</div>';
+        return;
+      }
+
+      // Ya están ordenadas por fecha descendente (más reciente primero)
+      const visible = this.history.slice(0, CONFIG.MAX_VISIBLE_NOTIFICATIONS);
+      const fragment = document.createDocumentFragment();
+
+      visible.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'notif-item';
+
+        let imgClass = 'notif-img-box';
+        if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
+
+        let infoString = "";
+        if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
+        if (item.epTitle && item.epTitle !== "Nuevo Contenido") infoString += (infoString ? " " : "") + `<span class="n-ep-title">${item.epTitle}</span>`;
+        else if (!infoString) infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+
+        let typeColor = "var(--neon-purple)";
+        if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
+        else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
+
+        div.innerHTML = `
+          <div style="position:relative; display:inline-block;">
+            ${!item.seen ? '<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>' : ''}
+            <div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div>
+          </div>
+          <div class="notif-content">
+            <div class="notif-header-line"><span class="n-title">${domUtils.sanitizeHTML(item.title)}</span></div>
+            <div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal ? '<span class="tag-final">FINALIZADO</span>' : ''}</div>
+            <div class="n-meta">${infoString}</div>
+          </div>`;
+
+        div.addEventListener('click', () => {
+          if (!item.seen) {
+            this.markAsRead(item.notifId);
+            div.querySelector('.unread-dot')?.remove();
+          }
+          location.href = item.url || `anime-detail.html?id=${item.animeId}`;
+        });
+
+        fragment.appendChild(div);
+      });
+
+      container.innerHTML = '';
+      container.appendChild(fragment);
+
+      if (this.history.length > CONFIG.MAX_VISIBLE_NOTIFICATIONS) {
+        const more = document.createElement('div');
+        more.className = 'notif-item';
+        more.style.justifyContent = 'center';
+        more.style.opacity = '0.7';
+        more.innerHTML = `<div style="text-align:center;"><i class="fas fa-ellipsis-h"></i> ${this.history.length - CONFIG.MAX_VISIBLE_NOTIFICATIONS} notificaciones antiguas</div>`;
+        container.appendChild(more);
+      }
+    }, 100);
+
+    updateBadge() {
+      const unread = this.history.filter(n => !n.seen).length;
+      if (this.dom.badge) {
+        this.dom.badge.style.display = unread ? 'flex' : 'none';
+        if (unread) this.dom.badge.textContent = unread > 9 ? '+9' : unread;
+      }
+    }
+
+    getCurrentUser() {
+      const auth = getAuth(); return auth?.currentUser;
+    }
+
+    markAsSeenInStorage(notifId) {
+      const seenIds = StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, []);
+      if (!seenIds.includes(notifId)) {
+        seenIds.push(notifId);
+        if (seenIds.length > 1000) seenIds.shift();
+        StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, seenIds);
+      }
+    }
   }
-}
 
-function markAsRead(notifId) {
-  const target = notificationsHistory.find(n => n.notifId === notifId);
-  if (target && !target.seen) {
-    target.seen = true;
-    saveHistoryToStorage();
-    updateBellBadge();
-    renderNotificationList();
+  const notificationSystem = new NotificationSystem();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => notificationSystem.init());
+  } else {
+    notificationSystem.init();
   }
-}
-
-// Exponer globales
-window.toggleNotifMenu = toggleNotifMenu;
-window.closePopup = closePopup;
-window.goToAnimeFromPopup = goToAnimeFromPopup;
-window.markAllAsRead = markAllAsRead;
+  global.NotificationSystem = notificationSystem;
+})(window);
