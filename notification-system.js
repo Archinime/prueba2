@@ -1,17 +1,18 @@
-// notification-system.js - Versión completa corregida con orden cronológico y sin límite de popups
+// notification-system.js - Versión con límite de 5 popups por sesión
 (function(global) {
   'use strict';
 
   const CONFIG = {
     MAX_HISTORY_ITEMS: 50,
     MAX_VISIBLE_NOTIFICATIONS: 30,
+    MAX_POPUPS_PER_SESSION: 5,  // Máximo de popups por sesión de navegación
     STORAGE_KEYS: {
       QUEUE: 'archinime_popup_queue',
       HISTORY: 'archinime_notif_history',
       SEEN_IDS: 'archinime_seen_notif_ids',
       FIRST_VISIT: 'archinime_notif_first_visit',
       LAST_CATALOG_CHECK: 'archinime_last_catalog_check',
-      POPUP_SHOWN_IDS: 'archinime_popup_shown_ids'  // Nuevo: registro de qué notificaciones ya mostraron popup
+      POPUP_SHOWN_IDS: 'archinime_popup_shown_ids'   // Nunca repetir un popup
     },
     ANIME_MAX_AGE_DAYS: 30,
     CATALOG_CHECK_INTERVAL_HOURS: 6
@@ -61,6 +62,17 @@
       try { const item = sessionStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch (e) { return defaultValue; }
     }
     static removeSession(key) { sessionStorage.removeItem(key); }
+    static getPopupSessionCount() {
+      return parseInt(StorageManager.loadSession('archinime_popup_session_count', '0'), 10);
+    }
+    static incrementPopupSessionCount() {
+      const current = this.getPopupSessionCount();
+      StorageManager.saveSession('archinime_popup_session_count', current + 1);
+      return current + 1;
+    }
+    static resetPopupSessionCount() {
+      StorageManager.saveSession('archinime_popup_session_count', 0);
+    }
   }
 
   class NotificationSystem {
@@ -376,6 +388,14 @@
       const existingModal = document.getElementById('eventModal');
       if (existingModal) { existingModal.remove(); domUtils.enableScroll(); this.isShowingPopup = false; }
       if (this.queue.length === 0) { console.log('✅ Cola vacía'); return; }
+      
+      // Verificar límite de popups por sesión
+      const shownInSession = StorageManager.getPopupSessionCount();
+      if (shownInSession >= CONFIG.MAX_POPUPS_PER_SESSION) {
+        console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_SESSION} popups por sesión alcanzado. No se muestran más.`);
+        return;
+      }
+      
       if (!this.isShowingPopup) this.showNextPopup();
     }
 
@@ -383,17 +403,26 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
-      // Tomar el primer elemento de la cola
+      // Verificar límite otra vez por si acaso
+      const shownInSession = StorageManager.getPopupSessionCount();
+      if (shownInSession >= CONFIG.MAX_POPUPS_PER_SESSION) {
+        console.log(`⏸️ Límite alcanzado, no se muestran más popups en esta sesión.`);
+        return;
+      }
+      
       const notif = this.queue[0];
-      // Marcar que este popup ya se mostró
+      // Marcar que este popup ya se mostró (para no repetirlo nunca)
       const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
       if (!popupShownIds.includes(notif.notifId)) {
         popupShownIds.push(notif.notifId);
         StorageManager.save(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, popupShownIds.slice(-500));
       }
       
+      // Incrementar contador de sesión
+      const newCount = StorageManager.incrementPopupSessionCount();
+      console.log(`🎬 Mostrando popup ${newCount}/${CONFIG.MAX_POPUPS_PER_SESSION}: ${notif.title}`);
+      
       this.isShowingPopup = true;
-      console.log(`🎬 Mostrando popup: ${notif.title}`);
       this.renderPopup(notif);
     }
 
@@ -480,7 +509,7 @@
         domUtils.enableScroll();
         this.isShowingPopup = false;
         this.persistQueue();
-        this.showNextPopup(); // Mostrar el siguiente de la cola
+        this.showNextPopup(); // Mostrar el siguiente de la cola (si no se ha alcanzado el límite)
       }, 300);
     }
 
