@@ -1,10 +1,11 @@
-// notification-system.js - Sin límite de popups (versión estable y corregida)
+// notification-system.js - Con límite de 5 popups por carga de página
 (function(global) {
   'use strict';
 
   const CONFIG = {
     MAX_HISTORY_ITEMS: 50,
     MAX_VISIBLE_NOTIFICATIONS: 30,
+    MAX_POPUPS_PER_PAGE_LOAD: 5,   // 👈 LÍMITE: 5 popups por cada vez que se carga la página
     STORAGE_KEYS: {
       QUEUE: 'archinime_popup_queue',
       HISTORY: 'archinime_notif_history',
@@ -69,6 +70,7 @@
       this.history = [];
       this.isMenuOpen = false;
       this.isShowingPopup = false;
+      this.popupsShownInThisLoad = 0;   // 👈 Contador por carga de página
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -372,6 +374,12 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
+      // 👇 Verificar límite por carga de página
+      if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
+        console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
+        return;
+      }
+      
       const notif = this.queue[0];
       const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
       if (!popupShownIds.includes(notif.notifId)) {
@@ -379,7 +387,8 @@
         StorageManager.save(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, popupShownIds.slice(-500));
       }
       
-      console.log(`🎬 Mostrando popup: ${notif.title}`);
+      this.popupsShownInThisLoad++;
+      console.log(`🎬 Mostrando popup ${this.popupsShownInThisLoad}/${CONFIG.MAX_POPUPS_PER_PAGE_LOAD}: ${notif.title}`);
       this.isShowingPopup = true;
       this.renderPopup(notif);
     }
