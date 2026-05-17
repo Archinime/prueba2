@@ -1,18 +1,17 @@
-// notification-system.js - Versión con límite de 5 popups por sesión
+// notification-system.js - Sin límite de popups (versión estable y corregida)
 (function(global) {
   'use strict';
 
   const CONFIG = {
     MAX_HISTORY_ITEMS: 50,
     MAX_VISIBLE_NOTIFICATIONS: 30,
-    MAX_POPUPS_PER_SESSION: 5,  // Máximo de popups por sesión de navegación
     STORAGE_KEYS: {
       QUEUE: 'archinime_popup_queue',
       HISTORY: 'archinime_notif_history',
       SEEN_IDS: 'archinime_seen_notif_ids',
       FIRST_VISIT: 'archinime_notif_first_visit',
       LAST_CATALOG_CHECK: 'archinime_last_catalog_check',
-      POPUP_SHOWN_IDS: 'archinime_popup_shown_ids'   // Nunca repetir un popup
+      POPUP_SHOWN_IDS: 'archinime_popup_shown_ids'
     },
     ANIME_MAX_AGE_DAYS: 30,
     CATALOG_CHECK_INTERVAL_HOURS: 6
@@ -62,17 +61,6 @@
       try { const item = sessionStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch (e) { return defaultValue; }
     }
     static removeSession(key) { sessionStorage.removeItem(key); }
-    static getPopupSessionCount() {
-      return parseInt(StorageManager.loadSession('archinime_popup_session_count', '0'), 10);
-    }
-    static incrementPopupSessionCount() {
-      const current = this.getPopupSessionCount();
-      StorageManager.saveSession('archinime_popup_session_count', current + 1);
-      return current + 1;
-    }
-    static resetPopupSessionCount() {
-      StorageManager.saveSession('archinime_popup_session_count', 0);
-    }
   }
 
   class NotificationSystem {
@@ -101,7 +89,6 @@
 
       const isFirstVisit = !localStorage.getItem(CONFIG.STORAGE_KEYS.FIRST_VISIT);
       if (isFirstVisit) {
-        // Primera visita: marcar todas las notificaciones como vistas para no spamear
         this.history.forEach(n => { if (!n.seen) n.seen = true; });
         localStorage.setItem(CONFIG.STORAGE_KEYS.FIRST_VISIT, 'true');
         this.queue = [];
@@ -123,7 +110,6 @@
 
     loadPersistedData() {
       this.history = StorageManager.load(CONFIG.STORAGE_KEYS.HISTORY, []);
-      // Ordenar por fecha descendente (más reciente primero)
       this.history.sort((a, b) => b.date - a.date);
       if (this.history.length > CONFIG.MAX_HISTORY_ITEMS) {
         this.history = this.history.slice(0, CONFIG.MAX_HISTORY_ITEMS);
@@ -190,7 +176,6 @@
     }
 
     persistHistory() {
-      // Ordenar antes de guardar
       this.history.sort((a, b) => b.date - a.date);
       StorageManager.save(CONFIG.STORAGE_KEYS.HISTORY, this.history);
       this.updateBadge();
@@ -206,19 +191,14 @@
       }
     }
 
-    // Inserta una notificación en el historial manteniendo orden cronológico descendente
     addToHistory(notif) {
-      // Verificar si ya existe (por notifId)
       const existingIndex = this.history.findIndex(n => n.notifId === notif.notifId);
       if (existingIndex !== -1) {
-        // Actualizar la existente (por si cambió algo)
         this.history[existingIndex] = notif;
       } else {
         this.history.push(notif);
       }
-      // Reordenar por fecha
       this.history.sort((a, b) => b.date - a.date);
-      // Limitar tamaño
       if (this.history.length > CONFIG.MAX_HISTORY_ITEMS) {
         this.history = this.history.slice(0, CONFIG.MAX_HISTORY_ITEMS);
       }
@@ -255,7 +235,6 @@
         seenIds.push(notif.notifId);
         this.addToHistory(notif);
         
-        // Añadir a la cola de popups solo si no se ha mostrado antes
         if (!popupShownIds.includes(notif.notifId)) {
           this.queue.push(notif);
           console.log(`🔔 Popup encolado: ${anime.title}`);
@@ -299,7 +278,6 @@
             StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, merged);
           }
           if (data.notifHistory) {
-            // Combinar y ordenar por fecha
             const merged = [...this.history, ...data.notifHistory];
             const uniqueMap = new Map();
             merged.forEach(n => uniqueMap.set(n.notifId, n));
@@ -338,7 +316,6 @@
             hasNew = true;
             this.markAsSeenInStorage(notifId);
             
-            // Verificar si ya se mostró el popup para esta notificación
             const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
             if (!popupShownIds.includes(notifId)) {
               this.queue.push(notif);
@@ -388,14 +365,6 @@
       const existingModal = document.getElementById('eventModal');
       if (existingModal) { existingModal.remove(); domUtils.enableScroll(); this.isShowingPopup = false; }
       if (this.queue.length === 0) { console.log('✅ Cola vacía'); return; }
-      
-      // Verificar límite de popups por sesión
-      const shownInSession = StorageManager.getPopupSessionCount();
-      if (shownInSession >= CONFIG.MAX_POPUPS_PER_SESSION) {
-        console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_SESSION} popups por sesión alcanzado. No se muestran más.`);
-        return;
-      }
-      
       if (!this.isShowingPopup) this.showNextPopup();
     }
 
@@ -403,25 +372,14 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
-      // Verificar límite otra vez por si acaso
-      const shownInSession = StorageManager.getPopupSessionCount();
-      if (shownInSession >= CONFIG.MAX_POPUPS_PER_SESSION) {
-        console.log(`⏸️ Límite alcanzado, no se muestran más popups en esta sesión.`);
-        return;
-      }
-      
       const notif = this.queue[0];
-      // Marcar que este popup ya se mostró (para no repetirlo nunca)
       const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
       if (!popupShownIds.includes(notif.notifId)) {
         popupShownIds.push(notif.notifId);
         StorageManager.save(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, popupShownIds.slice(-500));
       }
       
-      // Incrementar contador de sesión
-      const newCount = StorageManager.incrementPopupSessionCount();
-      console.log(`🎬 Mostrando popup ${newCount}/${CONFIG.MAX_POPUPS_PER_SESSION}: ${notif.title}`);
-      
+      console.log(`🎬 Mostrando popup: ${notif.title}`);
       this.isShowingPopup = true;
       this.renderPopup(notif);
     }
@@ -438,7 +396,6 @@
     }
 
     generatePopupHTML(notif) {
-      // Popup para RESPUESTAS
       if (notif.type === 'RESPUESTA') {
         return `
           <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
@@ -469,7 +426,6 @@
           </div>`;
       }
 
-      // Popup de anime normal
       let infoString = "";
       if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
       if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:#fff">${notif.epTitle}</span>`;
@@ -505,11 +461,11 @@
       modal.classList.remove('show');
       setTimeout(() => {
         modal.remove();
-        if (this.queue.length > 0) this.queue.shift(); // Eliminar el que ya se mostró
+        if (this.queue.length > 0) this.queue.shift();
         domUtils.enableScroll();
         this.isShowingPopup = false;
         this.persistQueue();
-        this.showNextPopup(); // Mostrar el siguiente de la cola (si no se ha alcanzado el límite)
+        this.showNextPopup();
       }, 300);
     }
 
@@ -571,7 +527,6 @@
         return;
       }
 
-      // Ya están ordenadas por fecha descendente (más reciente primero)
       const visible = this.history.slice(0, CONFIG.MAX_VISIBLE_NOTIFICATIONS);
       const fragment = document.createDocumentFragment();
 
