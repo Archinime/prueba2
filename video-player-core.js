@@ -1,5 +1,5 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Marcado automático de episodios vistos + soporte nativo para Google Drive en móviles
+// CORREGIDO: Google Drive usa iframe nativo con controles táctiles
 
 class VideoPlayer {
   constructor() {
@@ -284,39 +284,49 @@ class VideoPlayer {
     container.appendChild(btn);
   }
   
-  // ========== CORRECCIÓN PRINCIPAL: Detectar Google Drive y usar <video> ==========
+  // ========== CORRECCIÓN: Google Drive con iframe funcional ==========
   loadVideo(url) {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
     
-    // Normalizar URL (puede venir con espacios)
     url = url.trim();
     
-    // Detectar si es un enlace de Google Drive (incluyendo usercontent)
+    // Detectar Google Drive (cualquier forma)
     const isGoogleDrive = url.includes('drive.google.com') || url.includes('drive.usercontent.google.com');
     
-    // Detectar extensión de video directo
-    const isDirectVideo = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    
-    // Si es Google Drive, forzamos a usar <video> (los iframes dan problemas en móviles)
     if (isGoogleDrive) {
-      const videoUrl = this.generateDirectLink(url);
-      const video = document.createElement('video');
-      video.src = videoUrl;
-      video.controls = true;
-      video.playsInline = true; // Importante para iOS
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.setAttribute('preload', 'metadata');
-      // Añadir atributo para pantalla completa nativa
-      video.setAttribute('webkit-playsinline', 'true');
-      container.appendChild(video);
-      return;
+      // Extraer ID del archivo
+      let fileId = null;
+      let match = url.match(/\/d\/(.+?)\//);
+      if (match && match[1]) fileId = match[1];
+      if (!fileId) {
+        match = url.match(/id=([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) fileId = match[1];
+      }
+      if (!fileId) {
+        match = url.match(/\/file\/d\/(.+?)\//);
+        if (match && match[1]) fileId = match[1];
+      }
+      
+      if (fileId) {
+        // Usar el iframe de preview que tiene controles táctiles completos
+        const embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+        const iframe = document.createElement('iframe');
+        iframe.src = embedUrl;
+        iframe.allow = 'autoplay; fullscreen';
+        iframe.allowFullscreen = true;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.setAttribute('frameborder', '0');
+        container.appendChild(iframe);
+        return;
+      }
     }
     
-    // Para videos directos que no sean Drive
-    if (isDirectVideo) {
+    // Para otros servicios o videos directos
+    const isDirectVideo = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+    if (isDirectVideo && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.src = url;
       video.controls = true;
@@ -325,7 +335,7 @@ class VideoPlayer {
       video.style.height = '100%';
       container.appendChild(video);
     } else {
-      // Resto: iframe (Dropbox, Odysee, etc.)
+      // Resto: iframe genérico
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -343,13 +353,17 @@ class VideoPlayer {
   generateDirectLink(url) {
     if (!url) return "#";
     if (url.includes("drive.google.com") || url.includes("drive.usercontent.google.com")) {
-      // Extraer ID del archivo
+      let fileId = null;
       let match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-      let altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-      if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-      // Fallback: si es una URL directa de usercontent, devolverla tal cual
-      if (url.includes('drive.usercontent.google.com/download')) return url;
+      if (match && match[1]) fileId = match[1];
+      if (!fileId) {
+        match = url.match(/id=([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) fileId = match[1];
+      }
+      if (fileId) {
+        return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`;
+      }
+      return url;
     }
     if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
     if (url.includes("ok.ru/")) {
