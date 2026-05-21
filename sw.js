@@ -8,10 +8,10 @@
    Compatible con PWA y notificaciones push (base)
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v49';
-const CACHE_DYNAMIC = 'archinime-dynamic-v49';
-const CACHE_IMAGES = 'archinime-images-v49';
-const CACHE_FONTS = 'archinime-fonts-v49';
+const CACHE_STATIC = 'archinime-static-v50';
+const CACHE_DYNAMIC = 'archinime-dynamic-v50';
+const CACHE_IMAGES = 'archinime-images-v50';
+const CACHE_FONTS = 'archinime-fonts-v50';
 
 // Recursos críticos a precachear (estáticos y siempre necesarios)
 const STATIC_ASSETS = [

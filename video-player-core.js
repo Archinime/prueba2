@@ -1,5 +1,5 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
+// CORREGIDO: Marcado automático de episodios vistos + soporte nativo para Google Drive en móviles
 
 class VideoPlayer {
   constructor() {
@@ -13,10 +13,9 @@ class VideoPlayer {
     this.storage = null;
     this.animeData = null;
     this.currentDownloadUrl = '#';
-    this.authReady = false;      // Indica si ya se resolvió el estado de auth
-    this.pendingMarks = [];      // Guarda episodios pendientes de marcar cuando el usuario esté listo
+    this.authReady = false;
+    this.pendingMarks = [];
     
-    // Variables de contexto para sistemas externos
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -25,9 +24,8 @@ class VideoPlayer {
     this.initUI();
     this.waitForCatalogAndLoad();
     this.setupAuthUI();
-    this.setupAuthMigration();    // Nuevo: migración de localStorage a Firestore al loguearse
+    this.setupAuthMigration();
 
-    // Exponer métodos públicos
     window.videoPlayerMethods = {
       toggleStickerPanel: () => this.toggleStickerPanel(),
       enviarComentario: () => this.enviarComentario(),
@@ -43,7 +41,6 @@ class VideoPlayer {
     window.videoPlayer = window.videoPlayerMethods;
   }
   
-  // Espera a que catalogoArray esté disponible (igual que en anime-detail)
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -81,7 +78,6 @@ class VideoPlayer {
     this.db = firebase.firestore();
     this.storage = firebase.storage();
     
-    // Listener principal que actualiza el estado de autenticación
     this.auth.onAuthStateChanged(user => {
       if (window.ArchinimeState) {
         window.ArchinimeState.set('currentUser', user);
@@ -91,7 +87,6 @@ class VideoPlayer {
       this.authReady = true;
       this.updateCommentFormVisibility();
       
-      // Inicializar sistemas dependientes
       if (typeof initComentariosSystem === 'function') {
         initComentariosSystem(this.db, this.auth);
       }
@@ -106,7 +101,6 @@ class VideoPlayer {
     return this.currentUser;
   }
   
-  // Nueva función: migra todos los episodios vistos en localStorage a Firestore
   async migrateLocalToFirestore(userId) {
     if (!userId) return;
     const watchedKeys = [];
@@ -122,7 +116,6 @@ class VideoPlayer {
     const historyRef = this.db.collection('watchHistory').doc(userId);
     
     for (const key of watchedKeys) {
-      // Formato: watched_<animeId>_<season>_<episode>
       const parts = key.split('_');
       if (parts.length < 4) continue;
       const animeId = parts[1];
@@ -148,11 +141,9 @@ class VideoPlayer {
   }
   
   setupAuthMigration() {
-    // Escucha cambios de autenticación y migra cuando haya usuario
     this.auth.onAuthStateChanged(async (user) => {
       if (user) {
         await this.migrateLocalToFirestore(user.uid);
-        // Reprocesar marcas pendientes que se hayan generado antes de tener usuario
         if (this.pendingMarks.length > 0) {
           for (const mark of this.pendingMarks) {
             await this.saveToFirestore(mark.animeId, mark.season, mark.episode, user.uid);
@@ -191,21 +182,16 @@ class VideoPlayer {
     const user = this.getCurrentUser();
     const localKey = `watched_${aId}_${sNum}_${eNum}`;
     
-    // Si hay usuario autenticado, intentar guardar en Firestore
     if (user && user.uid) {
       const success = await this.saveToFirestore(aId, sNum, eNum, user.uid);
       if (success) {
-        // Eliminar cualquier versión local obsoleta
         localStorage.removeItem(localKey);
         return;
       }
     }
     
-    // Si no hay usuario o falló Firestore, guardar en localStorage
     localStorage.setItem(localKey, 'true');
     
-    // Si no hay usuario pero la autenticación aún no está resuelta,
-    // guardamos en lista pendiente para cuando llegue el usuario
     if (!user && !this.authReady) {
       this.pendingMarks.push({ animeId: aId, season: sNum, episode: eNum });
     }
@@ -275,7 +261,6 @@ class VideoPlayer {
       if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
       
       this.setupNavigation();
-      // MARCADO AUTOMÁTICO - se ejecuta siempre
       await this.autoMarkAsWatched();
       
     } catch (error) {
@@ -299,19 +284,48 @@ class VideoPlayer {
     container.appendChild(btn);
   }
   
+  // ========== CORRECCIÓN PRINCIPAL: Detectar Google Drive y usar <video> ==========
   loadVideo(url) {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
-    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    if (isVideoFile && !url.includes('drive.google.com')) {
+    
+    // Normalizar URL (puede venir con espacios)
+    url = url.trim();
+    
+    // Detectar si es un enlace de Google Drive (incluyendo usercontent)
+    const isGoogleDrive = url.includes('drive.google.com') || url.includes('drive.usercontent.google.com');
+    
+    // Detectar extensión de video directo
+    const isDirectVideo = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+    
+    // Si es Google Drive, forzamos a usar <video> (los iframes dan problemas en móviles)
+    if (isGoogleDrive) {
+      const videoUrl = this.generateDirectLink(url);
+      const video = document.createElement('video');
+      video.src = videoUrl;
+      video.controls = true;
+      video.playsInline = true; // Importante para iOS
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.setAttribute('preload', 'metadata');
+      // Añadir atributo para pantalla completa nativa
+      video.setAttribute('webkit-playsinline', 'true');
+      container.appendChild(video);
+      return;
+    }
+    
+    // Para videos directos que no sean Drive
+    if (isDirectVideo) {
       const video = document.createElement('video');
       video.src = url;
       video.controls = true;
+      video.playsInline = true;
       video.style.width = '100%';
       video.style.height = '100%';
       container.appendChild(video);
     } else {
+      // Resto: iframe (Dropbox, Odysee, etc.)
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -328,11 +342,14 @@ class VideoPlayer {
   
   generateDirectLink(url) {
     if (!url) return "#";
-    if (url.includes("drive.google.com")) {
-      const match = url.match(/\/d\/(.+?)\//);
+    if (url.includes("drive.google.com") || url.includes("drive.usercontent.google.com")) {
+      // Extraer ID del archivo
+      let match = url.match(/\/d\/(.+?)\//);
       if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-      const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+      let altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
       if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
+      // Fallback: si es una URL directa de usercontent, devolverla tal cual
+      if (url.includes('drive.usercontent.google.com/download')) return url;
     }
     if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
     if (url.includes("ok.ru/")) {
@@ -521,13 +538,11 @@ class VideoPlayer {
   }
 }
 
-// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
