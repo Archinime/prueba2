@@ -357,9 +357,32 @@ function log(msg) {
     el.scrollTop = el.scrollHeight;
 }
 
+// ========== NUEVA FUNCIÓN: Extraer URL de un iframe ==========
+function extractUrlFromIframe(value) {
+    if (!value || typeof value !== 'string') return null;
+    // Buscar etiqueta iframe y extraer el src (comillas simples o dobles)
+    const iframeRegex = /<iframe[^>]*src=["']([^"']+)["'][^>]*>/i;
+    const match = value.match(iframeRegex);
+    if (match && match[1]) {
+        return match[1];
+    }
+    return null;
+}
+
 function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
+
+    // ----- 1. Detectar y extraer iframe -----
+    const extractedUrl = extractUrlFromIframe(val);
+    if (extractedUrl) {
+        input.value = extractedUrl;
+        val = extractedUrl;
+        changed = true;
+        showToast("✅ Iframe convertido a enlace directo", false);
+    }
+
+    // ----- 2. Conversiones existentes para enlaces directos -----
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
@@ -389,6 +412,7 @@ function smartLinkConvert(input) {
         changed = true;
         showToast("Link Odysee convertido a Embed");
     }
+
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
