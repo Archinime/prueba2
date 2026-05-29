@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
@@ -65,7 +65,7 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS OPTIMIZADOS MÓVIL - REPRODUCTOR COMPLETO ===== */
+    /* ===== ESTILOS OPTIMIZADOS ===== */
     
     :root {
       --primary-color: #00fff7;
@@ -96,6 +96,14 @@
       filter: contrast(1.2) brightness(1.25) saturate(1.4);
       opacity: 0.5;
       pointer-events: none;
+    }
+    /* En móviles, el video se oculta y usamos solo el poster como fondo */
+    body.is-mobile #bg-video {
+      display: none;
+    }
+    /* Para móviles, aseguramos que el fondo tenga la imagen del poster */
+    body.is-mobile {
+      background: url('galaxia-morado1.avif') center center / cover no-repeat fixed;
     }
 
     #overlay {
@@ -286,7 +294,6 @@
       display: flex;
       gap: 10px;
       justify-content: flex-end;
-      flex-wrap: wrap;
     }
 
     .opt-btn {
@@ -315,9 +322,11 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* REPRODUCTOR - NUEVO: SIN ALTURA FIJA, SE ADAPTA */
+    /* REPRODUCTOR */
     .player-wrapper {
       position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
       width: 100%;
       background: #000;
       overflow: hidden;
@@ -325,76 +334,77 @@
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-      /* Eliminamos padding-bottom para que el contenedor se ajuste al iframe */
     }
 
     .player-wrapper iframe,
     .player-wrapper video {
-      width: 100%;
-      height: auto;
-      min-height: 240px;
-      max-height: 70vh;
-      display: block;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       border: none;
-      outline: none;
-      margin: 0 auto;
     }
 
-    /* Para pantallas más grandes, podemos dar una altura máxima */
-    @media (min-width: 768px) {
-      .player-wrapper iframe,
-      .player-wrapper video {
-        min-height: 360px;
-        max-height: 80vh;
-      }
-    }
-
-    /* LOGO BLOCKER - No bloquea y es más pequeño en móviles */
+    /* LOGO BLOCKER */
     .logo-blocker {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      height: 40px; /* Altura fija más pequeña */
-      background: linear-gradient(to bottom, rgba(5, 5, 5, 0.8) 0%, rgba(5, 5, 5, 0.4) 100%);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      height: 14%;
+      min-height: 45px;
+      background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 100;
       display: flex;
       justify-content: center;
-      align-items: center;
-      pointer-events: none;
+      align-items: flex-start;
+      padding-top: 1.5%;
+      pointer-events: auto;
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
     }
 
     .logo-blocker::after {
-      display: none;
+      content: '';
+      position: absolute;
+      bottom: 25%;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+      opacity: 0.3;
     }
 
     .blocker-content {
       display: flex;
       align-items: baseline;
-      gap: 6px;
-      pointer-events: none;
+      gap: 8px;
     }
 
     .blocker-text {
       font-family: 'Poppins', sans-serif;
       font-weight: 800;
-      font-size: clamp(0.9rem, 4vw, 1.2rem);
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
       color: #fff;
-      letter-spacing: 3px;
+      letter-spacing: 5px;
       text-transform: uppercase;
-      text-shadow: 0 0 6px var(--primary-color);
+      text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+      animation: neonPulse 2s infinite alternate;
     }
 
     .blocker-sub {
       font-family: 'Poppins', sans-serif;
-      font-size: clamp(0.5rem, 2vw, 0.7rem);
+      font-size: clamp(0.6rem, 1.2vw, 0.8rem);
       color: var(--accent-color);
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px var(--accent-color);
+    }
+
+    @keyframes neonPulse {
+      0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+      100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
     }
 
     h1 {
@@ -736,6 +746,7 @@
       transform: translateY(-3px);
     }
 
+    /* ===== ESTILO MODERNO PARA STICKERS VACÍOS ===== */
     .sticker-empty-modern {
       grid-column: 1 / -1;
       text-align: center;
@@ -896,7 +907,7 @@
       font-weight: 600;
     }
 
-    /* PREVIEW STICKER */
+    /* ===== ESTILOS PARA PREVIEW DE STICKER ===== */
     .comentario-sticker-preview {
       margin: 12px 0;
       padding: 8px;
@@ -952,27 +963,17 @@
       background: #ff3366;
     }
 
-    /* ===== OPTIMIZACIONES MÓVIL ===== */
+    /* ===== AJUSTES MÓVILES ===== */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
-      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; padding-bottom: 4px; }
-      .options::-webkit-scrollbar { height: 2px; }
-      
-      .controls { 
-        grid-template-columns: 1fr 1fr; 
-        grid-template-rows: auto auto; 
-        gap: 12px; 
-      }
+      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; }
+      .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
       #prevBtn { grid-column: 1; grid-row: 1; }
       #nextBtn { grid-column: 2; grid-row: 1; }
       #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; }
 
-      /* Logo blocker más pequeño */
-      .logo-blocker { height: 32px; }
-      .blocker-text { font-size: 0.9rem; letter-spacing: 2px; }
-      .blocker-sub { font-size: 0.6rem; }
-
+      .logo-blocker { height: 20%; min-height: 60px; padding-top: 4%; }
       .comentarios-section { padding: 20px 15px; }
       .comentario-form-container { padding: 18px; }
       .sticker-btn { padding: 12px; }
@@ -985,38 +986,6 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img,
       .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
-      
-      /* Mejoras táctiles */
-      .btn, .opt-btn, .back-btn, .login-link-btn, .upload-sticker-label {
-        touch-action: manipulation;
-      }
-      .opt-btn {
-        padding: 8px 16px;
-        font-size: 0.85rem;
-      }
-      .btn {
-        padding: 14px 20px;
-      }
-      
-      /* El reproductor ocupa bien en móviles */
-      .player-wrapper iframe,
-      .player-wrapper video {
-        min-height: 220px;
-        max-height: 55vh;
-      }
-    }
-    
-    /* Para pantallas muy pequeñas */
-    @media (max-width: 480px) {
-      h1 { font-size: 1.1rem; }
-      .comentarios-header h3 { font-size: 1.3rem; }
-      .comentarios-header i { font-size: 1.8rem; }
-      .sticker-tab { padding: 12px 6px; font-size: 0.85rem; }
-      .player-wrapper iframe,
-      .player-wrapper video {
-        min-height: 180px;
-        max-height: 50vh;
-      }
     }
   </style>
 </head>
@@ -1062,7 +1031,7 @@
         <span class="blocker-sub">HD</span>
       </div>
     </div>
-    <div id="mediaContainer" style="width: 100%;"></div>
+    <div id="mediaContainer" style="width: 100%; height: 100%;"></div>
   </div>
 
   <h1 id="epTitle">Cargando...</h1>
@@ -1171,6 +1140,7 @@
   </div>
 </div>
 
+<!-- IMPORTANTE: El catálogo local se carga antes que el core del reproductor -->
 <script src="catalogo.js"></script>
 <script defer src="stickers-system.js"></script>
 <script defer src="reacciones.js"></script>
@@ -1239,6 +1209,23 @@
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
+  }
+
+  // 🔥 DETECCIÓN DE MÓVIL Y DESACTIVACIÓN DEL VIDEO DE FONDO 🔥
+  function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  }
+
+  if (isMobileDevice()) {
+    document.body.classList.add('is-mobile');
+    // Eliminar el source del video para evitar cualquier intento de reproducción
+    const bgVideo = document.getElementById('bg-video');
+    if (bgVideo) {
+      bgVideo.pause();
+      bgVideo.removeAttribute('src');
+      bgVideo.load(); // limpia el buffer
+      bgVideo.style.display = 'none';
+    }
   }
 
   // Progreso de carga
