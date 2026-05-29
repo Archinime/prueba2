@@ -1,7 +1,7 @@
 // video-player-core.js - Versión con catálogo local + Firestore
 // CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
 // NUEVO: Descarga directa desde PeerTube (obtiene enlace real del archivo .mp4 vía API)
-// MEJORADO: Títulos dinámicos según tipo de temporada (T1 Cap 1, Spin-Off Cap 1, OVA 1, Película: Nombre, etc.)
+// MEJORADO: Títulos dinámicos según tipo de temporada (T1 Cap 1, Spin-Off: Nombre Cap 1, OVA 1, Película: Nombre, etc.)
 
 class VideoPlayer {
   constructor() {
@@ -248,28 +248,32 @@ class VideoPlayer {
     const seasonName = season.name || `Temporada ${season.num}`;
     const episodeTitleRaw = episodeData.title || `Capítulo ${epNum}`;
 
-    // Determinar según el tipo de temporada
+    // Película
     if (seasonType === 'Pelicula') {
-      // Si es película, mostrar "Película: {nombre}"
       return `Película: ${episodeTitleRaw}`;
     }
+    // OVA: mostrar "OVA X" donde X es el número extraído del título o el season.num
     else if (seasonType === 'OVA') {
-      // Para OVA, mostrar "OVA {número}" (extraer número del título si es posible)
       const match = episodeTitleRaw.match(/\d+/);
       const ovaNum = match ? match[0] : (season.num || epNum);
       return `OVA ${ovaNum}`;
     }
+    // Especial
     else if (seasonType === 'Especial') {
       return `Especial ${epNum}`;
     }
+    // Spin-Off: usar el nombre completo de la temporada + " Cap " + número
     else if (seasonType === 'Spin-Off') {
-      // Spin-Off: usar el nombre de la temporada + "Cap {epNum}"
-      // Ejemplo: "El Viaje Cap 1"
       return `${seasonName} Cap ${epNum}`;
     }
+    // Temporada normal
     else {
-      // Temporada normal: T{num} Cap {epNum}
-      const seasonNumber = season.num || (seasonName.match(/\d+/) ? seasonName.match(/\d+/)[0] : '?');
+      let seasonNumber = season.num;
+      // Si no tiene num, intentar extraer del nombre (ej: "Temporada 1")
+      if (!seasonNumber) {
+        const match = seasonName.match(/\d+/);
+        seasonNumber = match ? match[0] : '?';
+      }
       return `T${seasonNumber} Cap ${epNum}`;
     }
   }
@@ -519,9 +523,7 @@ class VideoPlayer {
     if (idx > 0) {
       const prev = flat[idx-1];
       prevBtn.classList.remove('btn-hidden');
-      // No cambiamos la URL, solo la referencia visual, pero el título se generará al cargar
       prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
-      // Podemos añadir tooltip con el título formateado (opcional)
       const prevSeason = prev.seasonObj;
       const prevTitle = this.formatEpisodeTitle(prevSeason, prev.e, prev.episodeData);
       prevBtn.setAttribute('title', prevTitle);
