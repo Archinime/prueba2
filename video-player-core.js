@@ -1,5 +1,7 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Google Drive usa iframe nativo con controles táctiles
+// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
+// NUEVO: Descarga directa desde PeerTube (obtiene enlace real del archivo .mp4 vía API)
+// MEJORADO: Títulos dinámicos según tipo de temporada (T1 Cap 1, Spin-Off Cap 1, OVA 1, Película: Nombre, etc.)
 
 class VideoPlayer {
   constructor() {
@@ -12,10 +14,12 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrl = '#';
+    this.currentDownloadUrl = '#';      // URL sincrónica (para enlaces directos normales)
+    this.currentPeerTubeUrl = null;     // Guardamos la URL original de PeerTube si es el caso
     this.authReady = false;
     this.pendingMarks = [];
     
+    // Variables de contexto para sistemas externos
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -26,6 +30,7 @@ class VideoPlayer {
     this.setupAuthUI();
     this.setupAuthMigration();
 
+    // Exponer métodos públicos
     window.videoPlayerMethods = {
       toggleStickerPanel: () => this.toggleStickerPanel(),
       enviarComentario: () => this.enviarComentario(),
@@ -41,6 +46,7 @@ class VideoPlayer {
     window.videoPlayer = window.videoPlayerMethods;
   }
   
+  // ========== ESPERA DEL CATÁLOGO ==========
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -62,6 +68,7 @@ class VideoPlayer {
     }, 5000);
   }
   
+  // ========== FIREBASE ==========
   initFirebase() {
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -101,6 +108,7 @@ class VideoPlayer {
     return this.currentUser;
   }
   
+  // ========== MIGRACIÓN Y MARCAS ==========
   async migrateLocalToFirestore(userId) {
     if (!userId) return;
     const watchedKeys = [];
@@ -191,12 +199,12 @@ class VideoPlayer {
     }
     
     localStorage.setItem(localKey, 'true');
-    
     if (!user && !this.authReady) {
       this.pendingMarks.push({ animeId: aId, season: sNum, episode: eNum });
     }
   }
   
+  // ========== UI INICIAL ==========
   initUI() {
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) {
@@ -227,6 +235,46 @@ class VideoPlayer {
     });
   }
   
+  // ========== GENERACIÓN DE TÍTULO SEGÚN TIPO DE TEMPORADA ==========
+  /**
+   * Genera el título formateado para el episodio actual.
+   * @param {Object} season - Objeto de la temporada (contiene name, type, num, etc.)
+   * @param {number} epNum - Número del episodio (1-indexed)
+   * @param {Object} episodeData - Datos del episodio (puede contener title específico)
+   * @returns {string} Título formateado
+   */
+  formatEpisodeTitle(season, epNum, episodeData) {
+    const seasonType = season.type || 'Temporada';
+    const seasonName = season.name || `Temporada ${season.num}`;
+    const episodeTitleRaw = episodeData.title || `Capítulo ${epNum}`;
+
+    // Determinar según el tipo de temporada
+    if (seasonType === 'Pelicula') {
+      // Si es película, mostrar "Película: {nombre}"
+      return `Película: ${episodeTitleRaw}`;
+    }
+    else if (seasonType === 'OVA') {
+      // Para OVA, mostrar "OVA {número}" (extraer número del título si es posible)
+      const match = episodeTitleRaw.match(/\d+/);
+      const ovaNum = match ? match[0] : (season.num || epNum);
+      return `OVA ${ovaNum}`;
+    }
+    else if (seasonType === 'Especial') {
+      return `Especial ${epNum}`;
+    }
+    else if (seasonType === 'Spin-Off') {
+      // Spin-Off: usar el nombre de la temporada + "Cap {epNum}"
+      // Ejemplo: "El Viaje Cap 1"
+      return `${seasonName} Cap ${epNum}`;
+    }
+    else {
+      // Temporada normal: T{num} Cap {epNum}
+      const seasonNumber = season.num || (seasonName.match(/\d+/) ? seasonName.match(/\d+/)[0] : '?');
+      return `T${seasonNumber} Cap ${epNum}`;
+    }
+  }
+
+  // ========== CARGA DEL EPISODIO ==========
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
@@ -248,8 +296,11 @@ class VideoPlayer {
         return;
       }
       
-      document.title = `Ver ${episodeData.title || `Episodio ${this.episode}`} - Archinime`;
-      document.getElementById('epTitle').innerText = episodeData.title || `Episodio ${this.episode}`;
+      // 🔥 Generar título dinámico según el tipo de temporada
+      const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
+      
+      document.title = `Ver ${formattedTitle} - Archinime`;
+      document.getElementById('epTitle').innerText = formattedTitle;
       
       const initialLink = episodeData.link || episodeData.link2;
       this.updateDownloadUrl(initialLink);
@@ -284,58 +335,19 @@ class VideoPlayer {
     container.appendChild(btn);
   }
   
-  // ========== CORRECCIÓN: Google Drive con iframe funcional ==========
   loadVideo(url) {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
-    
-    url = url.trim();
-    
-    // Detectar Google Drive (cualquier forma)
-    const isGoogleDrive = url.includes('drive.google.com') || url.includes('drive.usercontent.google.com');
-    
-    if (isGoogleDrive) {
-      // Extraer ID del archivo
-      let fileId = null;
-      let match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) fileId = match[1];
-      if (!fileId) {
-        match = url.match(/id=([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) fileId = match[1];
-      }
-      if (!fileId) {
-        match = url.match(/\/file\/d\/(.+?)\//);
-        if (match && match[1]) fileId = match[1];
-      }
-      
-      if (fileId) {
-        // Usar el iframe de preview que tiene controles táctiles completos
-        const embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-        const iframe = document.createElement('iframe');
-        iframe.src = embedUrl;
-        iframe.allow = 'autoplay; fullscreen';
-        iframe.allowFullscreen = true;
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.setAttribute('frameborder', '0');
-        container.appendChild(iframe);
-        return;
-      }
-    }
-    
-    // Para otros servicios o videos directos
-    const isDirectVideo = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    if (isDirectVideo && !url.includes('drive.google.com')) {
+    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+    if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.src = url;
       video.controls = true;
-      video.playsInline = true;
       video.style.width = '100%';
       video.style.height = '100%';
       container.appendChild(video);
     } else {
-      // Resto: iframe genérico
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -346,24 +358,27 @@ class VideoPlayer {
     }
   }
   
+  // ========== ACTUALIZACIÓN DE URL DE DESCARGA (síncrona normal) ==========
   updateDownloadUrl(url) {
     this.currentDownloadUrl = this.generateDirectLink(url);
+    this.currentPeerTubeUrl = this.isPeerTubeUrl(url) ? url : null;
   }
   
+  // Detección de PeerTube
+  isPeerTubeUrl(url) {
+    if (!url) return false;
+    const peerTubePattern = /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i;
+    return peerTubePattern.test(url);
+  }
+  
+  // Generador de enlaces síncrono (Google Drive, Dropbox, etc.) - NO para PeerTube asíncrono
   generateDirectLink(url) {
     if (!url) return "#";
-    if (url.includes("drive.google.com") || url.includes("drive.usercontent.google.com")) {
-      let fileId = null;
-      let match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) fileId = match[1];
-      if (!fileId) {
-        match = url.match(/id=([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) fileId = match[1];
-      }
-      if (fileId) {
-        return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`;
-      }
-      return url;
+    if (url.includes("drive.google.com")) {
+      const match = url.match(/\/d\/(.+?)\//);
+      if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
+      const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+      if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
     }
     if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
     if (url.includes("ok.ru/")) {
@@ -382,15 +397,90 @@ class VideoPlayer {
     return url;
   }
   
-  handleDownloadClick() {
+  // ========== OBTENCIÓN ASÍNCRONA DEL ENLACE DIRECTO DE PEERTUBE ==========
+  async getPeerTubeDirectDownloadUrl(embedUrl) {
+    try {
+      let videoId = null;
+      let instanceUrl = null;
+      
+      const urlParts = embedUrl.match(/^(https?:\/\/[^\/]+)\/(?:videos\/embed|w)\/([a-zA-Z0-9_-]+)/i);
+      if (urlParts && urlParts[2]) {
+        instanceUrl = urlParts[1];
+        videoId = urlParts[2];
+      } else {
+        const idMatch = embedUrl.match(/\/([a-zA-Z0-9_-]+)$/);
+        if (idMatch && idMatch[1]) {
+          videoId = idMatch[1];
+          const domainMatch = embedUrl.match(/^(https?:\/\/[^\/]+)/);
+          if (domainMatch) instanceUrl = domainMatch[1];
+        }
+      }
+      
+      if (!instanceUrl || !videoId) {
+        console.warn('No se pudo extraer ID o dominio de PeerTube:', embedUrl);
+        return null;
+      }
+      
+      const apiUrl = `${instanceUrl}/api/v1/videos/${videoId}`;
+      console.log('📡 Consultando API de PeerTube:', apiUrl);
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const data = await response.json();
+      let downloadUrl = null;
+      if (data.files && data.files.length > 0) {
+        downloadUrl = data.files[0].fileDownloadUrl;
+      } else if (data.streamingPlaylists && data.streamingPlaylists.length > 0) {
+        const playlist = data.streamingPlaylists[0];
+        if (playlist.files && playlist.files.length > 0) {
+          downloadUrl = playlist.files[0].fileDownloadUrl;
+        }
+      }
+      
+      if (!downloadUrl) {
+        console.warn('No se encontró fileDownloadUrl en la respuesta de PeerTube');
+        return null;
+      }
+      
+      console.log('✅ Enlace directo obtenido:', downloadUrl);
+      return downloadUrl;
+    } catch (error) {
+      console.error('❌ Error obteniendo descarga de PeerTube:', error);
+      return null;
+    }
+  }
+  
+  // ========== MANEJADOR DEL BOTÓN DESCARGAR ==========
+  async handleDownloadClick() {
     const user = this.getCurrentUser();
     if (!user) {
       this.openLoginModal();
       return;
     }
-    if (this.currentDownloadUrl && this.currentDownloadUrl !== '#') {
+    
+    let finalDownloadUrl = this.currentDownloadUrl;
+    
+    if (this.currentPeerTubeUrl) {
+      const btn = document.getElementById('downloadBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo enlace...';
+      btn.disabled = true;
+      
+      const directUrl = await this.getPeerTubeDirectDownloadUrl(this.currentPeerTubeUrl);
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      
+      if (directUrl) {
+        finalDownloadUrl = directUrl;
+      } else {
+        alert('No se pudo obtener el enlace de descarga directa de PeerTube. Es posible que el administrador no lo haya habilitado.');
+        return;
+      }
+    }
+    
+    if (finalDownloadUrl && finalDownloadUrl !== '#') {
       const link = document.createElement('a');
-      link.href = this.currentDownloadUrl;
+      link.href = finalDownloadUrl;
       link.download = '';
       link.target = this.isMobile() ? '_blank' : '_self';
       document.body.appendChild(link);
@@ -405,27 +495,53 @@ class VideoPlayer {
     return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
   }
   
+  // ========== NAVEGACIÓN ENTRE EPISODIOS (con títulos dinámicos) ==========
   setupNavigation() {
     if (!this.animeData?.seasons) return;
+    // Aplanar todos los episodios disponibles (con link o link2)
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
-        if (ep.link || ep.link2) flat.push({ s: season.num, e: idx + 1 });
+        if (ep.link || ep.link2) {
+          flat.push({ 
+            s: season.num, 
+            e: idx + 1,
+            seasonObj: season,
+            episodeData: ep
+          });
+        }
       });
     });
     const idx = flat.findIndex(i => i.s === parseInt(this.season) && i.e === parseInt(this.episode));
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    
     if (idx > 0) {
+      const prev = flat[idx-1];
       prevBtn.classList.remove('btn-hidden');
-      prevBtn.href = `?anime=${this.animeId}&s=${flat[idx-1].s}&e=${flat[idx-1].e}`;
+      // No cambiamos la URL, solo la referencia visual, pero el título se generará al cargar
+      prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
+      // Podemos añadir tooltip con el título formateado (opcional)
+      const prevSeason = prev.seasonObj;
+      const prevTitle = this.formatEpisodeTitle(prevSeason, prev.e, prev.episodeData);
+      prevBtn.setAttribute('title', prevTitle);
+    } else {
+      prevBtn.classList.add('btn-hidden');
     }
+    
     if (idx < flat.length - 1) {
+      const next = flat[idx+1];
       nextBtn.classList.remove('btn-hidden');
-      nextBtn.href = `?anime=${this.animeId}&s=${flat[idx+1].s}&e=${flat[idx+1].e}`;
+      nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
+      const nextSeason = next.seasonObj;
+      const nextTitle = this.formatEpisodeTitle(nextSeason, next.e, next.episodeData);
+      nextBtn.setAttribute('title', nextTitle);
+    } else {
+      nextBtn.classList.add('btn-hidden');
     }
   }
   
+  // ========== SISTEMA DE AUTENTICACIÓN ==========
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -492,6 +608,7 @@ class VideoPlayer {
     }
   }
   
+  // ========== COMENTARIOS Y STICKERS ==========
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -552,11 +669,13 @@ class VideoPlayer {
   }
 }
 
+// Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
+// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
