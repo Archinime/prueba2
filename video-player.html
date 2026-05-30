@@ -65,7 +65,7 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS OPTIMIZADOS ===== */
+    /* ===== ESTILOS OPTIMIZADOS (sin logo-blocker) ===== */
     
     :root {
       --primary-color: #00fff7;
@@ -101,7 +101,6 @@
     body.is-mobile #bg-video {
       display: none;
     }
-    /* Para móviles, aseguramos que el fondo tenga la imagen del poster */
     body.is-mobile {
       background: url('galaxia-morado1.avif') center center / cover no-repeat fixed;
     }
@@ -117,7 +116,7 @@
       pointer-events: none;
     }
 
-    /* Pantalla de carga */
+    /* Pantalla de carga (sin cambios) */
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -322,7 +321,7 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* REPRODUCTOR */
+    /* REPRODUCTOR (sin logo-blocker) */
     .player-wrapper {
       position: relative;
       padding-bottom: 56.25%;
@@ -342,69 +341,6 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       border: none;
-    }
-
-    /* LOGO BLOCKER */
-    .logo-blocker {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 14%;
-      min-height: 45px;
-      background: linear-gradient(to bottom, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0.85) 40%, transparent 100%);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      z-index: 100;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 1.5%;
-      pointer-events: auto;
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
-    }
-
-    .logo-blocker::after {
-      content: '';
-      position: absolute;
-      bottom: 25%;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-      opacity: 0.3;
-    }
-
-    .blocker-content {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .blocker-text {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 800;
-      font-size: clamp(1rem, 2.5vw, 1.4rem);
-      color: #fff;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
-      animation: neonPulse 2s infinite alternate;
-    }
-
-    .blocker-sub {
-      font-family: 'Poppins', sans-serif;
-      font-size: clamp(0.6rem, 1.2vw, 0.8rem);
-      color: var(--accent-color);
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-shadow: 0 0 8px var(--accent-color);
-    }
-
-    @keyframes neonPulse {
-      0% { opacity: 0.8; text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-      100% { opacity: 1; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
     }
 
     h1 {
@@ -746,7 +682,7 @@
       transform: translateY(-3px);
     }
 
-    /* ===== ESTILO MODERNO PARA STICKERS VACÍOS ===== */
+    /* Estilo moderno para stickers vacíos */
     .sticker-empty-modern {
       grid-column: 1 / -1;
       text-align: center;
@@ -907,7 +843,7 @@
       font-weight: 600;
     }
 
-    /* ===== ESTILOS PARA PREVIEW DE STICKER ===== */
+    /* Preview de sticker */
     .comentario-sticker-preview {
       margin: 12px 0;
       padding: 8px;
@@ -963,7 +899,7 @@
       background: #ff3366;
     }
 
-    /* ===== AJUSTES MÓVILES ===== */
+    /* Ajustes móviles */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
@@ -973,7 +909,6 @@
       #nextBtn { grid-column: 2; grid-row: 1; }
       #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; }
 
-      .logo-blocker { height: 20%; min-height: 60px; padding-top: 4%; }
       .comentarios-section { padding: 20px 15px; }
       .comentario-form-container { padding: 18px; }
       .sticker-btn { padding: 12px; }
@@ -1025,12 +960,6 @@
   </div>
 
   <div class="player-wrapper" id="playerContainer">
-    <div class="logo-blocker">
-      <div class="blocker-content">
-        <span class="blocker-text">ARCHINIME</span>
-        <span class="blocker-sub">HD</span>
-      </div>
-    </div>
     <div id="mediaContainer" style="width: 100%; height: 100%;"></div>
   </div>
 
@@ -1140,7 +1069,7 @@
   </div>
 </div>
 
-<!-- IMPORTANTE: El catálogo local se carga antes que el core del reproductor -->
+<!-- Catálogo local y scripts -->
 <script src="catalogo.js"></script>
 <script defer src="stickers-system.js"></script>
 <script defer src="reacciones.js"></script>
@@ -1211,19 +1140,18 @@
     document.getElementById('personaje-gif').src = gifElegido;
   }
 
-  // 🔥 DETECCIÓN DE MÓVIL Y DESACTIVACIÓN DEL VIDEO DE FONDO 🔥
+  // Detección de móvil y desactivación del video de fondo
   function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   }
 
   if (isMobileDevice()) {
     document.body.classList.add('is-mobile');
-    // Eliminar el source del video para evitar cualquier intento de reproducción
     const bgVideo = document.getElementById('bg-video');
     if (bgVideo) {
       bgVideo.pause();
       bgVideo.removeAttribute('src');
-      bgVideo.load(); // limpia el buffer
+      bgVideo.load();
       bgVideo.style.display = 'none';
     }
   }
