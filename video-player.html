@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
@@ -116,7 +116,7 @@
       pointer-events: none;
     }
 
-    /* Pantalla de carga (sin cambios) */
+    /* Pantalla de carga */
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -321,12 +321,11 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* REPRODUCTOR (sin logo-blocker) */
+    /* REPRODUCTOR - CORREGIDO PARA GOOGLE DRIVE */
     .player-wrapper {
       position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
       width: 100%;
+      aspect-ratio: 16 / 9;
       background: #000;
       overflow: hidden;
       z-index: 50;
@@ -338,9 +337,18 @@
     .player-wrapper iframe,
     .player-wrapper video {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       border: none;
+      display: block;
+    }
+
+    /* Ajuste específico para iframes de Google Drive en móviles */
+    .player-wrapper iframe[src*="drive.google.com"] {
+      min-height: 100%;
+      min-width: 100%;
     }
 
     h1 {
@@ -921,6 +929,11 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img,
       .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
+
+      /* Asegurar que el reproductor mantenga aspecto en móviles */
+      .player-wrapper {
+        aspect-ratio: 16 / 9;
+      }
     }
   </style>
 </head>
