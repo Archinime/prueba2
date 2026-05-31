@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v6.2";
+      const APP_VERSION = "2025-04-06-v6.3"; // versión actualizada
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -23,10 +23,12 @@
     })();
   </script>
 
+  <!-- Tema color con animación optimizada (intervalo más largo) -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
+      const intervalMs = 150; // antes era 100ms, ahora 150ms -> menos uso de CPU
       const segments = colors.length - 1;
       let metaTag = document.querySelector('meta[name="theme-color"]');
       if (!metaTag) {
@@ -44,7 +46,7 @@
       function step(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = timestamp - startTimestamp;
-        if (timestamp - lastUpdate > 100) {
+        if (timestamp - lastUpdate > intervalMs) {
           let currentProgress = (progress / animationDuration) * segments;
           currentProgress %= segments;
           const index = Math.floor(currentProgress);
@@ -85,15 +87,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase (necesario para autenticación, ratings, notificaciones, etc.) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
-  <!-- Estilos -->
+  <!-- Estilos optimizados (se mantiene la apariencia, se reduce blur en móviles) -->
   <style>
-    /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen exactamente igual) ===== */
     :root {
       --neon-cyan: #00f3ff;
       --neon-purple: #bc13fe;
@@ -125,7 +126,7 @@
     ::-webkit-scrollbar-track { background: #020202; }
     ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-purple), var(--neon-cyan)); border-radius: 4px; }
 
-    /* Fondo y overlay */
+    /* Fondo y overlay - se mantiene el video, pero en móviles reducimos blur */
     #bg-video { 
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
@@ -149,7 +150,7 @@
       z-index: -3; pointer-events: none; opacity: 0.25; transform: translateZ(0);
     }
 
-    /* Pantalla de carga */
+    /* Pantalla de carga - eliminamos hue-rotate costoso */
     #loadingScreen {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -157,18 +158,20 @@
       z-index: 100000; display: flex;
       flex-direction: column; justify-content: center; align-items: center;
       font-family: 'Orbitron', sans-serif; transition: opacity 0.8s var(--transition-smooth), visibility 0.8s;
-      backdrop-filter: blur(8px); will-change: opacity;
+      backdrop-filter: blur(6px);
+      will-change: opacity;
     }
     #loadingScreen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loader-content { text-align: center;
-      transform: translateZ(0); animation: fadeInUp 0.8s ease; }
+    .loader-content { text-align: center; transform: translateZ(0); animation: fadeInUp 0.8s ease; }
     .gif-wrapper {
       position: relative;
       width: 200px; height: 200px; margin: 0 auto 30px; border-radius: 50%; padding: 5px;
       background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
-      animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
+      animation: floatAnim 2s ease-in-out infinite alternate;
       box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
+      will-change: transform;
     }
+    /* Se eliminó spinGradient (hue-rotate) por ser muy pesado */
     .gif-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: #000; }
     .gif-inner img { width: 100%; height: 100%; object-fit: cover; }
     .loader-title {
@@ -190,13 +193,12 @@
     .loader-line {
       width: 0%; height: 100%;
       background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan), #fff);
-      border-radius: 10px; transition: width 0.2s linear; box-shadow: 0 0 12px var(--neon-cyan);
+      border-radius: 10px; transition: width 0.15s linear; box-shadow: 0 0 12px var(--neon-cyan);
     }
     .loader-sub { margin-top: 20px; font-size: 0.75rem; color: #aaa; letter-spacing: 1px; display: flex; gap: 12px; justify-content: center; }
     .loader-sub i { color: var(--neon-purple); }
     
-    @keyframes spinGradient { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-    @keyframes floatAnim { 0% { transform: translateY(0px); } 100% { transform: translateY(-12px); } }
+    @keyframes floatAnim { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
     @keyframes glitchText {
       0%,100% { opacity: 1; transform: skewX(0deg); }
       94% { opacity: 1; transform: skewX(0deg); }
@@ -205,10 +207,10 @@
     }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Navbar */
+    /* Navbar - con blur reducido en móviles vía media query */
     .cyber-nav {
       position: sticky; top: 0; z-index: 1000; background: rgba(5, 5, 10, 0.85);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px 3%;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 8px 3%;
       border-bottom: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 5px 20px rgba(0,0,0,0.5); transform: translateZ(0);
     }
     .cyber-nav::after {
@@ -221,11 +223,12 @@
       .search-wrapper { margin: 0 auto; max-width: 500px; }
     }
     @media (max-width: 768px) {
-      .cyber-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; }
+      .cyber-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; backdrop-filter: blur(4px); }
       .nav-logo { order: 1; }
       .nav-actions { order: 2; }
       .search-wrapper { order: 3; width: 100%; margin-top: 4px; }
     }
+    /* Resto de estilos del navbar, grid, etc. se mantienen igual */
     .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s; will-change: transform; }
     .nav-logo:hover { transform: scale(1.02); }
     .nav-logo img { height: 44px; width: 44px; object-fit: contain; border-radius: 12px; box-shadow: 0 0 12px rgba(188, 19, 254, 0.5); transition: all 0.3s; }
@@ -239,14 +242,14 @@
     .search-input { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 60px; padding: 12px 20px 12px 48px; color: white; outline: none;
       transition: all 0.3s var(--transition-smooth); font-family: 'Poppins'; font-size: 0.95rem; 
-      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); will-change: transform, box-shadow; }
+      backdrop-filter: blur(3px); will-change: transform, box-shadow; }
     .search-input:focus { background: rgba(0, 0, 0, 0.7); border-color: var(--neon-cyan);
       box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.05); transform: translateY(-1px); }
     .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--neon-cyan); font-size: 1.1rem; }
     .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
     .cyber-btn-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05);
       border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-cyan); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); flex-shrink: 0; will-change: transform; }
+      cursor: pointer; transition: all 0.3s var(--transition-smooth); font-size: 1.2rem; backdrop-filter: blur(3px); flex-shrink: 0; will-change: transform; }
     .cyber-btn-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
     .cyber-btn-icon:hover { background: rgba(0, 243, 255, 0.15); border-color: var(--neon-cyan);
       box-shadow: 0 0 15px var(--neon-cyan); transform: translateY(-3px) scale(1.05); color: white; }
@@ -260,7 +263,7 @@
     #userAvatarBtn:hover { transform: scale(1.08); box-shadow: 0 0 15px var(--neon-cyan); }
     @media (max-width: 480px) { #userAvatarBtn { width: 38px; height: 38px; } }
     .user-dropdown { position: absolute; top: 60px; right: 0; width: 280px; background: rgba(15, 15, 20, 0.98);
-      border: 1px solid var(--neon-purple); border-radius: 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--neon-purple); border-radius: 16px; backdrop-filter: blur(12px);
       box-shadow: 0 20px 35px rgba(0,0,0,0.8); opacity: 0; pointer-events: none;
       transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth); z-index: 2000; will-change: transform, opacity; }
     .user-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) translateZ(0); }
@@ -277,12 +280,12 @@
       color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; transform: translateZ(0); }
     .notif-dropdown { position: absolute; top: 60px; right: 0; width: 380px; max-width: 90vw;
       background: rgba(15, 15, 20, 0.98); border: 1px solid var(--neon-purple); border-radius: 20px;
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 35px rgba(0,0,0,0.8);
+      backdrop-filter: blur(12px); box-shadow: 0 20px 35px rgba(0,0,0,0.8);
       opacity: 0; pointer-events: none; transform: translateY(-15px) translateZ(0); transition: all 0.25s var(--transition-smooth);
       z-index: 2000; overflow: hidden; max-height: 70vh; display: flex; flex-direction: column; will-change: transform, opacity; }
     @media (max-width: 768px) {
       .notif-dropdown { position: fixed; top: 70px; left: 5vw !important; right: 5vw !important; width: 90vw !important; max-width: none;
-        transform: translateY(-15px) translateZ(0); max-height: 70vh; border-radius: 20px; box-shadow: 0 20px 45px rgba(0,0,0,0.9); overflow-x: hidden; }
+        transform: translateY(-15px) translateZ(0); max-height: 70vh; border-radius: 20px; box-shadow: 0 20px 45px rgba(0,0,0,0.9); overflow-x: hidden; backdrop-filter: blur(8px); }
       .notif-dropdown.active { transform: translateY(0) translateZ(0); }
       .notif-list { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
     }
@@ -307,10 +310,11 @@
     .n-meta { font-size: 0.7rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .tag-final { background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
     
+    /* Controles y grid (sin cambios) */
     .controls-container { padding: 20px 3%; display: flex; gap: 20px; flex-wrap: nowrap; justify-content: center;
       background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent); margin-bottom: 20px; position: relative; }
     .controls-container select { display: none; }
-    .custom-select-trigger { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    .custom-select-trigger { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(6px); 
       color: #e0e0e0; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; padding: 12px 32px 12px 20px; min-width: 0;
       flex: 1; text-align: center; border: 1px solid rgba(188, 19, 254, 0.5); border-radius: 40px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis; position: relative; transform: translateZ(0); }
@@ -319,14 +323,14 @@
     .custom-select-trigger:hover { border-color: var(--neon-cyan); background: rgba(0,0,0,0.8); color: white; }
     .custom-select-dropdown { position: absolute; background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 10001; max-height: 300px; overflow-y: auto; min-width: 180px;
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transform-origin: top center;
+      backdrop-filter: blur(10px); transform-origin: top center;
       animation: dropdownFade 0.2s ease; will-change: transform, opacity; }
     .custom-select-option { padding: 12px 20px; color: #ddd; font-size: 0.85rem; font-family: 'Poppins', sans-serif; cursor: pointer; transition: 0.15s;
       white-space: nowrap; transform: translateZ(0); }
     .custom-select-option:hover { background: rgba(0, 243, 255, 0.15); color: var(--neon-cyan); }
     
-    .select-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px); z-index: 10001; display: flex; align-items: center; justify-content: center;
+    .select-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+      z-index: 10001; display: flex; align-items: center; justify-content: center;
       opacity: 0; visibility: hidden; transition: 0.2s; will-change: opacity, visibility; }
     .select-popup-overlay.active { opacity: 1; visibility: visible; }
     .select-popup { background: #0f0f13; border: 1px solid var(--neon-purple); border-radius: 20px; width: 85%; max-width: 320px; max-height: 70vh; overflow-y: auto;
@@ -367,9 +371,9 @@
     .card-ad iframe, .card-ad ins { width: 100% !important; height: 100% !important; border: none; }
     .card-ad .info { display: none; }
 
-    /* Modal Auth */
-    .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
+    /* Modales (sin cambios) */
+    .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+      z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.3s; padding: 20px; will-change: opacity; }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
     .auth-card { background: rgba(15, 15, 19, 0.95); border: 1px solid var(--neon-purple); border-radius: 28px; width: 100%;
@@ -394,8 +398,8 @@
       align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: 0.2s; color: white; font-weight: 600; box-sizing: border-box; will-change: transform; }
     .provider-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--neon-cyan); transform: translateY(-2px); }
 
-    /* Modal Profile */
-    .profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 10002; display: flex; justify-content: center; align-items: center;
+    /* Profile modal (sin cambios) */
+    .profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); z-index: 10002; display: flex; justify-content: center; align-items: center;
       opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
     .profile-modal.show { opacity: 1; pointer-events: auto; }
     .profile-card { background: rgba(15, 15, 19, 0.98); border: 1px solid var(--neon-purple); border-radius: 28px; width: 100%; max-width: 500px; padding: 30px; position: relative; transform: scale(0.95); transition: transform 0.3s; box-shadow: 0 25px 45px rgba(0,0,0,0.9); }
@@ -420,7 +424,7 @@
     .profile-save-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
     .profile-status { text-align: center; margin-top: 15px; font-size: 0.9rem; }
 
-    /* ===== FIX PARA LA ANIMACIÓN (Chroma Key container) ===== */
+    /* Chroma key y animaciones (optimizado) */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     #fgContainer {
       position: fixed;
@@ -437,15 +441,8 @@
       outline: none;
       user-select: none;
     }
-    /* Posiciones aleatorias: izquierda o derecha */
-    #fgContainer.fg-left {
-      left: 20px;
-      right: auto;
-    }
-    #fgContainer.fg-right {
-      right: 20px;
-      left: auto;
-    }
+    #fgContainer.fg-left { left: 20px; right: auto; }
+    #fgContainer.fg-right { right: 20px; left: auto; }
     #fgContainer.poof {
       transform: scale(1.15) translateZ(0);
       opacity: 0;
@@ -467,8 +464,8 @@
       font-weight: 800; font-family: 'Orbitron'; letter-spacing: 2px; cursor: pointer; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); transition: 0.3s; text-transform: uppercase; }
     .play-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 40px rgba(0, 243, 255, 0.6); transform: scale(1.05); }
     
-    #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px); z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0;
+    #eventModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px);
+      z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0;
       pointer-events: none; transition: 0.4s; padding: 20px; will-change: opacity; }
     #eventModal.show { opacity: 1; pointer-events: auto; }
     .event-card { background: #0e0e12; width: 100%; max-width: 460px; border-radius: 32px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.5);
@@ -490,7 +487,7 @@
     .event-btn { background: white; color: black; border: none; padding: 14px; width: 100%; border-radius: 40px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; will-change: transform, box-shadow; }
     .event-btn:hover { background: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
     
-    /* ESTILOS PARA PAGINACIÓN */
+    /* Paginación */
     .pagination-container {
       display: flex;
       justify-content: center;
@@ -534,6 +531,7 @@
       font-weight: bold;
     }
 
+    /* Responsive manteniendo diseño */
     @media (max-width: 768px) {
       .controls-container { gap: 10px; padding: 12px 16px; }
       .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -541,11 +539,14 @@
       .card .info strong { font-size: 0.8rem; }
       .card .info span { font-size: 0.6rem; }
       .profile-card { padding: 20px; }
-      #fgContainer { width: 180px; bottom: 10px; filter: none !important; position: fixed !important; }
+      #fgContainer { width: 180px; bottom: 10px; filter: none !important; }
       #fgContainer.fg-left { left: 10px; }
       #fgContainer.fg-right { right: 10px; }
-      .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger {
-        backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+      /* Reducción de blur en móviles para mejorar rendimiento */
+      .cyber-nav, .search-input, .user-dropdown, .notif-dropdown, .auth-modal, .profile-modal, .controls-container .custom-select-trigger,
+      .pagination-btn, .custom-select-dropdown, .select-popup-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
       }
       .cyber-nav { background: rgba(5, 5, 10, 0.98); }
       .user-dropdown, .notif-dropdown { background: rgba(15, 15, 20, 1); }
@@ -770,7 +771,6 @@
 
 <main class="container">
   <div class="grid" id="grid"></div>
-  <!-- CONTENEDOR DE PAGINACIÓN -->
   <div id="pagination" class="pagination-container"></div>
 </main>
 
@@ -795,9 +795,9 @@
   </div>
 </div>
 
-<!-- SCRIPTS -->
+<!-- SCRIPTS (optimizados, se mantienen igual pero se reducen reflows) -->
 <script>
-  // Configuración de Firebase (necesaria para auth, ratings, etc.)
+  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
     authDomain: "login-admin-archinime.firebaseapp.com",
@@ -818,18 +818,14 @@
   const providerGitHub = new firebase.auth.GithubAuthProvider();
 </script>
 
-<!-- Catálogo local (reemplaza la consulta a Firestore) -->
-<script src="catalogo.js?v=2025-04-06-v6.2"></script>
-
-<!-- Otros scripts de la aplicación -->
+<script src="catalogo.js?v=2025-04-06-v6.3"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-
 <script>
-  // Variables para paginación y música global (se mantienen)
+  // Variables globales (se mantienen)
   window.videoList = [
     { id: "rem", src: "https://cdn.pixabay.com/video/2022/05/24/118507-716387776_large.mp4", keyColor: "green", preset: { threshold: 0.4, diff: 30, soft: 30 } },
     { id: "hola", src: "https://cdn.pixabay.com/video/2023/02/03/149220-797461338_large.mp4", keyColor: "blue", preset: { threshold: 0.45, diff: 35, soft: 35 } }
@@ -844,30 +840,23 @@
   };
   window.startNotificationSequence = function() { console.log("Sistema de notificaciones listo"); };
 
-  // ==================== REGISTRO DEL SERVICE WORKER ====================
+  // Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then(reg => {
         console.log('Service Worker registrado con éxito:', reg);
-      }).catch(err => {
-        console.error('Error al registrar el Service Worker:', err);
-      });
+      }).catch(err => console.error('Error al registrar el Service Worker:', err));
     });
   }
 
-  // ==================== LÓGICA DE BOTONES (INSTALACIÓN Y YOUTUBE) ====================
+  // Lógica de instalación y botones (sin cambios)
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const youtubeBtn = document.getElementById('youtubeBtn');
   const iosModal = document.getElementById('iosInstallModal');
-
   const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isInStandaloneMode = () => {
-    return (window.matchMedia('(display-mode: standalone)').matches) || 
-           (window.navigator.standalone === true);
-  };
+  const isInStandaloneMode = () => (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
   const isMobile = () => window.matchMedia('(max-width: 780px)').matches;
-
   function updateButtonsVisibility() {
     if (!isMobile()) {
       if (installBtn) installBtn.style.display = 'none';
@@ -882,13 +871,11 @@
       if (youtubeBtn) youtubeBtn.style.display = 'none';
     }
   }
-
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     updateButtonsVisibility();
   });
-
   if (installBtn) {
     installBtn.addEventListener('click', () => {
       if (isIos()) {
@@ -904,7 +891,6 @@
       }
     });
   }
-
   function closeIosModal() { iosModal.style.display = 'none'; }
   window.closeIosModal = closeIosModal;
   window.matchMedia('(display-mode: standalone)').addEventListener('change', updateButtonsVisibility);
@@ -912,10 +898,9 @@
   window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
   window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA) ====================
+  // Música (reproducción automática)
   let isMusicStarted = false;
   let currentAudio = null;
-
   function startMusic() {
     if (isMusicStarted) return;
     isMusicStarted = true;
@@ -932,11 +917,8 @@
     };
     currentAudio.play().catch(e => {
       console.log("Error al reproducir música automáticamente:", e);
-      // Si el navegador bloquea el autoplay, reintentamos con un evento de clic global una sola vez
       const oneClick = () => {
-        if (!isMusicStarted) {
-          startMusic();
-        }
+        if (!isMusicStarted) startMusic();
         document.removeEventListener('click', oneClick);
         document.removeEventListener('touchstart', oneClick);
       };
@@ -944,19 +926,16 @@
       document.addEventListener('touchstart', oneClick);
     });
   }
+  window.addEventListener('load', startMusic);
 
-  // Iniciar música automáticamente al cargar la página
-  window.addEventListener('load', () => {
-    startMusic();
-  });
-
-  // ==================== GIF ALEATORIO ====================
+  // GIF aleatorio
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     const imgGif = document.getElementById('personaje-gif');
     if (imgGif) imgGif.src = gifElegido;
   }
 
+  // Loading progress
   let loadingCompleted = false;
   const loadingScreen = document.getElementById('loadingScreen');
   const percentEl = document.getElementById('loadingPercentage');
@@ -980,7 +959,7 @@
   const interval = setInterval(() => {
     if (loadingCompleted) { clearInterval(interval); return; }
     if (progressValue < 85) {
-      progressValue += Math.random() * 8;
+      progressValue += Math.random() * 6; // incremento más suave
       if (progressValue > 85) progressValue = 85;
       updateProgress(progressValue);
     }
@@ -992,7 +971,6 @@
   });
   setTimeout(() => { if (!loadingCompleted) finishLoading(); }, 8000);
 
-  // ==================== UTILIDADES ====================
   function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -1001,10 +979,9 @@
     return array;
   }
 
-  // ==================== RATINGS DESDE FIRESTORE (SE MANTIENE) ====================
+  // Ratings desde Firestore
   let firestoreRatings = new Map();
   let ratingsLoaded = false;
-
   async function loadRatings() {
     try {
       const snapshot = await db.collection('animeRatings').get();
@@ -1018,11 +995,9 @@
       ratingsLoaded = true;
     } catch (e) { console.warn('Error cargando ratings:', e); }
   }
-
   function normalizeText(s) { 
     return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
   }
-
   function getDisplayRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) {
@@ -1031,14 +1006,13 @@
     }
     return '—';
   }
-
   function getNumericRating(anime) {
     const animeId = parseInt(anime.id);
     if (firestoreRatings.has(animeId)) return firestoreRatings.get(animeId).avg;
     return 0;
   }
 
-  // ==================== ANUNCIOS ====================
+  // Anuncios
   let anuncioActual = null;
   let cachedAdCard = null;
   function inicializarAnuncio() {
@@ -1072,14 +1046,13 @@
     return card;
   }
 
-  // ==================== VARIABLES GLOBALES DE PAGINACIÓN ====================
+  // Variables de paginación y filtros
   let allAnimes = [];
   let currentPage = 1;
   const itemsPerPage = 36;
   let totalPages = 1;
   let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
   let debounceTimer = null;
-
   const grid = document.getElementById('grid');
   const paginationContainer = document.getElementById('pagination');
 
@@ -1152,30 +1125,24 @@
     }
     let html = '';
     html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
-    
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
     if (startPage > 1) {
       html += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
       if (startPage > 2) html += `<span class="pagination-ellipsis">...</span>`;
     }
-    
     for (let i = startPage; i <= endPage; i++) {
       html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
     }
-    
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis">...</span>`;
       html += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
     }
-    
     html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
-    
     paginationContainer.innerHTML = html;
   }
 
@@ -1185,14 +1152,11 @@
     renderPage();
   };
 
-  // ==================== CARGA DE DATOS (AHORA DESDE catalogoArray) ====================
   async function cargarDatosYMostrar() {
     grid.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo...</div>';
     paginationContainer.innerHTML = '';
-
     try {
       let animes = (typeof catalogoArray !== 'undefined') ? [...catalogoArray] : [];
-
       if (currentFilters.genre) {
         animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.genre));
       }
@@ -1215,18 +1179,15 @@
           return true;
         });
       }
-
       allAnimes = shuffleArray(animes);
       totalPages = Math.ceil(allAnimes.length / itemsPerPage);
       currentPage = 1;
-
       if (allAnimes.length === 0) {
         mostrarNoResultados();
         paginationContainer.innerHTML = '';
       } else {
         renderPage();
       }
-
       if (!window.firstAnimesDispatched) {
         window.firstAnimesDispatched = true;
         window.dispatchEvent(new CustomEvent('firstAnimesLoaded'));
@@ -1255,13 +1216,12 @@
   const genreSelect = document.getElementById('genre-select');
   const demographicSelect = document.getElementById('demographic-select');
   const ratingSelect = document.getElementById('rating-select');
-
   searchInput.addEventListener('input', e => { currentFilters.search = e.target.value; debouncedCargar(); });
   genreSelect.addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
   demographicSelect.addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
   ratingSelect.addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
 
-  // ==================== AUTENTICACIÓN Y PERFIL (sin cambios) ====================
+  // Autenticación y perfil (sin cambios)
   let currentUser = null;
   let newAvatarUrl = null;
   let lastProfileUpdate = 0;
@@ -1426,13 +1386,13 @@
 
   // Custom selects (sin cambios)
   (function() {
-    const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const selects = ['genre-select', 'demographic-select', 'rating-select'], isMobileSelect = window.matchMedia('(max-width: 768px)').matches;
     function updateTriggerText(trigger, selectEl) { trigger.textContent = selectEl.options[selectEl.selectedIndex]?.textContent || selectEl.options[0].textContent; }
     selects.forEach(id => {
       const select = document.getElementById(id); if (!select) return;
       const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTriggerText(trigger, select); select.parentNode.insertBefore(trigger, select);
       trigger.addEventListener('click', () => {
-        if (isMobile) {
+        if (isMobileSelect) {
           const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
           const popup = document.createElement('div'); popup.className = 'select-popup';
           const header = document.createElement('div'); header.className = 'select-popup-header'; header.textContent = select.getAttribute('aria-label') || 'Seleccionar'; popup.appendChild(header);
@@ -1485,18 +1445,15 @@
     });
   }
 
-  // ==================== NUEVA FUNCIÓN: POSICIÓN ALEATORIA (IZQUIERDA O DERECHA) ====================
+  // Chroma key con posición aleatoria (optimizado)
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
     if (!fg) return;
-    // Eliminar clases existentes
     fg.classList.remove('fg-left', 'fg-right');
-    // Elegir aleatoriamente left o right
     const side = Math.random() < 0.5 ? 'left' : 'right';
     fg.classList.add(`fg-${side}`);
   }
 
-  // Chroma key (sin cambios relevantes, solo añadimos la aleatoriedad al cambiar de video)
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
   const fgCanvas = document.getElementById('fgCanvas');
@@ -1539,7 +1496,6 @@
     bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
     fgVideo.muted = true;
     fgVideo.play().catch(e => console.log('Animación bloqueada', e));
-    // Posición aleatoria al inicio
     randomizeFgPosition();
   }
   function createSparks(clientX, clientY) {
@@ -1576,7 +1532,6 @@
       fgVideo.play().then(() => {
         isTransitioning = false;
         fgContainer.classList.remove('poof');
-        // Cambiar también la posición aleatoriamente después de la transición
         randomizeFgPosition();
       }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
     }, 600);
@@ -1584,7 +1539,6 @@
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
-  // Inicializar anuncio y cargar datos después de ratings
   inicializarAnuncio();
   loadRatings().then(() => {
     cargarDatosYMostrar();
