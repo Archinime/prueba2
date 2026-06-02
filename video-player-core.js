@@ -1,7 +1,7 @@
 // video-player-core.js - Versión con catálogo local + Firestore
 // CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
-// NUEVO: Descarga directa desde PeerTube (obtiene enlace real del archivo .mp4 vía API)
-// MEJORADO: Títulos dinámicos según tipo de temporada (T1 Cap 1, Spin-Off: Nombre Cap 1, OVA 1, Película: Nombre, etc.)
+// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
+// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio" (igual que en anime-detail)
 // CORRECCIÓN: Detección insensible a mayúsculas para Spin-Off y uso correcto del nombre de la temporada.
 
 class VideoPlayer {
@@ -17,6 +17,7 @@ class VideoPlayer {
     this.animeData = null;
     this.currentDownloadUrl = '#';      // URL sincrónica (para enlaces directos normales)
     this.currentPeerTubeUrl = null;     // Guardamos la URL original de PeerTube si es el caso
+    this.currentEpisodeData = null;     // Guardamos los datos del episodio actual (para acceder a link2)
     this.authReady = false;
     this.pendingMarks = [];
     
@@ -236,51 +237,22 @@ class VideoPlayer {
     });
   }
   
-  // ========== GENERACIÓN DE TÍTULO SEGÚN TIPO DE TEMPORADA (CORREGIDO) ==========
+  // ========== GENERACIÓN DE TÍTULO (igual que en anime-detail) ==========
   /**
    * Genera el título formateado para el episodio actual.
+   * Muestra: "Nombre de la temporada - Título del episodio"
    * @param {Object} season - Objeto de la temporada (contiene name, type, num, etc.)
    * @param {number} epNum - Número del episodio (1-indexed)
-   * @param {Object} episodeData - Datos del episodio (puede contener title específico)
+   * @param {Object} episodeData - Datos del episodio (contiene title)
    * @returns {string} Título formateado
    */
   formatEpisodeTitle(season, epNum, episodeData) {
-    const seasonTypeRaw = season.type || 'Temporada';
-    // Normalizar el tipo: convertir a minúsculas y eliminar guiones/espacios para comparación flexible
-    const normalizedType = seasonTypeRaw.toLowerCase().replace(/[-\s]/g, '');
     const seasonName = season.name || `Temporada ${season.num}`;
-    const episodeTitleRaw = episodeData.title || `Capítulo ${epNum}`;
-
-    // Película
-    if (normalizedType === 'pelicula') {
-      return `Película: ${episodeTitleRaw}`;
-    }
-    // OVA: mostrar "OVA X" donde X es el número extraído del título o el season.num
-    else if (normalizedType === 'ova') {
-      const match = episodeTitleRaw.match(/\d+/);
-      const ovaNum = match ? match[0] : (season.num || epNum);
-      return `OVA ${ovaNum}`;
-    }
-    // Especial
-    else if (normalizedType === 'especial') {
-      return `Especial ${epNum}`;
-    }
-    // Spin-Off: usar el nombre completo de la temporada + " Cap " + número
-    else if (normalizedType === 'spinoff') {
-      // Si el nombre de la temporada contiene "Temporada", lo reemplazamos por el nombre real (ej. "Tensura Nikki...")
-      // No es necesario, ya que en el catálogo el name ya es el específico.
-      return `${seasonName} Cap ${epNum}`;
-    }
-    // Temporada normal
-    else {
-      let seasonNumber = season.num;
-      // Si no tiene num, intentar extraer del nombre (ej: "Temporada 1")
-      if (!seasonNumber) {
-        const match = seasonName.match(/\d+/);
-        seasonNumber = match ? match[0] : '?';
-      }
-      return `T${seasonNumber} Cap ${epNum}`;
-    }
+    let episodeTitle = episodeData.title || `Capítulo ${epNum}`;
+    
+    // Si el título del episodio es "Capítulo X", lo dejamos tal cual; si no, también.
+    // Solo concatenamos nombre de temporada + " - " + título del episodio.
+    return `${seasonName} - ${episodeTitle}`;
   }
 
   // ========== CARGA DEL EPISODIO ==========
@@ -305,7 +277,10 @@ class VideoPlayer {
         return;
       }
       
-      // 🔥 Generar título dinámico según el tipo de temporada
+      // Guardar datos del episodio actual para uso posterior (ej. descarga alternativa)
+      this.currentEpisodeData = episodeData;
+      
+      // 🔥 Título dinámico: "Nombre Temporada - Título Episodio"
       const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
       
       document.title = `Ver ${formattedTitle} - Archinime`;
@@ -406,60 +381,7 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== OBTENCIÓN ASÍNCRONA DEL ENLACE DIRECTO DE PEERTUBE ==========
-  async getPeerTubeDirectDownloadUrl(embedUrl) {
-    try {
-      let videoId = null;
-      let instanceUrl = null;
-      
-      const urlParts = embedUrl.match(/^(https?:\/\/[^\/]+)\/(?:videos\/embed|w)\/([a-zA-Z0-9_-]+)/i);
-      if (urlParts && urlParts[2]) {
-        instanceUrl = urlParts[1];
-        videoId = urlParts[2];
-      } else {
-        const idMatch = embedUrl.match(/\/([a-zA-Z0-9_-]+)$/);
-        if (idMatch && idMatch[1]) {
-          videoId = idMatch[1];
-          const domainMatch = embedUrl.match(/^(https?:\/\/[^\/]+)/);
-          if (domainMatch) instanceUrl = domainMatch[1];
-        }
-      }
-      
-      if (!instanceUrl || !videoId) {
-        console.warn('No se pudo extraer ID o dominio de PeerTube:', embedUrl);
-        return null;
-      }
-      
-      const apiUrl = `${instanceUrl}/api/v1/videos/${videoId}`;
-      console.log('📡 Consultando API de PeerTube:', apiUrl);
-      const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const data = await response.json();
-      let downloadUrl = null;
-      if (data.files && data.files.length > 0) {
-        downloadUrl = data.files[0].fileDownloadUrl;
-      } else if (data.streamingPlaylists && data.streamingPlaylists.length > 0) {
-        const playlist = data.streamingPlaylists[0];
-        if (playlist.files && playlist.files.length > 0) {
-          downloadUrl = playlist.files[0].fileDownloadUrl;
-        }
-      }
-      
-      if (!downloadUrl) {
-        console.warn('No se encontró fileDownloadUrl en la respuesta de PeerTube');
-        return null;
-      }
-      
-      console.log('✅ Enlace directo obtenido:', downloadUrl);
-      return downloadUrl;
-    } catch (error) {
-      console.error('❌ Error obteniendo descarga de PeerTube:', error);
-      return null;
-    }
-  }
-  
-  // ========== MANEJADOR DEL BOTÓN DESCARGAR ==========
+  // ========== MANEJADOR DEL BOTÓN DESCARGAR (MODIFICADO PARA USAR link2 EN PEERTUBE) ==========
   async handleDownloadClick() {
     const user = this.getCurrentUser();
     if (!user) {
@@ -469,20 +391,15 @@ class VideoPlayer {
     
     let finalDownloadUrl = this.currentDownloadUrl;
     
+    // Si el servidor activo es PeerTube, usamos el enlace de Opción 2 (link2) en lugar de intentar la API
     if (this.currentPeerTubeUrl) {
-      const btn = document.getElementById('downloadBtn');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo enlace...';
-      btn.disabled = true;
-      
-      const directUrl = await this.getPeerTubeDirectDownloadUrl(this.currentPeerTubeUrl);
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      
-      if (directUrl) {
-        finalDownloadUrl = directUrl;
+      const fallbackUrl = this.currentEpisodeData?.link2;
+      if (fallbackUrl) {
+        // Aplicamos las mismas transformaciones (Google Drive, Dropbox, etc.) al enlace alternativo
+        finalDownloadUrl = this.generateDirectLink(fallbackUrl);
+        console.log('📥 Usando enlace alternativo (Opción 2) para descargar video de PeerTube:', finalDownloadUrl);
       } else {
-        alert('No se pudo obtener el enlace de descarga directa de PeerTube. Es posible que el administrador no lo haya habilitado.');
+        alert('No hay un enlace alternativo disponible para descargar este video de PeerTube.');
         return;
       }
     }
@@ -504,7 +421,7 @@ class VideoPlayer {
     return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
   }
   
-  // ========== NAVEGACIÓN ENTRE EPISODIOS (con títulos dinámicos) ==========
+  // ========== NAVEGACIÓN ENTRE EPISODIOS ==========
   setupNavigation() {
     if (!this.animeData?.seasons) return;
     // Aplanar todos los episodios disponibles (con link o link2)
@@ -529,8 +446,7 @@ class VideoPlayer {
       const prev = flat[idx-1];
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
-      const prevSeason = prev.seasonObj;
-      const prevTitle = this.formatEpisodeTitle(prevSeason, prev.e, prev.episodeData);
+      const prevTitle = this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData);
       prevBtn.setAttribute('title', prevTitle);
     } else {
       prevBtn.classList.add('btn-hidden');
@@ -540,8 +456,7 @@ class VideoPlayer {
       const next = flat[idx+1];
       nextBtn.classList.remove('btn-hidden');
       nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
-      const nextSeason = next.seasonObj;
-      const nextTitle = this.formatEpisodeTitle(nextSeason, next.e, next.episodeData);
+      const nextTitle = this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData);
       nextBtn.setAttribute('title', nextTitle);
     } else {
       nextBtn.classList.add('btn-hidden');
