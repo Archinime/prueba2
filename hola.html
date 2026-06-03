@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Reproductor de Video - Google Drive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Reproductor de Video Móvil - Google Drive</title>
     <style>
         * {
             margin: 0;
@@ -12,50 +12,51 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             width: 100%;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
         .video-header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
             color: white;
-            padding: 25px 30px;
+            padding: 20px 20px;
             text-align: center;
         }
 
         .video-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+            font-size: 1.5rem;
             font-weight: 600;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
         }
 
         .video-header p {
-            font-size: 1rem;
-            opacity: 0.9;
+            font-size: 0.85rem;
+            opacity: 0.85;
         }
 
+        /* Contenedor del video optimizado para móvil */
         .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%; /* Relación de aspecto 16:9 */
-            height: 0;
-            overflow: hidden;
+            width: 100%;
             background: #000;
+            /* Forzar relación 16:9 exacta con altura automática */
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
         }
 
         .video-wrapper iframe {
@@ -65,92 +66,133 @@
             width: 100%;
             height: 100%;
             border: none;
+            /* Mejorar rendimiento táctil */
+            touch-action: pan-y pinch-zoom;
+            /* Forzar que los controles nativos de iframe sean táctiles */
+            -webkit-tap-highlight-color: transparent;
         }
 
+        /* Sección de información mejorada para móviles */
         .video-info {
-            padding: 25px 30px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
+            padding: 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
         }
 
         .video-info h2 {
-            color: #343a40;
-            font-size: 1.4rem;
-            margin-bottom: 15px;
+            color: #0f172a;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .video-info p {
-            color: #6c757d;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            color: #334155;
+            line-height: 1.5;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
         }
 
         .info-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 12px 18px;
+            border-radius: 60px;
             text-decoration: none;
             font-weight: 500;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
             cursor: pointer;
             border: none;
-            font-size: 0.9rem;
+            flex: 1;
+            min-width: 140px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .btn-primary {
-            background: #007bff;
+            background: #1e3a8a;
             color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .btn-primary:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
+            background: #1e40af;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
         }
 
         .btn-secondary {
-            background: #28a745;
+            background: #0f172a;
             color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .btn-secondary:hover {
-            background: #218838;
-            transform: translateY(-2px);
+            background: #1e293b;
         }
 
         .footer {
-            background: #1a1a2e;
-            color: white;
+            background: #0f172a;
+            color: #94a3b8;
             text-align: center;
-            padding: 15px;
-            font-size: 0.85rem;
-            opacity: 0.8;
+            padding: 14px;
+            font-size: 0.7rem;
+            border-top: 1px solid #1e293b;
         }
 
-        @media (max-width: 768px) {
+        /* Ajustes específicos para móviles muy pequeños */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            .container {
+                border-radius: 20px;
+            }
             .video-header h1 {
-                font-size: 1.4rem;
-            }
-            
-            .video-info {
-                padding: 20px;
-            }
-            
-            .video-info h2 {
                 font-size: 1.2rem;
             }
-            
+            .video-header p {
+                font-size: 0.75rem;
+            }
+            .video-info {
+                padding: 16px;
+            }
+            .video-info h2 {
+                font-size: 1.1rem;
+            }
             .btn {
-                padding: 8px 16px;
-                font-size: 0.85rem;
+                padding: 10px 12px;
+                font-size: 0.8rem;
+                min-width: 120px;
+            }
+        }
+
+        /* Asegurar que el iframe respete la pantalla completa en móviles */
+        .video-wrapper iframe:-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Mejora para pantallas táctiles: botones más grandes */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                padding: 14px 16px;
             }
         }
     </style>
@@ -158,28 +200,32 @@
 <body>
     <div class="container">
         <div class="video-header">
-            <h1>🎬 Mi Video en Google Drive</h1>
-            <p>Disfruta de este contenido exclusivo en alta calidad</p>
+            <h1>📱 Video Optimizado para Móvil</h1>
+            <p>Controles táctiles completos • Pantalla completa disponible</p>
         </div>
         
         <div class="video-wrapper">
             <iframe 
-                src="https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/preview" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
+                src="https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/preview"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen
+                frameborder="0"
+                scrolling="no">
             </iframe>
         </div>
         
         <div class="video-info">
-            <h2>📝 Información del Video</h2>
-            <p>Este video está alojado en Google Drive y se reproduce directamente en esta página. Puedes verlo en pantalla completa, ajustar el volumen y pausarlo cuando quieras.</p>
+            <h2>
+                <span>🎬</span> Información
+            </h2>
+            <p>Este video se reproduce directamente desde Google Drive. Toca el centro del video para mostrar los controles táctiles (play, pausa, volumen y pantalla completa). En móviles, rota tu dispositivo para mejor experiencia.</p>
             
             <div class="info-buttons">
-                <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/view', '_blank')">
-                    🔗 Abrir en Google Drive
+                <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/view', '_blank', 'noopener')">
+                    🔗 Abrir en Drive
                 </button>
                 <button class="btn btn-secondary" onclick="copyVideoLink()">
-                    📋 Copiar enlace del video
+                    📋 Copiar enlace
                 </button>
             </div>
         </div>
@@ -190,29 +236,72 @@
     </div>
 
     <script>
-        // Función para copiar el enlace del video al portapapeles
+        // Función mejorada para copiar enlace (compatible con móviles)
         function copyVideoLink() {
             const videoUrl = 'https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/view';
             
-            // Crear elemento temporal
-            const tempInput = document.createElement('input');
-            tempInput.value = videoUrl;
-            document.body.appendChild(tempInput);
-            
-            // Seleccionar y copiar
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999); // Para dispositivos móviles
-            
+            // Usar API moderna de portapapeles si está disponible
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    mostrarNotificacion('✅ Enlace copiado correctamente');
+                }).catch(() => {
+                    copiaAlternativa(videoUrl);
+                });
+            } else {
+                copiaAlternativa(videoUrl);
+            }
+        }
+        
+        function copiaAlternativa(texto) {
+            const textarea = document.createElement('textarea');
+            textarea.value = texto;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-1000px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
             try {
                 document.execCommand('copy');
-                alert('✅ Enlace copiado al portapapeles: ' + videoUrl);
+                mostrarNotificacion('✅ Enlace copiado');
             } catch (err) {
-                alert('❌ No se pudo copiar el enlace. Por favor, cópialo manualmente.');
+                mostrarNotificacion('❌ No se pudo copiar. Copia manualmente: ' + texto);
             }
-            
-            // Limpiar
-            document.body.removeChild(tempInput);
+            document.body.removeChild(textarea);
         }
+        
+        function mostrarNotificacion(mensaje) {
+            // Crear notificación flotante sutil
+            const toast = document.createElement('div');
+            toast.textContent = mensaje;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '40px';
+            toast.style.fontSize = '0.9rem';
+            toast.style.zIndex = '9999';
+            toast.style.backdropFilter = 'blur(8px)';
+            toast.style.fontFamily = 'system-ui';
+            toast.style.whiteSpace = 'nowrap';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+        
+        // Asegurar que el iframe se ajuste al rotar el dispositivo
+        window.addEventListener('resize', function() {
+            // Forzar reflow para que el aspect-ratio se recalcule
+            const wrapper = document.querySelector('.video-wrapper');
+            if (wrapper) {
+                wrapper.style.transform = 'translateZ(0)';
+                setTimeout(() => { wrapper.style.transform = ''; }, 100);
+            }
+        });
     </script>
 </body>
 </html>
