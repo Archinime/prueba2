@@ -3,6 +3,7 @@
 // MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
 // MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio" (igual que en anime-detail)
 // CORRECCIÓN: Detección insensible a mayúsculas para Spin-Off y uso correcto del nombre de la temporada.
+// NUEVO: Descarga forzada automática para videos de Catbox (sin abrir reproductor)
 
 class VideoPlayer {
   constructor() {
@@ -249,9 +250,6 @@ class VideoPlayer {
   formatEpisodeTitle(season, epNum, episodeData) {
     const seasonName = season.name || `Temporada ${season.num}`;
     let episodeTitle = episodeData.title || `Capítulo ${epNum}`;
-    
-    // Si el título del episodio es "Capítulo X", lo dejamos tal cual; si no, también.
-    // Solo concatenamos nombre de temporada + " - " + título del episodio.
     return `${seasonName} - ${episodeTitle}`;
   }
 
@@ -277,10 +275,7 @@ class VideoPlayer {
         return;
       }
       
-      // Guardar datos del episodio actual para uso posterior (ej. descarga alternativa)
       this.currentEpisodeData = episodeData;
-      
-      // 🔥 Título dinámico: "Nombre Temporada - Título Episodio"
       const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
       
       document.title = `Ver ${formattedTitle} - Archinime`;
@@ -381,7 +376,30 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== MANEJADOR DEL BOTÓN DESCARGAR (MODIFICADO PARA USAR link2 EN PEERTUBE) ==========
+  // ========== FUNCIÓN PARA FORZAR DESCARGA DE VIDEOS DE CATBOX (Y OTROS DOMINIOS EXTERNOS) ==========
+  async forceDownload(url, suggestedFilename = 'video.mp4') {
+    try {
+      // Intentar obtener el archivo como blob (requiere CORS, Catbox lo permite)
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = suggestedFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.warn('No se pudo forzar la descarga mediante fetch blob:', error);
+      // Fallback: mostrar mensaje y abrir en nueva pestaña (el usuario podrá guardar manualmente)
+      alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
+      window.open(url, '_blank');
+    }
+  }
+
+  // ========== MANEJADOR DEL BOTÓN DESCARGAR ==========
   async handleDownloadClick() {
     const user = this.getCurrentUser();
     if (!user) {
@@ -391,11 +409,10 @@ class VideoPlayer {
     
     let finalDownloadUrl = this.currentDownloadUrl;
     
-    // Si el servidor activo es PeerTube, usamos el enlace de Opción 2 (link2) en lugar de intentar la API
+    // Si el servidor activo es PeerTube, usamos el enlace de Opción 2 (link2)
     if (this.currentPeerTubeUrl) {
       const fallbackUrl = this.currentEpisodeData?.link2;
       if (fallbackUrl) {
-        // Aplicamos las mismas transformaciones (Google Drive, Dropbox, etc.) al enlace alternativo
         finalDownloadUrl = this.generateDirectLink(fallbackUrl);
         console.log('📥 Usando enlace alternativo (Opción 2) para descargar video de PeerTube:', finalDownloadUrl);
       } else {
@@ -404,17 +421,33 @@ class VideoPlayer {
       }
     }
     
-    if (finalDownloadUrl && finalDownloadUrl !== '#') {
-      const link = document.createElement('a');
-      link.href = finalDownloadUrl;
-      link.download = '';
-      link.target = this.isMobile() ? '_blank' : '_self';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
+    if (!finalDownloadUrl || finalDownloadUrl === '#') {
       alert('No hay enlace de descarga disponible para este servidor.');
+      return;
     }
+    
+    // === NUEVA LÓGICA PARA CATBOX (y otros dominios externos que no permiten download cross-origin) ===
+    const isCatbox = finalDownloadUrl.includes('catbox.moe');
+    const isCrossOrigin = !finalDownloadUrl.startsWith(location.origin);
+    
+    if (isCatbox || isCrossOrigin) {
+      // Generar un nombre de archivo basado en el título del episodio
+      const epTitleElem = document.getElementById('epTitle');
+      let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
+      baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
+      const filename = `${baseFilename}.mp4`;
+      await this.forceDownload(finalDownloadUrl, filename);
+      return;
+    }
+    
+    // Para enlaces del mismo origen o que ya funcionan con download (Google Drive, Dropbox, etc.)
+    const link = document.createElement('a');
+    link.href = finalDownloadUrl;
+    link.download = '';
+    link.target = this.isMobile() ? '_blank' : '_self';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
   
   isMobile() {
@@ -424,7 +457,6 @@ class VideoPlayer {
   // ========== NAVEGACIÓN ENTRE EPISODIOS ==========
   setupNavigation() {
     if (!this.animeData?.seasons) return;
-    // Aplanar todos los episodios disponibles (con link o link2)
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
