@@ -1,9 +1,8 @@
 // video-player-core.js - Versión con catálogo local + Firestore
 // CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
 // MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
-// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio" (igual que en anime-detail)
-// CORRECCIÓN: Detección insensible a mayúsculas para Spin-Off y uso correcto del nombre de la temporada.
-// NUEVO: Descarga forzada automática para videos de Catbox (sin abrir reproductor)
+// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio"
+// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 
 class VideoPlayer {
   constructor() {
@@ -16,13 +15,12 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrl = '#';      // URL sincrónica (para enlaces directos normales)
-    this.currentPeerTubeUrl = null;     // Guardamos la URL original de PeerTube si es el caso
-    this.currentEpisodeData = null;     // Guardamos los datos del episodio actual (para acceder a link2)
+    this.currentDownloadUrl = '#';
+    this.currentPeerTubeUrl = null;
+    this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
     
-    // Variables de contexto para sistemas externos
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
@@ -33,7 +31,6 @@ class VideoPlayer {
     this.setupAuthUI();
     this.setupAuthMigration();
 
-    // Exponer métodos públicos
     window.videoPlayerMethods = {
       toggleStickerPanel: () => this.toggleStickerPanel(),
       enviarComentario: () => this.enviarComentario(),
@@ -49,13 +46,12 @@ class VideoPlayer {
     window.videoPlayer = window.videoPlayerMethods;
   }
   
-  // ========== ESPERA DEL CATÁLOGO ==========
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
       return;
     }
-    console.log('⏳ Esperando catalogoArray en video-player...');
+    console.log('⏳ Esperando catalogoArray...');
     const checkInterval = setInterval(() => {
       if (typeof catalogoArray !== 'undefined') {
         clearInterval(checkInterval);
@@ -71,7 +67,6 @@ class VideoPlayer {
     }, 5000);
   }
   
-  // ========== FIREBASE ==========
   initFirebase() {
     const firebaseConfig = {
       apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -111,19 +106,16 @@ class VideoPlayer {
     return this.currentUser;
   }
   
-  // ========== MIGRACIÓN Y MARCAS ==========
   async migrateLocalToFirestore(userId) {
     if (!userId) return;
     const watchedKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('watched_')) {
-        watchedKeys.push(key);
-      }
+      if (key && key.startsWith('watched_')) watchedKeys.push(key);
     }
     if (watchedKeys.length === 0) return;
     
-    console.log(`🔄 Migrando ${watchedKeys.length} registros locales a Firestore...`);
+    console.log(`🔄 Migrando ${watchedKeys.length} registros...`);
     const historyRef = this.db.collection('watchHistory').doc(userId);
     
     for (const key of watchedKeys) {
@@ -144,9 +136,7 @@ class VideoPlayer {
         }
         await historyRef.set(data, { merge: true });
         localStorage.removeItem(key);
-      } catch (e) {
-        console.warn(`Error migrando ${key}:`, e);
-      }
+      } catch (e) { console.warn(e); }
     }
     console.log('✅ Migración completada');
   }
@@ -178,10 +168,7 @@ class VideoPlayer {
         await docRef.set(data, { merge: true });
       }
       return true;
-    } catch (e) {
-      console.warn('Error guardando en Firestore:', e);
-      return false;
-    }
+    } catch (e) { return false; }
   }
   
   async autoMarkAsWatched() {
@@ -207,12 +194,9 @@ class VideoPlayer {
     }
   }
   
-  // ========== UI INICIAL ==========
   initUI() {
     const backLink = document.getElementById('backLink');
-    if (backLink && this.animeId) {
-      backLink.href = `anime-detail.html?id=${this.animeId}`;
-    }
+    if (backLink && this.animeId) backLink.href = `anime-detail.html?id=${this.animeId}`;
     
     const textarea = document.getElementById('comentarioTexto');
     if (textarea) {
@@ -238,22 +222,12 @@ class VideoPlayer {
     });
   }
   
-  // ========== GENERACIÓN DE TÍTULO (igual que en anime-detail) ==========
-  /**
-   * Genera el título formateado para el episodio actual.
-   * Muestra: "Nombre de la temporada - Título del episodio"
-   * @param {Object} season - Objeto de la temporada (contiene name, type, num, etc.)
-   * @param {number} epNum - Número del episodio (1-indexed)
-   * @param {Object} episodeData - Datos del episodio (contiene title)
-   * @returns {string} Título formateado
-   */
   formatEpisodeTitle(season, epNum, episodeData) {
     const seasonName = season.name || `Temporada ${season.num}`;
-    let episodeTitle = episodeData.title || `Capítulo ${epNum}`;
+    const episodeTitle = episodeData.title || `Capítulo ${epNum}`;
     return `${seasonName} - ${episodeTitle}`;
   }
-
-  // ========== CARGA DEL EPISODIO ==========
+  
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
@@ -277,7 +251,6 @@ class VideoPlayer {
       
       this.currentEpisodeData = episodeData;
       const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
-      
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
@@ -292,9 +265,8 @@ class VideoPlayer {
       
       this.setupNavigation();
       await this.autoMarkAsWatched();
-      
     } catch (error) {
-      console.error('Error cargando episodio:', error);
+      console.error(error);
       document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
     }
   }
@@ -337,20 +309,16 @@ class VideoPlayer {
     }
   }
   
-  // ========== ACTUALIZACIÓN DE URL DE DESCARGA (síncrona normal) ==========
   updateDownloadUrl(url) {
     this.currentDownloadUrl = this.generateDirectLink(url);
     this.currentPeerTubeUrl = this.isPeerTubeUrl(url) ? url : null;
   }
   
-  // Detección de PeerTube
   isPeerTubeUrl(url) {
     if (!url) return false;
-    const peerTubePattern = /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i;
-    return peerTubePattern.test(url);
+    return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
   }
   
-  // Generador de enlaces síncrono (Google Drive, Dropbox, etc.) - NO para PeerTube asíncrono
   generateDirectLink(url) {
     if (!url) return "#";
     if (url.includes("drive.google.com")) {
@@ -376,13 +344,56 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== FUNCIÓN PARA FORZAR DESCARGA DE VIDEOS DE CATBOX (Y OTROS DOMINIOS EXTERNOS) ==========
+  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
+  showProgressBar() {
+    if (document.getElementById('customDownloadProgress')) return;
+    const div = document.createElement('div');
+    div.id = 'customDownloadProgress';
+    div.innerHTML = `
+      <div style="position:fixed; bottom:20px; left:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.9); border-radius:16px; padding:16px; border:1px solid var(--primary-color); backdrop-filter:blur(8px); text-align:center; font-family:'Poppins',sans-serif;">
+        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando video... <span id="progressPercent">0</span>%</div>
+        <div style="background:#222; border-radius:50px; overflow:hidden; height:10px;">
+          <div id="progressBarFill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f3ff, #bc13fe); transition:width 0.2s;"></div>
+        </div>
+        <div style="font-size:0.7rem; color:#aaa; margin-top:8px;">No cierres la página hasta que termine</div>
+      </div>
+    `;
+    document.body.appendChild(div);
+  }
+
+  hideProgressBar() {
+    const el = document.getElementById('customDownloadProgress');
+    if (el) el.remove();
+  }
+
   async forceDownload(url, suggestedFilename = 'video.mp4') {
+    this.showProgressBar();
+    const percentSpan = document.getElementById('progressPercent');
+    const fillDiv = document.getElementById('progressBarFill');
+
     try {
-      // Intentar obtener el archivo como blob (requiere CORS, Catbox lo permite)
       const response = await fetch(url, { mode: 'cors' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      let loaded = 0;
+
+      const reader = response.body.getReader();
+      const chunks = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        if (total) {
+          const percent = Math.round((loaded / total) * 100);
+          if (percentSpan) percentSpan.innerText = percent;
+          if (fillDiv) fillDiv.style.width = percent + '%';
+        } else {
+          if (percentSpan) percentSpan.innerText = '...';
+        }
+      }
+      const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/mp4' });
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
@@ -392,14 +403,14 @@ class VideoPlayer {
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.warn('No se pudo forzar la descarga mediante fetch blob:', error);
-      // Fallback: mostrar mensaje y abrir en nueva pestaña (el usuario podrá guardar manualmente)
+      console.warn(error);
       alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
       window.open(url, '_blank');
+    } finally {
+      this.hideProgressBar();
     }
   }
 
-  // ========== MANEJADOR DEL BOTÓN DESCARGAR ==========
   async handleDownloadClick() {
     const user = this.getCurrentUser();
     if (!user) {
@@ -409,29 +420,25 @@ class VideoPlayer {
     
     let finalDownloadUrl = this.currentDownloadUrl;
     
-    // Si el servidor activo es PeerTube, usamos el enlace de Opción 2 (link2)
     if (this.currentPeerTubeUrl) {
       const fallbackUrl = this.currentEpisodeData?.link2;
       if (fallbackUrl) {
         finalDownloadUrl = this.generateDirectLink(fallbackUrl);
-        console.log('📥 Usando enlace alternativo (Opción 2) para descargar video de PeerTube:', finalDownloadUrl);
       } else {
-        alert('No hay un enlace alternativo disponible para descargar este video de PeerTube.');
+        alert('No hay enlace alternativo para PeerTube.');
         return;
       }
     }
     
     if (!finalDownloadUrl || finalDownloadUrl === '#') {
-      alert('No hay enlace de descarga disponible para este servidor.');
+      alert('No hay enlace de descarga disponible.');
       return;
     }
     
-    // === NUEVA LÓGICA PARA CATBOX (y otros dominios externos que no permiten download cross-origin) ===
     const isCatbox = finalDownloadUrl.includes('catbox.moe');
     const isCrossOrigin = !finalDownloadUrl.startsWith(location.origin);
     
     if (isCatbox || isCrossOrigin) {
-      // Generar un nombre de archivo basado en el título del episodio
       const epTitleElem = document.getElementById('epTitle');
       let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
       baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
@@ -440,7 +447,6 @@ class VideoPlayer {
       return;
     }
     
-    // Para enlaces del mismo origen o que ya funcionan con download (Google Drive, Dropbox, etc.)
     const link = document.createElement('a');
     link.href = finalDownloadUrl;
     link.download = '';
@@ -454,19 +460,13 @@ class VideoPlayer {
     return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
   }
   
-  // ========== NAVEGACIÓN ENTRE EPISODIOS ==========
   setupNavigation() {
     if (!this.animeData?.seasons) return;
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
         if (ep.link || ep.link2) {
-          flat.push({ 
-            s: season.num, 
-            e: idx + 1,
-            seasonObj: season,
-            episodeData: ep
-          });
+          flat.push({ s: season.num, e: idx + 1, seasonObj: season, episodeData: ep });
         }
       });
     });
@@ -478,8 +478,7 @@ class VideoPlayer {
       const prev = flat[idx-1];
       prevBtn.classList.remove('btn-hidden');
       prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
-      const prevTitle = this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData);
-      prevBtn.setAttribute('title', prevTitle);
+      prevBtn.setAttribute('title', this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData));
     } else {
       prevBtn.classList.add('btn-hidden');
     }
@@ -488,14 +487,12 @@ class VideoPlayer {
       const next = flat[idx+1];
       nextBtn.classList.remove('btn-hidden');
       nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
-      const nextTitle = this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData);
-      nextBtn.setAttribute('title', nextTitle);
+      nextBtn.setAttribute('title', this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData));
     } else {
       nextBtn.classList.add('btn-hidden');
     }
   }
   
-  // ========== SISTEMA DE AUTENTICACIÓN ==========
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -562,7 +559,6 @@ class VideoPlayer {
     }
   }
   
-  // ========== COMENTARIOS Y STICKERS ==========
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -623,13 +619,12 @@ class VideoPlayer {
   }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicializar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
   new VideoPlayer();
 }
 
-// Funciones globales para compatibilidad
 window.openLoginModalFromComent = () => window.videoPlayer?.openLoginModal();
 window.toggleStickerPanelSistema = () => window.videoPlayer?.toggleStickerPanel();
