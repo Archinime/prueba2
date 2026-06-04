@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Reproductor Móvil Optimizado - Video</title>
+    <title>Reproductor Móvil Optimizado - Google Drive</title>
     <style>
-        /* --- Tus Estilos Existentes (Mantenidos) --- */
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +14,7 @@
         body {
             background: #0a0a0a;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 12px;
+            padding: 16px;
         }
 
         .container {
@@ -24,7 +23,7 @@
             background: #1a1a1a;
             border-radius: 28px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
         .header {
@@ -45,31 +44,55 @@
             opacity: 0.7;
         }
 
-        /* Estilos para las tarjetas de los métodos */
         .method-card {
-            background: #111;
-            margin-bottom: 25px;
+            background: #151515;
+            margin: 20px;
             border-radius: 20px;
             overflow: hidden;
             border: 1px solid #2a2a2a;
+            transition: all 0.2s ease;
         }
-        .method-card:last-child {
-            margin-bottom: 0;
+        
+        .method-card.recommended {
+            border: 2px solid #1e6fdf;
+            box-shadow: 0 0 15px rgba(30,111,223,0.3);
+        }
+        
+        .method-card.recommended .method-title {
+            background: #1e6fdf20;
+            color: #1e6fdf;
         }
 
         .method-title {
             background: #0a0a0a;
             padding: 12px 20px;
-            border-bottom: 1px solid #2a2a2a;
             font-weight: bold;
             color: #aaa;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .badge {
+            background: #2c2c2c;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #ccc;
+        }
+        
+        .badge.success {
+            background: #1e6fdf;
+            color: white;
         }
 
         .method-content {
             padding: 20px;
         }
 
-        /* Contenedor del video - completamente responsivo */
         .video-container {
             background: #000;
             position: relative;
@@ -85,7 +108,22 @@
             display: block;
             border: none;
         }
-
+        
+        .note {
+            background: #2a2a1a;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #ddd;
+            border-left: 4px solid #ffaa66;
+        }
+        
+        .note.error {
+            background: #2a1a1a;
+            border-left-color: #ff6666;
+        }
+        
         .btn {
             display: inline-flex;
             align-items: center;
@@ -99,11 +137,9 @@
             border: none;
             background: #2c2c2c;
             color: white;
-            flex: 1;
-            min-width: 140px;
             transition: 0.2s;
             text-decoration: none;
-            margin-top: 15px;
+            width: 100%;
         }
 
         .btn-primary {
@@ -113,55 +149,63 @@
         .btn-primary:active {
             background: #0f5bc0;
         }
-
+        
         .footer {
             background: #0a0a0a;
             text-align: center;
-            padding: 12px;
+            padding: 16px;
             font-size: 0.7rem;
             color: #666;
             margin-top: 20px;
         }
-        .note {
-            background: #2a2a1a;
-            padding: 12px;
-            border-radius: 12px;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #ddd;
-            border-left: 4px solid #ffaa66;
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+            .method-card {
+                margin: 16px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>📱 Reproductor de Video Optimizado</h1>
-        <p>Probando los 3 métodos más fiables para Google Drive (Móvil/PC)</p>
+        <h1>📱 Compatible con el Nuevo Reproductor de Google Drive</h1>
+        <p>Probamos 3 métodos para que el video funcione en móviles</p>
     </div>
 
-    <!-- ================= MÉTODO 1: IFRAME CON SANDBOX (MEJOR OPCIÓN) ================= -->
-    <div class="method-card">
-        <div class="method-title">🎯 MÉTODO 1: Embed Estándar Mejorado (Recomendado)</div>
+    <!-- ================= MÉTODO 1: IFRAME MEJORADO (RECOMENDADO) ================= -->
+    <div class="method-card recommended">
+        <div class="method-title">
+            🎯 MÉTODO 1: Embed Mejorado 
+            <span class="badge success">⭐ Recomendado</span>
+        </div>
         <div class="method-content">
             <div class="video-container">
                 <iframe 
+                    id="mainIframe"
                     src="https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/preview"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; gyroscope"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                     allowfullscreen>
                 </iframe>
             </div>
             <div class="note">
-                ✅ <strong>¿Por qué este método?</strong> Añade las instrucciones <code>sandbox</code> y <code>allow</code> más completas para cumplir con las nuevas políticas de seguridad de Google. Debería funcionar correctamente en la mayoría de navegadores modernos, incluyendo móviles[reference:2][reference:3].
+                ✅ <strong>Mejor opción:</strong> Este método usa las nuevas directivas de seguridad que Google exige en su reproductor moderno.
             </div>
-            <a href="https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/view" target="_blank" class="btn btn-primary" style="display:inline-block; text-align:center;">🔗 Abrir en Google Drive (si el embed falla)</a>
+            <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/view', '_blank')">
+                🔗 Abrir en Google Drive (si el embed falla)
+            </button>
         </div>
     </div>
 
-    <!-- ================= MÉTODO 2: ENLACE DIRECTO CON <VIDEO> HTML5 ================= -->
+    <!-- ================= MÉTODO 2: ENLACE DIRECTO CON VIDEO HTML5 ================= -->
     <div class="method-card">
-        <div class="method-title">🎬 MÉTODO 2: Enlace Directo + Reproductor HTML5</div>
+        <div class="method-title">
+            🎬 MÉTODO 2: Enlace Directo + Reproductor HTML5
+        </div>
         <div class="method-content">
             <div class="video-container">
                 <video id="html5Player" controls playsinline preload="metadata">
@@ -170,17 +214,20 @@
                 </video>
             </div>
             <div class="note">
-                ✅ <strong>¿Por qué este método?</strong> Evita la interfaz de Drive y usa los controles nativos del navegador. Funciona bien, pero puede fallar si el archivo es muy pesado o Google restringe el acceso directo.
+                ✅ <strong>Ideal si lo anterior falla:</strong> Usa los controles nativos del navegador. Funciona bien con archivos públicos.
             </div>
         </div>
     </div>
 
-    <!-- ================= MÉTODO 3: IFRAME CON URL MODIFICADA (UC?EXPORT=VIEW) ================= -->
+    <!-- ================= MÉTODO 3: IFRAME CON URL DE EXPORTACIÓN DIRECTA ================= -->
     <div class="method-card">
-        <div class="method-title">🔄 MÉTODO 3: Iframe con URL de Exportación Directa</div>
+        <div class="method-title">
+            🔄 MÉTODO 3: Iframe con URL de Exportación Directa
+        </div>
         <div class="method-content">
             <div class="video-container">
                 <iframe 
+                    id="exportIframe"
                     src="https://drive.google.com/uc?export=view&id=1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                     allow="autoplay; fullscreen; picture-in-picture"
@@ -188,28 +235,63 @@
                 </iframe>
             </div>
             <div class="note">
-                ✅ <strong>¿Por qué este método?</strong> Utiliza la URL de "vista previa" del archivo, un formato que a veces sortea las restricciones de inserción de la vista previa estándar[reference:4].
+                ✅ <strong>Alternativa técnica:</strong> Utiliza la URL de "vista previa" del archivo, que a veces sortea las restricciones.
             </div>
         </div>
     </div>
     
     <div class="footer">
-        <p>© 2025 - Nota: Los videos deben tener permisos "Cualquier persona con el enlace puede ver" para funcionar correctamente.</p>
+        <p>⚠️ Para que funcione, el video debe ser público ("Cualquier persona con el enlace puede ver").<br> Si el problema persiste, abre directamente el enlace de Google Drive desde tu navegador móvil.</p>
     </div>
 </div>
 
 <script>
-    // Pequeño script para mostrar si el video HTML5 falla
+    // Detectar errores en el reproductor HTML5 y mostrar un mensaje útil
     const video = document.getElementById('html5Player');
     if (video) {
         video.addEventListener('error', function(e) {
             const errorMsg = document.createElement('div');
-            errorMsg.className = 'note';
-            errorMsg.style.background = '#2a1a1a';
-            errorMsg.style.borderLeftColor = '#ff6666';
-            errorMsg.innerHTML = '⚠️ <strong>El enlace directo no pudo cargarse.</strong> Es posible que este archivo no permita la descarga directa. Por favor, usa el <strong>Método 1 o 3</strong> o abre el video en Google Drive.';
-            this.parentNode.appendChild(errorMsg);
+            errorMsg.className = 'note error';
+            errorMsg.style.marginTop = '15px';
+            errorMsg.innerHTML = '⚠️ <strong>El enlace directo no pudo cargarse.</strong> Esto suele ocurrir si el archivo es muy grande o no permite descarga directa. Por favor, usa el <strong>Método 1</strong> o abre el video en Google Drive.';
+            
+            // Verificar si ya existe un mensaje de error para no duplicar
+            if (!this.parentNode.querySelector('.note.error')) {
+                this.parentNode.appendChild(errorMsg);
+            }
         }, { once: true });
+        
+        // Si el video está listo para reproducirse, mostrar un mensaje de éxito (opcional)
+        video.addEventListener('canplay', function() {
+            const existingError = this.parentNode.querySelector('.note.error');
+            if (existingError) {
+                existingError.remove();
+            }
+        });
+    }
+    
+    // Opcional: Detectar si el iframe del método 1 tiene problemas de carga
+    const mainIframe = document.getElementById('mainIframe');
+    if (mainIframe) {
+        // Los iframes no tienen eventos 'error' confiables, así que configuramos un timeout
+        let iframeLoaded = false;
+        mainIframe.addEventListener('load', function() {
+            iframeLoaded = true;
+        });
+        
+        setTimeout(() => {
+            if (!iframeLoaded) {
+                // No hace falta mostrar un error invasivo, solo una nota sutil
+                const container = mainIframe.closest('.method-card');
+                if (container && !container.querySelector('.warning-timeout')) {
+                    const warning = document.createElement('div');
+                    warning.className = 'note error warning-timeout';
+                    warning.style.marginTop = '15px';
+                    warning.innerHTML = 'ℹ️ <strong>Cargando...</strong> Si el video no aparece en unos segundos, actualiza la página o prueba el <strong>Método 2</strong>.';
+                    container.querySelector('.method-content').appendChild(warning);
+                }
+            }
+        }, 8000);
     }
 </script>
 </body>
