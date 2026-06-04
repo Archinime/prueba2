@@ -2,177 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <title>Reproductor de Video - Solución Definitiva</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Video</title>
     <style>
-        * {
+        /* Estilos generales de la página */
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #0a0a0a;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212; /* Fondo oscuro */
+            color: #ffffff; /* Texto claro */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            padding: 20px;
         }
 
-        .player-container {
-            max-width: 1000px;
-            width: 100%;
-            background-color: #111;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            background: #000;
-            aspect-ratio: 16 / 9;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .info-panel {
-            padding: 20px;
-            background: #1a1a1a;
+        h1 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
             text-align: center;
         }
 
-        .info-panel p {
-            color: #ccc;
-            margin: 10px 0;
-            font-size: 0.9rem;
+        /* Contenedor del video para mantener proporciones (16:9) y hacerlo responsivo */
+        .video-container {
+            position: relative;
+            width: 90%;
+            max-width: 960px;
+            padding-bottom: 56.25%; /* Relación de aspecto 16:9 */
+            height: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #000;
         }
 
-        .error-message {
-            background: #2a1a1a;
-            border-left: 4px solid #ff6666;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: #ffaaaa;
-            text-align: left;
-        }
-
-        .btn {
-            background: #2c2c2c;
-            color: white;
+        /* Estilo del iframe incrustado */
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        .btn-primary {
-            background: #1e6fdf;
-        }
-
-        .btn-primary:active {
-            background: #0f5bc0;
         }
     </style>
 </head>
 <body>
-    <div class="player-container">
-        <div class="video-wrapper">
-            <video id="myVideo" controls playsinline preload="auto"></video>
-        </div>
-        <div class="info-panel">
-            <p>🎬 Si el video no carga, prueba las soluciones abajo.</p>
-            <div id="errorContainer"></div>
-            <button id="retryBtn" class="btn btn-primary" style="display: none;">🔄 Intentar de nuevo</button>
-        </div>
+
+    <h1>Visualizador de Video</h1>
+    
+    <div class="video-container">
+        <!-- El enlace de Drive se inserta directamente en el atributo 'src' -->
+        <iframe 
+            src="https://drive.google.com/file/d/1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx/preview" 
+            allow="autoplay; fullscreen" 
+            allowfullscreen>
+        </iframe>
     </div>
 
-    <script>
-        // --- CONFIGURACIÓN ---
-        // Extrae el ID del archivo de tu enlace original
-        const FILE_ID = '1pdzPraW0MjYPI-GaP6tbW_NPrtvL6rRx';
-        // Definimos una lista de posibles URLs para probar
-        const videoSources = [
-            `https://drive.google.com/uc?export=download&id=${FILE_ID}`, // Formato 1 (recomendado)
-            `https://drive.usercontent.google.com/download?id=${FILE_ID}&export=download&confirm=t`, // Formato 2
-            `https://drive.google.com/uc?export=view&id=${FILE_ID}`, // Formato 3
-            `https://drive.google.com/file/d/${FILE_ID}/preview` // Formato 4 (iframe)
-        ];
-
-        let currentSourceIndex = 0;
-        const videoElement = document.getElementById('myVideo');
-        const errorContainer = document.getElementById('errorContainer');
-        const retryBtn = document.getElementById('retryBtn');
-
-        // Función para intentar cargar la siguiente URL de la lista
-        function tryNextSource() {
-            if (currentSourceIndex < videoSources.length) {
-                const currentUrl = videoSources[currentSourceIndex];
-                console.log(`Intentando cargar: ${currentUrl}`);
-                // Asigna la URL al elemento <video>
-                videoElement.src = currentUrl;
-                videoElement.load(); // Inicia la carga
-                currentSourceIndex++;
-            } else {
-                // Si ya se probaron todas las URLs y todas fallaron
-                showError(`
-                    <strong>❌ No se pudo cargar el video con ningún método.</strong><br><br>
-                    <strong>🔍 Posibles Causas:</strong><br>
-                    • El archivo <strong>no es público</strong>. Debes cambiarlo a "Cualquier persona con el enlace".<br>
-                    • El archivo es muy grande (más de 100MB). Google añade una verificación de seguridad que impide la reproducción directa.<br>
-                    • Tu navegador o red están bloqueando la conexión.<br><br>
-                    <strong>💡 Solución más fiable: </strong> 
-                    <a href="https://drive.google.com/file/d/${FILE_ID}/view" target="_blank" style="color: #1e6fdf;">Haz clic aquí para abrir el video directamente en Google Drive</a>.
-                `);
-                retryBtn.style.display = 'none'; // Oculta el botón de reintentar
-            }
-        }
-
-        // Manejador de errores del video
-        videoElement.addEventListener('error', (e) => {
-            console.log(`Error con la fuente: ${videoElement.src}`);
-            // Muestra un mensaje de error y pasa a la siguiente URL
-            showError(`⚠️ Error con el enlace. Probando siguiente método (${currentSourceIndex + 1}/${videoSources.length})...`);
-            tryNextSource();
-        });
-
-        // Si el video se carga correctamente, limpiamos errores y mostramos éxito
-        videoElement.addEventListener('canplay', () => {
-            if (errorContainer.innerHTML.includes('Error con el enlace')) {
-                errorContainer.innerHTML = '';
-            }
-            retryBtn.style.display = 'none';
-        });
-
-        // Función para mostrar mensajes de error/información al usuario
-        function showError(message) {
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            retryBtn.style.display = 'inline-block';
-        }
-
-        // Evento del botón "Intentar de nuevo": reinicia el proceso desde el principio
-        retryBtn.addEventListener('click', () => {
-            currentSourceIndex = 0;
-            errorContainer.innerHTML = '<div class="error-message">🔄 Reiniciando intentos...</div>';
-            tryNextSource();
-        });
-
-        // Iniciar el primer intento
-        tryNextSource();
-    </script>
 </body>
 </html>
