@@ -357,11 +357,15 @@ function log(msg) {
     el.scrollTop = el.scrollHeight;
 }
 
+// ========== NUEVA FUNCIÓN: Extraer URL de un iframe ==========
 function extractUrlFromIframe(value) {
     if (!value || typeof value !== 'string') return null;
+    // Buscar etiqueta iframe y extraer el src (comillas simples o dobles)
     const iframeRegex = /<iframe[^>]*src=["']([^"']+)["'][^>]*>/i;
     const match = value.match(iframeRegex);
-    if (match && match[1]) return match[1];
+    if (match && match[1]) {
+        return match[1];
+    }
     return null;
 }
 
@@ -369,6 +373,7 @@ function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
 
+    // ----- 1. Detectar y extraer iframe -----
     const extractedUrl = extractUrlFromIframe(val);
     if (extractedUrl) {
         input.value = extractedUrl;
@@ -377,6 +382,7 @@ function smartLinkConvert(input) {
         showToast("✅ Iframe convertido a enlace directo", false);
     }
 
+    // ----- 2. Conversiones existentes para enlaces directos -----
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
@@ -664,7 +670,6 @@ function handleSeasonTypeChange(select) {
     requestPreviewUpdate();
 }
 
-// ========== RENDERIZADO DE CAPÍTULOS CON MÚLTIPLES PARTES ==========
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
     const typeSelect = card.querySelector('.s-type');
@@ -674,195 +679,133 @@ function renderChapters(input, existingEps = []) {
     const startSel = card.querySelector('.s-start-index');
     const startNum = startSel ? parseInt(startSel.value) : 1;
     const list = card.querySelector('.chapters-grid');
-    
     let currentData = [];
     if(existingEps.length === 0) {
         card.querySelectorAll('.chapter-row').forEach(row => {
-            const links = [];
-            row.querySelectorAll('.part-link-input').forEach(inp => {
-                if(inp.value.trim()) links.push(inp.value.trim());
-            });
             currentData.push({
-                links: links,
+                lat: row.querySelector('.c-link-lat').value,
+                sub: row.querySelector('.c-link-sub').value,
                 title: row.querySelector('.c-title-ov').value
             });
         });
     }
-    
     list.innerHTML = '';
     if(isNaN(count) || count < 1) return;
-    
-    for(let i = 0; i < count; i++) {
+    for(let i=0; i<count; i++) {
         const row = document.createElement('div');
         row.className = 'chapter-row';
-        let existingLinks = [];
-        let customTitle = '';
+        let sub = '', lat = '', customTitle = '';
         if(existingEps[i]) {
-            if(existingEps[i].links && Array.isArray(existingEps[i].links)) {
-                existingLinks = [...existingEps[i].links];
-            } else {
-                if(existingEps[i].link) existingLinks.push(existingEps[i].link);
-                if(existingEps[i].link2) existingLinks.push(existingEps[i].link2);
-            }
-            customTitle = existingEps[i].title || '';
+             lat = existingEps[i].link || '';
+             sub = existingEps[i].link2 || ''; 
+             if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
         } else if(currentData[i]) {
-            existingLinks = currentData[i].links || [];
-            customTitle = currentData[i].title;
+             lat = currentData[i].lat;
+             sub = currentData[i].sub;
+             customTitle = currentData[i].title;
         }
-        
         let currentNum = startNum + i;
         let titleInputDisabled = ['Temporada', 'Spin-Off'].includes(type) ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
-        if(titleInputDisabled && !customTitle) customTitle = `Capítulo ${currentNum}`;
-        
+        if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
         row.innerHTML = `
-            <div class="chapter-header">
-                <span class="chapter-num">CAPÍTULO ${currentNum}</span>
-                <button type="button" class="btn-mini-del" style="width:auto; padding:0 10px; background:var(--accent); color:#000;" onclick="addPartToChapter(this)">+ Añadir parte</button>
+            <div class="chapter-header"><span class="chapter-num">CAPÍTULO ${currentNum}</span></div>
+            <div class="c-inputs-grid">
+                <input type="text" class="c-link-lat" value="${lat}" placeholder="🔗 Lat" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
+                <input type="text" class="c-link-sub" value="${sub}" placeholder="🔗 Sub" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
             </div>
-            <div class="parts-list" style="margin-bottom:10px;"></div>
-            <input type="text" class="c-title-ov" value="${escapeHtml(customTitle)}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
+            <input type="text" class="c-title-ov" value="${customTitle}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
         `;
-        const partsContainer = row.querySelector('.parts-list');
-        if(existingLinks.length === 0) existingLinks.push('');
-        existingLinks.forEach((linkVal, idx) => {
-            addPartInput(partsContainer, linkVal, idx);
-        });
         list.appendChild(row);
     }
     requestPreviewUpdate();
 }
 
-function escapeHtml(str) {
-    if(!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if(m === '&') return '&amp;';
-        if(m === '<') return '&lt;';
-        if(m === '>') return '&gt;';
-        return m;
-    });
-}
-
-function addPartInput(container, value = '', index = null) {
-    const div = document.createElement('div');
-    div.className = 'dynamic-item';
-    div.style.marginBottom = '8px';
-    const partNumber = container.children.length + 1;
-    div.innerHTML = `
-        <input type="text" class="part-link-input" placeholder="🔗 URL Parte ${partNumber}" value="${escapeHtml(value)}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1;">
-        <button class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="height:auto;"><i class="fas fa-times"></i></button>
-    `;
-    container.appendChild(div);
-}
-
-window.addPartToChapter = function(btn) {
-    const chapterRow = btn.closest('.chapter-row');
-    const partsContainer = chapterRow.querySelector('.parts-list');
-    if(partsContainer) {
-        addPartInput(partsContainer, '');
-        requestPreviewUpdate();
+function requestPreviewUpdate() {
+    if (!previewTimeout) {
+        previewTimeout = requestAnimationFrame(() => {
+            updateWebPreview();
+            checkForChanges();
+            previewTimeout = null;
+        });
     }
-};
+}
 
-function generateData() {
-    const selectedGenres = [];
-    document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
-    const demoSelect = document.getElementById('demografiaAnime').value;
-    const aliasList = [];
-    document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliasList.push(i.value.trim()) });
-    let selectedState = "ESTRENO 🚨";
-    const stEl = document.getElementById('estadoAnime');
-    if(stEl) selectedState = stEl.value;
-    let isFinal = false;
-    const finalTog = document.getElementById('finalToggle');
-    if(finalTog) isFinal = finalTog.checked;
-    const anime = {
-        id: isEditMode ? currentEditingId : 0, 
-        titulo: document.getElementById('tituloAnime').value.trim(),
-        aliases: aliasList,
-        portada: document.getElementById('portadaAnime').value.trim(),
-        sinopsis: document.getElementById('sinopsisAnime').value.trim(),
-        demografia: demoSelect, 
-        generos: selectedGenres,
-        rating: 0,
-        musica: [],
-        temporadas: [],
-        uploader: currentUserEmail, 
-        uploaderAvatar: currentUserAvatar || "Logo_Archinime.avif",
-        estado: selectedState,
-        isFinal: isFinal
-    };
-    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.musica.push(i.value.trim()); });
-    let globalOrder = 1, seasonCountVP = 0, ovaCountVP = 0, movieCountVP = 0, specialCountVP = 0, spinOffCount = 0;
-    document.querySelectorAll('.season-card').forEach(card => {
-        const eps = [];
-        const sName = card.querySelector('.s-name').value;
-        const sType = card.querySelector('.s-type').value;
-        const startSel = card.querySelector('.s-start-index');
-        const startNum = startSel ? parseInt(startSel.value) : 1;
-        if(sType === 'Temporada') seasonCountVP++;
-        if(sType === 'OVA') ovaCountVP++;
-        if(sType === 'Pelicula') movieCountVP++;
-        if(sType === 'Especial') specialCountVP++;
-        
-        card.querySelectorAll('.chapter-row').forEach((row, idx) => {
-            const links = [];
-            row.querySelectorAll('.part-link-input').forEach(inp => {
-                const val = inp.value.trim();
-                if(val) links.push(val);
-            });
-            let customTitleInput = row.querySelector('.c-title-ov').value.trim();
-            let playerTitle = "", detailTitle = ""; 
-            let currentEpNum = startNum + idx;
-            if (sType === 'Temporada') {
-                detailTitle = `Capítulo ${currentEpNum}`;
-                playerTitle = `${anime.titulo} T${seasonCountVP} Cap ${currentEpNum}`;
-            } else if (sType === 'Spin-Off') {
-                detailTitle = `Capítulo ${currentEpNum}`;
-                playerTitle = `${anime.titulo} ${sName} Cap ${currentEpNum}`;
-            } else if (sType === 'OVA') {
-                detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} OVA ${ovaCountVP}` + (customTitleInput ? ` "${customTitleInput}"` : "");
-            } else if (sType === 'Pelicula') {
-                detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} Película ${movieCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
-            } else if (sType === 'Especial') {
-                detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
-            }
-            if(links.length > 0) {
-                eps.push({ 
-                    num: idx + 1, 
-                    links: links,
-                    title: detailTitle, 
-                    playerTitle: playerTitle 
-                });
+function checkForChanges() {
+    if (!isEditMode) return;
+    const btn = document.getElementById('btnSaveAction');
+    if (!originalAnimeState) return;
+    const currentState = JSON.stringify(generateData());
+    if (currentState !== originalAnimeState) {
+        if (btn.disabled && !btn.innerHTML.includes("BLOQUEADA")) {
+             btn.disabled = false;
+             btn.style.opacity = "1";
+             btn.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> GUARDAR CAMBIOS';
+        }
+    } else {
+        if (!btn.innerHTML.includes("BLOQUEADA")) {
+            btn.disabled = true;
+            btn.style.opacity = "0.5";
+            btn.innerHTML = '<i class="fas fa-check"></i> Sin cambios pendientes';
+        }
+    }
+}
+
+function updateWebPreview() {
+    const titleEl = document.getElementById('webTitle');
+    const titleVal = document.getElementById('tituloAnime').value;
+    if(titleEl) titleEl.innerText = titleVal || 'Título';
+    const coverUrl = document.getElementById('portadaAnime').value;
+    const webCover = document.getElementById('webCover');
+    if(coverUrl && webCover) webCover.src = coverUrl;
+    const prevId = document.getElementById('previewId');
+    if(prevId) prevId.innerText = isEditMode ? currentEditingId : "###";
+    const demo = document.getElementById('demografiaAnime').value;
+    const wDemo = document.getElementById('webDemography');
+    if(wDemo) wDemo.innerText = demo ? demo.toUpperCase() : 'DEMO';
+    const aliases = [];
+    document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliases.push(i.value.trim()) });
+    const prevAlias = document.getElementById('previewAliasesList');
+    if(prevAlias) prevAlias.innerText = aliases.length > 0 ? aliases.join(', ') : "";
+    const tagsContainer = document.getElementById('webTags');
+    if(tagsContainer) {
+        tagsContainer.innerHTML = '';
+        document.querySelectorAll('#genresContainer input:checked').forEach(cb => {
+            let s = document.createElement('span');
+            s.style.cssText = "font-size:0.65em; padding:3px 8px; border-radius:4px; background:rgba(255,255,255,0.1); color:#ccc;";
+            s.innerText = cb.value;
+            tagsContainer.appendChild(s);
+        });
+    }
+    const grid = document.getElementById('webSeasonsGrid');
+    if(grid) {
+        grid.innerHTML = '';
+        document.querySelectorAll('.season-card').forEach(card => {
+            const img = card.querySelector('.s-img').value;
+            const name = card.querySelector('.s-name').value;
+            const type = card.querySelector('.s-type').value;
+            const count = card.querySelector('.s-count').value || 0;
+            if(name) {
+                const div = document.createElement('div');
+                div.className = 'preview-s-item';
+                let label = (['Temporada', 'Spin-Off'].includes(type)) ? `${count} Caps` : (count > 1 ? `${count} ${type}s` : `${count} ${type}`);
+                div.innerHTML = `<img src="${img || 'https://via.placeholder.com/150'}"><div class="preview-s-count">${label}</div><div class="preview-s-title">${name}</div>`;
+                grid.appendChild(div);
             }
         });
-        if(eps.length > 0) {
-            anime.temporadas.push({ num: globalOrder++, name: sName, type: sType, cover: card.querySelector('.s-img').value, eps: eps });
-        }
-    });
-    return anime;
+    }
 }
 
-// ========== FUNCIONES DE BÚSQUEDA Y CARGA (CORREGIDAS) ==========
+// ============================================
+// BÚSQUEDA Y CARGA (FIRESTORE)
+// ============================================
 async function openSearchModal() {
-    const modal = document.getElementById('searchModal');
-    if (!modal) {
-        console.error("No se encontró el modal #searchModal");
-        return;
-    }
-    // Limpiar campos
+    document.getElementById('searchModal').style.display = 'flex';
     document.getElementById('searchInput').value = "";
-    document.getElementById('searchResults').innerHTML = '<div style="padding:20px; text-align:center;">Cargando índice...</div>';
-    modal.style.display = 'flex';
-    // Cargar índice si está vacío
-    if (cachedIndex.length === 0) {
-        await loadIndexForSearch();
-    } else {
-        filterSearch();
-    }
+    document.getElementById('searchResults').innerHTML = "";
+    switchSearchTab('mine');
+    await loadIndexForSearch();
+    filterSearch();
 }
 
 function handleModalClick(event) {
@@ -870,8 +813,7 @@ function handleModalClick(event) {
 }
 
 function closeSearchModal() { 
-    const modal = document.getElementById('searchModal');
-    if (modal) modal.style.display = 'none';
+    document.getElementById('searchModal').style.display = 'none';
 }
 
 function switchSearchTab(mode) {
@@ -883,7 +825,7 @@ function switchSearchTab(mode) {
 
 async function loadIndexForSearch() {
     const loading = document.getElementById('loadingSearch');
-    if (loading) loading.style.display = 'block';
+    loading.style.display = 'block';
     try {
         const snapshot = await db.collection('catalogo').get();
         cachedIndex = [];
@@ -906,7 +848,7 @@ async function loadIndexForSearch() {
         console.error(e);
         document.getElementById('searchResults').innerHTML = `<div style="color:red; text-align:center">Error: ${e.message}</div>`;
     } finally {
-        if (loading) loading.style.display = 'none';
+        loading.style.display = 'none';
     }
 }
 
@@ -918,7 +860,6 @@ function filterSearch() {
 function _performFilter() {
     const query = document.getElementById('searchInput').value.toLowerCase();
     const results = document.getElementById('searchResults');
-    if (!results) return;
     results.innerHTML = '';
     const filtered = cachedIndex.filter(a => {
         const matchesText = a.title.toLowerCase().includes(query);
@@ -1066,6 +1007,79 @@ function exitEditMode() {
     location.reload();
 }
 
+function generateData() {
+    const selectedGenres = [];
+    document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
+    const demoSelect = document.getElementById('demografiaAnime').value;
+    const aliasList = [];
+    document.querySelectorAll('.alias-input').forEach(i => { if(i.value.trim()) aliasList.push(i.value.trim()) });
+    let selectedState = "ESTRENO 🚨";
+    const stEl = document.getElementById('estadoAnime');
+    if(stEl) selectedState = stEl.value;
+    let isFinal = false;
+    const finalTog = document.getElementById('finalToggle');
+    if(finalTog) isFinal = finalTog.checked;
+    const anime = {
+        id: isEditMode ? currentEditingId : 0, 
+        titulo: document.getElementById('tituloAnime').value.trim(),
+        aliases: aliasList,
+        portada: document.getElementById('portadaAnime').value.trim(),
+        sinopsis: document.getElementById('sinopsisAnime').value.trim(),
+        demografia: demoSelect, 
+        generos: selectedGenres,
+        rating: 0,
+        musica: [],
+        temporadas: [],
+        uploader: currentUserEmail, 
+        uploaderAvatar: currentUserAvatar || "Logo_Archinime.avif",
+        estado: selectedState,
+        isFinal: isFinal
+    };
+    document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.musica.push(i.value.trim()); });
+    let globalOrder = 1, seasonCountVP = 0, ovaCountVP = 0, movieCountVP = 0, specialCountVP = 0, spinOffCount = 0;
+    document.querySelectorAll('.season-card').forEach(card => {
+        const eps = [];
+        const sName = card.querySelector('.s-name').value;
+        const sType = card.querySelector('.s-type').value;
+        const startSel = card.querySelector('.s-start-index');
+        const startNum = startSel ? parseInt(startSel.value) : 1;
+        if(sType === 'Temporada') seasonCountVP++;
+        if(sType === 'OVA') ovaCountVP++;
+        if(sType === 'Pelicula') movieCountVP++;
+        if(sType === 'Especial') specialCountVP++;
+        card.querySelectorAll('.chapter-row').forEach((row, idx) => {
+            const lat = row.querySelector('.c-link-lat').value.trim();
+            const sub = row.querySelector('.c-link-sub').value.trim();
+            let customTitleInput = row.querySelector('.c-title-ov').value.trim();
+            let playerTitle = "", detailTitle = ""; 
+            let currentEpNum = startNum + idx;
+            if (sType === 'Temporada') {
+                detailTitle = `Capítulo ${currentEpNum}`;
+                playerTitle = `${anime.titulo} T${seasonCountVP} Cap ${currentEpNum}`;
+            } else if (sType === 'Spin-Off') {
+                detailTitle = `Capítulo ${currentEpNum}`;
+                playerTitle = `${anime.titulo} ${sName} Cap ${currentEpNum}`;
+            } else if (sType === 'OVA') {
+                detailTitle = customTitleInput || sName;
+                playerTitle = `${anime.titulo} OVA ${ovaCountVP}` + (customTitleInput ? ` "${customTitleInput}"` : "");
+            } else if (sType === 'Pelicula') {
+                detailTitle = customTitleInput || sName;
+                playerTitle = `${anime.titulo} Película ${movieCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
+            } else if (sType === 'Especial') {
+                detailTitle = customTitleInput || sName;
+                playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
+            }
+            if(sub || lat) {
+                eps.push({ num: idx + 1, link: lat, link2: sub, title: detailTitle, playerTitle: playerTitle });
+            }
+        });
+        if(eps.length > 0) {
+            anime.temporadas.push({ num: globalOrder++, name: sName, type: sType, cover: card.querySelector('.s-img').value, eps: eps });
+        }
+    });
+    return anime;
+}
+
 function highlightLogoutButton() {
     const headerBtns = document.querySelectorAll('#userHeader button');
     const logoutBtn = Array.from(headerBtns).find(btn => btn.getAttribute('onclick') === 'logout()');
@@ -1167,10 +1181,7 @@ async function subirAGithHub() {
                 name: t.name,
                 type: t.type,
                 cover: t.cover,
-                eps: t.eps.map(e => ({ 
-                    title: e.title, 
-                    links: e.links
-                }))
+                eps: t.eps.map(e => ({ title: e.title, link: e.link, link2: e.link2 }))
             }))
         };
         if(nuevoAnime.aliases.length > 0) animeData.aliases = nuevoAnime.aliases;

@@ -1,5 +1,8 @@
-// video-player-core.js - Versión con validaciones de nulidad y soporte multiparte
-// CORREGIDO: Error "Cannot set properties of null (setting 'innerText')"
+// video-player-core.js - Versión con catálogo local + Firestore
+// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
+// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
+// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio"
+// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 
 class VideoPlayer {
   constructor() {
@@ -12,14 +15,11 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrls = [];
-    this.currentPlaylist = [];
-    this.currentPartIndex = 0;
+    this.currentDownloadUrl = '#';
+    this.currentPeerTubeUrl = null;
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
-    this.videoElement = null;
-    this.autoPlayNext = true;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -62,8 +62,7 @@ class VideoPlayer {
       clearInterval(checkInterval);
       if (typeof catalogoArray === 'undefined') {
         console.error('❌ No se cargó catalogoArray');
-        const epTitle = document.getElementById('epTitle');
-        if (epTitle) epTitle.innerText = 'Error: Catálogo no disponible';
+        document.getElementById('epTitle').innerText = 'Error: Catálogo no disponible';
       }
     }, 5000);
   }
@@ -218,100 +217,62 @@ class VideoPlayer {
       });
     }
     
-    const tabs = document.querySelectorAll('.sticker-tab');
-    if (tabs.length) {
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
-      });
-    }
+    document.querySelectorAll('.sticker-tab').forEach(tab => {
+      tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
+    });
   }
   
   formatEpisodeTitle(season, epNum, episodeData) {
     const seasonName = season.name || `Temporada ${season.num}`;
     const episodeTitle = episodeData.title || `Capítulo ${epNum}`;
-    return `${seasonName} - ${epTitle}`;
+    return `${seasonName} - ${episodeTitle}`;
   }
   
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
       if (!anime) {
-        const epTitle = document.getElementById('epTitle');
-        if (epTitle) epTitle.innerText = 'Anime no encontrado';
+        document.getElementById('epTitle').innerText = 'Anime no encontrado';
         return;
       }
       this.animeData = anime;
       const seasons = this.animeData.seasons || [];
       const season = seasons.find(s => s.num === parseInt(this.season));
       if (!season) {
-        const epTitle = document.getElementById('epTitle');
-        if (epTitle) epTitle.innerText = 'Temporada no encontrada';
+        document.getElementById('epTitle').innerText = 'Temporada no encontrada';
         return;
       }
       const epIndex = parseInt(this.episode) - 1;
       const episodeData = season.eps?.[epIndex];
       if (!episodeData) {
-        const epTitle = document.getElementById('epTitle');
-        if (epTitle) epTitle.innerText = 'Episodio no encontrado';
+        document.getElementById('epTitle').innerText = 'Episodio no encontrado';
         return;
       }
       
       this.currentEpisodeData = episodeData;
       const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
       document.title = `Ver ${formattedTitle} - Archinime`;
-      const epTitleElem = document.getElementById('epTitle');
-      if (epTitleElem) epTitleElem.innerText = formattedTitle;
+      document.getElementById('epTitle').innerText = formattedTitle;
       
-      // Construir lista de enlaces (array `links` o legacy `link`/`link2`)
-      let linksArray = [];
-      if (episodeData.links && Array.isArray(episodeData.links)) {
-        linksArray = episodeData.links.filter(url => url && url.trim() !== '');
-      } else {
-        if (episodeData.link) linksArray.push(episodeData.link);
-        if (episodeData.link2) linksArray.push(episodeData.link2);
-      }
-      
-      this.currentPlaylist = [...linksArray];
-      this.currentDownloadUrls = [...linksArray];
-      this.currentPartIndex = 0;
-      
-      if (this.currentPlaylist.length > 0) {
-        this.updateDownloadUrls(this.currentPlaylist);
-        this.loadVideo(this.currentPlaylist[0]);
-      } else {
-        console.warn('No hay enlaces para este episodio');
-        const epTitle = document.getElementById('epTitle');
-        if (epTitle) epTitle.innerText += ' (sin enlaces)';
-      }
+      const initialLink = episodeData.link || episodeData.link2;
+      this.updateDownloadUrl(initialLink);
+      this.loadVideo(initialLink);
       
       const serverContainer = document.getElementById('serverOptions');
-      if (serverContainer) {
-        serverContainer.innerHTML = '';
-        if (linksArray.length > 0) {
-          linksArray.forEach((url, idx) => {
-            const label = linksArray.length === 1 ? 'Latino' : `Parte ${idx+1}`;
-            this.createServerButton(label, url, idx === 0);
-          });
-        } else {
-          if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
-          if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
-        }
-      }
+      serverContainer.innerHTML = '';
+      if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
+      if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
       
       this.setupNavigation();
       await this.autoMarkAsWatched();
     } catch (error) {
       console.error(error);
-      const epTitle = document.getElementById('epTitle');
-      if (epTitle) epTitle.innerText = 'Error al cargar el episodio';
-      // Mostrar error detallado en consola
-      alert('Error al cargar el episodio: ' + error.message);
+      document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
     }
   }
   
   createServerButton(label, url, isActive) {
     const container = document.getElementById('serverOptions');
-    if (!container) return;
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
@@ -319,9 +280,7 @@ class VideoPlayer {
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      this.currentPlaylist = [url];
-      this.currentDownloadUrls = [url];
-      this.currentPartIndex = 0;
+      this.updateDownloadUrl(url);
       this.loadVideo(url);
     };
     container.appendChild(btn);
@@ -329,10 +288,8 @@ class VideoPlayer {
   
   loadVideo(url) {
     const container = document.getElementById('mediaContainer');
-    if (!container) return;
     container.innerHTML = '';
     if (!url) return;
-    
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -341,26 +298,6 @@ class VideoPlayer {
       video.style.width = '100%';
       video.style.height = '100%';
       container.appendChild(video);
-      this.videoElement = video;
-      
-      if (this._onEndedHandler) {
-        this.videoElement.removeEventListener('ended', this._onEndedHandler);
-      }
-      this._onEndedHandler = () => {
-        if (this.autoPlayNext && this.currentPlaylist.length > 1) {
-          this.currentPartIndex++;
-          if (this.currentPartIndex < this.currentPlaylist.length) {
-            const nextUrl = this.currentPlaylist[this.currentPartIndex];
-            this.loadVideo(nextUrl);
-            const btns = document.querySelectorAll('.opt-btn');
-            if (btns[this.currentPartIndex]) {
-              btns.forEach(b => b.classList.remove('active'));
-              btns[this.currentPartIndex].classList.add('active');
-            }
-          }
-        }
-      };
-      this.videoElement.addEventListener('ended', this._onEndedHandler);
     } else {
       const iframe = document.createElement('iframe');
       iframe.src = url;
@@ -369,12 +306,17 @@ class VideoPlayer {
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       container.appendChild(iframe);
-      this.videoElement = null;
     }
   }
   
-  updateDownloadUrls(urls) {
-    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
+  updateDownloadUrl(url) {
+    this.currentDownloadUrl = this.generateDirectLink(url);
+    this.currentPeerTubeUrl = this.isPeerTubeUrl(url) ? url : null;
+  }
+  
+  isPeerTubeUrl(url) {
+    if (!url) return false;
+    return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
   }
   
   generateDirectLink(url) {
@@ -402,14 +344,14 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== BARRA DE PROGRESO PARA CATBOX ==========
-  showProgressBar(partNumber = 1, totalParts = 1) {
+  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
+  showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
     div.id = 'customDownloadProgress';
     div.innerHTML = `
       <div style="position:fixed; bottom:20px; left:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.9); border-radius:16px; padding:16px; border:1px solid var(--primary-color); backdrop-filter:blur(8px); text-align:center; font-family:'Poppins',sans-serif;">
-        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando parte ${partNumber} de ${totalParts}... <span id="progressPercent">0</span>%</div>
+        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando video... <span id="progressPercent">0</span>%</div>
         <div style="background:#222; border-radius:50px; overflow:hidden; height:10px;">
           <div id="progressBarFill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f3ff, #bc13fe); transition:width 0.2s;"></div>
         </div>
@@ -424,8 +366,8 @@ class VideoPlayer {
     if (el) el.remove();
   }
 
-  async forceDownload(url, filename) {
-    this.showProgressBar(1, 1);
+  async forceDownload(url, suggestedFilename = 'video.mp4') {
+    this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
     const fillDiv = document.getElementById('progressBarFill');
 
@@ -455,14 +397,15 @@ class VideoPlayer {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = suggestedFilename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.warn(error);
-      throw error;
+      alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
+      window.open(url, '_blank');
     } finally {
       this.hideProgressBar();
     }
@@ -475,40 +418,42 @@ class VideoPlayer {
       return;
     }
     
-    if (!this.currentDownloadUrls || this.currentDownloadUrls.length === 0) {
-      alert('No hay enlaces de descarga disponibles para este episodio.');
-      return;
-    }
+    let finalDownloadUrl = this.currentDownloadUrl;
     
-    const epTitleElem = document.getElementById('epTitle');
-    let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
-    baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
-    
-    let success = true;
-    for (let i = 0; i < this.currentDownloadUrls.length; i++) {
-      const url = this.currentDownloadUrls[i];
-      if (!url || url === '#') continue;
-      
-      const partNum = i + 1;
-      const totalParts = this.currentDownloadUrls.length;
-      let filename = totalParts === 1 ? `${baseFilename}.mp4` : `${baseFilename} - Parte ${partNum}.mp4`;
-      
-      this.showProgressBar(partNum, totalParts);
-      try {
-        await this.forceDownload(url, filename);
-      } catch (err) {
-        console.error(`Error descargando parte ${partNum}:`, err);
-        alert(`Error al descargar la parte ${partNum}. Ver consola.`);
-        success = false;
-        break;
-      } finally {
-        this.hideProgressBar();
+    if (this.currentPeerTubeUrl) {
+      const fallbackUrl = this.currentEpisodeData?.link2;
+      if (fallbackUrl) {
+        finalDownloadUrl = this.generateDirectLink(fallbackUrl);
+      } else {
+        alert('No hay enlace alternativo para PeerTube.');
+        return;
       }
     }
     
-    if (success && this.currentDownloadUrls.length > 1) {
-      alert('Todas las partes se han descargado correctamente.');
+    if (!finalDownloadUrl || finalDownloadUrl === '#') {
+      alert('No hay enlace de descarga disponible.');
+      return;
     }
+    
+    const isCatbox = finalDownloadUrl.includes('catbox.moe');
+    const isCrossOrigin = !finalDownloadUrl.startsWith(location.origin);
+    
+    if (isCatbox || isCrossOrigin) {
+      const epTitleElem = document.getElementById('epTitle');
+      let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
+      baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
+      const filename = `${baseFilename}.mp4`;
+      await this.forceDownload(finalDownloadUrl, filename);
+      return;
+    }
+    
+    const link = document.createElement('a');
+    link.href = finalDownloadUrl;
+    link.download = '';
+    link.target = this.isMobile() ? '_blank' : '_self';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
   
   isMobile() {
@@ -520,8 +465,7 @@ class VideoPlayer {
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
-        const hasLinks = (ep.links && ep.links.length > 0) || ep.link || ep.link2;
-        if (hasLinks) {
+        if (ep.link || ep.link2) {
           flat.push({ s: season.num, e: idx + 1, seasonObj: season, episodeData: ep });
         }
       });
@@ -530,84 +474,68 @@ class VideoPlayer {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     
-    if (prevBtn && nextBtn) {
-      if (idx > 0) {
-        const prev = flat[idx-1];
-        prevBtn.classList.remove('btn-hidden');
-        prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
-        prevBtn.setAttribute('title', this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData));
-      } else {
-        prevBtn.classList.add('btn-hidden');
-      }
-      
-      if (idx < flat.length - 1) {
-        const next = flat[idx+1];
-        nextBtn.classList.remove('btn-hidden');
-        nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
-        nextBtn.setAttribute('title', this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData));
-      } else {
-        nextBtn.classList.add('btn-hidden');
-      }
+    if (idx > 0) {
+      const prev = flat[idx-1];
+      prevBtn.classList.remove('btn-hidden');
+      prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
+      prevBtn.setAttribute('title', this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData));
+    } else {
+      prevBtn.classList.add('btn-hidden');
+    }
+    
+    if (idx < flat.length - 1) {
+      const next = flat[idx+1];
+      nextBtn.classList.remove('btn-hidden');
+      nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
+      nextBtn.setAttribute('title', this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData));
+    } else {
+      nextBtn.classList.add('btn-hidden');
     }
   }
   
   setupAuthUI() {
-    const authTabs = document.querySelectorAll('.auth-tab');
-    if (authTabs.length) {
-      authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const tabName = tab.dataset.tab;
-          document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          const loginForm = document.getElementById('authLoginForm');
-          const registerForm = document.getElementById('authRegisterForm');
-          if (loginForm) loginForm.style.display = tabName === 'login' ? 'flex' : 'none';
-          if (registerForm) registerForm.style.display = tabName === 'register' ? 'flex' : 'none';
-        });
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
+        document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
       });
-    }
+    });
   }
   
-  openLoginModal() { 
-    const modal = document.getElementById('authModal');
-    if (modal) modal.classList.add('show');
-  }
+  openLoginModal() { document.getElementById('authModal').classList.add('show'); }
   closeAuthModal() { 
-    const modal = document.getElementById('authModal');
-    if (modal) modal.classList.remove('show'); 
+    document.getElementById('authModal').classList.remove('show'); 
     const errEl = document.getElementById('authError');
     if (errEl) errEl.innerText = '';
   }
   
   async loginWithEmail() {
-    const email = document.getElementById('loginEmail')?.value;
-    const pass = document.getElementById('loginPassword')?.value;
-    if (!email || !pass) return;
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPassword').value;
     try { 
       await this.auth.signInWithEmailAndPassword(email, pass); 
       this.closeAuthModal(); 
     } catch (e) { 
-      const errEl = document.getElementById('authError');
-      if (errEl) errEl.innerText = e.message; 
+      document.getElementById('authError').innerText = e.message; 
     }
   }
   
   async registerWithEmail() {
-    const email = document.getElementById('registerEmail')?.value;
-    const pass = document.getElementById('registerPassword')?.value;
-    const confirm = document.getElementById('registerConfirm')?.value;
-    if (!email || !pass) return;
+    const email = document.getElementById('registerEmail').value;
+    const pass = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('registerConfirm').value;
     if (pass !== confirm) { 
-      const errEl = document.getElementById('authError');
-      if (errEl) errEl.innerText = 'Las contraseñas no coinciden'; 
+      document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
       return; 
     }
     try { 
       await this.auth.createUserWithEmailAndPassword(email, pass); 
       this.closeAuthModal(); 
     } catch (e) { 
-      const errEl = document.getElementById('authError');
-      if (errEl) errEl.innerText = e.message; 
+      document.getElementById('authError').innerText = e.message; 
     }
   }
   
@@ -617,8 +545,7 @@ class VideoPlayer {
       await this.auth.signInWithPopup(provider); 
       this.closeAuthModal(); 
     } catch (e) { 
-      const errEl = document.getElementById('authError');
-      if (errEl) errEl.innerText = e.message; 
+      document.getElementById('authError').innerText = e.message; 
     }
   }
   
@@ -628,8 +555,7 @@ class VideoPlayer {
       await this.auth.signInWithPopup(provider); 
       this.closeAuthModal(); 
     } catch (e) { 
-      const errEl = document.getElementById('authError');
-      if (errEl) errEl.innerText = e.message; 
+      document.getElementById('authError').innerText = e.message; 
     }
   }
   
@@ -666,18 +592,10 @@ class VideoPlayer {
     if (typeof window.switchStickerTab === 'function') {
       window.switchStickerTab(tabId);
     } else {
-      const tabs = document.querySelectorAll('.sticker-tab');
-      const contents = document.querySelectorAll('.sticker-tab-content');
-      if (tabs.length) {
-        tabs.forEach(t => t.classList.remove('active'));
-        const targetTab = document.querySelector(`.sticker-tab[data-tab="${tabId}"]`);
-        if (targetTab) targetTab.classList.add('active');
-      }
-      if (contents.length) {
-        contents.forEach(c => c.classList.remove('active'));
-        const targetContent = document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab');
-        if (targetContent) targetContent.classList.add('active');
-      }
+      document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.sticker-tab[data-tab="${tabId}"]`)?.classList.add('active');
+      document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
     }
   }
   
