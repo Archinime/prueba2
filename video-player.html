@@ -11,7 +11,7 @@
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
-      const intervalTime = 120;  // antes 20ms, ahora 120ms -> mucho más ligero
+      const intervalTime = 120;
       const segments = colors.length - 1;
       const step = (intervalTime / animationDuration) * segments;
       let currentProgress = 0;
@@ -99,11 +99,9 @@
       opacity: 0.5;
       pointer-events: none;
     }
-    /* En móviles, el video se oculta y usamos solo el poster como fondo */
     body.is-mobile #bg-video {
       display: none;
     }
-    /* Para móviles, aseguramos que el fondo tenga la imagen del poster */
     body.is-mobile {
       background: url('galaxia-morado1.avif') center center / cover no-repeat fixed;
     }
@@ -115,7 +113,7 @@
       height: 100%;
       z-index: -5;
       background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
-      backdrop-filter: blur(4px); /* reducido de 8px para menor lag */
+      backdrop-filter: blur(4px);
       pointer-events: none;
     }
 
@@ -160,7 +158,6 @@
       box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
       will-change: transform;
     }
-    /* eliminado hue-rotate costoso, se mantiene el glow */
     .gif-inner {
       width: 100%;
       height: 100%;
@@ -745,7 +742,6 @@
       transform: translateY(-3px);
     }
 
-    /* ESTILO MODERNO PARA STICKERS VACÍOS */
     .sticker-empty-modern {
       grid-column: 1 / -1;
       text-align: center;

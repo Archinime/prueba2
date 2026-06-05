@@ -1,6 +1,5 @@
-// video-player-core.js - Versión con soporte para múltiples partes por capítulo
-// Permite reproducción secuencial y descarga de todas las partes.
-// Compatible con datos antiguos (link y link2)
+// video-player-core.js - Versión con validaciones de nulidad y soporte multiparte
+// CORREGIDO: Error "Cannot set properties of null (setting 'innerText')"
 
 class VideoPlayer {
   constructor() {
@@ -63,7 +62,8 @@ class VideoPlayer {
       clearInterval(checkInterval);
       if (typeof catalogoArray === 'undefined') {
         console.error('❌ No se cargó catalogoArray');
-        document.getElementById('epTitle').innerText = 'Error: Catálogo no disponible';
+        const epTitle = document.getElementById('epTitle');
+        if (epTitle) epTitle.innerText = 'Error: Catálogo no disponible';
       }
     }, 5000);
   }
@@ -218,43 +218,51 @@ class VideoPlayer {
       });
     }
     
-    document.querySelectorAll('.sticker-tab').forEach(tab => {
-      tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
-    });
+    const tabs = document.querySelectorAll('.sticker-tab');
+    if (tabs.length) {
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
+      });
+    }
   }
   
   formatEpisodeTitle(season, epNum, episodeData) {
     const seasonName = season.name || `Temporada ${season.num}`;
     const episodeTitle = episodeData.title || `Capítulo ${epNum}`;
-    return `${seasonName} - ${episodeTitle}`;
+    return `${seasonName} - ${epTitle}`;
   }
   
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
       if (!anime) {
-        document.getElementById('epTitle').innerText = 'Anime no encontrado';
+        const epTitle = document.getElementById('epTitle');
+        if (epTitle) epTitle.innerText = 'Anime no encontrado';
         return;
       }
       this.animeData = anime;
       const seasons = this.animeData.seasons || [];
       const season = seasons.find(s => s.num === parseInt(this.season));
       if (!season) {
-        document.getElementById('epTitle').innerText = 'Temporada no encontrada';
+        const epTitle = document.getElementById('epTitle');
+        if (epTitle) epTitle.innerText = 'Temporada no encontrada';
         return;
       }
       const epIndex = parseInt(this.episode) - 1;
       const episodeData = season.eps?.[epIndex];
       if (!episodeData) {
-        document.getElementById('epTitle').innerText = 'Episodio no encontrado';
+        const epTitle = document.getElementById('epTitle');
+        if (epTitle) epTitle.innerText = 'Episodio no encontrado';
         return;
       }
       
       this.currentEpisodeData = episodeData;
       const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
       document.title = `Ver ${formattedTitle} - Archinime`;
-      document.getElementById('epTitle').innerText = formattedTitle;
+      const epTitleElem = document.getElementById('epTitle');
+      if (epTitleElem) epTitleElem.innerText = formattedTitle;
       
+      // Construir lista de enlaces (array `links` o legacy `link`/`link2`)
       let linksArray = [];
       if (episodeData.links && Array.isArray(episodeData.links)) {
         linksArray = episodeData.links.filter(url => url && url.trim() !== '');
@@ -272,31 +280,38 @@ class VideoPlayer {
         this.loadVideo(this.currentPlaylist[0]);
       } else {
         console.warn('No hay enlaces para este episodio');
-        document.getElementById('epTitle').innerText += ' (sin enlaces)';
+        const epTitle = document.getElementById('epTitle');
+        if (epTitle) epTitle.innerText += ' (sin enlaces)';
       }
       
       const serverContainer = document.getElementById('serverOptions');
-      serverContainer.innerHTML = '';
-      if (linksArray.length > 0) {
-        linksArray.forEach((url, idx) => {
-          const label = linksArray.length === 1 ? 'Latino' : `Parte ${idx+1}`;
-          this.createServerButton(label, url, idx === 0);
-        });
-      } else {
-        if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
-        if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
+      if (serverContainer) {
+        serverContainer.innerHTML = '';
+        if (linksArray.length > 0) {
+          linksArray.forEach((url, idx) => {
+            const label = linksArray.length === 1 ? 'Latino' : `Parte ${idx+1}`;
+            this.createServerButton(label, url, idx === 0);
+          });
+        } else {
+          if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
+          if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
+        }
       }
       
       this.setupNavigation();
       await this.autoMarkAsWatched();
     } catch (error) {
       console.error(error);
-      document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
+      const epTitle = document.getElementById('epTitle');
+      if (epTitle) epTitle.innerText = 'Error al cargar el episodio';
+      // Mostrar error detallado en consola
+      alert('Error al cargar el episodio: ' + error.message);
     }
   }
   
   createServerButton(label, url, isActive) {
     const container = document.getElementById('serverOptions');
+    if (!container) return;
     const btn = document.createElement('button');
     const isFirst = container.children.length === 0;
     btn.className = 'opt-btn' + ((isActive || isFirst) ? ' active' : '');
@@ -314,6 +329,7 @@ class VideoPlayer {
   
   loadVideo(url) {
     const container = document.getElementById('mediaContainer');
+    if (!container) return;
     container.innerHTML = '';
     if (!url) return;
     
@@ -386,6 +402,7 @@ class VideoPlayer {
     return url;
   }
   
+  // ========== BARRA DE PROGRESO PARA CATBOX ==========
   showProgressBar(partNumber = 1, totalParts = 1) {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
@@ -513,68 +530,84 @@ class VideoPlayer {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     
-    if (idx > 0) {
-      const prev = flat[idx-1];
-      prevBtn.classList.remove('btn-hidden');
-      prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
-      prevBtn.setAttribute('title', this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData));
-    } else {
-      prevBtn.classList.add('btn-hidden');
-    }
-    
-    if (idx < flat.length - 1) {
-      const next = flat[idx+1];
-      nextBtn.classList.remove('btn-hidden');
-      nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
-      nextBtn.setAttribute('title', this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData));
-    } else {
-      nextBtn.classList.add('btn-hidden');
+    if (prevBtn && nextBtn) {
+      if (idx > 0) {
+        const prev = flat[idx-1];
+        prevBtn.classList.remove('btn-hidden');
+        prevBtn.href = `?anime=${this.animeId}&s=${prev.s}&e=${prev.e}`;
+        prevBtn.setAttribute('title', this.formatEpisodeTitle(prev.seasonObj, prev.e, prev.episodeData));
+      } else {
+        prevBtn.classList.add('btn-hidden');
+      }
+      
+      if (idx < flat.length - 1) {
+        const next = flat[idx+1];
+        nextBtn.classList.remove('btn-hidden');
+        nextBtn.href = `?anime=${this.animeId}&s=${next.s}&e=${next.e}`;
+        nextBtn.setAttribute('title', this.formatEpisodeTitle(next.seasonObj, next.e, next.episodeData));
+      } else {
+        nextBtn.classList.add('btn-hidden');
+      }
     }
   }
   
   setupAuthUI() {
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('authLoginForm').style.display = tabName === 'login' ? 'flex' : 'none';
-        document.getElementById('authRegisterForm').style.display = tabName === 'register' ? 'flex' : 'none';
+    const authTabs = document.querySelectorAll('.auth-tab');
+    if (authTabs.length) {
+      authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.dataset.tab;
+          document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const loginForm = document.getElementById('authLoginForm');
+          const registerForm = document.getElementById('authRegisterForm');
+          if (loginForm) loginForm.style.display = tabName === 'login' ? 'flex' : 'none';
+          if (registerForm) registerForm.style.display = tabName === 'register' ? 'flex' : 'none';
+        });
       });
-    });
+    }
   }
   
-  openLoginModal() { document.getElementById('authModal').classList.add('show'); }
+  openLoginModal() { 
+    const modal = document.getElementById('authModal');
+    if (modal) modal.classList.add('show');
+  }
   closeAuthModal() { 
-    document.getElementById('authModal').classList.remove('show'); 
+    const modal = document.getElementById('authModal');
+    if (modal) modal.classList.remove('show'); 
     const errEl = document.getElementById('authError');
     if (errEl) errEl.innerText = '';
   }
   
   async loginWithEmail() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
+    const email = document.getElementById('loginEmail')?.value;
+    const pass = document.getElementById('loginPassword')?.value;
+    if (!email || !pass) return;
     try { 
       await this.auth.signInWithEmailAndPassword(email, pass); 
       this.closeAuthModal(); 
     } catch (e) { 
-      document.getElementById('authError').innerText = e.message; 
+      const errEl = document.getElementById('authError');
+      if (errEl) errEl.innerText = e.message; 
     }
   }
   
   async registerWithEmail() {
-    const email = document.getElementById('registerEmail').value;
-    const pass = document.getElementById('registerPassword').value;
-    const confirm = document.getElementById('registerConfirm').value;
+    const email = document.getElementById('registerEmail')?.value;
+    const pass = document.getElementById('registerPassword')?.value;
+    const confirm = document.getElementById('registerConfirm')?.value;
+    if (!email || !pass) return;
     if (pass !== confirm) { 
-      document.getElementById('authError').innerText = 'Las contraseñas no coinciden'; 
+      const errEl = document.getElementById('authError');
+      if (errEl) errEl.innerText = 'Las contraseñas no coinciden'; 
       return; 
     }
     try { 
       await this.auth.createUserWithEmailAndPassword(email, pass); 
       this.closeAuthModal(); 
     } catch (e) { 
-      document.getElementById('authError').innerText = e.message; 
+      const errEl = document.getElementById('authError');
+      if (errEl) errEl.innerText = e.message; 
     }
   }
   
@@ -584,7 +617,8 @@ class VideoPlayer {
       await this.auth.signInWithPopup(provider); 
       this.closeAuthModal(); 
     } catch (e) { 
-      document.getElementById('authError').innerText = e.message; 
+      const errEl = document.getElementById('authError');
+      if (errEl) errEl.innerText = e.message; 
     }
   }
   
@@ -594,7 +628,8 @@ class VideoPlayer {
       await this.auth.signInWithPopup(provider); 
       this.closeAuthModal(); 
     } catch (e) { 
-      document.getElementById('authError').innerText = e.message; 
+      const errEl = document.getElementById('authError');
+      if (errEl) errEl.innerText = e.message; 
     }
   }
   
@@ -631,10 +666,18 @@ class VideoPlayer {
     if (typeof window.switchStickerTab === 'function') {
       window.switchStickerTab(tabId);
     } else {
-      document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
-      document.querySelector(`.sticker-tab[data-tab="${tabId}"]`)?.classList.add('active');
-      document.querySelectorAll('.sticker-tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
+      const tabs = document.querySelectorAll('.sticker-tab');
+      const contents = document.querySelectorAll('.sticker-tab-content');
+      if (tabs.length) {
+        tabs.forEach(t => t.classList.remove('active'));
+        const targetTab = document.querySelector(`.sticker-tab[data-tab="${tabId}"]`);
+        if (targetTab) targetTab.classList.add('active');
+      }
+      if (contents.length) {
+        contents.forEach(c => c.classList.remove('active'));
+        const targetContent = document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab');
+        if (targetContent) targetContent.classList.add('active');
+      }
     }
   }
   
@@ -658,6 +701,7 @@ class VideoPlayer {
   }
 }
 
+// Inicializar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {
