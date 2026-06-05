@@ -13,14 +13,14 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrls = [];      // Array de URLs para descargar (todas las partes)
-    this.currentPlaylist = [];           // Array de URLs para reproducir en secuencia
-    this.currentPartIndex = 0;           // Índice de la parte actual
+    this.currentDownloadUrls = [];
+    this.currentPlaylist = [];
+    this.currentPartIndex = 0;
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
-    this.videoElement = null;             // Referencia al elemento video actual
-    this.autoPlayNext = true;             // Bandera para reproducción automática
+    this.videoElement = null;
+    this.autoPlayNext = true;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -255,13 +255,10 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
-      // === NUEVO: Construir listas de reproducción y descarga ===
-      // Soporta tanto datos antiguos (link, link2) como nuevo formato (links array)
       let linksArray = [];
       if (episodeData.links && Array.isArray(episodeData.links)) {
         linksArray = episodeData.links.filter(url => url && url.trim() !== '');
       } else {
-        // Modo legacy: usar link y link2
         if (episodeData.link) linksArray.push(episodeData.link);
         if (episodeData.link2) linksArray.push(episodeData.link2);
       }
@@ -270,7 +267,6 @@ class VideoPlayer {
       this.currentDownloadUrls = [...linksArray];
       this.currentPartIndex = 0;
       
-      // Cargar la primera parte
       if (this.currentPlaylist.length > 0) {
         this.updateDownloadUrls(this.currentPlaylist);
         this.loadVideo(this.currentPlaylist[0]);
@@ -279,7 +275,6 @@ class VideoPlayer {
         document.getElementById('epTitle').innerText += ' (sin enlaces)';
       }
       
-      // Generar botones de servidor (cambiamos la lógica para mostrar "Parte 1", "Parte 2", etc.)
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (linksArray.length > 0) {
@@ -288,7 +283,6 @@ class VideoPlayer {
           this.createServerButton(label, url, idx === 0);
         });
       } else {
-        // Fallback a legacy si no hay links pero sí link o link2 individuales
         if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
         if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
       }
@@ -310,7 +304,6 @@ class VideoPlayer {
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Al cambiar manualmente de servidor, reiniciamos la lista de reproducción a solo esa URL
       this.currentPlaylist = [url];
       this.currentDownloadUrls = [url];
       this.currentPartIndex = 0;
@@ -334,18 +327,15 @@ class VideoPlayer {
       container.appendChild(video);
       this.videoElement = video;
       
-      // Eliminar event listener anterior si existe
       if (this._onEndedHandler) {
         this.videoElement.removeEventListener('ended', this._onEndedHandler);
       }
-      // Crear handler para reproducción automática de siguiente parte
       this._onEndedHandler = () => {
         if (this.autoPlayNext && this.currentPlaylist.length > 1) {
           this.currentPartIndex++;
           if (this.currentPartIndex < this.currentPlaylist.length) {
             const nextUrl = this.currentPlaylist[this.currentPartIndex];
             this.loadVideo(nextUrl);
-            // Opcional: actualizar botón activo para reflejar la parte actual
             const btns = document.querySelectorAll('.opt-btn');
             if (btns[this.currentPartIndex]) {
               btns.forEach(b => b.classList.remove('active'));
@@ -356,7 +346,6 @@ class VideoPlayer {
       };
       this.videoElement.addEventListener('ended', this._onEndedHandler);
     } else {
-      // Si es iframe, no podemos controlar secuencia automática
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -369,7 +358,6 @@ class VideoPlayer {
   }
   
   updateDownloadUrls(urls) {
-    // Generar enlaces directos para cada URL (transformaciones Google Drive, etc.)
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
   }
   
@@ -398,7 +386,6 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== BARRA DE PROGRESO PARA DESCARGA INDIVIDUAL ==========
   showProgressBar(partNumber = 1, totalParts = 1) {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
@@ -421,7 +408,7 @@ class VideoPlayer {
   }
 
   async forceDownload(url, filename) {
-    this.showProgressBar(1, 1); // simplificado, la parte real se maneja en handleDownloadClick
+    this.showProgressBar(1, 1);
     const percentSpan = document.getElementById('progressPercent');
     const fillDiv = document.getElementById('progressBarFill');
 
@@ -476,12 +463,10 @@ class VideoPlayer {
       return;
     }
     
-    // Obtener título base para los nombres de archivo
     const epTitleElem = document.getElementById('epTitle');
     let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
     baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
     
-    // Descargar todas las partes secuencialmente
     let success = true;
     for (let i = 0; i < this.currentDownloadUrls.length; i++) {
       const url = this.currentDownloadUrls[i];
@@ -491,7 +476,6 @@ class VideoPlayer {
       const totalParts = this.currentDownloadUrls.length;
       let filename = totalParts === 1 ? `${baseFilename}.mp4` : `${baseFilename} - Parte ${partNum}.mp4`;
       
-      // Mostrar progreso específico para esta parte
       this.showProgressBar(partNum, totalParts);
       try {
         await this.forceDownload(url, filename);
@@ -519,7 +503,6 @@ class VideoPlayer {
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
-        // Consideramos que un episodio existe si tiene al menos un enlace (legacy o nuevo)
         const hasLinks = (ep.links && ep.links.length > 0) || ep.link || ep.link2;
         if (hasLinks) {
           flat.push({ s: season.num, e: idx + 1, seasonObj: season, episodeData: ep });
@@ -549,7 +532,6 @@ class VideoPlayer {
     }
   }
   
-  // ========== SISTEMA DE AUTENTICACIÓN (sin cambios) ==========
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -676,7 +658,6 @@ class VideoPlayer {
   }
 }
 
-// Inicializar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {

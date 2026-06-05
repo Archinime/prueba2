@@ -664,9 +664,7 @@ function handleSeasonTypeChange(select) {
     requestPreviewUpdate();
 }
 
-// ============================================
-// NUEVA FUNCIÓN: Renderizar capítulos con múltiples enlaces (partes)
-// ============================================
+// ========== RENDERIZADO DE CAPÍTULOS CON MÚLTIPLES PARTES ==========
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
     const typeSelect = card.querySelector('.s-type');
@@ -677,11 +675,9 @@ function renderChapters(input, existingEps = []) {
     const startNum = startSel ? parseInt(startSel.value) : 1;
     const list = card.querySelector('.chapters-grid');
     
-    // Guardar datos actuales si no se pasan existingEps
     let currentData = [];
     if(existingEps.length === 0) {
         card.querySelectorAll('.chapter-row').forEach(row => {
-            // Extraer lista de enlaces de esta fila
             const links = [];
             row.querySelectorAll('.part-link-input').forEach(inp => {
                 if(inp.value.trim()) links.push(inp.value.trim());
@@ -702,7 +698,6 @@ function renderChapters(input, existingEps = []) {
         let existingLinks = [];
         let customTitle = '';
         if(existingEps[i]) {
-            // Soporte para nuevo formato (links array) o legacy (link, link2)
             if(existingEps[i].links && Array.isArray(existingEps[i].links)) {
                 existingLinks = [...existingEps[i].links];
             } else {
@@ -729,8 +724,7 @@ function renderChapters(input, existingEps = []) {
             <input type="text" class="c-title-ov" value="${escapeHtml(customTitle)}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
         `;
         const partsContainer = row.querySelector('.parts-list');
-        // Añadir campos para cada parte
-        if(existingLinks.length === 0) existingLinks.push(''); // Al menos un campo vacío
+        if(existingLinks.length === 0) existingLinks.push('');
         existingLinks.forEach((linkVal, idx) => {
             addPartInput(partsContainer, linkVal, idx);
         });
@@ -739,7 +733,6 @@ function renderChapters(input, existingEps = []) {
     requestPreviewUpdate();
 }
 
-// Función auxiliar para escapar HTML
 function escapeHtml(str) {
     if(!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -750,7 +743,6 @@ function escapeHtml(str) {
     });
 }
 
-// Añadir un campo de enlace (parte) a un contenedor
 function addPartInput(container, value = '', index = null) {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
@@ -763,7 +755,6 @@ function addPartInput(container, value = '', index = null) {
     container.appendChild(div);
 }
 
-// Función global para añadir parte a un capítulo (llamada desde el botón)
 window.addPartToChapter = function(btn) {
     const chapterRow = btn.closest('.chapter-row');
     const partsContainer = chapterRow.querySelector('.parts-list');
@@ -773,9 +764,6 @@ window.addPartToChapter = function(btn) {
     }
 };
 
-// ============================================
-// MODIFICACIÓN DE generateData para capturar múltiples enlaces
-// ============================================
 function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
@@ -818,7 +806,6 @@ function generateData() {
         if(sType === 'Especial') specialCountVP++;
         
         card.querySelectorAll('.chapter-row').forEach((row, idx) => {
-            // Obtener todos los enlaces de las partes
             const links = [];
             row.querySelectorAll('.part-link-input').forEach(inp => {
                 const val = inp.value.trim();
@@ -846,7 +833,7 @@ function generateData() {
             if(links.length > 0) {
                 eps.push({ 
                     num: idx + 1, 
-                    links: links,          // NUEVO: array de enlaces
+                    links: links,
                     title: detailTitle, 
                     playerTitle: playerTitle 
                 });
@@ -859,9 +846,112 @@ function generateData() {
     return anime;
 }
 
-// ============================================
-// MODIFICACIÓN de loadAnimeForEditing para cargar múltiples enlaces
-// ============================================
+// ========== FUNCIONES DE BÚSQUEDA Y CARGA (CORREGIDAS) ==========
+async function openSearchModal() {
+    const modal = document.getElementById('searchModal');
+    if (!modal) {
+        console.error("No se encontró el modal #searchModal");
+        return;
+    }
+    // Limpiar campos
+    document.getElementById('searchInput').value = "";
+    document.getElementById('searchResults').innerHTML = '<div style="padding:20px; text-align:center;">Cargando índice...</div>';
+    modal.style.display = 'flex';
+    // Cargar índice si está vacío
+    if (cachedIndex.length === 0) {
+        await loadIndexForSearch();
+    } else {
+        filterSearch();
+    }
+}
+
+function handleModalClick(event) {
+    if (event.target.id === 'searchModal') closeSearchModal();
+}
+
+function closeSearchModal() { 
+    const modal = document.getElementById('searchModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function switchSearchTab(mode) {
+    currentSearchMode = mode;
+    document.getElementById('tabMine').className = mode === 'mine' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById('tabGeneral').className = mode === 'general' ? 'tab-btn active' : 'tab-btn';
+    if(cachedIndex.length > 0) filterSearch();
+}
+
+async function loadIndexForSearch() {
+    const loading = document.getElementById('loadingSearch');
+    if (loading) loading.style.display = 'block';
+    try {
+        const snapshot = await db.collection('catalogo').get();
+        cachedIndex = [];
+        snapshot.forEach(doc => {
+            const anime = doc.data();
+            cachedIndex.push({
+                id: anime.id,
+                title: anime.title,
+                img: anime.img,
+                rating: anime.rating || 0,
+                uploader: anime.uploader,
+                uploaderImg: anime.uploaderImg,
+                genres: anime.genres,
+                isFinal: anime.isFinal
+            });
+        });
+        cachedIndex.sort((a,b) => b.id - a.id);
+        filterSearch();
+    } catch(e) {
+        console.error(e);
+        document.getElementById('searchResults').innerHTML = `<div style="color:red; text-align:center">Error: ${e.message}</div>`;
+    } finally {
+        if (loading) loading.style.display = 'none';
+    }
+}
+
+function filterSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => _performFilter(), 300);
+}
+
+function _performFilter() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const results = document.getElementById('searchResults');
+    if (!results) return;
+    results.innerHTML = '';
+    const filtered = cachedIndex.filter(a => {
+        const matchesText = a.title.toLowerCase().includes(query);
+        if (currentSearchMode === 'mine') { 
+            return matchesText && (a.uploader === currentUserEmail); 
+        } else { 
+            return matchesText; 
+        }
+    }).slice(0, 1000);
+    filtered.forEach(anime => {
+        const div = document.createElement('div');
+        div.className = 's-result-item';
+        div.onclick = () => loadAnimeForEditing(anime.id);
+        let extraInfo = "";
+        let uploaderImg = anime.uploaderImg || "Logo_Archinime.avif";
+        if (currentSearchMode === 'general') { 
+            extraInfo = ` | Subido por: <img src="${uploaderImg}" style="width:16px; height:16px; border-radius:50%; vertical-align:middle; margin:0 4px; object-fit:cover; border:1px solid #555;"> <span style="color:var(--primary)">${anime.uploader || "Desconocido"}</span>`; 
+        }
+        div.innerHTML = `
+            <img src="${anime.img}" class="s-result-img" onerror="this.src='https://via.placeholder.com/50'">
+            <div>
+                <div style="font-weight:bold; color:#fff;">${anime.title}</div>
+                <div style="color:#777; font-size:0.8em">ID: ${anime.id}${extraInfo}</div>
+            </div>
+        `;
+        results.appendChild(div);
+    });
+    if(filtered.length === 0) {
+        let emptyMsg = currentSearchMode === 'mine' ? `No se encontraron animes subidos por <b>${currentUserNick}</b>.` : "No se encontraron resultados.";
+        results.innerHTML = `<div style="padding:20px; color:#777; text-align:center"><i class="fas fa-folder-open" style="font-size:2em; margin-bottom:10px;"></i><br>${emptyMsg}</div>`;
+    }
+}
+
 async function loadAnimeForEditing(id) {
     if(!confirm("¿Cargar anime? Se perderán los datos actuales del formulario.")) return;
     closeSearchModal();
@@ -1079,7 +1169,7 @@ async function subirAGithHub() {
                 cover: t.cover,
                 eps: t.eps.map(e => ({ 
                     title: e.title, 
-                    links: e.links   // GUARDAR ARRAY DE ENLACES
+                    links: e.links
                 }))
             }))
         };
