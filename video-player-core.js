@@ -1,8 +1,6 @@
-// video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
-// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
-// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio"
-// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
+// video-player-core.js - Versión con soporte para múltiples partes por capítulo
+// Permite reproducción secuencial y descarga de todas las partes.
+// Compatible con datos antiguos (link y link2)
 
 class VideoPlayer {
   constructor() {
@@ -15,11 +13,14 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrl = '#';
-    this.currentPeerTubeUrl = null;
+    this.currentDownloadUrls = [];      // Array de URLs para descargar (todas las partes)
+    this.currentPlaylist = [];           // Array de URLs para reproducir en secuencia
+    this.currentPartIndex = 0;           // Índice de la parte actual
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
+    this.videoElement = null;             // Referencia al elemento video actual
+    this.autoPlayNext = true;             // Bandera para reproducción automática
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -254,14 +255,43 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
-      const initialLink = episodeData.link || episodeData.link2;
-      this.updateDownloadUrl(initialLink);
-      this.loadVideo(initialLink);
+      // === NUEVO: Construir listas de reproducción y descarga ===
+      // Soporta tanto datos antiguos (link, link2) como nuevo formato (links array)
+      let linksArray = [];
+      if (episodeData.links && Array.isArray(episodeData.links)) {
+        linksArray = episodeData.links.filter(url => url && url.trim() !== '');
+      } else {
+        // Modo legacy: usar link y link2
+        if (episodeData.link) linksArray.push(episodeData.link);
+        if (episodeData.link2) linksArray.push(episodeData.link2);
+      }
       
+      this.currentPlaylist = [...linksArray];
+      this.currentDownloadUrls = [...linksArray];
+      this.currentPartIndex = 0;
+      
+      // Cargar la primera parte
+      if (this.currentPlaylist.length > 0) {
+        this.updateDownloadUrls(this.currentPlaylist);
+        this.loadVideo(this.currentPlaylist[0]);
+      } else {
+        console.warn('No hay enlaces para este episodio');
+        document.getElementById('epTitle').innerText += ' (sin enlaces)';
+      }
+      
+      // Generar botones de servidor (cambiamos la lógica para mostrar "Parte 1", "Parte 2", etc.)
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
-      if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
-      if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
+      if (linksArray.length > 0) {
+        linksArray.forEach((url, idx) => {
+          const label = linksArray.length === 1 ? 'Latino' : `Parte ${idx+1}`;
+          this.createServerButton(label, url, idx === 0);
+        });
+      } else {
+        // Fallback a legacy si no hay links pero sí link o link2 individuales
+        if (episodeData.link) this.createServerButton('Latino', episodeData.link, true);
+        if (episodeData.link2) this.createServerButton('Opción 2', episodeData.link2, !episodeData.link);
+      }
       
       this.setupNavigation();
       await this.autoMarkAsWatched();
@@ -280,7 +310,10 @@ class VideoPlayer {
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      this.updateDownloadUrl(url);
+      // Al cambiar manualmente de servidor, reiniciamos la lista de reproducción a solo esa URL
+      this.currentPlaylist = [url];
+      this.currentDownloadUrls = [url];
+      this.currentPartIndex = 0;
       this.loadVideo(url);
     };
     container.appendChild(btn);
@@ -290,6 +323,7 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     if (!url) return;
+    
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
@@ -298,7 +332,31 @@ class VideoPlayer {
       video.style.width = '100%';
       video.style.height = '100%';
       container.appendChild(video);
+      this.videoElement = video;
+      
+      // Eliminar event listener anterior si existe
+      if (this._onEndedHandler) {
+        this.videoElement.removeEventListener('ended', this._onEndedHandler);
+      }
+      // Crear handler para reproducción automática de siguiente parte
+      this._onEndedHandler = () => {
+        if (this.autoPlayNext && this.currentPlaylist.length > 1) {
+          this.currentPartIndex++;
+          if (this.currentPartIndex < this.currentPlaylist.length) {
+            const nextUrl = this.currentPlaylist[this.currentPartIndex];
+            this.loadVideo(nextUrl);
+            // Opcional: actualizar botón activo para reflejar la parte actual
+            const btns = document.querySelectorAll('.opt-btn');
+            if (btns[this.currentPartIndex]) {
+              btns.forEach(b => b.classList.remove('active'));
+              btns[this.currentPartIndex].classList.add('active');
+            }
+          }
+        }
+      };
+      this.videoElement.addEventListener('ended', this._onEndedHandler);
     } else {
+      // Si es iframe, no podemos controlar secuencia automática
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -306,17 +364,13 @@ class VideoPlayer {
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       container.appendChild(iframe);
+      this.videoElement = null;
     }
   }
   
-  updateDownloadUrl(url) {
-    this.currentDownloadUrl = this.generateDirectLink(url);
-    this.currentPeerTubeUrl = this.isPeerTubeUrl(url) ? url : null;
-  }
-  
-  isPeerTubeUrl(url) {
-    if (!url) return false;
-    return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
+  updateDownloadUrls(urls) {
+    // Generar enlaces directos para cada URL (transformaciones Google Drive, etc.)
+    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
   }
   
   generateDirectLink(url) {
@@ -344,14 +398,14 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
-  showProgressBar() {
+  // ========== BARRA DE PROGRESO PARA DESCARGA INDIVIDUAL ==========
+  showProgressBar(partNumber = 1, totalParts = 1) {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
     div.id = 'customDownloadProgress';
     div.innerHTML = `
       <div style="position:fixed; bottom:20px; left:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.9); border-radius:16px; padding:16px; border:1px solid var(--primary-color); backdrop-filter:blur(8px); text-align:center; font-family:'Poppins',sans-serif;">
-        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando video... <span id="progressPercent">0</span>%</div>
+        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando parte ${partNumber} de ${totalParts}... <span id="progressPercent">0</span>%</div>
         <div style="background:#222; border-radius:50px; overflow:hidden; height:10px;">
           <div id="progressBarFill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f3ff, #bc13fe); transition:width 0.2s;"></div>
         </div>
@@ -366,8 +420,8 @@ class VideoPlayer {
     if (el) el.remove();
   }
 
-  async forceDownload(url, suggestedFilename = 'video.mp4') {
-    this.showProgressBar();
+  async forceDownload(url, filename) {
+    this.showProgressBar(1, 1); // simplificado, la parte real se maneja en handleDownloadClick
     const percentSpan = document.getElementById('progressPercent');
     const fillDiv = document.getElementById('progressBarFill');
 
@@ -397,15 +451,14 @@ class VideoPlayer {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = suggestedFilename;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.warn(error);
-      alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
-      window.open(url, '_blank');
+      throw error;
     } finally {
       this.hideProgressBar();
     }
@@ -418,42 +471,43 @@ class VideoPlayer {
       return;
     }
     
-    let finalDownloadUrl = this.currentDownloadUrl;
+    if (!this.currentDownloadUrls || this.currentDownloadUrls.length === 0) {
+      alert('No hay enlaces de descarga disponibles para este episodio.');
+      return;
+    }
     
-    if (this.currentPeerTubeUrl) {
-      const fallbackUrl = this.currentEpisodeData?.link2;
-      if (fallbackUrl) {
-        finalDownloadUrl = this.generateDirectLink(fallbackUrl);
-      } else {
-        alert('No hay enlace alternativo para PeerTube.');
-        return;
+    // Obtener título base para los nombres de archivo
+    const epTitleElem = document.getElementById('epTitle');
+    let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
+    baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
+    
+    // Descargar todas las partes secuencialmente
+    let success = true;
+    for (let i = 0; i < this.currentDownloadUrls.length; i++) {
+      const url = this.currentDownloadUrls[i];
+      if (!url || url === '#') continue;
+      
+      const partNum = i + 1;
+      const totalParts = this.currentDownloadUrls.length;
+      let filename = totalParts === 1 ? `${baseFilename}.mp4` : `${baseFilename} - Parte ${partNum}.mp4`;
+      
+      // Mostrar progreso específico para esta parte
+      this.showProgressBar(partNum, totalParts);
+      try {
+        await this.forceDownload(url, filename);
+      } catch (err) {
+        console.error(`Error descargando parte ${partNum}:`, err);
+        alert(`Error al descargar la parte ${partNum}. Ver consola.`);
+        success = false;
+        break;
+      } finally {
+        this.hideProgressBar();
       }
     }
     
-    if (!finalDownloadUrl || finalDownloadUrl === '#') {
-      alert('No hay enlace de descarga disponible.');
-      return;
+    if (success && this.currentDownloadUrls.length > 1) {
+      alert('Todas las partes se han descargado correctamente.');
     }
-    
-    const isCatbox = finalDownloadUrl.includes('catbox.moe');
-    const isCrossOrigin = !finalDownloadUrl.startsWith(location.origin);
-    
-    if (isCatbox || isCrossOrigin) {
-      const epTitleElem = document.getElementById('epTitle');
-      let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
-      baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
-      const filename = `${baseFilename}.mp4`;
-      await this.forceDownload(finalDownloadUrl, filename);
-      return;
-    }
-    
-    const link = document.createElement('a');
-    link.href = finalDownloadUrl;
-    link.download = '';
-    link.target = this.isMobile() ? '_blank' : '_self';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
   
   isMobile() {
@@ -465,7 +519,9 @@ class VideoPlayer {
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
-        if (ep.link || ep.link2) {
+        // Consideramos que un episodio existe si tiene al menos un enlace (legacy o nuevo)
+        const hasLinks = (ep.links && ep.links.length > 0) || ep.link || ep.link2;
+        if (hasLinks) {
           flat.push({ s: season.num, e: idx + 1, seasonObj: season, episodeData: ep });
         }
       });
@@ -493,6 +549,7 @@ class VideoPlayer {
     }
   }
   
+  // ========== SISTEMA DE AUTENTICACIÓN (sin cambios) ==========
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
