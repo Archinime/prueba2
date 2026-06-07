@@ -4,7 +4,7 @@
 // MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio"
 // NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 // NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
-// MODIFICADO MÓVILES: Forzar modo escritorio en videos de Google Drive cambiando el iframe a /view?usp=sharing
+// MODIFICADO MÓVILES: Forzar modo escritorio en videos de Google Drive (iframe con view?usp=sharing + scroll horizontal)
 
 class VideoPlayer {
   constructor() {
@@ -336,7 +336,7 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== MÉTODO PRINCIPAL CORREGIDO ==========
+  // ========== MÉTODO PRINCIPAL DEFINITIVO PARA MÓVILES ==========
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     let url = urlsArray[partIndex];
@@ -348,34 +348,43 @@ class VideoPlayer {
     const isMobile = this.isMobile();
     const isDrive = url.includes('drive.google.com');
     
-    // Si es móvil y es Google Drive, forzamos el iframe con la URL de escritorio (/view)
+    // Si es móvil y es Google Drive → Forzar modo escritorio con scroll horizontal
     if (isMobile && isDrive) {
-      // Convertir URL de preview a view?usp=sharing para forzar modo escritorio
       let driveUrl = url;
-      // Si es una URL de preview o embed, la transformamos a /view?usp=sharing
+      // Convertir a URL de escritorio (/view?usp=sharing)
       if (driveUrl.includes('/preview')) {
         driveUrl = driveUrl.replace('/preview', '/view?usp=sharing');
       } else if (driveUrl.includes('/file/d/')) {
-        // Formato estándar: https://drive.google.com/file/d/FILE_ID/preview
-        // Extraer el ID y construir la URL de view
         const match = driveUrl.match(/\/d\/(.+?)\//);
         if (match && match[1]) {
           driveUrl = `https://drive.google.com/file/d/${match[1]}/view?usp=sharing`;
         }
       }
-      // Usar iframe con esta nueva URL
+      
+      // Crear envoltorio para scroll horizontal
+      const wrapper = document.createElement('div');
+      wrapper.style.overflowX = 'auto';
+      wrapper.style.overflowY = 'hidden';
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100%';
+      wrapper.style.WebkitOverflowScrolling = 'touch'; // scroll suave en iOS
+      
       const iframe = document.createElement('iframe');
       iframe.src = driveUrl;
       iframe.allow = 'autoplay; fullscreen';
       iframe.allowFullscreen = true;
-      iframe.style.width = '100%';
+      // Forzar un ancho mínimo para que se vea como en escritorio
+      iframe.style.width = '800px';     // Ancho fijo para que el reproductor de escritorio se muestre completo
       iframe.style.height = '100%';
-      container.appendChild(iframe);
+      iframe.style.border = 'none';
+      
+      wrapper.appendChild(iframe);
+      container.appendChild(wrapper);
       this.currentVideoElement = null;
       return;
     }
     
-    // Para el resto de URLs (no Drive o no móvil) mantenemos el comportamiento original
+    // Para el resto de URLs (no Drive o no móvil) comportamiento original
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
