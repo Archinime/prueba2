@@ -4,7 +4,7 @@
 // MEJORADO: Títulos dinámicos: ahora muestra "Nombre Temporada - Título Episodio"
 // NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 // NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
-// MEJORADO MÓVILES: Forzar modo escritorio en videos de Google Drive usando enlace directo
+// MODIFICADO MÓVILES: Forzar modo escritorio en videos de Google Drive cambiando el iframe a /view?usp=sharing
 
 class VideoPlayer {
   constructor() {
@@ -336,8 +336,7 @@ class VideoPlayer {
     return url;
   }
   
-  // ========== MÉTODO PRINCIPAL MODIFICADO PARA MÓVILES ==========
-  // Reproducir una parte específica con soporte para móviles y Google Drive
+  // ========== MÉTODO PRINCIPAL CORREGIDO ==========
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     let url = urlsArray[partIndex];
@@ -346,36 +345,46 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     
-    // Detectar si es móvil
     const isMobile = this.isMobile();
     const isDrive = url.includes('drive.google.com');
     
-    // Si es móvil y es Google Drive, convertir a enlace directo de video
+    // Si es móvil y es Google Drive, forzamos el iframe con la URL de escritorio (/view)
     if (isMobile && isDrive) {
-      const directUrl = this.generateDirectLink(url);
-      if (directUrl && directUrl !== '#') {
-        url = directUrl;
+      // Convertir URL de preview a view?usp=sharing para forzar modo escritorio
+      let driveUrl = url;
+      // Si es una URL de preview o embed, la transformamos a /view?usp=sharing
+      if (driveUrl.includes('/preview')) {
+        driveUrl = driveUrl.replace('/preview', '/view?usp=sharing');
+      } else if (driveUrl.includes('/file/d/')) {
+        // Formato estándar: https://drive.google.com/file/d/FILE_ID/preview
+        // Extraer el ID y construir la URL de view
+        const match = driveUrl.match(/\/d\/(.+?)\//);
+        if (match && match[1]) {
+          driveUrl = `https://drive.google.com/file/d/${match[1]}/view?usp=sharing`;
+        }
       }
+      // Usar iframe con esta nueva URL
+      const iframe = document.createElement('iframe');
+      iframe.src = driveUrl;
+      iframe.allow = 'autoplay; fullscreen';
+      iframe.allowFullscreen = true;
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      container.appendChild(iframe);
+      this.currentVideoElement = null;
+      return;
     }
     
-    // Ahora determinar si usar video nativo o iframe
+    // Para el resto de URLs (no Drive o no móvil) mantenemos el comportamiento original
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    // También considerar que las URLs directas de Google Drive terminan en /download?id=... pero no tienen extensión.
-    // Forzamos video si es móvil y drive (ya convertido) o si es video file normal.
-    const useVideo = isVideoFile || (isMobile && url.includes('drive.usercontent.google.com'));
-    
-    if (useVideo) {
+    if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.src = url;
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
-      // Asegurar que el video se muestre correctamente en móvil
-      video.setAttribute('playsinline', 'true');
-      video.setAttribute('webkit-playsinline', 'true');
       container.appendChild(video);
       this.currentVideoElement = video;
-      
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
           this.playPart(partIndex + 1, urlsArray);
