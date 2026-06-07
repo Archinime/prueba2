@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Reproductor Archinime</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0f 0%, #050505 100%);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Tarjeta principal con efecto glassmorphism */
+        .player-card {
+            max-width: 1280px;
+            width: 100%;
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 243, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Contenedor del video con relación de aspecto 16:9 y scroll horizontal */
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;  /* scroll suave en iOS */
+            scrollbar-width: thin;
+        }
+
+        /* El iframe ocupa un ancho fijo de 800px en móviles y se adapta en escritorio */
+        .drive-iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* En pantallas grandes el iframe se estira sin scroll */
+        @media (min-width: 768px) {
+            .drive-iframe {
+                width: 100%;
+                height: 100%;
+            }
+            .video-container {
+                overflow-x: visible;
+            }
+        }
+
+        /* Ajuste interno para que el wrapper respete el alto del contenedor padre */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* Relación 16:9 */
+            height: 0;
+            width: 100%;
+        }
+
+        .video-wrapper iframe,
+        .video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Controles inferiores */
+        .controls {
+            padding: 20px 24px 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(0, 243, 255, 0.3);
+        }
+
+        button {
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            color: white;
+            font-family: inherit;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        button i {
+            font-size: 1.1rem;
+            font-style: normal;
+        }
+
+        button:hover {
+            background: rgba(0, 243, 255, 0.2);
+            border-color: #00fff7;
+            transform: translateY(-2px);
+            box-shadow: 0 0 18px rgba(0, 243, 255, 0.4);
+        }
+
+        .mode-active {
+            background: #00fff7;
+            color: #000;
+            border-color: #00fff7;
+            box-shadow: 0 0 15px #00fff7;
+        }
+
+        .info-text {
+            font-size: 0.75rem;
+            text-align: center;
+            padding: 12px 20px;
+            color: #aaa;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            letter-spacing: 0.3px;
+        }
+
+        .info-text a {
+            color: #00fff7;
+            text-decoration: none;
+        }
+
+        @media (max-width: 560px) {
+            .controls {
+                padding: 16px;
+                gap: 12px;
+            }
+            button {
+                padding: 8px 18px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="player-card">
+    <!-- Título elegante -->
+    <div style="padding: 18px 24px 0 24px;">
+        <h2 style="color: #fff; font-weight: 600; letter-spacing: -0.2px; text-shadow: 0 0 8px rgba(0,243,255,0.4);">
+            🎬 Reproductor <span style="color: #00fff7;">Archinime</span>
+        </h2>
+        <div style="height: 2px; width: 60px; background: #00fff7; margin-top: 8px; border-radius: 10px;"></div>
+    </div>
+
+    <!-- Contenedor principal del video -->
+    <div class="video-container" id="videoContainer">
+        <div class="video-wrapper" id="videoWrapper">
+            <!-- Aquí se cargará el reproductor (iframe o video nativo) -->
+        </div>
+    </div>
+
+    <!-- Controles para alternar entre modos -->
+    <div class="controls">
+        <button id="modePreviewBtn" class="mode-active">
+            📱 Modo Estándar (Preview)
+        </button>
+        <button id="modeDesktopBtn">
+            🖥️ Modo Escritorio (View)
+        </button>
+        <button id="directVideoBtn">
+            🎥 Reproductor Directo
+        </button>
+    </div>
+    <div class="info-text">
+        💡 <strong>Modo Escritorio</strong> → fuerza el diseño de PC (scroll horizontal) para evitar distorsión en móviles.<br>
+        🎥 <strong>Reproductor Directo</strong> → usa video nativo (requiere que el archivo sea accesible).
+    </div>
+</div>
+
+<script>
+    // 🔗 Tu enlace de Google Drive
+    const ORIGINAL_URL = "https://drive.google.com/file/d/1zYa7UoASwDs3qvbDrnjtlZvCgCyOyGAA/preview";
+
+    // Extraer el ID del archivo (funciona con /preview o /view)
+    function getFileIdFromUrl(url) {
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)(?:\/|$)/);
+        if (match && match[1]) return match[1];
+        // alternativa si viene con id= en query
+        const idMatch = url.match(/[?&]id=([^&]+)/);
+        return idMatch ? idMatch[1] : null;
+    }
+
+    const FILE_ID = getFileIdFromUrl(ORIGINAL_URL);
+    
+    // URLs útiles
+    const PREVIEW_URL = `https://drive.google.com/file/d/${FILE_ID}/preview`;
+    const VIEW_URL = `https://drive.google.com/file/d/${FILE_ID}/view?usp=sharing`;
+    const DIRECT_VIDEO_URL = `https://drive.usercontent.google.com/download?id=${FILE_ID}&export=download`;  // direct link usable en <video>
+
+    // Elementos del DOM
+    const videoWrapper = document.getElementById('videoWrapper');
+    const modePreviewBtn = document.getElementById('modePreviewBtn');
+    const modeDesktopBtn = document.getElementById('modeDesktopBtn');
+    const directVideoBtn = document.getElementById('directVideoBtn');
+    const videoContainer = document.getElementById('videoContainer');
+
+    // Limpia el wrapper y elimina clases extras del contenedor
+    function clearPlayer() {
+        videoWrapper.innerHTML = '';
+        // Eliminamos estilos inline previos en el contenedor si existieran
+        videoContainer.style.overflowX = '';
+    }
+
+    // ================== 1. Modo Preview (iframe con URL /preview) ==================
+    function loadPreviewMode() {
+        clearPlayer();
+        // Resetear scroll del contenedor a visible por defecto (en móviles solo si es necesario)
+        videoContainer.style.overflowX = ''; 
+        const iframe = document.createElement('iframe');
+        iframe.src = PREVIEW_URL;
+        iframe.allow = 'autoplay; fullscreen; encrypted-media';
+        iframe.allowFullscreen = true;
+        iframe.className = 'drive-iframe';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('scrolling', 'no');
+        videoWrapper.appendChild(iframe);
+        
+        // Actualizar clases visuales
+        modePreviewBtn.classList.add('mode-active');
+        modeDesktopBtn.classList.remove('mode-active');
+        directVideoBtn.classList.remove('mode-active');
+    }
+
+    // ================== 2. Modo Escritorio (view?usp=sharing con scroll horizontal) ==================
+    function loadDesktopMode() {
+        clearPlayer();
+        // Fijamos un ancho mínimo en el contenedor para que el iframe forje scroll lateral
+        // El truco está en un wrapper interno que obligue al ancho fijo en móviles
+        const innerWrapper = document.createElement('div');
+        innerWrapper.style.width = '800px';      // ancho fijo similar a escritorio
+        innerWrapper.style.height = '100%';
+        innerWrapper.style.margin = '0 auto';
+        
+        const iframe = document.createElement('iframe');
+        iframe.src = VIEW_URL;
+        iframe.allow = 'autoplay; fullscreen; encrypted-media';
+        iframe.allowFullscreen = true;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        
+        innerWrapper.appendChild(iframe);
+        videoWrapper.appendChild(innerWrapper);
+        
+        // Forzar overflow horizontal en el contenedor principal
+        videoContainer.style.overflowX = 'auto';
+        videoContainer.style.overflowY = 'hidden';
+        videoContainer.style.webkitOverflowScrolling = 'touch';
+        
+        // Actualizar clases
+        modeDesktopBtn.classList.add('mode-active');
+        modePreviewBtn.classList.remove('mode-active');
+        directVideoBtn.classList.remove('mode-active');
+    }
+
+    // ================== 3. Reproductor Directo (etiqueta <video> nativa) ==================
+    function loadDirectVideo() {
+        clearPlayer();
+        videoContainer.style.overflowX = '';   // sin scroll extra, el video se adapta
+        
+        const video = document.createElement('video');
+        video.src = DIRECT_VIDEO_URL;
+        video.controls = true;
+        video.autoplay = false;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'contain';
+        video.setAttribute('playsinline', 'true');  // necesario en iOS
+        video.setAttribute('webkit-playsinline', 'true');
+        
+        // Manejo de errores: si la URL directa falla (por políticas de Google), mostramos mensaje.
+        video.onerror = () => {
+            videoWrapper.innerHTML = `
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background: #0a0a0f; color: #ffb347; text-align: center; padding: 20px;">
+                    <span style="font-size: 48px;">⚠️</span>
+                    <p style="margin-top: 12px; font-weight: 500;">No se pudo cargar el video directo.</p>
+                    <p style="font-size: 14px; color: #aaa;">Prueba el modo "Escritorio" o "Preview"</p>
+                </div>
+            `;
+        };
+        
+        videoWrapper.appendChild(video);
+        
+        // Actualizar clases
+        directVideoBtn.classList.add('mode-active');
+        modePreviewBtn.classList.remove('mode-active');
+        modeDesktopBtn.classList.remove('mode-active');
+    }
+
+    // Eventos de botones
+    modePreviewBtn.addEventListener('click', loadPreviewMode);
+    modeDesktopBtn.addEventListener('click', loadDesktopMode);
+    directVideoBtn.addEventListener('click', loadDirectVideo);
+
+    // 🔥 Por defecto cargamos el modo escritorio (para resolver la distorsión en móviles)
+    loadDesktopMode();
+
+    // Pequeño ajuste para redimensionar ventana y evitar problemas de altura
+    window.addEventListener('resize', () => {
+        // si el modo activo es escritorio, nos aseguramos que el wrapper mantenga el ancho fijo
+        if (modeDesktopBtn.classList.contains('mode-active')) {
+            // Reaplicamos la lógica de escritorio sin recargar todo (simple ajuste de altura)
+            const existingWrapper = videoWrapper.querySelector('div[style*="width: 800px"]');
+            if (existingWrapper) {
+                existingWrapper.style.height = videoWrapper.clientHeight + 'px';
+            }
+        }
+    });
+</script>
+</body>
+</html>
