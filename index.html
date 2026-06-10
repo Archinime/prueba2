@@ -794,7 +794,7 @@
   </div>
 </div>
 
-<!-- SCRIPTS (no se ha eliminado nada original) -->
+<!-- SCRIPTS -->
 <script>
   // Configuración de Firebase (necesaria para auth, ratings, etc.)
   const firebaseConfig = {
@@ -826,7 +826,7 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-<!-- ========== SCRIPT DE DONACIÓN KO-FI (CONTROLADO POR PAÍS Y ADMIN) ========== -->
+<!-- ========== SCRIPT DE DONACIÓN KO-FI (CONTROLADO POR PAÍS Y ADMIN) CON MEJORA DE ROBUSTEZ ========== -->
 <script>
   // Lista de países permitidos (códigos ISO 3166-1 alfa-2)
   const allowedCountries = ['NG', 'ID', 'EG', 'AE', 'KW', 'QA', 'SA', 'BD', 'TR', 'MY']; // NO incluye Perú, solo los que pediste
@@ -844,37 +844,41 @@
   function loadKoFiWidget() {
     if (kofiLoaded) return;
     kofiLoaded = true;
-    const script = document.createElement('script');
-    script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
-    script.async = true;
-    script.onload = () => {
-      if (typeof kofiWidgetOverlay !== 'undefined') {
-        kofiWidgetOverlay.draw('archinime', {
-          'type': 'floating-chat',
-          'floating-chat.donateButton.text': 'Apóyame',
-          'floating-chat.donateButton.background-color': '#00b9fe',
-          'floating-chat.donateButton.text-color': '#fff'
-        });
-      }
-    };
-    document.head.appendChild(script);
+    try {
+      const script = document.createElement('script');
+      script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
+      script.async = true;
+      script.onload = () => {
+        if (typeof kofiWidgetOverlay !== 'undefined') {
+          kofiWidgetOverlay.draw('archinime', {
+            'type': 'floating-chat',
+            'floating-chat.donateButton.text': 'Apóyame',
+            'floating-chat.donateButton.background-color': '#00b9fe',
+            'floating-chat.donateButton.text-color': '#fff'
+          });
+        }
+      };
+      document.head.appendChild(script);
+    } catch(e) { console.warn("Ko-fi error", e); }
   }
 
   // Lógica principal: mostrar solo si el usuario es admin O el país está en la lista
   function evaluarMostrarDonacion() {
-    const user = auth.currentUser;
-    // Administradores: archinime12@gmail.com y blodelywar@gmail.com
-    if (user && (user.email === 'archinime12@gmail.com' || user.email === 'blodelywar@gmail.com')) {
-      loadKoFiWidget();
-      return;
-    }
-    // No admin: comprobar país
-    getUserCountry(country => {
-      if (country && allowedCountries.includes(country)) {
+    try {
+      const user = auth.currentUser;
+      // Administradores: archinime12@gmail.com y blodelywar@gmail.com
+      if (user && (user.email === 'archinime12@gmail.com' || user.email === 'blodelywar@gmail.com')) {
         loadKoFiWidget();
+        return;
       }
-      // En caso contrario, no se carga nada.
-    });
+      // No admin: comprobar país
+      getUserCountry(country => {
+        if (country && allowedCountries.includes(country)) {
+          loadKoFiWidget();
+        }
+        // En caso contrario, no se carga nada.
+      });
+    } catch(e) { console.warn("Ko-fi init error", e); }
   }
 
   // Escuchar cambios de autenticación (Firebase ya está inicializado arriba)
@@ -969,7 +973,7 @@
   window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
   window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA) ====================
+  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA + FALLBACK POR INTERACCIÓN) ====================
   let isMusicStarted = false;
   let currentAudio = null;
 
@@ -1006,6 +1010,19 @@
   window.addEventListener('load', () => {
     startMusic();
   });
+
+  // FALLBACK ADICIONAL: si después de 2 segundos la música no ha comenzado (por ejemplo por error silencioso), forzar con interacción
+  setTimeout(() => {
+    if (!isMusicStarted) {
+      const fallbackInteraction = () => {
+        if (!isMusicStarted) startMusic();
+        document.removeEventListener('click', fallbackInteraction);
+        document.removeEventListener('touchstart', fallbackInteraction);
+      };
+      document.addEventListener('click', fallbackInteraction);
+      document.addEventListener('touchstart', fallbackInteraction);
+    }
+  }, 2000);
 
   // ==================== GIF ALEATORIO ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -1551,6 +1568,7 @@
     fg.classList.add(`fg-${side}`);
   }
 
+  // Chroma key (sin cambios relevantes, solo añadimos la aleatoriedad al cambiar de video)
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
   const fgCanvas = document.getElementById('fgCanvas');
@@ -1636,6 +1654,7 @@
   window.addEventListener('DOMContentLoaded', startVisualMedia);
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
+  // Inicializar anuncio y cargar datos después de ratings
   inicializarAnuncio();
   loadRatings().then(() => {
     cargarDatosYMostrar();
