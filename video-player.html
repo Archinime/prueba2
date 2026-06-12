@@ -318,109 +318,104 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* === NUEVA ANIMACIÓN DE BRILLO MEJORADA PARA OPCIÓN 2 === */
+    /* === EFECTO RADAR CIRCULAR PARA OPCIÓN 2 === */
     .opt-btn.has-content {
       position: relative;
-      border: 2px solid rgba(0, 243, 255, 0.8) !important;
-      background: rgba(0, 243, 255, 0.2) !important;
+      border: 2px solid rgba(0, 243, 255, 0.9) !important;
+      background: rgba(0, 243, 255, 0.15) !important;
       color: #e0ffff !important;
       text-shadow: 0 0 4px rgba(0, 243, 255, 0.8);
-      animation: neonPulse 1.5s infinite ease-in-out !important;
-      box-shadow: 0 0 8px rgba(0, 243, 255, 0.6), inset 0 0 6px rgba(0, 243, 255, 0.4) !important;
+      overflow: hidden;
+      transition: all 0.2s ease;
     }
 
-    /* Efecto de onda expansiva (ripple) */
+    /* Círculo radar que se expande */
     .opt-btn.has-content::before {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 100%;
-      height: 100%;
-      border-radius: 8px;
-      background: radial-gradient(circle, rgba(0, 243, 255, 0.6) 0%, rgba(0, 243, 255, 0) 80%);
+      width: 10px;
+      height: 10px;
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.8) 0%, rgba(0, 243, 255, 0.4) 50%, transparent 80%);
+      border-radius: 50%;
       transform: translate(-50%, -50%) scale(0);
       opacity: 0;
       pointer-events: none;
-      animation: rippleGlow 2s infinite;
+      animation: radarPulse 2s infinite ease-out;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
+    }
+
+    /* Borde brillante pulsante adicional */
+    .opt-btn.has-content::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 10px;
+      background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+      opacity: 0;
+      pointer-events: none;
+      animation: borderGlow 2s infinite;
     }
 
     .opt-btn.has-content.active {
       background: var(--primary-color) !important;
       color: #000 !important;
       text-shadow: none !important;
-      box-shadow: 0 0 25px var(--primary-color), 0 0 35px var(--primary-color), inset 0 0 8px white !important;
-      animation: none !important;
+      box-shadow: 0 0 25px var(--primary-color), inset 0 0 8px white !important;
+      border-color: var(--primary-color) !important;
     }
 
-    .opt-btn.has-content.active::before {
+    .opt-btn.has-content.active::before,
+    .opt-btn.has-content.active::after {
       display: none;
     }
 
-    @keyframes neonPulse {
+    @keyframes radarPulse {
       0% {
-        box-shadow: 0 0 4px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
-        border-color: rgba(0, 243, 255, 0.6);
-        text-shadow: 0 0 2px rgba(0, 243, 255, 0.6);
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 0.7;
+        width: 10px;
+        height: 10px;
       }
       50% {
-        box-shadow: 0 0 16px var(--primary-color), 0 0 24px rgba(0, 243, 255, 0.8), inset 0 0 10px rgba(0, 243, 255, 0.6);
-        border-color: var(--primary-color);
-        text-shadow: 0 0 8px rgba(0, 243, 255, 0.9);
+        opacity: 0.5;
       }
       100% {
-        box-shadow: 0 0 4px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
-        border-color: rgba(0, 243, 255, 0.6);
-        text-shadow: 0 0 2px rgba(0, 243, 255, 0.6);
+        transform: translate(-50%, -50%) scale(6);
+        opacity: 0;
+        width: 60px;
+        height: 60px;
       }
     }
 
-    @keyframes rippleGlow {
+    @keyframes borderGlow {
       0% {
-        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+      }
+      50% {
         opacity: 0.6;
       }
-      70% {
-        transform: translate(-50%, -50%) scale(1.5);
-        opacity: 0;
-      }
       100% {
-        transform: translate(-50%, -50%) scale(0.5);
         opacity: 0;
       }
     }
 
-    /* Ajustes para móviles: más brillo y onda más rápida */
+    /* Ajustes para móviles: radar más rápido y grande */
     @media (max-width: 768px) {
-      .opt-btn.has-content {
-        border-width: 2px !important;
-        background: rgba(0, 243, 255, 0.3) !important;
-        animation: neonPulseMobile 1s infinite ease-in-out !important;
-      }
       .opt-btn.has-content::before {
-        animation: rippleGlowMobile 1.5s infinite;
+        animation: radarPulseMobile 1.2s infinite ease-out;
       }
-      @keyframes neonPulseMobile {
+      @keyframes radarPulseMobile {
         0% {
-          box-shadow: 0 0 6px var(--primary-color), 0 0 12px rgba(0, 243, 255, 0.6), inset 0 0 4px rgba(0, 243, 255, 0.5);
-          border-color: var(--primary-color);
-        }
-        50% {
-          box-shadow: 0 0 20px var(--primary-color), 0 0 30px rgba(0, 243, 255, 0.9), inset 0 0 12px rgba(0, 243, 255, 0.7);
-          border-color: #fff;
-        }
-        100% {
-          box-shadow: 0 0 6px var(--primary-color), 0 0 12px rgba(0, 243, 255, 0.6), inset 0 0 4px rgba(0, 243, 255, 0.5);
-          border-color: var(--primary-color);
-        }
-      }
-      @keyframes rippleGlowMobile {
-        0% {
-          transform: translate(-50%, -50%) scale(0.6);
+          transform: translate(-50%, -50%) scale(0.3);
           opacity: 0.8;
         }
         100% {
-          transform: translate(-50%, -50%) scale(1.8);
+          transform: translate(-50%, -50%) scale(8);
           opacity: 0;
         }
       }
