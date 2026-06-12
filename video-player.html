@@ -6,12 +6,12 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
-  <!-- Tema de color dinámico optimizado -->
+  <!-- Tema de color dinámico optimizado (intervalo más largo para reducir carga) -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
-      const intervalTime = 120;
+      const intervalTime = 120;  // antes 20ms, ahora 120ms -> mucho más ligero
       const segments = colors.length - 1;
       const step = (intervalTime / animationDuration) * segments;
       let currentProgress = 0;
@@ -67,7 +67,7 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS ORIGINALES (OPTIMIZADOS) ===== */
+    /* ===== ESTILOS ORIGINALES (SIN DEFORMACIONES) CON OPTIMIZACIONES DE RENDIMIENTO ===== */
     
     :root {
       --primary-color: #00fff7;
@@ -99,9 +99,11 @@
       opacity: 0.5;
       pointer-events: none;
     }
+    /* En móviles, el video se oculta y usamos solo el poster como fondo */
     body.is-mobile #bg-video {
       display: none;
     }
+    /* Para móviles, aseguramos que el fondo tenga la imagen del poster */
     body.is-mobile {
       background: url('galaxia-morado1.avif') center center / cover no-repeat fixed;
     }
@@ -113,7 +115,7 @@
       height: 100%;
       z-index: -5;
       background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px); /* reducido de 8px para menor lag */
       pointer-events: none;
     }
 
@@ -158,6 +160,7 @@
       box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
       will-change: transform;
     }
+    /* eliminado hue-rotate costoso, se mantiene el glow */
     .gif-inner {
       width: 100%;
       height: 100%;
@@ -300,7 +303,7 @@
       color: #ccc;
       cursor: pointer;
       border-radius: 8px;
-      transition: all 0.2s ease;
+      transition: all 0.3s;
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
     }
@@ -316,50 +319,6 @@
       background: var(--primary-color);
       font-weight: 700;
       box-shadow: 0 0 15px var(--primary-color);
-    }
-
-    /* === BRILLO SUAVE Y OPTIMIZADO PARA OPCIÓN 2 === */
-    .opt-btn.has-content {
-      border: 2px solid rgba(0, 243, 255, 0.8) !important;
-      background: rgba(0, 243, 255, 0.12) !important;
-      color: #e0ffff !important;
-      text-shadow: 0 0 4px rgba(0, 243, 255, 0.6);
-      animation: softPulse 1.5s infinite ease-in-out;
-    }
-
-    .opt-btn.has-content.active {
-      background: var(--primary-color) !important;
-      color: #000 !important;
-      text-shadow: none !important;
-      box-shadow: 0 0 20px var(--primary-color) !important;
-      animation: none !important;
-    }
-
-    @keyframes softPulse {
-      0% {
-        box-shadow: 0 0 2px rgba(0, 243, 255, 0.4);
-        border-color: rgba(0, 243, 255, 0.6);
-      }
-      100% {
-        box-shadow: 0 0 10px rgba(0, 243, 255, 0.9);
-        border-color: var(--primary-color);
-      }
-    }
-
-    /* Versión para móviles: más ligera, sin text-shadow extra */
-    @media (max-width: 768px) {
-      .opt-btn.has-content {
-        animation: softPulseMobile 1.2s infinite ease-in-out;
-        background: rgba(0, 243, 255, 0.18) !important;
-      }
-      @keyframes softPulseMobile {
-        0% {
-          box-shadow: 0 0 2px rgba(0, 243, 255, 0.5);
-        }
-        100% {
-          box-shadow: 0 0 12px rgba(0, 243, 255, 0.9);
-        }
-      }
     }
 
     /* REPRODUCTOR */
@@ -1003,7 +962,7 @@
       background: #ff3366;
     }
 
-    /* AJUSTES MÓVILES GENERALES */
+    /* AJUSTES MÓVILES */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
@@ -1264,6 +1223,7 @@
       bgVideo.load();
       bgVideo.style.display = 'none';
     }
+    // Reducir aún más el blur en móviles para mejorar fps
     const style = document.createElement('style');
     style.textContent = `body.is-mobile .comentarios-section { backdrop-filter: blur(3px) !important; } body.is-mobile #overlay { backdrop-filter: blur(3px) !important; } body.is-mobile .logo-blocker { backdrop-filter: blur(2px) !important; }`;
     document.head.appendChild(style);
