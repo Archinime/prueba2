@@ -1,11 +1,5 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
-// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
-// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Anime - Nombre Temporada - Título Episodio"
-// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
-// NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
-// MEJORADO: Si solo hay Opción 2, se reproduce automáticamente
-// MEJORADO: Botón de Opción 2 tiene brillo suave animado indicando contenido adicional
+// (Todas las mejoras anteriores + reproducción automática de Opción 2 si no hay Latino)
 
 class VideoPlayer {
   constructor() {
@@ -316,16 +310,13 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     btn.className = 'opt-btn' + (isActive ? ' active' : '');
-    // Añadir clase has-content solo para Opción 2 y si tiene contenido
-    if (hasContent && label === 'Opción 2') {
+    if (hasContent && label !== 'Latino') {
       btn.classList.add('has-content');
     }
     btn.innerText = label;
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Si se hace clic en Opción 2, eliminamos la animación (se quita la clase has-content? No, mejor mantener el brillo pero se verá igual)
-      // No removemos has-content porque sigue teniendo contenido.
       this.activeOption = (label === 'Latino') ? 'latino' : 'sub';
       this.updateDownloadUrls(urls);
       this.playPart(0, urls);
