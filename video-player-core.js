@@ -276,7 +276,6 @@ class VideoPlayer {
         activeUrls = latinoUrls;
         activeOption = 'latino';
       } else {
-        // No hay ninguna URL
         activeUrls = [];
       }
       

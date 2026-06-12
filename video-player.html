@@ -6,12 +6,12 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
-  <!-- Tema de color dinámico optimizado (intervalo más largo para reducir carga) -->
+  <!-- Tema de color dinámico optimizado -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
       const animationDuration = 20000;
-      const intervalTime = 120;  // antes 20ms, ahora 120ms -> mucho más ligero
+      const intervalTime = 120;
       const segments = colors.length - 1;
       const step = (intervalTime / animationDuration) * segments;
       let currentProgress = 0;
@@ -99,11 +99,9 @@
       opacity: 0.5;
       pointer-events: none;
     }
-    /* En móviles, el video se oculta y usamos solo el poster como fondo */
     body.is-mobile #bg-video {
       display: none;
     }
-    /* Para móviles, aseguramos que el fondo tenga la imagen del poster */
     body.is-mobile {
       background: url('galaxia-morado1.avif') center center / cover no-repeat fixed;
     }
@@ -115,7 +113,7 @@
       height: 100%;
       z-index: -5;
       background: radial-gradient(circle at center, rgba(123, 44, 191, 0.15) 0%, #000000 90%);
-      backdrop-filter: blur(4px); /* reducido de 8px para menor lag */
+      backdrop-filter: blur(4px);
       pointer-events: none;
     }
 
@@ -160,7 +158,6 @@
       box-shadow: 0 0 40px rgba(188, 19, 254, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.5);
       will-change: transform;
     }
-    /* eliminado hue-rotate costoso, se mantiene el glow */
     .gif-inner {
       width: 100%;
       height: 100%;
@@ -319,6 +316,32 @@
       background: var(--primary-color);
       font-weight: 700;
       box-shadow: 0 0 15px var(--primary-color);
+    }
+
+    /* 🔥 NUEVO: Brillo para opciones que tienen contenido adicional (Opción 2) */
+    .opt-btn.has-content {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 12px var(--primary-color), 0 0 5px rgba(0, 243, 255, 0.5) !important;
+      background: rgba(0, 243, 255, 0.15) !important;
+      animation: pulseGlow 1.5s infinite ease-in-out !important;
+    }
+
+    .opt-btn.has-content.active {
+      box-shadow: 0 0 20px var(--primary-color), 0 0 10px var(--primary-color) !important;
+      background: var(--primary-color) !important;
+      color: #000 !important;
+      animation: none !important;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 0 2px var(--primary-color), 0 0 2px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 0.6);
+      }
+      100% {
+        box-shadow: 0 0 12px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.7);
+        border-color: var(--primary-color);
+      }
     }
 
     /* REPRODUCTOR */
@@ -1223,7 +1246,6 @@
       bgVideo.load();
       bgVideo.style.display = 'none';
     }
-    // Reducir aún más el blur en móviles para mejorar fps
     const style = document.createElement('style');
     style.textContent = `body.is-mobile .comentarios-section { backdrop-filter: blur(3px) !important; } body.is-mobile #overlay { backdrop-filter: blur(3px) !important; } body.is-mobile .logo-blocker { backdrop-filter: blur(2px) !important; }`;
     document.head.appendChild(style);
