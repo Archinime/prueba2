@@ -4,6 +4,8 @@
 // MEJORADO: Títulos dinámicos: ahora muestra "Nombre Anime - Nombre Temporada - Título Episodio"
 // NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 // NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
+// MEJORADO: Si solo hay Opción 2, se reproduce automáticamente
+// MEJORADO: Botón de Opción 2 tiene brillo indicador cuando hay contenido adicional
 
 class VideoPlayer {
   constructor() {
@@ -16,13 +18,13 @@ class VideoPlayer {
     this.db = null;
     this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrls = []; // array de URLs para la opción activa
+    this.currentDownloadUrls = [];
     this.currentPeerTubeUrl = null;
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
     this.currentPartIndex = 0;
-    this.activeOption = 'latino'; // 'latino' o 'sub'
+    this.activeOption = 'latino';
     this.currentVideoElement = null;
     
     window.comentariosAnimeId = this.animeId;
@@ -226,7 +228,6 @@ class VideoPlayer {
     });
   }
   
-  // 🔥 MODIFICADO: Incluye el nombre del anime al inicio
   formatEpisodeTitle(season, epNum, episodeData) {
     const animeTitle = this.animeData?.title || 'Anime';
     const seasonName = season.name || `Temporada ${season.num}`;
@@ -260,18 +261,42 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
-      // Procesar links (pueden ser strings o arrays)
+      // Procesar links
       const latinoUrls = this.normalizeUrls(episodeData.link);
       const subUrls = this.normalizeUrls(episodeData.link2);
       
-      this.updateDownloadUrls(latinoUrls);
-      this.activeOption = 'latino';
-      this.playPart(0, latinoUrls);
+      // Determinar cuál opción reproducir automáticamente
+      let activeUrls = latinoUrls;
+      let activeOption = 'latino';
+      
+      if (latinoUrls.length === 0 && subUrls.length > 0) {
+        activeUrls = subUrls;
+        activeOption = 'sub';
+      } else if (latinoUrls.length > 0) {
+        activeUrls = latinoUrls;
+        activeOption = 'latino';
+      } else {
+        // No hay ninguna URL
+        activeUrls = [];
+      }
+      
+      this.activeOption = activeOption;
+      this.updateDownloadUrls(activeUrls);
+      if (activeUrls.length > 0) {
+        this.playPart(0, activeUrls);
+      } else {
+        const container = document.getElementById('mediaContainer');
+        container.innerHTML = '<div style="color:white; text-align:center; padding:20px;">No hay enlaces disponibles para este episodio.</div>';
+      }
       
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
-      if (latinoUrls.length > 0) this.createServerButton('Latino', latinoUrls, true);
-      if (subUrls.length > 0) this.createServerButton('Opción 2', subUrls, false);
+      
+      const hasLatino = latinoUrls.length > 0;
+      const hasSub = subUrls.length > 0;
+      
+      if (hasLatino) this.createServerButton('Latino', latinoUrls, activeOption === 'latino', hasLatino);
+      if (hasSub) this.createServerButton('Opción 2', subUrls, activeOption === 'sub', hasSub);
       
       this.setupNavigation();
       await this.autoMarkAsWatched();
@@ -281,7 +306,6 @@ class VideoPlayer {
     }
   }
   
-  // Convierte string o array a array
   normalizeUrls(urls) {
     if (!urls) return [];
     if (Array.isArray(urls)) return urls.filter(u => u && u.trim() !== '');
@@ -289,10 +313,13 @@ class VideoPlayer {
     return [];
   }
   
-  createServerButton(label, urls, isActive) {
+  createServerButton(label, urls, isActive, hasContent = true) {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     btn.className = 'opt-btn' + (isActive ? ' active' : '');
+    if (hasContent && label !== 'Latino') {
+      btn.classList.add('has-content');
+    }
     btn.innerText = label;
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
@@ -306,7 +333,6 @@ class VideoPlayer {
   
   updateDownloadUrls(urls) {
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
-    // Detectar si es PeerTube (solo para el primer URL, asumimos todos igual)
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
   
@@ -340,7 +366,6 @@ class VideoPlayer {
     return url;
   }
   
-  // Reproducir una parte específica
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -359,12 +384,10 @@ class VideoPlayer {
       container.appendChild(video);
       this.currentVideoElement = video;
       
-      // Cuando termine esta parte, pasar a la siguiente
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
           this.playPart(partIndex + 1, urlsArray);
         } else {
-          // Fin del episodio completo
           console.log('Episodio completado');
         }
       };
@@ -378,11 +401,9 @@ class VideoPlayer {
       iframe.style.height = '100%';
       container.appendChild(iframe);
       this.currentVideoElement = null;
-      // Para iframes no podemos controlar el fin automático, el usuario debe cambiar manualmente
     }
   }
   
-  // Obtener las URLs de la opción activa actual
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
@@ -393,7 +414,6 @@ class VideoPlayer {
     }
   }
   
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
@@ -470,7 +490,7 @@ class VideoPlayer {
     let urlsToDownload = [...this.currentDownloadUrls];
     
     if (this.currentPeerTubeUrl) {
-      const fallbackUrls = this.getActiveEpisodeUrls(); // Re-intentar con opción actual
+      const fallbackUrls = this.getActiveEpisodeUrls();
       if (fallbackUrls.length > 0) {
         urlsToDownload = fallbackUrls.map(url => this.generateDirectLink(url));
       } else {
@@ -484,12 +504,10 @@ class VideoPlayer {
       return;
     }
     
-    // El nombre base ya incluye el nombre del anime porque se obtiene del <h1> actualizado
     const epTitleElem = document.getElementById('epTitle');
     let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
     baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
     
-    // Descargar todas las partes
     for (let i = 0; i < urlsToDownload.length; i++) {
       const url = urlsToDownload[i];
       const isCatbox = url.includes('catbox.moe');
@@ -505,7 +523,6 @@ class VideoPlayer {
       if (isCatbox || isCrossOrigin) {
         await this.forceDownload(url, filename);
       } else {
-        // Descarga directa con enlace
         const link = document.createElement('a');
         link.href = url;
         link.download = filename;
@@ -513,7 +530,6 @@ class VideoPlayer {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        // Pequeña pausa para no saturar
         await new Promise(r => setTimeout(r, 500));
       }
     }
