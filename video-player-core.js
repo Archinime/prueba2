@@ -1,5 +1,11 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// (Todas las mejoras anteriores + reproducción automática de Opción 2 si no hay Latino)
+// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
+// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
+// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Anime - Nombre Temporada - Título Episodio"
+// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
+// NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
+// MEJORADO: Si solo hay Opción 2, se reproduce automáticamente
+// MEJORADO: Botón de Opción 2 tiene brillo indicador cuando hay contenido adicional
 
 class VideoPlayer {
   constructor() {
