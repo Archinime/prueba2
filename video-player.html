@@ -67,7 +67,7 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS ORIGINALES (SIN DEFORMACIONES) ===== */
+    /* ===== ESTILOS ORIGINALES (OPTIMIZADOS) ===== */
     
     :root {
       --primary-color: #00fff7;
@@ -300,7 +300,7 @@
       color: #ccc;
       cursor: pointer;
       border-radius: 8px;
-      transition: all 0.3s;
+      transition: all 0.2s ease;
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
     }
@@ -318,137 +318,47 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* === NUEVO EFECTO ELEGANTE PARA OPCIÓN 2 === */
+    /* === BRILLO SUAVE Y OPTIMIZADO PARA OPCIÓN 2 === */
     .opt-btn.has-content {
-      position: relative;
       border: 2px solid rgba(0, 243, 255, 0.8) !important;
-      background: rgba(0, 243, 255, 0.1) !important;
+      background: rgba(0, 243, 255, 0.12) !important;
       color: #e0ffff !important;
-      text-shadow: 0 0 6px rgba(0, 243, 255, 0.8);
-      backdrop-filter: blur(2px);
-      transition: all 0.2s ease;
-      animation: softGlow 1.8s infinite alternate;
-    }
-
-    /* Resplandor exterior elegante */
-    .opt-btn.has-content::after {
-      content: '';
-      position: absolute;
-      top: -3px;
-      left: -3px;
-      right: -3px;
-      bottom: -3px;
-      border-radius: 10px;
-      background: radial-gradient(circle, rgba(0, 243, 255, 0.3) 0%, rgba(0, 243, 255, 0) 80%);
-      opacity: 0.7;
-      pointer-events: none;
-      animation: outerGlow 1.8s infinite alternate;
-    }
-
-    /* Pequeño punto brillante que orbita alrededor */
-    .opt-btn.has-content::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      width: 8px;
-      height: 8px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      box-shadow: 0 0 12px var(--primary-color);
-      animation: orbitingDot 3s linear infinite;
-      pointer-events: none;
+      text-shadow: 0 0 4px rgba(0, 243, 255, 0.6);
+      animation: softPulse 1.5s infinite ease-in-out;
     }
 
     .opt-btn.has-content.active {
       background: var(--primary-color) !important;
       color: #000 !important;
       text-shadow: none !important;
-      box-shadow: 0 0 25px var(--primary-color), inset 0 0 8px white !important;
-      animation: none;
+      box-shadow: 0 0 20px var(--primary-color) !important;
+      animation: none !important;
     }
 
-    .opt-btn.has-content.active::before,
-    .opt-btn.has-content.active::after {
-      display: none;
-    }
-
-    @keyframes softGlow {
+    @keyframes softPulse {
       0% {
-        box-shadow: 0 0 4px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
+        box-shadow: 0 0 2px rgba(0, 243, 255, 0.4);
         border-color: rgba(0, 243, 255, 0.6);
       }
       100% {
-        box-shadow: 0 0 16px rgba(0, 243, 255, 0.9), inset 0 0 8px rgba(0, 243, 255, 0.6);
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.9);
         border-color: var(--primary-color);
       }
     }
 
-    @keyframes outerGlow {
-      0% {
-        opacity: 0.3;
-        transform: scale(0.98);
-      }
-      100% {
-        opacity: 0.8;
-        transform: scale(1.02);
-      }
-    }
-
-    @keyframes orbitingDot {
-      0% {
-        top: -2px;
-        left: -2px;
-      }
-      25% {
-        top: -2px;
-        left: auto;
-        right: -2px;
-      }
-      50% {
-        top: auto;
-        bottom: -2px;
-        right: -2px;
-      }
-      75% {
-        top: auto;
-        bottom: -2px;
-        left: -2px;
-      }
-      100% {
-        top: -2px;
-        left: -2px;
-      }
-    }
-
-    /* Ajustes para móviles: más intenso y legible */
+    /* Versión para móviles: más ligera, sin text-shadow extra */
     @media (max-width: 768px) {
       .opt-btn.has-content {
-        border-width: 2px !important;
-        background: rgba(0, 243, 255, 0.2) !important;
-        animation: softGlowMobile 1s infinite alternate;
+        animation: softPulseMobile 1.2s infinite ease-in-out;
+        background: rgba(0, 243, 255, 0.18) !important;
       }
-      .opt-btn.has-content::before {
-        width: 10px;
-        height: 10px;
-        animation: orbitingDotMobile 2s linear infinite;
-      }
-      @keyframes softGlowMobile {
+      @keyframes softPulseMobile {
         0% {
-          box-shadow: 0 0 6px rgba(0, 243, 255, 0.6);
-          border-color: rgba(0, 243, 255, 0.7);
+          box-shadow: 0 0 2px rgba(0, 243, 255, 0.5);
         }
         100% {
-          box-shadow: 0 0 20px rgba(0, 243, 255, 1);
-          border-color: var(--primary-color);
+          box-shadow: 0 0 12px rgba(0, 243, 255, 0.9);
         }
-      }
-      @keyframes orbitingDotMobile {
-        0% { top: -2px; left: -2px; }
-        25% { top: -2px; left: auto; right: -2px; }
-        50% { top: auto; bottom: -2px; right: -2px; }
-        75% { top: auto; bottom: -2px; left: -2px; }
-        100% { top: -2px; left: -2px; }
       }
     }
 
