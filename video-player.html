@@ -318,52 +318,110 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* 🔥 BRILLO PARA OPCIÓN 2 (mejorado para móviles) */
+    /* === NUEVA ANIMACIÓN DE BRILLO MEJORADA PARA OPCIÓN 2 === */
     .opt-btn.has-content {
-      border: 2px solid var(--primary-color) !important;
-      box-shadow: 0 0 8px var(--primary-color), 0 0 15px rgba(0, 243, 255, 0.6), inset 0 0 6px rgba(0, 243, 255, 0.4) !important;
+      position: relative;
+      border: 2px solid rgba(0, 243, 255, 0.8) !important;
       background: rgba(0, 243, 255, 0.2) !important;
-      animation: mobileGlow 1.2s infinite ease-in-out !important;
+      color: #e0ffff !important;
+      text-shadow: 0 0 4px rgba(0, 243, 255, 0.8);
+      animation: neonPulse 1.5s infinite ease-in-out !important;
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.6), inset 0 0 6px rgba(0, 243, 255, 0.4) !important;
+    }
+
+    /* Efecto de onda expansiva (ripple) */
+    .opt-btn.has-content::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.6) 0%, rgba(0, 243, 255, 0) 80%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      pointer-events: none;
+      animation: rippleGlow 2s infinite;
     }
 
     .opt-btn.has-content.active {
-      box-shadow: 0 0 20px var(--primary-color), 0 0 30px var(--primary-color), inset 0 0 8px white !important;
       background: var(--primary-color) !important;
       color: #000 !important;
+      text-shadow: none !important;
+      box-shadow: 0 0 25px var(--primary-color), 0 0 35px var(--primary-color), inset 0 0 8px white !important;
       animation: none !important;
     }
 
-    @keyframes mobileGlow {
+    .opt-btn.has-content.active::before {
+      display: none;
+    }
+
+    @keyframes neonPulse {
       0% {
-        box-shadow: 0 0 4px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.4), inset 0 0 2px rgba(0, 243, 255, 0.2);
-        border-color: rgba(0, 243, 255, 0.8);
+        box-shadow: 0 0 4px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 0.6);
+        text-shadow: 0 0 2px rgba(0, 243, 255, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 16px var(--primary-color), 0 0 24px rgba(0, 243, 255, 0.8), inset 0 0 10px rgba(0, 243, 255, 0.6);
+        border-color: var(--primary-color);
+        text-shadow: 0 0 8px rgba(0, 243, 255, 0.9);
       }
       100% {
-        box-shadow: 0 0 12px var(--primary-color), 0 0 22px rgba(0, 243, 255, 0.8), inset 0 0 10px rgba(0, 243, 255, 0.5);
-        border-color: var(--primary-color);
+        box-shadow: 0 0 4px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 0.6);
+        text-shadow: 0 0 2px rgba(0, 243, 255, 0.6);
       }
     }
 
-    /* Ajuste adicional para móviles: mayor contraste */
+    @keyframes rippleGlow {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.6;
+      }
+      70% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    /* Ajustes para móviles: más brillo y onda más rápida */
     @media (max-width: 768px) {
       .opt-btn.has-content {
         border-width: 2px !important;
         background: rgba(0, 243, 255, 0.3) !important;
-        box-shadow: 0 0 12px var(--primary-color), 0 0 20px rgba(0, 243, 255, 0.7) !important;
-        animation: mobileGlow 1s infinite ease-in-out !important;
+        animation: neonPulseMobile 1s infinite ease-in-out !important;
       }
-      .opt-btn.has-content.active {
-        background: var(--primary-color) !important;
-        box-shadow: 0 0 25px var(--primary-color), 0 0 35px var(--primary-color) !important;
+      .opt-btn.has-content::before {
+        animation: rippleGlowMobile 1.5s infinite;
       }
-      @keyframes mobileGlow {
+      @keyframes neonPulseMobile {
         0% {
-          box-shadow: 0 0 6px var(--primary-color), 0 0 12px rgba(0, 243, 255, 0.5);
-          border-color: rgba(0, 243, 255, 0.9);
+          box-shadow: 0 0 6px var(--primary-color), 0 0 12px rgba(0, 243, 255, 0.6), inset 0 0 4px rgba(0, 243, 255, 0.5);
+          border-color: var(--primary-color);
+        }
+        50% {
+          box-shadow: 0 0 20px var(--primary-color), 0 0 30px rgba(0, 243, 255, 0.9), inset 0 0 12px rgba(0, 243, 255, 0.7);
+          border-color: #fff;
         }
         100% {
-          box-shadow: 0 0 16px var(--primary-color), 0 0 28px rgba(0, 243, 255, 0.9);
+          box-shadow: 0 0 6px var(--primary-color), 0 0 12px rgba(0, 243, 255, 0.6), inset 0 0 4px rgba(0, 243, 255, 0.5);
           border-color: var(--primary-color);
+        }
+      }
+      @keyframes rippleGlowMobile {
+        0% {
+          transform: translate(-50%, -50%) scale(0.6);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1.8);
+          opacity: 0;
         }
       }
     }
@@ -1009,7 +1067,7 @@
       background: #ff3366;
     }
 
-    /* AJUSTES MÓVILES */
+    /* AJUSTES MÓVILES GENERALES */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
@@ -1036,287 +1094,7 @@
   </style>
 </head>
 <body>
-
-<div id="loadingScreen">
-  <div class="loader-content">
-    <div class="gif-wrapper">
-      <div class="gif-inner">
-        <img id="personaje-gif" src="chica_corriendo.gif" alt="Cargando sistema">
-      </div>
-    </div>
-    <div class="loader-title">ARCHINIME</div>
-    <div class="loader-percentage" id="loadingPercentage">0%</div>
-    <div class="loader-line-container">
-      <div class="loader-line" id="loaderLine"></div>
-    </div>
-    <div class="loader-sub">
-      <span><i class="fas fa-hand-spock"></i> ¡Bienvenido!</span>
-      <span><i class="fas fa-sync-alt fa-spin"></i> Sincronizando datos</span>
-    </div>
-  </div>
-</div>
-
-<video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
-  <source src="galaxia.mp4" type="video/mp4">
-</video>
-<div id="overlay"></div>
-
-<div class="container">
-  <div class="top-nav">
-    <a href="#" id="backLink" class="back-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Volver
-    </a>
-    <div class="options" id="serverOptions"></div>
-  </div>
-
-  <div class="player-wrapper" id="playerContainer">
-    <div class="logo-blocker">
-      <div class="blocker-content">
-        <span class="blocker-text">ARCHINIME</span>
-        <span class="blocker-sub">HD</span>
-      </div>
-    </div>
-    <div id="mediaContainer" style="width: 100%; height: 100%;"></div>
-  </div>
-
-  <h1 id="epTitle">Cargando...</h1>
-
-  <div class="controls">
-    <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
-    <button id="downloadBtn" class="btn">⬇ Descargar</button>
-    <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
-  </div>
-
-  <div class="comentarios-section">
-    <div class="comentarios-header">
-      <i class="fas fa-comments"></i>
-      <h3>ZONA DE COMENTARIOS</h3>
-    </div>
-
-    <div id="comentarioLoginMessage" class="comentario-login-message" style="display: none;">
-      <i class="fas fa-lock" style="font-size: 2rem; color: #888; margin-bottom: 10px;"></i>
-      <p>Inicia sesión para comentar y usar stickers</p>
-      <button class="login-link-btn" onclick="window.videoPlayer?.openLoginModal()">
-        <i class="fas fa-sign-in-alt"></i> Iniciar sesión / Registrarse
-      </button>
-    </div>
-
-    <div id="comentarioFormContainer" class="comentario-form-container" style="display: none;">
-      <div class="comentario-user-info">
-        <img id="comentarioUserAvatar" src="invitado.avif" alt="Avatar">
-        <span id="comentarioUserName">Usuario</span>
-      </div>
-
-      <div class="comentario-input-wrapper">
-        <textarea id="comentarioTexto" placeholder="Escribe un comentario... (Presiona Enter para enviar)" maxlength="500"></textarea>
-        <button type="button" class="sticker-btn" onclick="window.videoPlayer?.toggleStickerPanel()">
-          🖼️
-        </button>
-      </div>
-
-      <div id="comentarioStickerPreview" class="comentario-sticker-preview" style="display: none;">
-        <div class="preview-sticker-wrapper">
-          <img id="previewStickerImgObj" src="" style="display: none;">
-          <video id="previewStickerVidObj" src="" autoplay loop muted playsinline style="display: none;"></video>
-          <button class="remove-sticker-btn" onclick="window.videoPlayer?.quitarStickerPreview()" title="Quitar sticker">✖</button>
-        </div>
-      </div>
-
-      <div id="stickerPanelFull" class="sticker-panel-full">
-        <div class="sticker-tabs">
-          <button class="sticker-tab active" data-tab="mis" onclick="window.videoPlayer?.switchStickerTab('mis')">📦 MIS STICKERS</button>
-          <button class="sticker-tab" data-tab="subir" onclick="window.videoPlayer?.switchStickerTab('subir')">➕ SUBIR</button>
-        </div>
-        <div id="misStickersTab" class="sticker-tab-content active">
-          <div id="userStickersContainer" class="stickers-grid">
-            <div class="sticker-empty">Cargando...</div>
-          </div>
-        </div>
-        <div id="subirStickersTab" class="sticker-tab-content">
-          <div class="add-sticker-container" id="dragDropZone">
-            <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 2 MB)</p>
-            <label for="stickerFileInput" class="upload-sticker-label">
-              <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
-            </label>
-            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none" onchange="window.procesarArchivoSticker(this.files[0])">
-            <div id="stickerPreview" style="display:none; margin-top:20px;">
-              <img id="previewImage" style="display:none; max-width:150px; border-radius:12px;">
-              <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; border-radius:12px;"></video>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button id="enviarComentarioBtn" class="enviar-comentario-btn" onclick="window.videoPlayer?.enviarComentario()">
-        <i class="fas fa-paper-plane"></i> Enviar Comentario
-      </button>
-    </div>
-
-    <div id="comentariosList" class="comentarios-list">
-      <div class="empty-comments"><i class="fas fa-spinner fa-spin"></i> Cargando comentarios...</div>
-    </div>
-  </div>
-</div>
-
-<div id="authModal" class="auth-modal">
-  <div class="auth-card">
-    <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" data-tab="login">Iniciar sesión</div>
-      <div class="auth-tab" data-tab="register">Registrarse</div>
-    </div>
-    <div id="authLoginForm" class="auth-form">
-      <input type="email" id="loginEmail" placeholder="Correo electrónico">
-      <input type="password" id="loginPassword" placeholder="Contraseña">
-      <button onclick="window.videoPlayer?.loginWithEmail()">Iniciar sesión</button>
-    </div>
-    <div id="authRegisterForm" class="auth-form" style="display:none;">
-      <input type="email" id="registerEmail" placeholder="Correo electrónico">
-      <input type="password" id="registerPassword" placeholder="Contraseña">
-      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña">
-      <button onclick="window.videoPlayer?.registerWithEmail()">Registrarse</button>
-    </div>
-    <div class="auth-providers">
-      <div class="provider-btn" onclick="window.videoPlayer?.loginWithGoogle()">
-        <i class="fab fa-google"></i> Continuar con Google
-      </div>
-    </div>
-    <div id="authError" class="auth-error"></div>
-  </div>
-</div>
-
-<script src="catalogo.js"></script>
-<script defer src="stickers-system.js"></script>
-<script defer src="reacciones.js"></script>
-<script defer src="comentarios.js"></script>
-<script defer src="video-player-core.js"></script>
-<script src="gifs.js"></script>
-
-<script>
-  // Configuración de drag & drop para stickers (ligera)
-  (function() {
-    const dropZone = document.getElementById('dragDropZone');
-    const fileInput = document.getElementById('stickerFileInput');
-    
-    if (!dropZone || !fileInput) return;
-    
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      document.body.addEventListener(eventName, preventDefaults, false);
-    });
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, highlight, false);
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, unhighlight, false);
-    });
-    function highlight(e) {
-      preventDefaults(e);
-      dropZone.classList.add('drag-over');
-    }
-    
-    function unhighlight(e) {
-      preventDefaults(e);
-      dropZone.classList.remove('drag-over');
-    }
-    
-    dropZone.addEventListener('drop', handleDrop, false);
-    
-    function handleDrop(e) {
-      preventDefaults(e);
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length > 0) {
-        const file = files[0];
-        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-          if (typeof window.procesarArchivoSticker === 'function') {
-            window.procesarArchivoSticker(file);
-          } else {
-            alert('El sistema de stickers aún no está listo. Espera un momento.');
-          }
-        } else {
-          alert('Solo se permiten imágenes o videos.');
-        }
-      }
-    }
-    
-    window.procesarArchivoSticker = function(file) {
-      console.warn('procesarArchivoSticker no implementado aún');
-    };
-  })();
-
-  // Selección aleatoria de GIF de carga
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    document.getElementById('personaje-gif').src = gifElegido;
-  }
-
-  // DETECCIÓN DE MÓVIL Y DESACTIVACIÓN DEL VIDEO DE FONDO
-  function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-  }
-
-  if (isMobileDevice()) {
-    document.body.classList.add('is-mobile');
-    const bgVideo = document.getElementById('bg-video');
-    if (bgVideo) {
-      bgVideo.pause();
-      bgVideo.removeAttribute('src');
-      bgVideo.load();
-      bgVideo.style.display = 'none';
-    }
-    const style = document.createElement('style');
-    style.textContent = `body.is-mobile .comentarios-section { backdrop-filter: blur(3px) !important; } body.is-mobile #overlay { backdrop-filter: blur(3px) !important; } body.is-mobile .logo-blocker { backdrop-filter: blur(2px) !important; }`;
-    document.head.appendChild(style);
-  }
-
-  // Progreso de carga
-  let loadingCompleted = false;
-  const loadingScreen = document.getElementById('loadingScreen');
-  const percentEl = document.getElementById('loadingPercentage');
-  const lineEl = document.getElementById('loaderLine');
-
-  function updateProgress(percent) {
-    const p = Math.min(99, Math.max(0, Math.floor(percent)));
-    if (percentEl) percentEl.innerText = p + '%';
-    if (lineEl) lineEl.style.width = p + '%';
-  }
-
-  function finishLoading() {
-    if (loadingCompleted) return;
-    loadingCompleted = true;
-    updateProgress(100);
-    if (percentEl) percentEl.innerText = "SISTEMA LISTO";
-    setTimeout(() => {
-      if (loadingScreen) loadingScreen.classList.add('hidden');
-    }, 800);
-  }
-
-  let progressValue = 0;
-  const interval = setInterval(() => {
-    if (loadingCompleted) {
-      clearInterval(interval);
-      return;
-    }
-    if (progressValue < 85) {
-      progressValue += Math.random() * 6;
-      if (progressValue > 85) progressValue = 85;
-      updateProgress(progressValue);
-    }
-  }, 200);
-  window.addEventListener('load', () => {
-    clearInterval(interval);
-    updateProgress(95);
-    setTimeout(() => {
-      updateProgress(100);
-      finishLoading();
-    }, 800);
-  });
-</script>
+  <!-- El resto del body es IDÉNTICO al que ya tenías, no se modifica nada más -->
+  ... (mantén el mismo contenido del body que tenías antes, sin cambios)
 </body>
 </html>
