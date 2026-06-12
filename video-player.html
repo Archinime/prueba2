@@ -67,7 +67,7 @@
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS ORIGINALES (SIN DEFORMACIONES) CON OPTIMIZACIONES DE RENDIMIENTO ===== */
+    /* ===== ESTILOS ORIGINALES (SIN DEFORMACIONES) ===== */
     
     :root {
       --primary-color: #00fff7;
@@ -318,47 +318,46 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* === EFECTO RADAR CIRCULAR PARA OPCIÓN 2 === */
+    /* === NUEVO EFECTO ELEGANTE PARA OPCIÓN 2 === */
     .opt-btn.has-content {
       position: relative;
-      border: 2px solid rgba(0, 243, 255, 0.9) !important;
-      background: rgba(0, 243, 255, 0.15) !important;
+      border: 2px solid rgba(0, 243, 255, 0.8) !important;
+      background: rgba(0, 243, 255, 0.1) !important;
       color: #e0ffff !important;
-      text-shadow: 0 0 4px rgba(0, 243, 255, 0.8);
-      overflow: hidden;
+      text-shadow: 0 0 6px rgba(0, 243, 255, 0.8);
+      backdrop-filter: blur(2px);
       transition: all 0.2s ease;
+      animation: softGlow 1.8s infinite alternate;
     }
 
-    /* Círculo radar que se expande */
-    .opt-btn.has-content::before {
+    /* Resplandor exterior elegante */
+    .opt-btn.has-content::after {
       content: '';
       position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 10px;
-      height: 10px;
-      background: radial-gradient(circle, rgba(0, 243, 255, 0.8) 0%, rgba(0, 243, 255, 0.4) 50%, transparent 80%);
-      border-radius: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      opacity: 0;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border-radius: 10px;
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.3) 0%, rgba(0, 243, 255, 0) 80%);
+      opacity: 0.7;
       pointer-events: none;
-      animation: radarPulse 2s infinite ease-out;
-      box-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
+      animation: outerGlow 1.8s infinite alternate;
     }
 
-    /* Borde brillante pulsante adicional */
-    .opt-btn.has-content::after {
+    /* Pequeño punto brillante que orbita alrededor */
+    .opt-btn.has-content::before {
       content: '';
       position: absolute;
       top: -2px;
       left: -2px;
-      right: -2px;
-      bottom: -2px;
-      border-radius: 10px;
-      background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.4), transparent);
-      opacity: 0;
+      width: 8px;
+      height: 8px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--primary-color);
+      animation: orbitingDot 3s linear infinite;
       pointer-events: none;
-      animation: borderGlow 2s infinite;
     }
 
     .opt-btn.has-content.active {
@@ -366,7 +365,7 @@
       color: #000 !important;
       text-shadow: none !important;
       box-shadow: 0 0 25px var(--primary-color), inset 0 0 8px white !important;
-      border-color: var(--primary-color) !important;
+      animation: none;
     }
 
     .opt-btn.has-content.active::before,
@@ -374,50 +373,82 @@
       display: none;
     }
 
-    @keyframes radarPulse {
+    @keyframes softGlow {
       0% {
-        transform: translate(-50%, -50%) scale(0.2);
-        opacity: 0.7;
+        box-shadow: 0 0 4px rgba(0, 243, 255, 0.5), inset 0 0 2px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 0.6);
+      }
+      100% {
+        box-shadow: 0 0 16px rgba(0, 243, 255, 0.9), inset 0 0 8px rgba(0, 243, 255, 0.6);
+        border-color: var(--primary-color);
+      }
+    }
+
+    @keyframes outerGlow {
+      0% {
+        opacity: 0.3;
+        transform: scale(0.98);
+      }
+      100% {
+        opacity: 0.8;
+        transform: scale(1.02);
+      }
+    }
+
+    @keyframes orbitingDot {
+      0% {
+        top: -2px;
+        left: -2px;
+      }
+      25% {
+        top: -2px;
+        left: auto;
+        right: -2px;
+      }
+      50% {
+        top: auto;
+        bottom: -2px;
+        right: -2px;
+      }
+      75% {
+        top: auto;
+        bottom: -2px;
+        left: -2px;
+      }
+      100% {
+        top: -2px;
+        left: -2px;
+      }
+    }
+
+    /* Ajustes para móviles: más intenso y legible */
+    @media (max-width: 768px) {
+      .opt-btn.has-content {
+        border-width: 2px !important;
+        background: rgba(0, 243, 255, 0.2) !important;
+        animation: softGlowMobile 1s infinite alternate;
+      }
+      .opt-btn.has-content::before {
         width: 10px;
         height: 10px;
+        animation: orbitingDotMobile 2s linear infinite;
       }
-      50% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(6);
-        opacity: 0;
-        width: 60px;
-        height: 60px;
-      }
-    }
-
-    @keyframes borderGlow {
-      0% {
-        opacity: 0;
-      }
-      50% {
-        opacity: 0.6;
-      }
-      100% {
-        opacity: 0;
-      }
-    }
-
-    /* Ajustes para móviles: radar más rápido y grande */
-    @media (max-width: 768px) {
-      .opt-btn.has-content::before {
-        animation: radarPulseMobile 1.2s infinite ease-out;
-      }
-      @keyframes radarPulseMobile {
+      @keyframes softGlowMobile {
         0% {
-          transform: translate(-50%, -50%) scale(0.3);
-          opacity: 0.8;
+          box-shadow: 0 0 6px rgba(0, 243, 255, 0.6);
+          border-color: rgba(0, 243, 255, 0.7);
         }
         100% {
-          transform: translate(-50%, -50%) scale(8);
-          opacity: 0;
+          box-shadow: 0 0 20px rgba(0, 243, 255, 1);
+          border-color: var(--primary-color);
         }
+      }
+      @keyframes orbitingDotMobile {
+        0% { top: -2px; left: -2px; }
+        25% { top: -2px; left: auto; right: -2px; }
+        50% { top: auto; bottom: -2px; right: -2px; }
+        75% { top: auto; bottom: -2px; left: -2px; }
+        100% { top: -2px; left: -2px; }
       }
     }
 
