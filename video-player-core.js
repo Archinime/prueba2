@@ -5,7 +5,7 @@
 // NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
 // NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
 // MEJORADO: Si solo hay Opción 2, se reproduce automáticamente
-// MEJORADO: Botón de Opción 2 tiene brillo indicador cuando hay contenido adicional
+// MEJORADO: Botón de Opción 2 tiene brillo suave animado indicando contenido adicional
 
 class VideoPlayer {
   constructor() {
@@ -316,13 +316,16 @@ class VideoPlayer {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     btn.className = 'opt-btn' + (isActive ? ' active' : '');
-    if (hasContent && label !== 'Latino') {
+    // Añadir clase has-content solo para Opción 2 y si tiene contenido
+    if (hasContent && label === 'Opción 2') {
       btn.classList.add('has-content');
     }
     btn.innerText = label;
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      // Si se hace clic en Opción 2, eliminamos la animación (se quita la clase has-content? No, mejor mantener el brillo pero se verá igual)
+      // No removemos has-content porque sigue teniendo contenido.
       this.activeOption = (label === 'Latino') ? 'latino' : 'sub';
       this.updateDownloadUrls(urls);
       this.playPart(0, urls);

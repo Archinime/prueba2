@@ -318,29 +318,36 @@
       box-shadow: 0 0 15px var(--primary-color);
     }
 
-    /* 🔥 NUEVO: Brillo para opciones que tienen contenido adicional (Opción 2) */
+    /* 🔥 NUEVO: Brillo suave con animación de expansión para Opción 2 */
     .opt-btn.has-content {
-      border-color: var(--primary-color) !important;
-      box-shadow: 0 0 12px var(--primary-color), 0 0 5px rgba(0, 243, 255, 0.5) !important;
-      background: rgba(0, 243, 255, 0.15) !important;
-      animation: pulseGlow 1.5s infinite ease-in-out !important;
+      position: relative;
+      border-color: var(--primary-color);
+      background: rgba(0, 243, 255, 0.1);
+      animation: softGlow 2s infinite ease-in-out;
     }
 
     .opt-btn.has-content.active {
-      box-shadow: 0 0 20px var(--primary-color), 0 0 10px var(--primary-color) !important;
-      background: var(--primary-color) !important;
-      color: #000 !important;
-      animation: none !important;
+      animation: none;
+      background: var(--primary-color);
+      color: #000;
+      box-shadow: 0 0 15px var(--primary-color);
     }
 
-    @keyframes pulseGlow {
+    @keyframes softGlow {
       0% {
         box-shadow: 0 0 2px var(--primary-color), 0 0 2px rgba(0, 243, 255, 0.3);
         border-color: rgba(0, 243, 255, 0.6);
+        text-shadow: 0 0 0px rgba(0, 243, 255, 0);
+      }
+      50% {
+        box-shadow: 0 0 12px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.6);
+        border-color: var(--primary-color);
+        text-shadow: 0 0 2px rgba(0, 243, 255, 0.5);
       }
       100% {
-        box-shadow: 0 0 12px var(--primary-color), 0 0 8px rgba(0, 243, 255, 0.7);
-        border-color: var(--primary-color);
+        box-shadow: 0 0 2px var(--primary-color), 0 0 2px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 0.6);
+        text-shadow: 0 0 0px rgba(0, 243, 255, 0);
       }
     }
 
