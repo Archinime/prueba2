@@ -1,11 +1,12 @@
 // notification-system.js - Con límite de 5 popups por carga de página
+// ✅ MODIFICADO: Soporte para "PRÓXIMAMENTE": texto personalizado y sin mostrar capítulo.
 (function(global) {
   'use strict';
 
   const CONFIG = {
     MAX_HISTORY_ITEMS: 50,
     MAX_VISIBLE_NOTIFICATIONS: 30,
-    MAX_POPUPS_PER_PAGE_LOAD: 5,   // 👈 LÍMITE: 5 popups por cada vez que se carga la página
+    MAX_POPUPS_PER_PAGE_LOAD: 5,
     STORAGE_KEYS: {
       QUEUE: 'archinime_popup_queue',
       HISTORY: 'archinime_notif_history',
@@ -70,7 +71,7 @@
       this.history = [];
       this.isMenuOpen = false;
       this.isShowingPopup = false;
-      this.popupsShownInThisLoad = 0;   // 👈 Contador por carga de página
+      this.popupsShownInThisLoad = 0;
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -220,6 +221,7 @@
       const seenIds = StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, []);
       const popupShownIds = StorageManager.load(CONFIG.STORAGE_KEYS.POPUP_SHOWN_IDS, []);
 
+      // Incluir tanto animes con "NUEVO 🔥" como con "PRÓXIMAMENTE ⏳"
       const candidatos = catalogoArray
         .filter(a => a.updateType && a.updateType !== 'Ninguna')
         .filter(a => this._getTimestamp(a.lastUpdate) > thirtyDaysAgo)
@@ -260,10 +262,17 @@
       const ts = this._getTimestamp(anime.lastUpdate);
       const notifId = `${anime.id}_${ts}`;
       return {
-        notifId, animeId: anime.id, title: anime.title, img: anime.img,
+        notifId,
+        animeId: anime.id,
+        title: anime.title,
+        img: anime.img,
         seasonCover: anime.latestSeasonCover || anime.img,
-        blockName: anime.latestBlockName || "", epTitle: anime.latestEpTitle || "Nuevo Contenido",
-        type: anime.updateType, date: ts, seen: false, isFinal: anime.isFinal || false,
+        blockName: anime.latestBlockName || "",
+        epTitle: anime.latestEpTitle || "Nuevo Contenido",
+        type: anime.updateType, // "ESTRENO 🚨", "NUEVO 🔥", "PRÓXIMAMENTE ⏳"
+        date: ts,
+        seen: false,
+        isFinal: anime.isFinal || false,
         popupShown: false
       };
     }
@@ -374,7 +383,6 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
-      // 👇 Verificar límite por carga de página
       if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
         console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
         return;
@@ -435,14 +443,26 @@
           </div>`;
       }
 
+      // Notificación de anime normal o PRÓXIMAMENTE
+      const isProximamente = notif.type === 'PRÓXIMAMENTE ⏳';
+      
       let infoString = "";
-      if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
-      if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:#fff">${notif.epTitle}</span>`;
-      else if (!infoString) infoString = "Nuevo Contenido";
+      if (!isProximamente) {
+        if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
+        if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:#fff">${notif.epTitle}</span>`;
+        else if (!infoString) infoString = "Nuevo Contenido";
+      }
 
       let badgeColor = "#bc13fe";
       if (notif.type.includes("ESTRENO")) badgeColor = "#ff0055";
       else if (notif.type.includes("PRÓXIMAMENTE")) badgeColor = "#f1c40f";
+
+      let description = isProximamente
+        ? "¡Muy pronto en Archinime! Mantente atento a su estreno."
+        : "¡Ya disponible en la plataforma! Disfruta del estreno.";
+
+      let buttonText = isProximamente ? "MÁS INFORMACIÓN" : "VER AHORA";
+      let buttonIcon = isProximamente ? '<i class="fas fa-bell"></i>' : '<i class="fas fa-play"></i>';
 
       return `
         <div class="event-card">
@@ -458,9 +478,9 @@
           </div>
           <div class="event-info">
             <h2 class="event-title">${domUtils.sanitizeHTML(notif.title)}</h2>
-            <div class="event-meta">${infoString}</div>
-            <p class="event-desc">¡Ya disponible en la plataforma! Disfruta del estreno.</p>
-            <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"><i class="fas fa-play"></i> VER AHORA</button>
+            ${infoString ? `<div class="event-meta">${infoString}</div>` : ''}
+            <p class="event-desc">${description}</p>
+            <button class="event-btn" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')">${buttonIcon} ${buttonText}</button>
           </div>
         </div>`;
     }
@@ -547,9 +567,13 @@
         if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
 
         let infoString = "";
-        if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
-        if (item.epTitle && item.epTitle !== "Nuevo Contenido") infoString += (infoString ? " " : "") + `<span class="n-ep-title">${item.epTitle}</span>`;
-        else if (!infoString) infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+        if (item.type !== 'PRÓXIMAMENTE ⏳') {
+          if (item.blockName && item.blockName !== "Novedad") infoString += `<span class="n-block">${item.blockName}</span>`;
+          if (item.epTitle && item.epTitle !== "Nuevo Contenido") infoString += (infoString ? " " : "") + `<span class="n-ep-title">${item.epTitle}</span>`;
+          else if (!infoString) infoString = `<span class="n-ep-title">Nuevo Contenido</span>`;
+        } else {
+          infoString = `<span class="n-ep-title">Próximamente</span>`;
+        }
 
         let typeColor = "var(--neon-purple)";
         if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";

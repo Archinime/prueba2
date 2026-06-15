@@ -3,6 +3,7 @@
 // Los ratings, comentarios y autenticación siguen usando Firestore.
 // Incluye mecanismo de espera para asegurar que catalogoArray esté disponible.
 // ⚠️ SIN ANUNCIOS - 12 sugerencias en vez de 11
+// ✅ MODIFICADO: Soporte para "Próximamente" cuando la temporada tiene 0 episodios.
 
 // ---------- FUNCIÓN DE ESCAPE HTML ----------
 function escapeHtml(text) {
@@ -184,25 +185,46 @@ async function loadWatchedEpisodes(animeId) {
   }
 }
 
-// ---------- RENDERIZADO DE TEMPORADAS ----------
+// ---------- RENDERIZADO DE TEMPORADAS (con soporte para "Próximamente") ----------
 window.reloadSeason = async function(details, animeId, seasonIdx) {
   if (!details?.open) return;
   const list = details.querySelector('.video-list');
-  if (list) { list.innerHTML = ''; await toggleSeason(details, animeId, seasonIdx); }
+  const soonMsg = details.querySelector('.proximamente-message');
+  if (list) { list.innerHTML = ''; }
+  if (soonMsg) soonMsg.remove();
+  await toggleSeason(details, animeId, seasonIdx);
 };
 
 window.toggleSeason = async function(details, animeId, seasonIdx) {
   if (!details.open) return;
   playUISound('click');
   const list = details.querySelector('.video-list');
-  if (list.children.length) return;
+  const soonMsg = details.querySelector('.proximamente-message');
+  if (list && list.children.length) return;
+  if (soonMsg) soonMsg.remove();
+  
   const loading = details.querySelector(`#loading-${seasonIdx}`);
   if (loading) loading.style.display = 'block';
+  
   const season = animeData.seasons[seasonIdx];
-  if (!season || !season.eps) {
+  if (!season || !season.eps || season.eps.length === 0) {
     if (loading) loading.style.display = 'none';
+    // Mostrar mensaje "Próximamente" en lugar de lista vacía
+    const contentDiv = details.querySelector('.season-content');
+    if (contentDiv && !contentDiv.querySelector('.proximamente-message')) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'proximamente-message';
+      msgDiv.style.cssText = 'text-align:center; padding:40px 20px; background:rgba(0,0,0,0.4); border-radius:16px; border:1px dashed var(--neon-cyan); margin-top:10px;';
+      msgDiv.innerHTML = `
+        <i class="fas fa-calendar-alt" style="font-size:3rem; color:var(--neon-cyan); margin-bottom:10px;"></i>
+        <h3 style="font-family:Orbitron; color:var(--neon-cyan);">PRÓXIMAMENTE</h3>
+        <p style="color:#ccc;">Este bloque aún no tiene episodios disponibles.<br>¡Muy pronto en Archinime!</p>
+      `;
+      contentDiv.appendChild(msgDiv);
+    }
     return;
   }
+  
   const episodes = season.eps;
   const total = episodes.length;
   const seasonNum = season.num;
@@ -322,7 +344,6 @@ function resetStars(val) {
   });
 }
 
-// ✅ FUNCIÓN CORREGIDA: Maneja correctamente añadir, cambiar y quitar votos
 async function voteAnime(newVal) {
   if (!currentUserId) {
     const msg = 'Tienes que iniciar sesión para votar.';
@@ -345,45 +366,33 @@ async function voteAnime(newVal) {
       
       let newAvg, newCount;
       
-      // Caso 1: El usuario está quitando su voto (hizo clic en la misma estrella que ya tenía)
       if (oldValue !== null && oldValue === newVal) {
         if (currentCount === 1) {
-          // Era el único voto -> el anime se queda sin votos
           newAvg = 0;
           newCount = 0;
         } else {
-          // Hay más votos, se elimina solo el suyo
           newAvg = (currentAvg * currentCount - oldValue) / (currentCount - 1);
           newCount = currentCount - 1;
         }
-        
-        // Actualizar o eliminar el documento de rating
         if (newCount === 0) {
           t.set(ratingRef, { avg: 0, count: 0, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         } else {
           t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         }
-        t.delete(userRef);  // Eliminar el voto del usuario
-        
-        // Actualizar variables locales
+        t.delete(userRef);
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = null;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
       }
-      // Caso 2: El usuario cambia su voto (ya había votado con un número diferente)
       else if (oldValue !== null && oldValue !== newVal) {
-        // Reemplaza su voto antiguo por el nuevo (el conteo total no cambia)
         newAvg = (currentAvg * currentCount - oldValue + newVal) / currentCount;
         newCount = currentCount;
-        
         t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-        
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = newVal;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> Voto actualizado.';
       }
-      // Caso 3: El usuario vota por primera vez (nunca había votado este anime)
       else if (oldValue === null) {
         if (currentCount === 0) {
           newAvg = newVal;
@@ -392,21 +401,16 @@ async function voteAnime(newVal) {
           newAvg = (currentAvg * currentCount + newVal) / (currentCount + 1);
           newCount = currentCount + 1;
         }
-        
         t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-        
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = newVal;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
       }
     });
     
-    // Actualizar la interfaz con los nuevos datos
     updateRatingDisplay();
     renderStars(currentUserRating || 0);
-    
-    // Ocultar el mensaje después de 3 segundos
     setTimeout(() => {
       const msg = document.getElementById('ratingMessage');
       if (msg && (msg.innerHTML.includes('Gracias') || msg.innerHTML.includes('actualizado') || msg.innerHTML.includes('eliminado'))) {
@@ -444,7 +448,6 @@ async function renderRecommendations(currentId) {
   try {
     const allAnimes = (typeof catalogoArray !== 'undefined') ? catalogoArray : [];
     const others = allAnimes.filter(a => String(a.id) !== String(currentId));
-    // ✅ 12 sugerencias en vez de 11
     const random = others.sort(() => 0.5 - Math.random()).slice(0, 12);
     
     if (!random.length) {
@@ -506,12 +509,19 @@ async function renderMainContent() {
   if (animeData.seasons && Array.isArray(animeData.seasons)) {
     animeData.seasons.forEach((s, idx) => {
       if (!s) return;
+      const hasEpisodes = s.eps && s.eps.length > 0;
       html += `
         <details data-season-index="${idx}" data-anime-id="${animeId}">
           <summary>${s.name || 'Temporada ' + (s.num || idx+1)}</summary>
           <div class="season-content">
             ${s.cover ? `<img src="${s.cover}" style="width:100%; border-radius:12px; margin-bottom:15px;" loading="lazy">` : ''}
-            <div class="video-list" id="list-${idx}"></div>
+            ${hasEpisodes ? `<div class="video-list" id="list-${idx}"></div>` : `
+              <div class="proximamente-message" style="text-align:center; padding:40px 20px; background:rgba(0,0,0,0.4); border-radius:16px; border:1px dashed var(--neon-cyan); margin-top:10px;">
+                <i class="fas fa-calendar-alt" style="font-size:3rem; color:var(--neon-cyan); margin-bottom:10px;"></i>
+                <h3 style="font-family:Orbitron; color:var(--neon-cyan);">PRÓXIMAMENTE</h3>
+                <p style="color:#ccc;">Este bloque aún no tiene episodios disponibles.<br>¡Muy pronto en Archinime!</p>
+              </div>
+            `}
             <div id="loading-${idx}" style="display:none; text-align:center; padding:10px;">Cargando...</div>
           </div>
         </details>
@@ -719,8 +729,6 @@ function waitForCatalog() {
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
-  // ✅ Ya no se llama a inicializarAnuncio()
-  
   await waitForCatalog();
   
   loadSearchCache();
