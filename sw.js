@@ -3,10 +3,10 @@
    Estrategia híbrida con control absoluto sobre catálogo.js
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v95';
-const CACHE_DYNAMIC = 'archinime-dynamic-v95';
-const CACHE_IMAGES = 'archinime-images-v95';
-const CACHE_FONTS = 'archinime-fonts-v95';
+const CACHE_STATIC = 'archinime-static-v96';
+const CACHE_DYNAMIC = 'archinime-dynamic-v96';
+const CACHE_IMAGES = 'archinime-images-v96';
+const CACHE_FONTS = 'archinime-fonts-v96';
 
 // Recursos precacheados (catálogo NO está incluido)
 const STATIC_ASSETS = [

@@ -3,7 +3,6 @@
 // Los ratings, comentarios y autenticación siguen usando Firestore.
 // Incluye mecanismo de espera para asegurar que catalogoArray esté disponible.
 // ⚠️ SIN ANUNCIOS - 12 sugerencias en vez de 11
-// NUEVO: Guarda y restaura estado (temporadas abiertas y scroll) con mejor manejo de carga asíncrona.
 
 // ---------- FUNCIÓN DE ESCAPE HTML ----------
 function escapeHtml(text) {
@@ -185,70 +184,6 @@ async function loadWatchedEpisodes(animeId) {
   }
 }
 
-// ---------- GUARDAR ESTADO DE TEMPORADAS ABIERTAS Y SCROLL ----------
-function saveOpenSeasonsState() {
-  if (!currentAnimeId) return;
-  const detailsList = document.querySelectorAll('details');
-  const openSeasons = Array.from(detailsList)
-    .filter(d => d.open)
-    .map(d => parseInt(d.dataset.seasonIndex))
-    .filter(idx => !isNaN(idx));
-  const state = {
-    openSeasons: openSeasons,
-    scrollY: window.scrollY || window.pageYOffset,
-    timestamp: Date.now()
-  };
-  try {
-    sessionStorage.setItem(`anime_detail_state_${currentAnimeId}`, JSON.stringify(state));
-  } catch(e) {}
-}
-
-// Restauración mejorada: espera a que todas las temporadas abiertas terminen de cargar
-async function restoreOpenSeasonsState() {
-  if (!currentAnimeId) return;
-  const saved = sessionStorage.getItem(`anime_detail_state_${currentAnimeId}`);
-  if (!saved) return;
-  try {
-    const state = JSON.parse(saved);
-    if (state.openSeasons && state.openSeasons.length) {
-      // Abrir las temporadas (esto dispara toggleSeason y carga de episodios)
-      const openPromises = [];
-      for (const seasonIdx of state.openSeasons) {
-        const details = document.querySelector(`details[data-season-index="${seasonIdx}"]`);
-        if (details && !details.open) {
-          details.open = true;
-          // toggleSeason se ejecutará por el evento, pero necesitamos saber cuándo termina
-          // Como toggleSeason usa requestAnimationFrame y chunks, podemos esperar a que la lista tenga hijos
-          const list = details.querySelector('.video-list');
-          if (list && list.children.length === 0) {
-            // Esperar a que se carguen los episodios
-            const promise = new Promise(resolve => {
-              const observer = new MutationObserver((mutations, obs) => {
-                if (list.children.length > 0) {
-                  obs.disconnect();
-                  resolve();
-                }
-              });
-              observer.observe(list, { childList: true, subtree: false });
-              // Timeout por si falla
-              setTimeout(() => { observer.disconnect(); resolve(); }, 3000);
-            });
-            openPromises.push(promise);
-          }
-        }
-      }
-      // Esperar a que todas las listas tengan contenido
-      await Promise.all(openPromises);
-    }
-    // Restaurar scroll después de que los episodios se hayan insertado
-    if (typeof state.scrollY === 'number') {
-      setTimeout(() => {
-        window.scrollTo({ top: state.scrollY, behavior: 'auto' });
-      }, 150);
-    }
-  } catch(e) {}
-}
-
 // ---------- RENDERIZADO DE TEMPORADAS ----------
 window.reloadSeason = async function(details, animeId, seasonIdx) {
   if (!details?.open) return;
@@ -287,9 +222,6 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
       btn.className = 'ep-btn' + (isWatched ? ' watched' : '');
       btn.onmouseenter = () => playUISound('hover');
       
-      // Guardar estado antes de navegar
-      btn.addEventListener('click', () => saveOpenSeasonsState());
-      
       const action = document.createElement('button');
       action.className = 'ep-action-btn';
       action.innerHTML = isWatched ? '<i class="fas fa-trash-alt"></i>' : '<i class="fas fa-check-circle"></i>';
@@ -298,7 +230,6 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
         if (isWatched) await removeEpisodeWatched(animeId, seasonNum, epNum);
         else await markEpisodeWatched(animeId, seasonNum, epNum);
         await reloadSeason(details, animeId, seasonIdx);
-        saveOpenSeasonsState();
       };
       btn.appendChild(action);
       
@@ -321,7 +252,7 @@ window.toggleSeason = async function(details, animeId, seasonIdx) {
   requestAnimationFrame(chunk);
 };
 
-// ---------- VOTACIONES (Firestore) ----------
+// ---------- VOTACIONES (Firestore) - CORREGIDO ----------
 async function loadAnimeRating(animeId) {
   try {
     const doc = await db.collection('animeRatings').doc(String(animeId)).get();
@@ -391,6 +322,7 @@ function resetStars(val) {
   });
 }
 
+// ✅ FUNCIÓN CORREGIDA: Maneja correctamente añadir, cambiar y quitar votos
 async function voteAnime(newVal) {
   if (!currentUserId) {
     const msg = 'Tienes que iniciar sesión para votar.';
@@ -398,6 +330,7 @@ async function voteAnime(newVal) {
     document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
     return;
   }
+
   const ratingRef = db.collection('animeRatings').doc(String(currentAnimeId));
   const userRef = ratingRef.collection('userRatings').doc(currentUserId);
   
@@ -407,83 +340,90 @@ async function voteAnime(newVal) {
       const userDoc = await t.get(userRef);
       
       let oldValue = userDoc.exists ? userDoc.data().value : null;
+      let currentAvg = ratingDoc.exists ? ratingDoc.data().avg : 0;
+      let currentCount = ratingDoc.exists ? ratingDoc.data().count : 0;
+      
       let newAvg, newCount;
       
-      if (ratingDoc.exists) {
-        const currentAvg = ratingDoc.data().avg;
-        const currentCount = ratingDoc.data().count;
-        
-        if (oldValue !== null && oldValue === newVal) {
-          if (currentCount > 1) {
-            newAvg = (currentAvg * currentCount - oldValue) / (currentCount - 1);
-            newCount = currentCount - 1;
-          } else {
-            newAvg = 0;
-            newCount = 0;
-          }
-        } else {
-          if (oldValue !== null) {
-            newAvg = (currentAvg * currentCount - oldValue + newVal) / currentCount;
-            newCount = currentCount;
-          } else {
-            newAvg = (currentAvg * currentCount + newVal) / (currentCount + 1);
-            newCount = currentCount + 1;
-          }
-        }
-      } else {
-        if (oldValue !== null && oldValue === newVal) {
+      // Caso 1: El usuario está quitando su voto (hizo clic en la misma estrella que ya tenía)
+      if (oldValue !== null && oldValue === newVal) {
+        if (currentCount === 1) {
+          // Era el único voto -> el anime se queda sin votos
           newAvg = 0;
           newCount = 0;
         } else {
-          newAvg = newVal;
-          newCount = 1;
+          // Hay más votos, se elimina solo el suyo
+          newAvg = (currentAvg * currentCount - oldValue) / (currentCount - 1);
+          newCount = currentCount - 1;
         }
-      }
-      
-      if (newCount === 0) {
-        t.set(ratingRef, {
-          avg: 0,
-          count: 0,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        t.delete(userRef);
-        animeRatingData = { avg: 0, count: 0 };
+        
+        // Actualizar o eliminar el documento de rating
+        if (newCount === 0) {
+          t.set(ratingRef, { avg: 0, count: 0, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        } else {
+          t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+        t.delete(userRef);  // Eliminar el voto del usuario
+        
+        // Actualizar variables locales
+        animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = null;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-info-circle"></i> Has eliminado tu voto.';
-      } else {
-        t.set(ratingRef, {
-          avg: newAvg,
-          count: newCount,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        t.set(userRef, {
-          value: newVal,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+      }
+      // Caso 2: El usuario cambia su voto (ya había votado con un número diferente)
+      else if (oldValue !== null && oldValue !== newVal) {
+        // Reemplaza su voto antiguo por el nuevo (el conteo total no cambia)
+        newAvg = (currentAvg * currentCount - oldValue + newVal) / currentCount;
+        newCount = currentCount;
+        
+        t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        
+        animeRatingData = { avg: newAvg, count: newCount };
+        currentUserRating = newVal;
+        document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> Voto actualizado.';
+      }
+      // Caso 3: El usuario vota por primera vez (nunca había votado este anime)
+      else if (oldValue === null) {
+        if (currentCount === 0) {
+          newAvg = newVal;
+          newCount = 1;
+        } else {
+          newAvg = (currentAvg * currentCount + newVal) / (currentCount + 1);
+          newCount = currentCount + 1;
+        }
+        
+        t.set(ratingRef, { avg: newAvg, count: newCount, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        t.set(userRef, { value: newVal, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        
         animeRatingData = { avg: newAvg, count: newCount };
         currentUserRating = newVal;
         document.getElementById('ratingMessage').innerHTML = '<i class="fas fa-check-circle"></i> ¡Gracias por tu voto!';
       }
     });
     
+    // Actualizar la interfaz con los nuevos datos
     updateRatingDisplay();
     renderStars(currentUserRating || 0);
+    
+    // Ocultar el mensaje después de 3 segundos
     setTimeout(() => {
       const msg = document.getElementById('ratingMessage');
-      if (msg && (msg.innerHTML.includes('Gracias') || msg.innerHTML.includes('eliminado'))) {
+      if (msg && (msg.innerHTML.includes('Gracias') || msg.innerHTML.includes('actualizado') || msg.innerHTML.includes('eliminado'))) {
         msg.innerHTML = '';
       }
     }, 3000);
     
   } catch (error) {
-    console.error("Error detallado en voteAnime:", error);
-    let errorMsg = "Error al procesar el voto.";
+    console.error("Error en transacción de voto:", error);
+    let errorMsg = "Error al procesar el voto. Revisa tu conexión o inicia sesión nuevamente.";
     if (error.code === "permission-denied") {
-      errorMsg = "Permiso denegado. Revisa las reglas de Firestore o inicia sesión nuevamente.";
+      errorMsg = "Permiso denegado. Asegúrate de estar autenticado y de que las reglas de Firestore sean correctas.";
     } else if (error.message) {
       errorMsg = `Error: ${error.message}`;
     }
     document.getElementById('ratingMessage').innerHTML = `<i class="fas fa-times-circle"></i> ${errorMsg}`;
+    showToast(errorMsg, true);
   }
 }
 
@@ -598,34 +538,7 @@ async function renderMainContent() {
     d.setAttribute('data-listener', 'true');
     const aid = d.dataset.animeId;
     const idx = d.dataset.seasonIndex;
-    if (aid && idx) {
-      d.ontoggle = () => {
-        toggleSeason(d, aid, parseInt(idx));
-        // Guardar estado después de alternar
-        setTimeout(() => saveOpenSeasonsState(), 50);
-      };
-    }
-  });
-
-  // Guardar estado con scroll (con debounce simple)
-  let scrollTimeout;
-  const scrollHandler = () => {
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => saveOpenSeasonsState(), 200);
-  };
-  window.addEventListener('scroll', scrollHandler, { passive: true });
-  
-  // Guardar antes de salir
-  window.addEventListener('beforeunload', () => saveOpenSeasonsState());
-  
-  // Restaurar estado después de renderizar
-  await restoreOpenSeasonsState();
-  
-  // También para páginas recuperadas de bfcache
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-      setTimeout(() => restoreOpenSeasonsState(), 100);
-    }
+    if (aid && idx) d.ontoggle = () => toggleSeason(d, aid, parseInt(idx));
   });
 }
 
@@ -806,7 +719,10 @@ function waitForCatalog() {
 
 // ---------- INICIALIZACIÓN ----------
 (async function init() {
+  // ✅ Ya no se llama a inicializarAnuncio()
+  
   await waitForCatalog();
+  
   loadSearchCache();
   initAuthListener();
 
