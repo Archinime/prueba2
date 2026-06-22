@@ -1,5 +1,5 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// MEJORADO: Carga más rápida, mejor manejo de errores, descarga con progreso
+// MEJORADO: Descarga única (bloqueo de botón), barra de progreso única
 // SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
 
 class VideoPlayer {
@@ -20,6 +20,7 @@ class VideoPlayer {
     this.currentPartIndex = 0;
     this.activeOption = 'latino';
     this.currentVideoElement = null;
+    this.isDownloading = false; // ← NUEVA VARIABLE DE CONTROL
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -397,7 +398,9 @@ class VideoPlayer {
     }
   }
   
+  // ========== BARRA DE PROGRESO PARA DESCARGA (MEJORADA) ==========
   showProgressBar() {
+    // Si ya existe, no crear otra
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
     div.id = 'customDownloadProgress';
@@ -419,6 +422,7 @@ class VideoPlayer {
   }
 
   async forceDownload(url, suggestedFilename = 'video.mp4') {
+    // Mostrar barra solo si no existe ya (la primera llamada la crea)
     this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
     const fillDiv = document.getElementById('progressBarFill');
@@ -459,11 +463,17 @@ class VideoPlayer {
       alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
       window.open(url, '_blank');
     } finally {
-      this.hideProgressBar();
+      // La barra se eliminará al final de handleDownloadClick, no aquí
     }
   }
 
   async handleDownloadClick() {
+    // Si ya hay una descarga en curso, salir sin hacer nada
+    if (this.isDownloading) {
+      console.log('Descarga en curso, espera a que termine');
+      return;
+    }
+
     const user = this.getCurrentUser();
     if (!user) {
       this.openLoginModal();
@@ -490,31 +500,56 @@ class VideoPlayer {
     const epTitleElem = document.getElementById('epTitle');
     let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
     baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
-    
-    for (let i = 0; i < urlsToDownload.length; i++) {
-      const url = urlsToDownload[i];
-      const isCatbox = url.includes('catbox.moe');
-      const isCrossOrigin = !url.startsWith(location.origin);
-      
-      let filename = `${baseFilename}`;
-      if (urlsToDownload.length > 1) {
-        filename = `${baseFilename}_parte${i+1}.mp4`;
-      } else {
-        filename = `${baseFilename}.mp4`;
+
+    // Bloquear el botón y mostrar barra
+    this.isDownloading = true;
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = '0.6';
+      downloadBtn.style.cursor = 'not-allowed';
+      downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
+    }
+    // Mostrar la barra de progreso (solo una vez)
+    this.showProgressBar();
+
+    try {
+      for (let i = 0; i < urlsToDownload.length; i++) {
+        const url = urlsToDownload[i];
+        const isCatbox = url.includes('catbox.moe');
+        const isCrossOrigin = !url.startsWith(location.origin);
+        
+        let filename = `${baseFilename}`;
+        if (urlsToDownload.length > 1) {
+          filename = `${baseFilename}_parte${i+1}.mp4`;
+        } else {
+          filename = `${baseFilename}.mp4`;
+        }
+        
+        if (isCatbox || isCrossOrigin) {
+          await this.forceDownload(url, filename);
+        } else {
+          // Descarga directa (sin barra)
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          link.target = this.isMobile() ? '_blank' : '_self';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          await new Promise(r => setTimeout(r, 500));
+        }
       }
-      
-      if (isCatbox || isCrossOrigin) {
-        await this.forceDownload(url, filename);
-      } else {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.target = this.isMobile() ? '_blank' : '_self';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        await new Promise(r => setTimeout(r, 500));
+    } finally {
+      // Restaurar botón y ocultar barra
+      this.isDownloading = false;
+      if (downloadBtn) {
+        downloadBtn.disabled = false;
+        downloadBtn.style.opacity = '1';
+        downloadBtn.style.cursor = 'pointer';
+        downloadBtn.innerHTML = '⬇ Descargar';
       }
+      this.hideProgressBar();
     }
   }
   
