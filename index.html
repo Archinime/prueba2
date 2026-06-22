@@ -13,7 +13,7 @@
   
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v7.0";
+      const APP_VERSION = "2025-04-06-v7.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -348,7 +348,7 @@
       will-change: opacity; }
     .card:hover { transform: scale(1.03) translateY(-8px) translateZ(0); box-shadow: 0 20px 30px rgba(0,0,0,0.8); }
     .card:hover::before { opacity: 1; }
-    .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; will-change: transform; }
+    .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; will-change: transform; background: #0a0a0c; }
     .card:hover img { transform: scale(1.08) translateZ(0); }
     .card .info { position: absolute; bottom: 0; left: 0; width: 100%;
       background: linear-gradient(to top, #000000e6 0%, rgba(5,5,5,0.9) 60%, transparent 100%);
@@ -753,7 +753,7 @@
   const providerGitHub = new firebase.auth.GithubAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-06-v7.0"></script>
+<script src="catalogo.js?v=2025-04-06-v7.1"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1040,8 +1040,10 @@
       card.setAttribute('onclick', `location='anime-detail.html?id=${anime.id}'`);
       const rating = getDisplayRating(anime);
       const imgUrl = anime.img || 'placeholder.webp';
+      // 🔥 IMAGEN CON LOADING EAGER Y DECODING ASYNC
       card.innerHTML = `
-        <img src="${imgUrl}" alt="${anime.title}" loading="lazy" decoding="async">
+        <img src="${imgUrl}" alt="${anime.title}" loading="eager" decoding="async" 
+             style="background: #0a0a0c; min-height: 100%;">
         <div class="info">
           <strong>${anime.title}</strong>
           <span class="rating-value">⭐ ${rating}</span>
