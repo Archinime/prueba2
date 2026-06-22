@@ -1505,6 +1505,24 @@
     console.error('Error al cargar ratings, mostrando sin ellos:', err);
     cargarDatosYMostrar();
   });
+
+  // ============================================================
+  // 🔥 SOLO EN MÓVILES: EL LOGO NO ABRE NUEVA VENTANA
+  // ============================================================
+  (function() {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      const logo = document.querySelector('.nav-logo');
+      if (logo) {
+        // Eliminar target="_blank" para que no abra nueva pestaña
+        logo.removeAttribute('target');
+        // Prevenir comportamiento por defecto y redirigir en la misma ventana
+        logo.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = this.href;
+        });
+      }
+    }
+  })();
 </script>
 </body>
 </html>
