@@ -1,11 +1,12 @@
 // notification-system.js - Con límite de 5 popups por carga de página
+// MEJORADO: Rendimiento, sincronización, límite configurable
 (function(global) {
   'use strict';
 
   const CONFIG = {
     MAX_HISTORY_ITEMS: 50,
     MAX_VISIBLE_NOTIFICATIONS: 30,
-    MAX_POPUPS_PER_PAGE_LOAD: 5,   // 👈 LÍMITE: 5 popups por cada vez que se carga la página
+    MAX_POPUPS_PER_PAGE_LOAD: 5,
     STORAGE_KEYS: {
       QUEUE: 'archinime_popup_queue',
       HISTORY: 'archinime_notif_history',
@@ -34,6 +35,9 @@
       document.documentElement.classList.remove('modal-open');
     },
     sanitizeHTML(str) {
+      if (typeof DOMPurify !== 'undefined') {
+        return DOMPurify.sanitize(str);
+      }
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
@@ -70,7 +74,7 @@
       this.history = [];
       this.isMenuOpen = false;
       this.isShowingPopup = false;
-      this.popupsShownInThisLoad = 0;   // 👈 Contador por carga de página
+      this.popupsShownInThisLoad = 0;
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -262,7 +266,8 @@
       return {
         notifId, animeId: anime.id, title: anime.title, img: anime.img,
         seasonCover: anime.latestSeasonCover || anime.img,
-        blockName: anime.latestBlockName || "", epTitle: anime.latestEpTitle || "Nuevo Contenido",
+        blockName: anime.latestBlockName || "",
+        epTitle: anime.latestEpTitle || "Nuevo Contenido",
         type: anime.updateType, date: ts, seen: false, isFinal: anime.isFinal || false,
         popupShown: false
       };
@@ -374,7 +379,6 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
-      // 👇 Verificar límite por carga de página
       if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
         console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
         return;

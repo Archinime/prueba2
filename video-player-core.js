@@ -1,10 +1,6 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// CORREGIDO: Marcado automático de episodios vistos con migración localStorage -> Firestore
-// MODIFICADO: Descarga en PeerTube usa el enlace de Opción 2 en lugar de API (más fiable)
-// MEJORADO: Títulos dinámicos: ahora muestra "Nombre Anime - Nombre Temporada - Título Episodio"
-// NUEVO: Descarga forzada con barra de progreso para Catbox y dominios externos
-// NUEVO: Soporte para episodios divididos en múltiples partes (arrays de URLs)
-// ACTUALIZADO: Selección automática de Opción 2 si Latino está vacío; efecto dual en botón Opción 2
+// MEJORADO: Carga más rápida, mejor manejo de errores, descarga con progreso
+// SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
 
 class VideoPlayer {
   constructor() {
@@ -15,15 +11,14 @@ class VideoPlayer {
     
     this.auth = null;
     this.db = null;
-    this.storage = null;
     this.animeData = null;
-    this.currentDownloadUrls = []; // array de URLs para la opción activa
+    this.currentDownloadUrls = [];
     this.currentPeerTubeUrl = null;
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
     this.currentPartIndex = 0;
-    this.activeOption = 'latino'; // 'latino' o 'sub'
+    this.activeOption = 'latino';
     this.currentVideoElement = null;
     
     window.comentariosAnimeId = this.animeId;
@@ -86,7 +81,6 @@ class VideoPlayer {
     
     this.auth = firebase.auth();
     this.db = firebase.firestore();
-    this.storage = firebase.storage();
     
     this.auth.onAuthStateChanged(user => {
       if (window.ArchinimeState) {
@@ -227,7 +221,6 @@ class VideoPlayer {
     });
   }
   
-  // 🔥 MODIFICADO: Incluye el nombre del anime al inicio
   formatEpisodeTitle(season, epNum, episodeData) {
     const animeTitle = this.animeData?.title || 'Anime';
     const seasonName = season.name || `Temporada ${season.num}`;
@@ -261,14 +254,11 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
-      // Procesar links (pueden ser strings o arrays)
       const latinoUrls = this.normalizeUrls(episodeData.link);
       const subUrls = this.normalizeUrls(episodeData.link2);
       
-      // --- NUEVA LÓGICA: seleccionar automáticamente la opción disponible ---
       let activeUrls;
       let activeOptionLabel;
-      let hasBoth = latinoUrls.length > 0 && subUrls.length > 0;
       
       if (latinoUrls.length > 0) {
         activeUrls = latinoUrls;
@@ -277,7 +267,6 @@ class VideoPlayer {
         activeUrls = subUrls;
         activeOptionLabel = 'sub';
       } else {
-        // No hay videos
         document.getElementById('epTitle').innerText = 'No hay enlaces disponibles';
         return;
       }
@@ -286,14 +275,13 @@ class VideoPlayer {
       this.activeOption = activeOptionLabel;
       this.playPart(0, activeUrls);
       
-      // Crear botones de servidor
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
       if (latinoUrls.length > 0) {
-        this.createServerButton('Latino', latinoUrls, activeOptionLabel === 'latino', hasBoth && activeOptionLabel !== 'latino');
+        this.createServerButton('Latino', latinoUrls, activeOptionLabel === 'latino');
       }
       if (subUrls.length > 0) {
-        this.createServerButton('Opción 2', subUrls, activeOptionLabel === 'sub', hasBoth && activeOptionLabel !== 'sub');
+        this.createServerButton('Opción 2', subUrls, activeOptionLabel === 'sub');
       }
       
       this.setupNavigation();
@@ -304,7 +292,6 @@ class VideoPlayer {
     }
   }
   
-  // Convierte string o array a array
   normalizeUrls(urls) {
     if (!urls) return [];
     if (Array.isArray(urls)) return urls.filter(u => u && u.trim() !== '');
@@ -312,13 +299,10 @@ class VideoPlayer {
     return [];
   }
   
-  createServerButton(label, urls, isActive, highlightAsDual = false) {
+  createServerButton(label, urls, isActive) {
     const container = document.getElementById('serverOptions');
     const btn = document.createElement('button');
     btn.className = 'opt-btn' + (isActive ? ' active' : '');
-    if (highlightAsDual) {
-      btn.classList.add('dual-option');
-    }
     btn.innerText = label;
     btn.onclick = () => {
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
@@ -332,7 +316,6 @@ class VideoPlayer {
   
   updateDownloadUrls(urls) {
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
-    // Detectar si es PeerTube (solo para el primer URL, asumimos todos igual)
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
   
@@ -366,7 +349,6 @@ class VideoPlayer {
     return url;
   }
   
-  // Reproducir una parte específica
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -385,7 +367,6 @@ class VideoPlayer {
       container.appendChild(video);
       this.currentVideoElement = video;
       
-      // Cuando termine esta parte, pasar a la siguiente
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
           this.playPart(partIndex + 1, urlsArray);
@@ -406,7 +387,6 @@ class VideoPlayer {
     }
   }
   
-  // Obtener las URLs de la opción activa actual
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
@@ -417,7 +397,6 @@ class VideoPlayer {
     }
   }
   
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');

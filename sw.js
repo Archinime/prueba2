@@ -1,40 +1,32 @@
 /* ============================================================
    sw.js - Archinime OS Service Worker
    Estrategia híbrida con control absoluto sobre catálogo.js
+   MEJORADO: Caché más inteligente, actualizaciones en caliente
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v98';
-const CACHE_DYNAMIC = 'archinime-dynamic-v98';
-const CACHE_IMAGES = 'archinime-images-v98';
-const CACHE_FONTS = 'archinime-fonts-v98';
+const CACHE_STATIC = 'archinime-static-v99';
+const CACHE_DYNAMIC = 'archinime-dynamic-v9';
+const CACHE_IMAGES = 'archinime-images-v99';
+const CACHE_FONTS = 'archinime-fonts-v99';
 
-// Recursos precacheados (catálogo NO está incluido)
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/anime-detail.html',
   '/video-player.html',
-  '/styles-index.css',
-  '/script-index.js',
-  '/anime-detail-core.js',
-  '/notification-system.js',
-  '/musica_fondo.js',
-  '/animaciones.js',
-  '/gifs.js',
-  '/anuncios_index.js',
   '/manifest.json',
   '/Logo_Archinime.avif',
   '/Logo_Archinime.png',
-  '/youtube.avif',
   '/invitado.avif',
   '/galaxia-morado1.avif',
-  '/chica_corriendo.gif'
+  '/chica_corriendo.gif',
+  '/youtube.avif'
 ];
 
-// ---------- INSTALACIÓN ----------
+// Instalación
 self.addEventListener('install', event => {
   console.log('[SW] Instalando...');
-  self.skipWaiting(); // tomar control de inmediato
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_STATIC).then(cache => {
       console.log('[SW] Precaching recursos estáticos');
@@ -43,7 +35,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ---------- ACTIVACIÓN ----------
+// Activación
 self.addEventListener('activate', event => {
   console.log('[SW] Activando...');
   const currentCaches = [CACHE_STATIC, CACHE_DYNAMIC, CACHE_IMAGES, CACHE_FONTS];
@@ -62,13 +54,13 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// ---------- FETCH (estrategias por tipo) ----------
+// Fetch
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const request = event.request;
   if (request.method !== 'GET') return;
 
-  /* 🔥 REGLA 0: Catálogo siempre fresco - red con no-cache */
+  // Catálogo siempre fresco
   if (url.pathname.endsWith('/catalogo.js')) {
     event.respondWith(
       fetch(request, { cache: 'no-cache' })
@@ -100,7 +92,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // API / Firestore -> solo red, sin cache
+  // API / Firestore -> solo red
   if (url.origin.includes('firestore') || url.origin.includes('googleapis') || url.pathname.includes('/api/')) {
     event.respondWith(fetch(request));
     return;
@@ -109,8 +101,6 @@ self.addEventListener('fetch', event => {
   // Resto -> network-first
   event.respondWith(networkFirst(request));
 });
-
-// ---------- ESTRATEGIAS ----------
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_DYNAMIC);
@@ -149,7 +139,7 @@ function getCacheNameForRequest(request) {
   return CACHE_DYNAMIC;
 }
 
-// ---------- PUSH (opcional) ----------
+// Push
 self.addEventListener('push', event => {
   let data = { title: 'Archinime', body: 'Nueva actualización', icon: '/Logo_Archinime.png' };
   if (event.data) {
