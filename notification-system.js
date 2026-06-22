@@ -1,5 +1,6 @@
 // notification-system.js - Con límite de 5 popups por carga de página
-// MEJORADO: Sin duplicados, sincronización perfecta, popups solo para no vistas
+// CORREGIDO: Sincronización perfecta entre cola e historial, popups solo para no vistas
+// MEJORADO: Al cerrar popup no se marca como visto, solo al interactuar
 (function(global) {
   'use strict';
 
@@ -13,9 +14,8 @@
       SEEN_IDS: 'archinime_seen_notif_ids',
       FIRST_VISIT: 'archinime_notif_first_visit',
       LAST_CATALOG_CHECK: 'archinime_last_catalog_check'
-      // POPUP_SHOWN_IDS ELIMINADO
     },
-    ANIME_MAX_AGE_DAYS: 30,
+    ANIME_MAX_AGE_DAYS: 60, // Aumentado a 60 días para que aparezcan más animes
     CATALOG_CHECK_INTERVAL_HOURS: 6
   };
 
@@ -102,6 +102,8 @@
       }
 
       await this.generateCatalogNotifications();
+      // Sincronizar cola con historial después de generar nuevas
+      this.syncQueueWithHistory();
       this.renderNotificationList();
       this.updateBadge();
       this.attemptResumeQueue('init');
@@ -144,6 +146,11 @@
       if (user) {
         await this.syncWithCloud(user.uid);
         this.listenForReplies(user.uid);
+        // Después de sincronizar, actualizar cola
+        this.syncQueueWithHistory();
+        this.renderNotificationList();
+        this.updateBadge();
+        this.attemptResumeQueue('authChange');
       } else {
         if (this.repliesUnsubscribe) { this.repliesUnsubscribe(); this.repliesUnsubscribe = null; }
       }
@@ -152,6 +159,8 @@
     handlePageShow(event) {
       console.log(`🔄 pageshow (persisted: ${event.persisted})`);
       this.loadPersistedData();
+      // Re-sincronizar cola con historial
+      this.syncQueueWithHistory();
       this.updateBadge();
       this.renderNotificationList();
       this.attemptResumeQueue('pageshow');
@@ -198,7 +207,6 @@
     }
 
     addToHistory(notif) {
-      // Evitar duplicados por notifId
       const existingIndex = this.history.findIndex(n => n.notifId === notif.notifId);
       if (existingIndex !== -1) {
         this.history[existingIndex] = notif;
@@ -212,6 +220,25 @@
       this.persistHistory();
     }
 
+    // 🔥 NUEVO: Sincroniza la cola con el historial (agrega notificaciones no vistas que falten)
+    syncQueueWithHistory() {
+      const pending = this.history.filter(n => !n.seen);
+      // Obtener IDs de notificaciones ya en cola
+      const queuedIds = new Set(this.queue.map(n => n.notifId));
+      // Añadir las que no estén en cola
+      for (const notif of pending) {
+        if (!queuedIds.has(notif.notifId)) {
+          this.queue.push(notif);
+          queuedIds.add(notif.notifId);
+          console.log(`📥 Añadido a cola: ${notif.title}`);
+        }
+      }
+      // Ordenar cola por fecha (más reciente primero)
+      this.queue.sort((a, b) => b.date - a.date);
+      this.persistQueue();
+      console.log(`🔄 Cola sincronizada: ${this.queue.length} pendientes`);
+    }
+
     async generateCatalogNotifications() {
       if (typeof catalogoArray === 'undefined' || catalogoArray.length === 0) {
         console.warn('⏳ catalogoArray no disponible. Reintentando en 500ms...');
@@ -221,12 +248,12 @@
 
       console.log('📦 Revisando catálogo local...');
       const now = Date.now();
-      const thirtyDaysAgo = now - (CONFIG.ANIME_MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
+      const sixtyDaysAgo = now - (CONFIG.ANIME_MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
       const seenIds = StorageManager.load(CONFIG.STORAGE_KEYS.SEEN_IDS, []);
 
       const candidatos = catalogoArray
         .filter(a => a.updateType && a.updateType !== 'Ninguna')
-        .filter(a => this._getTimestamp(a.lastUpdate) > thirtyDaysAgo)
+        .filter(a => this._getTimestamp(a.lastUpdate) > sixtyDaysAgo)
         .filter(a => {
           const notifId = `${a.id}_${this._getTimestamp(a.lastUpdate)}`;
           return !seenIds.includes(notifId) && !this.history.some(n => n.notifId === notifId);
@@ -240,19 +267,12 @@
         if (!notif) continue;
         seenIds.push(notif.notifId);
         this.addToHistory(notif);
-        
-        // Encolar solo si no está ya en la cola y no está vista
-        const alreadyQueued = this.queue.some(n => n.notifId === notif.notifId);
-        if (!alreadyQueued && !notif.seen) {
-          this.queue.push(notif);
-          console.log(`🔔 Popup encolado: ${anime.title}`);
-        }
+        // No añadir a cola aquí, se hará en syncQueueWithHistory
       }
 
       StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, seenIds.slice(-1000));
       this.renderNotificationList();
       this.updateBadge();
-      this.persistQueue();
     }
 
     _getTimestamp(value) {
@@ -280,7 +300,7 @@
         const doc = await db.collection('users').doc(uid).get();
         if (doc.exists) {
           const data = doc.data();
-          // Fusionar historiales sin duplicados
+          // Fusionar historiales sin duplicados y conservando el estado seen más reciente
           if (data.notifHistory) {
             const merged = [...this.history, ...data.notifHistory];
             const uniqueMap = new Map();
@@ -288,12 +308,10 @@
               if (!uniqueMap.has(n.notifId)) {
                 uniqueMap.set(n.notifId, n);
               } else {
-                // Si ya existe, conservar el que tenga fecha más reciente o el que esté visto
                 const existing = uniqueMap.get(n.notifId);
-                if (n.date > existing.date) {
-                  uniqueMap.set(n.notifId, n);
-                } else if (n.seen && !existing.seen) {
-                  uniqueMap.set(n.notifId, { ...existing, seen: true });
+                // Si el nuevo tiene fecha más reciente o está visto, actualizar
+                if (n.date > existing.date || (n.seen && !existing.seen)) {
+                  uniqueMap.set(n.notifId, { ...existing, ...n });
                 }
               }
             });
@@ -328,7 +346,6 @@
             if (data.userId === uid) continue;
             const docId = change.doc.id;
             const notifId = `reply_${docId}`;
-            // Evitar duplicados
             if (this.history.some(n => n.notifId === notifId)) continue;
             
             const notif = await this.createReplyNotification(data, docId, notifId);
@@ -337,16 +354,10 @@
             this.addToHistory(notif);
             hasNew = true;
             this.markAsSeenInStorage(notifId);
-            
-            // Encolar solo si no está en cola y no está vista
-            const alreadyQueued = this.queue.some(n => n.notifId === notif.notifId);
-            if (!alreadyQueued && !notif.seen) {
-              this.queue.push(notif);
-              console.log(`🔔 Popup de respuesta encolado: ${notif.title}`);
-              this.persistQueue();
-            }
+            // No añadir a cola aquí, syncQueueWithHistory lo hará
           }
           if (hasNew) {
+            this.syncQueueWithHistory();
             this.renderNotificationList();
             if (!this.isMenuOpen) this.updateBadge();
             this.attemptResumeQueue('reply');
@@ -395,15 +406,12 @@
       if (this.isShowingPopup) return;
       if (this.queue.length === 0) return;
       
-      // Verificar límite por carga de página
       if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
         console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
         return;
       }
       
-      // Tomar la primera notificación de la cola (que no está vista)
       const notif = this.queue[0];
-      
       this.popupsShownInThisLoad++;
       console.log(`🎬 Mostrando popup ${this.popupsShownInThisLoad}/${CONFIG.MAX_POPUPS_PER_PAGE_LOAD}: ${notif.title}`);
       this.isShowingPopup = true;
@@ -487,6 +495,7 @@
       modal.classList.remove('show');
       setTimeout(() => {
         modal.remove();
+        // IMPORTANTE: NO marcar como visto al cerrar, solo eliminar de la cola
         if (this.queue.length > 0) this.queue.shift();
         domUtils.enableScroll();
         this.isShowingPopup = false;
@@ -497,7 +506,12 @@
 
     goToAnimeFromPopup(animeId, notifId) {
       const targetNotif = this.history.find(n => n.notifId === notifId);
-      if (targetNotif && !targetNotif.seen) this.markAsRead(notifId);
+      if (targetNotif && !targetNotif.seen) {
+        this.markAsRead(notifId);
+        // Actualizar badge y lista después de marcar
+        this.updateBadge();
+        this.renderNotificationList();
+      }
       if (this.queue.length > 0 && this.queue[0].notifId === notifId) this.queue.shift();
       this.persistQueue();
       this.isShowingPopup = false;
@@ -508,14 +522,25 @@
 
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen;
-      if (this.isMenuOpen) { this.dom.menu?.classList.add('active'); this.renderNotificationList(); }
-      else this.dom.menu?.classList.remove('active');
+      if (this.isMenuOpen) { 
+        this.dom.menu?.classList.add('active'); 
+        this.renderNotificationList(); 
+      } else {
+        this.dom.menu?.classList.remove('active');
+      }
     }
 
     markAllAsRead() {
       let changed = false;
       this.history.forEach(n => { if (!n.seen) { n.seen = true; changed = true; } });
-      if (changed) { this.persistHistory(); this.renderNotificationList(); this.updateBadge(); }
+      if (changed) { 
+        this.persistHistory(); 
+        this.renderNotificationList(); 
+        this.updateBadge();
+        // Limpiar cola de pendientes
+        this.queue = this.queue.filter(n => n.seen);
+        this.persistQueue();
+      }
     }
 
     markAsRead(notifId) {
@@ -525,6 +550,9 @@
         this.persistHistory();
         this.updateBadge();
         this.renderNotificationList();
+        // Eliminar de la cola si está
+        this.queue = this.queue.filter(n => n.notifId !== notifId);
+        this.persistQueue();
       }
     }
 
