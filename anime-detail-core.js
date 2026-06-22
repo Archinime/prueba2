@@ -421,8 +421,10 @@ async function renderRecommendations(currentId) {
       card.className = 'rec-card';
       card.setAttribute('onclick', `playUISound('click'); location.href='anime-detail.html?id=${a.id}'`);
       card.setAttribute('onmouseenter', `playUISound('hover')`);
+      // 🔥 IMAGEN CON LOADING EAGER Y DECODING ASYNC
       card.innerHTML = `
-        <img src="${a.img}" alt="${a.title}" loading="lazy" decoding="async">
+        <img src="${a.img}" alt="${a.title}" loading="eager" decoding="async" 
+             style="background: #0a0a0c; min-height: 100%;">
         <p>${a.title}</p>
       `;
       frag.appendChild(card);
@@ -447,8 +449,12 @@ async function renderMainContent() {
   const genreHtml = genres.map(g => `<span class="genre-chip">${escapeHtml(g)}</span>`).join('');
   const desc = animeData.desc || 'Sin descripción disponible.';
 
+  // 🔥 Portada con loading eager
   let html = `
-    <div class="anime-cover"><img src="${animeData.img || ''}" alt="cover" loading="lazy" decoding="async"></div>
+    <div class="anime-cover">
+      <img src="${animeData.img || ''}" alt="cover" loading="eager" decoding="async" 
+           style="background: #0a0a0c; min-height: 200px;">
+    </div>
     <h1>${animeData.title || ''}</h1>
     <div class="genres-wrap">${genreHtml || '<span class="genre-chip">Sin géneros</span>'}</div>
     <p class="desc">${desc}</p>
