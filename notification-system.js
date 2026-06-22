@@ -1,5 +1,5 @@
 // notification-system.js - Con límite de 5 popups por carga de página
-// CORREGIDO: Al mostrar popup, se marca como visto; cola sincronizada con historial
+// CORREGIDO: Evita popups duplicados al cargar, cola sincronizada correctamente
 (function(global) {
   'use strict';
 
@@ -74,6 +74,7 @@
       this.isMenuOpen = false;
       this.isShowingPopup = false;
       this.popupsShownInThisLoad = 0;
+      this.isProcessingQueue = false; // 🔥 nuevo flag para evitar colisiones
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -101,11 +102,15 @@
       }
 
       await this.generateCatalogNotifications();
-      // Sincronizar cola con historial (añade todos los no vistos)
       this.rebuildQueueFromHistory();
       this.renderNotificationList();
       this.updateBadge();
-      this.attemptResumeQueue('init');
+      
+      // Esperar un pequeño tick para que todo esté listo y luego mostrar popups
+      setTimeout(() => {
+        this.attemptResumeQueue('init');
+      }, 100);
+      
       this.setupAuthListener();
     }
 
@@ -148,7 +153,7 @@
         this.rebuildQueueFromHistory();
         this.renderNotificationList();
         this.updateBadge();
-        this.attemptResumeQueue('authChange');
+        // No llamar a attemptResumeQueue aquí para evitar duplicados, se llamará en pageshow o mediante el primer popup
       } else {
         if (this.repliesUnsubscribe) { this.repliesUnsubscribe(); this.repliesUnsubscribe = null; }
       }
@@ -160,7 +165,10 @@
       this.rebuildQueueFromHistory();
       this.updateBadge();
       this.renderNotificationList();
-      this.attemptResumeQueue('pageshow');
+      // Solo intentar reanudar si no hay un popup mostrándose y no está procesando
+      if (!this.isShowingPopup && !this.isProcessingQueue) {
+        this.attemptResumeQueue('pageshow');
+      }
     }
 
     handleBeforeUnload() { this.persistQueue(); }
@@ -217,12 +225,9 @@
       this.persistHistory();
     }
 
-    // 🔥 Reconstruye la cola desde el historial: solo notificaciones no vistas
     rebuildQueueFromHistory() {
       const pending = this.history.filter(n => !n.seen);
-      // Ordenar por fecha (más reciente primero)
       pending.sort((a, b) => b.date - a.date);
-      // Reemplazar la cola completa
       this.queue = pending;
       this.persistQueue();
       console.log(`🔄 Cola reconstruida: ${this.queue.length} pendientes`);
@@ -256,7 +261,6 @@
         if (!notif) continue;
         seenIds.push(notif.notifId);
         this.addToHistory(notif);
-        // No añadir a cola aquí, se hará en rebuildQueueFromHistory
       }
 
       StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, seenIds.slice(-1000));
@@ -341,13 +345,15 @@
             this.addToHistory(notif);
             hasNew = true;
             this.markAsSeenInStorage(notifId);
-            // No añadir a cola, rebuildQueueFromHistory lo hará
           }
           if (hasNew) {
             this.rebuildQueueFromHistory();
             this.renderNotificationList();
             if (!this.isMenuOpen) this.updateBadge();
-            this.attemptResumeQueue('reply');
+            // Solo intentar reanudar si no hay popup mostrándose ni procesando
+            if (!this.isShowingPopup && !this.isProcessingQueue) {
+              this.attemptResumeQueue('reply');
+            }
           }
         }, error => console.error('[Replies] Error:', error));
     }
@@ -382,22 +388,49 @@
     }
 
     attemptResumeQueue(source) {
+      // Evitar ejecuciones concurrentes
+      if (this.isProcessingQueue) {
+        console.log(`⏳ [${source}] Ya procesando cola, ignorando.`);
+        return;
+      }
       console.log(`🎬 [${source}] Reanudando cola. Pendientes: ${this.queue.length}`);
       const existingModal = document.getElementById('eventModal');
-      if (existingModal) { existingModal.remove(); domUtils.enableScroll(); this.isShowingPopup = false; }
-      if (this.queue.length === 0) { console.log('✅ Cola vacía'); return; }
-      if (!this.isShowingPopup) this.showNextPopup();
+      if (existingModal) { 
+        existingModal.remove(); 
+        domUtils.enableScroll(); 
+        this.isShowingPopup = false; 
+      }
+      if (this.queue.length === 0) { 
+        console.log('✅ Cola vacía'); 
+        return; 
+      }
+      if (!this.isShowingPopup) {
+        this.isProcessingQueue = true;
+        this.showNextPopup();
+      }
     }
 
     showNextPopup() {
-      if (this.isShowingPopup) return;
-      if (this.queue.length === 0) return;
-      
-      if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
-        console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
+      // Si ya hay un popup mostrándose, no hacer nada
+      if (this.isShowingPopup) {
+        console.log('⏳ Ya hay un popup mostrándose, esperando...');
         return;
       }
       
+      // Si la cola está vacía, liberar el flag y salir
+      if (this.queue.length === 0) {
+        this.isProcessingQueue = false;
+        return;
+      }
+      
+      // Verificar límite por carga de página
+      if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
+        console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
+        this.isProcessingQueue = false;
+        return;
+      }
+      
+      // Tomar la primera notificación (ya está ordenada por fecha)
       const notif = this.queue[0];
       this.popupsShownInThisLoad++;
       console.log(`🎬 Mostrando popup ${this.popupsShownInThisLoad}/${CONFIG.MAX_POPUPS_PER_PAGE_LOAD}: ${notif.title}`);
@@ -490,7 +523,6 @@
       modal.classList.remove('show');
       setTimeout(() => {
         modal.remove();
-        // La notificación ya fue marcada como vista al mostrarse, solo cerramos
         domUtils.enableScroll();
         this.isShowingPopup = false;
         // Mostrar el siguiente popup (si hay más y no se ha alcanzado el límite)
@@ -525,6 +557,7 @@
         this.renderNotificationList(); 
         this.updateBadge();
         this.rebuildQueueFromHistory(); // vacía la cola porque todos están vistos
+        this.isProcessingQueue = false; // liberar flag
       }
     }
 
