@@ -13,9 +13,6 @@ const REACTIONS_MAP = {
     'angry': { emoji: '😡', color: '#ff4757', name: 'Me enoja' }
 };
 
-// ----------------------------------------------------------------------
-// Inyección de estilos CSS para las reacciones
-// ----------------------------------------------------------------------
 function injectReaccionesCSS() {
     if (document.getElementById('archinime-reacciones-css')) return;
     const style = document.createElement('style');
@@ -76,7 +73,6 @@ function injectReaccionesCSS() {
             z-index: 10;
         }
 
-        /* Píldora de resumen (Botón principal interactivo) */
         .reactions-summary {
             display: flex;
             align-items: center;
@@ -123,16 +119,10 @@ function injectReaccionesCSS() {
     document.head.appendChild(style);
 }
 
-// ----------------------------------------------------------------------
-// Obtener usuario actual desde el estado central (ArchinimeState)
-// ----------------------------------------------------------------------
 function getCurrentUser() {
     return window.ArchinimeState ? window.ArchinimeState.get('currentUser') : null;
 }
 
-// ----------------------------------------------------------------------
-// Alternar una reacción (añadir o cambiar)
-// ----------------------------------------------------------------------
 window.toggleReaccion = async function(commentId, tipoReaccion, event) {
     if (event) event.stopPropagation();
     const user = getCurrentUser();
@@ -145,9 +135,8 @@ window.toggleReaccion = async function(commentId, tipoReaccion, event) {
         return;
     }
 
-    // Asegurarse de que comentariosDb esté disponible (global desde comentarios.js)
     if (typeof comentariosDb === 'undefined' || !comentariosDb) {
-        console.error("comentariosDb no está definido. Asegúrate de que comentarios.js se haya cargado antes.");
+        console.error("comentariosDb no está definido.");
         alert("Error interno. Recarga la página.");
         return;
     }
@@ -168,9 +157,6 @@ window.toggleReaccion = async function(commentId, tipoReaccion, event) {
     }
 };
 
-// ----------------------------------------------------------------------
-// Quitar la reacción del usuario actual
-// ----------------------------------------------------------------------
 window.quitarReaccion = async function(commentId, event) {
     if (event) event.stopPropagation();
     const user = getCurrentUser();
@@ -192,9 +178,6 @@ window.quitarReaccion = async function(commentId, event) {
     }
 };
 
-// ----------------------------------------------------------------------
-// Generar el HTML de las reacciones (resumen + picker) para un comentario
-// ----------------------------------------------------------------------
 window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     const reactions = reactionsObj || {};
     const currentUser = getCurrentUser();
@@ -206,7 +189,6 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         currentUserReaction = reactions[currentUser.uid];
     }
 
-    // Contar cada tipo de reacción
     const counts = {};
     userIds.forEach(uid => {
         const type = reactions[uid];
@@ -215,7 +197,6 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         }
     });
     
-    // Top 3 emojis más usados
     const sortedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
     const topIconsHTML = sortedTypes.map(type => `<span class="r-emoji">${REACTIONS_MAP[type].emoji}</span>`).join('');
     
@@ -232,7 +213,6 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
         }
         summaryContent = `${topIconsHTML} <strong>${total}</strong>`;
     } else {
-        // Estado vacío: botón sutil para agregar reacción
         summaryContent = `<i class="far fa-smile" style="font-size: 1rem;"></i> <span>+</span>`;
     }
 
@@ -254,7 +234,4 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     `;
 };
 
-// ----------------------------------------------------------------------
-// Inicialización: inyectar los estilos CSS automáticamente
-// ----------------------------------------------------------------------
 injectReaccionesCSS();

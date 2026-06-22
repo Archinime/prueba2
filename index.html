@@ -91,6 +91,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
+  <!-- Estilos -->
   <style>
     /* ===== TODOS TUS ESTILOS ORIGINALES (se mantienen exactamente igual) ===== */
     :root {
@@ -600,8 +601,7 @@
   </div>
   <div class="nav-actions header-actions">
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
-    <button id="youtubeBtn" class="cyber-btn-icon" title="Canal de YouTube" onclick="window.open('https://www.youtube.com/@Archinime-k2g', '_blank')">
-      <img src="youtube.avif" alt="YouTube" style="width: 100%; height: 100%; border-radius: 50%;" decoding="async">
+
     </button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()" title="Centro de Control"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
@@ -826,68 +826,6 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
-<!-- ========== SCRIPT DE DONACIÓN KO-FI (CONTROLADO POR PAÍS Y ADMIN) CON MEJORA DE ROBUSTEZ ========== -->
-<script>
-  // Lista de países permitidos (códigos ISO 3166-1 alfa-2)
-  const allowedCountries = ['NG', 'ID', 'EG', 'AE', 'KW', 'QA', 'SA', 'BD', 'TR', 'MY']; // NO incluye Perú, solo los que pediste
-
-  // Función para detectar país mediante IP (gratuita, sin clave)
-  function getUserCountry(callback) {
-    fetch('https://ipapi.co/json/')
-      .then(res => res.json())
-      .then(data => callback(data.country_code))
-      .catch(() => callback(null));
-  }
-
-  // Función para cargar el widget de Ko-fi dinámicamente (solo una vez)
-  let kofiLoaded = false;
-  function loadKoFiWidget() {
-    if (kofiLoaded) return;
-    kofiLoaded = true;
-    try {
-      const script = document.createElement('script');
-      script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
-      script.async = true;
-      script.onload = () => {
-        if (typeof kofiWidgetOverlay !== 'undefined') {
-          kofiWidgetOverlay.draw('archinime', {
-            'type': 'floating-chat',
-            'floating-chat.donateButton.text': 'Apóyame',
-            'floating-chat.donateButton.background-color': '#00b9fe',
-            'floating-chat.donateButton.text-color': '#fff'
-          });
-        }
-      };
-      document.head.appendChild(script);
-    } catch(e) { console.warn("Ko-fi error", e); }
-  }
-
-  // Lógica principal: mostrar solo si el usuario es admin O el país está en la lista
-  function evaluarMostrarDonacion() {
-    try {
-      const user = auth.currentUser;
-      // Administradores: archinime12@gmail.com y blodelywar@gmail.com
-      if (user && (user.email === 'archinime12@gmail.com' || user.email === 'blodelywar@gmail.com')) {
-        loadKoFiWidget();
-        return;
-      }
-      // No admin: comprobar país
-      getUserCountry(country => {
-        if (country && allowedCountries.includes(country)) {
-          loadKoFiWidget();
-        }
-        // En caso contrario, no se carga nada.
-      });
-    } catch(e) { console.warn("Ko-fi init error", e); }
-  }
-
-  // Escuchar cambios de autenticación (Firebase ya está inicializado arriba)
-  auth.onAuthStateChanged(() => {
-    evaluarMostrarDonacion();
-  });
-  // También ejecutar por si ya hay sesión antes del evento
-  if (auth.currentUser) evaluarMostrarDonacion();
-</script>
 
 <script>
   // Variables para paginación y música global (se mantienen)
@@ -973,7 +911,7 @@
   window.addEventListener('DOMContentLoaded', updateButtonsVisibility);
   window.addEventListener('resize', updateButtonsVisibility);
 
-  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA + FALLBACK POR INTERACCIÓN) ====================
+  // ==================== MÚSICA (REPRODUCCIÓN AUTOMÁTICA) ====================
   let isMusicStarted = false;
   let currentAudio = null;
 
@@ -1010,19 +948,6 @@
   window.addEventListener('load', () => {
     startMusic();
   });
-
-  // FALLBACK ADICIONAL: si después de 2 segundos la música no ha comenzado (por ejemplo por error silencioso), forzar con interacción
-  setTimeout(() => {
-    if (!isMusicStarted) {
-      const fallbackInteraction = () => {
-        if (!isMusicStarted) startMusic();
-        document.removeEventListener('click', fallbackInteraction);
-        document.removeEventListener('touchstart', fallbackInteraction);
-      };
-      document.addEventListener('click', fallbackInteraction);
-      document.addEventListener('touchstart', fallbackInteraction);
-    }
-  }, 2000);
 
   // ==================== GIF ALEATORIO ====================
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
@@ -1563,7 +1488,9 @@
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
     if (!fg) return;
+    // Eliminar clases existentes
     fg.classList.remove('fg-left', 'fg-right');
+    // Elegir aleatoriamente left o right
     const side = Math.random() < 0.5 ? 'left' : 'right';
     fg.classList.add(`fg-${side}`);
   }
@@ -1611,6 +1538,7 @@
     bgVideo.play().then(() => bgVideo.classList.add('loaded')).catch(e => console.log('Fondo bloqueado', e));
     fgVideo.muted = true;
     fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+    // Posición aleatoria al inicio
     randomizeFgPosition();
   }
   function createSparks(clientX, clientY) {
@@ -1647,6 +1575,7 @@
       fgVideo.play().then(() => {
         isTransitioning = false;
         fgContainer.classList.remove('poof');
+        // Cambiar también la posición aleatoriamente después de la transición
         randomizeFgPosition();
       }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
     }, 600);
