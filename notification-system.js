@@ -1,6 +1,5 @@
 // notification-system.js - Con límite de 5 popups por carga de página
-// CORREGIDO: Sincronización perfecta entre cola e historial, popups solo para no vistas
-// MEJORADO: Al cerrar popup no se marca como visto, solo al interactuar
+// CORREGIDO: Al mostrar popup, se marca como visto; cola sincronizada con historial
 (function(global) {
   'use strict';
 
@@ -15,7 +14,7 @@
       FIRST_VISIT: 'archinime_notif_first_visit',
       LAST_CATALOG_CHECK: 'archinime_last_catalog_check'
     },
-    ANIME_MAX_AGE_DAYS: 60, // Aumentado a 60 días para que aparezcan más animes
+    ANIME_MAX_AGE_DAYS: 60,
     CATALOG_CHECK_INTERVAL_HOURS: 6
   };
 
@@ -102,8 +101,8 @@
       }
 
       await this.generateCatalogNotifications();
-      // Sincronizar cola con historial después de generar nuevas
-      this.syncQueueWithHistory();
+      // Sincronizar cola con historial (añade todos los no vistos)
+      this.rebuildQueueFromHistory();
       this.renderNotificationList();
       this.updateBadge();
       this.attemptResumeQueue('init');
@@ -146,8 +145,7 @@
       if (user) {
         await this.syncWithCloud(user.uid);
         this.listenForReplies(user.uid);
-        // Después de sincronizar, actualizar cola
-        this.syncQueueWithHistory();
+        this.rebuildQueueFromHistory();
         this.renderNotificationList();
         this.updateBadge();
         this.attemptResumeQueue('authChange');
@@ -159,8 +157,7 @@
     handlePageShow(event) {
       console.log(`🔄 pageshow (persisted: ${event.persisted})`);
       this.loadPersistedData();
-      // Re-sincronizar cola con historial
-      this.syncQueueWithHistory();
+      this.rebuildQueueFromHistory();
       this.updateBadge();
       this.renderNotificationList();
       this.attemptResumeQueue('pageshow');
@@ -220,23 +217,15 @@
       this.persistHistory();
     }
 
-    // 🔥 NUEVO: Sincroniza la cola con el historial (agrega notificaciones no vistas que falten)
-    syncQueueWithHistory() {
+    // 🔥 Reconstruye la cola desde el historial: solo notificaciones no vistas
+    rebuildQueueFromHistory() {
       const pending = this.history.filter(n => !n.seen);
-      // Obtener IDs de notificaciones ya en cola
-      const queuedIds = new Set(this.queue.map(n => n.notifId));
-      // Añadir las que no estén en cola
-      for (const notif of pending) {
-        if (!queuedIds.has(notif.notifId)) {
-          this.queue.push(notif);
-          queuedIds.add(notif.notifId);
-          console.log(`📥 Añadido a cola: ${notif.title}`);
-        }
-      }
-      // Ordenar cola por fecha (más reciente primero)
-      this.queue.sort((a, b) => b.date - a.date);
+      // Ordenar por fecha (más reciente primero)
+      pending.sort((a, b) => b.date - a.date);
+      // Reemplazar la cola completa
+      this.queue = pending;
       this.persistQueue();
-      console.log(`🔄 Cola sincronizada: ${this.queue.length} pendientes`);
+      console.log(`🔄 Cola reconstruida: ${this.queue.length} pendientes`);
     }
 
     async generateCatalogNotifications() {
@@ -267,7 +256,7 @@
         if (!notif) continue;
         seenIds.push(notif.notifId);
         this.addToHistory(notif);
-        // No añadir a cola aquí, se hará en syncQueueWithHistory
+        // No añadir a cola aquí, se hará en rebuildQueueFromHistory
       }
 
       StorageManager.save(CONFIG.STORAGE_KEYS.SEEN_IDS, seenIds.slice(-1000));
@@ -300,7 +289,6 @@
         const doc = await db.collection('users').doc(uid).get();
         if (doc.exists) {
           const data = doc.data();
-          // Fusionar historiales sin duplicados y conservando el estado seen más reciente
           if (data.notifHistory) {
             const merged = [...this.history, ...data.notifHistory];
             const uniqueMap = new Map();
@@ -309,7 +297,6 @@
                 uniqueMap.set(n.notifId, n);
               } else {
                 const existing = uniqueMap.get(n.notifId);
-                // Si el nuevo tiene fecha más reciente o está visto, actualizar
                 if (n.date > existing.date || (n.seen && !existing.seen)) {
                   uniqueMap.set(n.notifId, { ...existing, ...n });
                 }
@@ -354,10 +341,10 @@
             this.addToHistory(notif);
             hasNew = true;
             this.markAsSeenInStorage(notifId);
-            // No añadir a cola aquí, syncQueueWithHistory lo hará
+            // No añadir a cola, rebuildQueueFromHistory lo hará
           }
           if (hasNew) {
-            this.syncQueueWithHistory();
+            this.rebuildQueueFromHistory();
             this.renderNotificationList();
             if (!this.isMenuOpen) this.updateBadge();
             this.attemptResumeQueue('reply');
@@ -419,6 +406,14 @@
     }
 
     renderPopup(notif) {
+      // Marcar como vista inmediatamente al mostrar el popup
+      if (!notif.seen) {
+        this.markAsRead(notif.notifId);
+        // Eliminar de la cola (ya que se marcó como vista)
+        this.queue = this.queue.filter(n => n.notifId !== notif.notifId);
+        this.persistQueue();
+      }
+
       const existing = document.getElementById('eventModal');
       if (existing) existing.remove();
       const modal = document.createElement('div');
@@ -495,27 +490,19 @@
       modal.classList.remove('show');
       setTimeout(() => {
         modal.remove();
-        // IMPORTANTE: NO marcar como visto al cerrar, solo eliminar de la cola
-        if (this.queue.length > 0) this.queue.shift();
+        // La notificación ya fue marcada como vista al mostrarse, solo cerramos
         domUtils.enableScroll();
         this.isShowingPopup = false;
-        this.persistQueue();
+        // Mostrar el siguiente popup (si hay más y no se ha alcanzado el límite)
         this.showNextPopup();
       }, 300);
     }
 
     goToAnimeFromPopup(animeId, notifId) {
+      // Ya está marcada como vista, solo redirigir
+      this.closePopup(); // cierra el popup y limpia
+      // Redirigir
       const targetNotif = this.history.find(n => n.notifId === notifId);
-      if (targetNotif && !targetNotif.seen) {
-        this.markAsRead(notifId);
-        // Actualizar badge y lista después de marcar
-        this.updateBadge();
-        this.renderNotificationList();
-      }
-      if (this.queue.length > 0 && this.queue[0].notifId === notifId) this.queue.shift();
-      this.persistQueue();
-      this.isShowingPopup = false;
-      domUtils.enableScroll();
       if (targetNotif && targetNotif.url) window.location.href = targetNotif.url;
       else window.location.href = `anime-detail.html?id=${animeId}`;
     }
@@ -537,9 +524,7 @@
         this.persistHistory(); 
         this.renderNotificationList(); 
         this.updateBadge();
-        // Limpiar cola de pendientes
-        this.queue = this.queue.filter(n => n.seen);
-        this.persistQueue();
+        this.rebuildQueueFromHistory(); // vacía la cola porque todos están vistos
       }
     }
 
