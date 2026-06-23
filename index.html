@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.5";
+      const APP_VERSION = "2025-04-06-v13.6";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -249,14 +249,23 @@
     }
     @media (max-width: 768px) {
       .cyber-nav {
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto auto;
         height: auto;
-        padding: 12px 16px;
-        gap: 10px;
+        padding: 10px 16px;
+        gap: 8px;
       }
       .cyber-nav .nav-logo { grid-column: 1; }
-      .cyber-nav .nav-actions { grid-column: 3; }
-      .cyber-nav .search-wrapper { grid-column: 1 / -1; }
+      .cyber-nav .nav-actions { grid-column: 2; justify-self: end; }
+      .cyber-nav .search-wrapper { 
+        grid-column: 1 / -1; 
+        display: none; /* Oculto por defecto en móviles */
+        margin-top: 6px;
+      }
+      .cyber-nav .search-wrapper.active {
+        display: flex;
+      }
+      .cyber-btn-icon { width: 36px; height: 36px; font-size: 0.9rem; }
+      #installBtn { display: none; } /* En móviles se muestra condicionalmente con JS */
     }
 
     .nav-logo {
@@ -287,7 +296,11 @@
       animation: shimmerText 6s linear infinite;
     }
     @keyframes shimmerText { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-    @media (max-width: 480px) { .nav-logo-text { font-size: 1rem; } .nav-logo img { height: 32px; width: 32px; } }
+    @media (max-width: 480px) { 
+      .nav-logo-text { font-size: 1rem; } 
+      .nav-logo img { height: 32px; width: 32px; }
+      .cyber-btn-icon { width: 32px; height: 32px; font-size: 0.8rem; }
+    }
 
     .search-wrapper {
       position: relative;
@@ -367,6 +380,7 @@
       background: #111;
     }
     #userAvatarBtn:hover { transform: scale(1.06); box-shadow: 0 0 20px var(--neon-blue); }
+    @media (max-width: 480px) { #userAvatarBtn { width: 32px; height: 32px; } }
 
     .user-dropdown, .notif-dropdown {
       position: absolute;
@@ -1197,7 +1211,7 @@
     }
     .detail-cover {
       width: 100%;
-      height: 420px; /* Imagen más grande en escritorio */
+      height: 420px; /* Imagen uniforme en escritorio */
       background-size: cover;
       background-position: center;
       position: relative;
@@ -1424,7 +1438,7 @@
         max-height: 85vh;
         -webkit-overflow-scrolling: touch;
       }
-      .detail-cover { height: 300px; } /* Imagen más grande en tablet */
+      .detail-cover { height: 320px; } /* Imagen uniforme en tablet */
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1434,7 +1448,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
-      .detail-cover { height: 240px; } /* Imagen más grande en móvil */
+      .detail-cover { height: 260px; } /* Imagen uniforme en móvil */
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1663,6 +1677,60 @@
       box-shadow: 0 0 20px var(--neon-cyan);
       transform: scale(1.02);
     }
+
+    /* ===== OVERLAY DE BÚSQUEDA (MÓVIL) ===== */
+    #searchOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 10, 0.97);
+      backdrop-filter: blur(20px);
+      z-index: 99999;
+      padding: 60px 24px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    #searchOverlay.active { display: flex; }
+    #searchOverlay .close-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 2rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #searchOverlay .close-btn:hover { color: var(--neon-pink); transform: rotate(90deg); }
+    #searchOverlay input {
+      width: 100%;
+      max-width: 500px;
+      padding: 16px 20px;
+      font-size: 1.2rem;
+      border-radius: 60px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.08);
+      color: #fff;
+      outline: none;
+      transition: 0.3s;
+      font-family: 'Poppins', sans-serif;
+      margin-top: 20px;
+    }
+    #searchOverlay input:focus {
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+    }
+    #searchOverlay .hint {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 16px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -1694,11 +1762,12 @@
     <img id="logo" src="Logo_Archinime.avif" alt="Logo" decoding="async" loading="lazy">
     <span class="nav-logo-text">ARCHINIME</span>
   </a>
-  <div class="search-wrapper">
+  <div class="search-wrapper" id="searchWrapper">
     <input id="search" class="search-input" placeholder="Buscar anime, género o alias...">
     <i class="fas fa-search search-icon"></i>
   </div>
   <div class="nav-actions">
+    <button id="searchToggleMobile" class="cyber-btn-icon" title="Buscar" aria-label="Buscar"><i class="fas fa-search"></i></button>
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
@@ -1722,6 +1791,13 @@
     </div>
   </div>
 </nav>
+
+<!-- ===== OVERLAY DE BÚSQUEDA (MÓVIL) ===== -->
+<div id="searchOverlay">
+  <button class="close-btn" id="searchOverlayClose"><i class="fas fa-times"></i></button>
+  <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias...">
+  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe y presiona Enter</div>
+</div>
 
 <!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
@@ -1903,7 +1979,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.5"></script>
+<script src="catalogo.js?v=2025-04-06-v13.6"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2060,6 +2136,47 @@
   let debounceTimer = null;
   const grid = document.getElementById('grid');
   const paginationContainer = document.getElementById('pagination');
+  const searchInput = document.getElementById('search');
+  const searchOverlayInput = document.getElementById('searchOverlayInput');
+
+  function syncSearch(value) {
+    searchInput.value = value;
+    searchOverlayInput.value = value;
+    currentFilters.search = value;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(cargarDatosYMostrar, 300);
+  }
+
+  searchInput.addEventListener('input', (e) => syncSearch(e.target.value));
+  searchOverlayInput.addEventListener('input', (e) => syncSearch(e.target.value));
+  searchOverlayInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Toggle de búsqueda móvil
+  document.getElementById('searchToggleMobile').addEventListener('click', () => {
+    const overlay = document.getElementById('searchOverlay');
+    overlay.classList.toggle('active');
+    if (overlay.classList.contains('active')) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => searchOverlayInput.focus(), 100);
+    } else {
+      document.body.style.overflow = '';
+    }
+  });
+  document.getElementById('searchOverlayClose').addEventListener('click', () => {
+    document.getElementById('searchOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
 
   function renderPage() {
     const start = (currentPage - 1) * itemsPerPage;
@@ -2092,7 +2209,6 @@
       card.setAttribute('onclick', `openDetail('${anime.id}')`);
       const rating = getDisplayRating(anime);
       const img = anime.img || 'placeholder.webp';
-      // BADGE: solo para rating 4.9 o 5.0
       const ratingVal = getNumericRating(anime);
       const badge = (ratingVal >= 4.9 && ratingVal <= 5.0) ? '<div class="badge">🔥 TOP</div>' : '';
       card.innerHTML = `
@@ -2172,7 +2288,6 @@
     cargarDatosYMostrar();
   };
 
-  document.getElementById('search').addEventListener('input', e => { currentFilters.search = e.target.value; debouncedCargar(); });
   document.getElementById('genre-select').addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('demographic-select').addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('rating-select').addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
@@ -2466,12 +2581,10 @@
 
   // ---- FUNCIÓN MEJORADA: CONTAR TODOS LOS TYPES DEL CATÁLOGO ----
   function buildContentDetails(anime) {
-    // Si no hay temporadas, mostramos la descripción como fallback
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
-    // Mapa de tipos que queremos mostrar (coincide exactamente con los strings del catálogo)
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2480,16 +2593,12 @@
       'Especial': { icon: 'fa-star', label: 'Especial(es)' }
     };
 
-    // Contar cuántos de cada tipo hay en el array seasons
     const typeCounts = {};
     let totalEpisodios = 0;
 
     anime.seasons.forEach(season => {
-      // Usamos el tipo que viene en el objeto, o 'Temporada' por defecto
       const type = season.type || 'Temporada';
       typeCounts[type] = (typeCounts[type] || 0) + 1;
-      
-      // Contar episodios totales (si existen)
       if (season.eps && Array.isArray(season.eps)) {
         totalEpisodios += season.eps.length;
       }
@@ -2498,7 +2607,6 @@
     let hasItems = false;
     let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
 
-    // Generar chips para cada tipo encontrado
     for (const [type, count] of Object.entries(typeCounts)) {
       const config = typeLabels[type];
       if (config && count > 0) {
@@ -2507,7 +2615,6 @@
       }
     }
 
-    // Mostrar total de episodios si hay
     if (totalEpisodios > 0) {
       hasItems = true;
       html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
@@ -2515,7 +2622,6 @@
 
     html += '</div>';
 
-    // Si no se encontró nada estructurado, mostrar descripción
     if (!hasItems) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
@@ -2535,7 +2641,6 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-    // Mostrar contenido estructurado
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
@@ -2664,6 +2769,8 @@
       closeAuthModal(); closeProfileModal(); closeDetailModal(); closeEventModal();
       document.getElementById('notifMenu').classList.remove('active');
       sidePanel.classList.remove('open');
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.body.style.overflow = '';
     }
   });
 
