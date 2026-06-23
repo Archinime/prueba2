@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v10.1";
+      const APP_VERSION = "2025-04-06-v11.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -78,7 +78,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== NUEVO DISEÑO RADICAL - SISTEMA OPERATIVO CYBERPUNK ===== */
+    /* ===== DISEÑO RADICAL CON BASE DEL ARCHIVO DE REFERENCIA ===== */
     :root {
       --bg-deep: #05070a;
       --bg-card: #0b0e14;
@@ -150,7 +150,7 @@
     ::-webkit-scrollbar-track { background: var(--bg-deep); }
     ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; box-shadow: 0 0 15px var(--neon-blue); }
 
-    /* ===== LOADER CON GIF ===== */
+    /* ===== LOADER CON GIF (tomado del archivo de referencia) ===== */
     #loadingScreen {
       position: fixed;
       inset: 0;
@@ -936,7 +936,7 @@
     .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
     .pagination-ellipsis { color: var(--text-secondary); padding: 0 4px; font-weight: 700; }
 
-    /* ===== MODALES ===== */
+    /* ===== MODALES (basados en el archivo de referencia) ===== */
     .auth-modal, .profile-modal, .detail-modal {
       position: fixed;
       inset: 0;
@@ -960,15 +960,13 @@
       background: #0b0e14;
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: var(--radius-xl);
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
       position: relative;
       transform: scale(0.94) translateY(20px);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: var(--shadow-heavy);
       box-sizing: border-box;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .auth-modal.show .auth-card,
     .profile-modal.show .profile-card,
@@ -976,24 +974,13 @@
       transform: scale(1) translateY(0);
     }
 
-    /* Estilos específicos para cada modal */
+    /* Auth */
     .auth-card {
+      width: 100%;
       max-width: 440px;
       padding: 0;
       overflow: hidden;
     }
-    .profile-card {
-      max-width: 500px;
-      padding: 28px 24px;
-    }
-    .detail-card {
-      max-width: 600px;
-      padding: 0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
     .auth-close, .profile-close, .detail-close {
       position: absolute;
       top: 14px;
@@ -1020,7 +1007,6 @@
       box-shadow: 0 0 20px var(--neon-pink);
     }
 
-    /* Auth */
     .auth-tabs {
       display: flex;
       gap: 10px;
@@ -1106,6 +1092,11 @@
     .auth-error { color: var(--neon-pink); text-align: center; margin-top: 14px; font-size: 0.85rem; }
 
     /* Perfil */
+    .profile-card {
+      width: 100%;
+      max-width: 500px;
+      padding: 28px 24px;
+    }
     .profile-avatar {
       display: flex;
       flex-direction: column;
@@ -1200,6 +1191,14 @@
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
     /* Detail */
+    .detail-card {
+      width: 100%;
+      max-width: 600px;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
     .detail-cover {
       width: 100%;
       height: 280px;
@@ -1407,6 +1406,9 @@
       .detail-card { max-width: 100%; margin: 10px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
+      .auth-tabs { padding: 0 16px; padding-top: 16px; }
+      .auth-form { padding: 16px; }
+      .auth-providers { padding: 0 16px 16px; }
     }
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -1479,7 +1481,7 @@
 </head>
 <body>
 
-<!-- ===== LOADER CON GIF ===== -->
+<!-- ===== LOADER CON GIF (basado en el archivo de referencia) ===== -->
 <div id="loadingScreen">
   <div class="loader-gif-wrapper">
     <div class="loader-gif-inner">
@@ -1697,7 +1699,8 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-06-v10.1"></script>
+<!-- Cargar scripts externos -->
+<script src="catalogo.js?v=2025-04-06-v11.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1705,7 +1708,6 @@
 
 <script>
   // ===== TODA LA LÓGICA JS =====
-  // Variables globales
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -1716,7 +1718,8 @@
   // ===== CARGAR GIF EN EL LOADER =====
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
-    document.getElementById('loader-gif-img').src = gifElegido;
+    const img = document.getElementById('loader-gif-img');
+    if (img) img.src = gifElegido;
   }
 
   // Service Worker
@@ -2257,7 +2260,7 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- MODAL DE DETALLE ----
+  // ---- MODAL DE DETALLE (con descripción real y botón "Ver ahora") ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
@@ -2364,7 +2367,7 @@
     draw();
   })();
 
-  // ---- CARRUSEL DE BANNERS ----
+  // ---- CARRUSEL DE BANNERS (usa imágenes de los animes más recientes) ----
   (function() {
     const topAnimes = catalogoArray.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
