@@ -413,6 +413,8 @@ function smartLinkConvert(input) {
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
+        } else if (input.id === 'bannerAnime') {
+            previewBanner(input);
         } else if (input.classList.contains('m-url')) {
             updateAudioPreview(input);
         }
@@ -453,6 +455,21 @@ function checkCoverVisual(input) {
         img.style.display='none'; 
         input.style.borderColor = '#ff4757';
     };
+}
+
+// Nueva función: previsualizar banner horizontal
+function previewBanner(input) {
+    const img = document.getElementById('bannerPreview');
+    if(!img) return;
+    const val = input.value.trim();
+    if(val === "") {
+        img.style.display = 'none';
+        return;
+    }
+    img.src = val;
+    img.style.display = 'block';
+    img.onload = () => {};
+    img.onerror = () => { img.style.display = 'none'; };
 }
 
 function addAlias(value = "") {
@@ -667,45 +684,6 @@ function handleSeasonTypeChange(select) {
     requestPreviewUpdate();
 }
 
-// ============================================
-// NUEVA FUNCIÓN AUXILIAR PARA ESCAPAR HTML
-// ============================================
-function escapeHtml(str) {
-    if(!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if(m === '&') return '&amp;';
-        if(m === '<') return '&lt;';
-        if(m === '>') return '&gt;';
-        return m;
-    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-        return c;
-    });
-}
-
-// ============================================
-// NUEVA FUNCIÓN PARA AGREGAR PARTE A UN CAPÍTULO (MÚLTIPLES PARTES)
-// ============================================
-window.addPartToChapter = function(btn, type) {
-    const row = btn.closest('.chapter-row');
-    const container = type === 'lat' ? row.querySelector('.latino-parts-container') : row.querySelector('.sub-parts-container');
-    const partCount = container.children.length + 1;
-    const inputClass = type === 'lat' ? 'c-link-lat-part' : 'c-link-sub-part';
-    const div = document.createElement('div');
-    div.className = 'part-input-group';
-    div.style.display = 'flex';
-    div.style.gap = '5px';
-    div.style.marginBottom = '5px';
-    div.innerHTML = `
-        <input type="text" class="${inputClass}" placeholder="Parte ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
-        <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
-    `;
-    container.appendChild(div);
-    requestPreviewUpdate();
-};
-
-// ============================================
-// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES)
-// ============================================
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
     const typeSelect = card.querySelector('.s-type');
@@ -715,83 +693,42 @@ function renderChapters(input, existingEps = []) {
     const startSel = card.querySelector('.s-start-index');
     const startNum = startSel ? parseInt(startSel.value) : 1;
     const list = card.querySelector('.chapters-grid');
-    
     let currentData = [];
     if(existingEps.length === 0) {
         card.querySelectorAll('.chapter-row').forEach(row => {
-            const latParts = [];
-            row.querySelectorAll('.c-link-lat-part').forEach(inp => latParts.push(inp.value));
-            const subParts = [];
-            row.querySelectorAll('.c-link-sub-part').forEach(inp => subParts.push(inp.value));
             currentData.push({
-                lat: latParts,
-                sub: subParts,
+                lat: row.querySelector('.c-link-lat').value,
+                sub: row.querySelector('.c-link-sub').value,
                 title: row.querySelector('.c-title-ov').value
             });
         });
     }
     list.innerHTML = '';
     if(isNaN(count) || count < 1) return;
-    
     for(let i=0; i<count; i++) {
         const row = document.createElement('div');
         row.className = 'chapter-row';
-        let subParts = [], latParts = [], customTitle = '';
+        let sub = '', lat = '', customTitle = '';
         if(existingEps[i]) {
-            latParts = Array.isArray(existingEps[i].link) ? existingEps[i].link : (existingEps[i].link ? [existingEps[i].link] : []);
-            subParts = Array.isArray(existingEps[i].link2) ? existingEps[i].link2 : (existingEps[i].link2 ? [existingEps[i].link2] : []);
-            if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
+             lat = existingEps[i].link || '';
+             sub = existingEps[i].link2 || ''; 
+             if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
         } else if(currentData[i]) {
-            latParts = currentData[i].lat || [];
-            subParts = currentData[i].sub || [];
-            customTitle = currentData[i].title;
+             lat = currentData[i].lat;
+             sub = currentData[i].sub;
+             customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
         let titleInputDisabled = ['Temporada', 'Spin-Off'].includes(type) ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
-        
-        let latPartsHtml = '';
-        if(latParts.length === 0) {
-            latPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-lat-part" placeholder="Parte 1 (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
-        } else {
-            latParts.forEach((part, idx) => {
-                latPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-lat-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
-                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
-                </div>`;
-            });
-        }
-        
-        let subPartsHtml = '';
-        if(subParts.length === 0) {
-            subPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-sub-part" placeholder="Parte 1 (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
-        } else {
-            subParts.forEach((part, idx) => {
-                subPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-sub-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
-                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
-                </div>`;
-            });
-        }
-        
         row.innerHTML = `
             <div class="chapter-header"><span class="chapter-num">CAPÍTULO ${currentNum}</span></div>
-            <div style="margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <strong style="color:#00f0ff;">🎬 Latino (múltiples partes)</strong>
-                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'lat')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
-                </div>
-                <div class="latino-parts-container">${latPartsHtml}</div>
+            <div class="c-inputs-grid">
+                <input type="text" class="c-link-lat" value="${lat}" placeholder="🔗 Lat" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
+                <input type="text" class="c-link-sub" value="${sub}" placeholder="🔗 Sub" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
             </div>
-            <div style="margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <strong style="color:#ff00cc;">📀 Opción 2 (múltiples partes)</strong>
-                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'sub')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
-                </div>
-                <div class="sub-parts-container">${subPartsHtml}</div>
-            </div>
-            <input type="text" class="c-title-ov" value="${escapeHtml(customTitle)}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:5px; font-size:0.9em; border-color:#333; background:#111;">
+            <input type="text" class="c-title-ov" value="${customTitle}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
         `;
         list.appendChild(row);
     }
@@ -912,6 +849,7 @@ async function loadIndexForSearch() {
                 id: anime.id,
                 title: anime.title,
                 img: anime.img,
+                banner: anime.banner || "", // <-- cargamos el banner también
                 rating: anime.rating || 0,
                 uploader: anime.uploader,
                 uploaderImg: anime.uploaderImg,
@@ -1009,6 +947,10 @@ async function loadAnimeForEditing(id) {
         }
         document.getElementById('tituloAnime').value = animeData.title || "";
         document.getElementById('portadaAnime').value = animeData.img || "";
+        // Cargar banner
+        document.getElementById('bannerAnime').value = animeData.banner || "";
+        previewBanner(document.getElementById('bannerAnime'));
+
         document.getElementById('sinopsisAnime').value = animeData.desc || "";
         document.getElementById('aliasContainer').innerHTML = '';
         if(animeData.aliases) animeData.aliases.forEach(a => addAlias(a));
@@ -1084,9 +1026,6 @@ function exitEditMode() {
     location.reload();
 }
 
-// ============================================
-// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES)
-// ============================================
 function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
@@ -1104,6 +1043,7 @@ function generateData() {
         titulo: document.getElementById('tituloAnime').value.trim(),
         aliases: aliasList,
         portada: document.getElementById('portadaAnime').value.trim(),
+        banner: document.getElementById('bannerAnime').value.trim(), // <-- guardamos banner
         sinopsis: document.getElementById('sinopsisAnime').value.trim(),
         demografia: demoSelect, 
         generos: selectedGenres,
@@ -1128,19 +1068,8 @@ function generateData() {
         if(sType === 'Pelicula') movieCountVP++;
         if(sType === 'Especial') specialCountVP++;
         card.querySelectorAll('.chapter-row').forEach((row, idx) => {
-            // Recolectar todas las partes de latino
-            const latParts = [];
-            row.querySelectorAll('.c-link-lat-part').forEach(inp => {
-                const val = inp.value.trim();
-                if(val) latParts.push(val);
-            });
-            // Recolectar todas las partes de opción 2
-            const subParts = [];
-            row.querySelectorAll('.c-link-sub-part').forEach(inp => {
-                const val = inp.value.trim();
-                if(val) subParts.push(val);
-            });
-            
+            const lat = row.querySelector('.c-link-lat').value.trim();
+            const sub = row.querySelector('.c-link-sub').value.trim();
             let customTitleInput = row.querySelector('.c-title-ov').value.trim();
             let playerTitle = "", detailTitle = ""; 
             let currentEpNum = startNum + idx;
@@ -1160,8 +1089,8 @@ function generateData() {
                 detailTitle = customTitleInput || sName;
                 playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
             }
-            if(subParts.length || latParts.length) {
-                eps.push({ num: idx + 1, link: latParts, link2: subParts, title: detailTitle, playerTitle: playerTitle });
+            if(sub || lat) {
+                eps.push({ num: idx + 1, link: lat, link2: sub, title: detailTitle, playerTitle: playerTitle });
             }
         });
         if(eps.length > 0) {
@@ -1256,6 +1185,7 @@ async function subirAGithHub() {
             title: nuevoAnime.titulo,
             desc: nuevoAnime.sinopsis,
             img: nuevoAnime.portada,
+            banner: nuevoAnime.banner || "", // <-- guardamos el banner
             rating: 0,
             uploader: nuevoAnime.uploader,
             uploaderImg: nuevoAnime.uploaderAvatar || "Logo_Archinime.avif",
