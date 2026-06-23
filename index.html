@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v10.0";
+      const APP_VERSION = "2025-04-06-v13.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -933,7 +933,7 @@
     .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
     .pagination-ellipsis { color: var(--text-secondary); padding: 0 4px; font-weight: 700; }
 
-    /* ===== MODALES ===== */
+    /* ===== MODALES (con estilos de referencia) ===== */
     .auth-modal, .profile-modal, .detail-modal {
       position: fixed;
       inset: 0;
@@ -957,17 +957,13 @@
       background: #0b0e14;
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: var(--radius-xl);
-      width: 100%;
-      max-width: 600px;
-      padding: 0;
       position: relative;
       transform: scale(0.94) translateY(20px);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: var(--shadow-heavy);
+      box-sizing: border-box;
       max-height: 90vh;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
     }
     .auth-modal.show .auth-card,
     .profile-modal.show .profile-card,
@@ -1001,10 +997,17 @@
       box-shadow: 0 0 20px var(--neon-pink);
     }
 
+    /* Auth */
+    .auth-card {
+      max-width: 440px;
+      padding: 0;
+      overflow: hidden;
+    }
     .auth-tabs {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      padding: 0 24px;
+      padding-top: 20px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
     .auth-tab {
@@ -1059,7 +1062,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 16px;
       padding: 0 24px 24px;
     }
     .provider-btn {
@@ -1086,7 +1088,10 @@
     .auth-error { color: var(--neon-pink); text-align: center; margin-top: 14px; font-size: 0.85rem; }
 
     /* Perfil */
-    .profile-card { padding: 28px 24px; }
+    .profile-card {
+      max-width: 500px;
+      padding: 28px 24px;
+    }
     .profile-avatar {
       display: flex;
       flex-direction: column;
@@ -1180,11 +1185,13 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* ===== DETAIL MODAL ===== */
+    /* Detail */
     .detail-card {
       max-width: 600px;
       padding: 0;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .detail-cover {
       width: 100%;
@@ -1391,6 +1398,8 @@
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
       .detail-card { max-width: 100%; margin: 10px; }
+      .auth-card { max-width: 100%; }
+      .profile-card { max-width: 100%; }
     }
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -1459,6 +1468,173 @@
     }
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
+
+    /* ===== EVENT MODAL (ventanas emergentes automáticas de notificaciones) ===== */
+    #eventModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.4s;
+      padding: 20px;
+      will-change: opacity;
+    }
+    #eventModal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .event-card {
+      background: #0e0e12;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 243, 255, 0.5);
+      box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
+      transform: scale(0.9) translateY(30px) translateZ(0);
+      transition: transform 0.4s var(--transition-smooth);
+      position: relative;
+      will-change: transform;
+    }
+    #eventModal.show .event-card {
+      transform: scale(1) translateY(0) translateZ(0);
+    }
+    .event-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 36px;
+      height: 36px;
+      z-index: 50;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      font-size: 1.3rem;
+      will-change: transform;
+    }
+    .event-close:hover {
+      background: var(--neon-pink);
+      border-color: var(--neon-pink);
+      transform: rotate(90deg);
+      box-shadow: 0 0 15px var(--neon-pink);
+    }
+    .event-visuals {
+      position: relative;
+      height: 280px;
+      background: #000;
+    }
+    .visual-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      filter: blur(20px) brightness(0.5);
+      transform: scale(1.2) translateZ(0);
+      will-change: transform;
+    }
+    .covers-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 100%;
+      gap: 15px;
+      padding-bottom: 20px;
+      transform: translateZ(0);
+    }
+    .cover-back {
+      width: 110px;
+      height: 165px;
+      object-fit: cover;
+      border-radius: 12px;
+      opacity: 0.8;
+      transform: rotate(-8deg) translateX(15px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .cover-front {
+      width: 130px;
+      height: 195px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 2px solid var(--neon-cyan);
+      transform: rotate(3deg) translateX(-15px);
+      box-shadow: 0 10px 25px black;
+      z-index: 2;
+    }
+    .event-type-badge {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: var(--neon-pink);
+      color: white;
+      font-weight: 800;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px var(--neon-pink);
+      z-index: 3;
+    }
+    .event-info {
+      padding: 25px;
+      text-align: center;
+      background: linear-gradient(to top, #0a0a0e, #111116);
+      transform: translateZ(0);
+    }
+    .event-title {
+      font-family: 'Orbitron';
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .event-meta {
+      color: var(--neon-cyan);
+      font-weight: 600;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
+    .event-desc {
+      color: #aaa;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+    }
+    .event-btn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 40px;
+      font-weight: 900;
+      font-family: 'Orbitron';
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      will-change: transform, box-shadow;
+    }
+    .event-btn:hover {
+      background: var(--neon-cyan);
+      box-shadow: 0 0 20px var(--neon-cyan);
+      transform: scale(1.02);
+    }
   </style>
 </head>
 <body>
@@ -1521,7 +1697,6 @@
 
 <!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
-  <!-- Los slides se generan con JS -->
   <div class="banner-dots" id="bannerDots"></div>
 </div>
 
@@ -1569,9 +1744,7 @@
 <div class="side-panel" id="sidePanel">
   <button class="panel-close" id="sidePanelClose"><i class="fas fa-times"></i></button>
   <h3>🔥 TOP ANIME</h3>
-  <div id="sidePanelContent">
-    <!-- Se llena con JS -->
-  </div>
+  <div id="sidePanelContent"></div>
 </div>
 
 <!-- ===== CHAT FLOTANTE ===== -->
@@ -1654,6 +1827,27 @@
   </div>
 </div>
 
+<!-- ===== EVENT MODAL (ventanas emergentes automáticas) ===== -->
+<div id="eventModal">
+  <div class="event-card">
+    <div class="event-close" onclick="closeEventModal()"><i class="fas fa-times"></i></div>
+    <div class="event-visuals">
+      <div class="visual-bg" id="eventBg" style="background-image: url('placeholder.webp');"></div>
+      <div class="covers-container">
+        <img class="cover-back" id="eventCoverBack" src="placeholder.webp" alt="poster secundario">
+        <img class="cover-front" id="eventCoverFront" src="placeholder.webp" alt="poster principal">
+      </div>
+      <div class="event-type-badge" id="eventBadge">🔥 NUEVO</div>
+    </div>
+    <div class="event-info">
+      <div class="event-title" id="eventTitle">Título del evento</div>
+      <div class="event-meta" id="eventMeta">⭐ 0.0 · Género</div>
+      <div class="event-desc" id="eventDesc">Descripción del evento.</div>
+      <button class="event-btn" id="eventBtn"><i class="fas fa-play"></i> Ver ahora</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== CHROMA KEY ===== -->
 <div class="stage">
   <div id="fgContainer">
@@ -1681,7 +1875,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v10.0"></script>
+<script src="catalogo.js?v=2025-04-06-v13.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1749,12 +1943,9 @@
   });
   window.addEventListener('load', startMusic);
 
-  // GIF aleatorio en el loader
+  // GIF aleatorio en el loader (no usado en este diseño, pero mantenemos)
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    // No hay elemento img en el loader actual, usamos el ring como fondo o podemos agregar un img
-    // Pero en este diseño el loader no tiene imagen, solo un ring. 
-    // Si el usuario quiere gif, podemos añadirlo, pero en la versión actual no lo tiene.
-    // Lo dejamos como está.
+    // No hay elemento img en el loader actual, usamos el ring como fondo
   }
 
   // Loader
@@ -2016,7 +2207,6 @@
     try {
       await currentUser.updateProfile({ displayName: name, photoURL: newAvatarUrl });
       await db.collection('users').doc(currentUser.uid).set({ customColor: color, lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      // Actualizar comentarios
       const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
       const snap = await commentsRef.get();
       const batch = db.batch();
@@ -2244,9 +2434,8 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- MODAL DE DETALLE ----
+  // ---- MODAL DE DETALLE (con descripción real y botón "Ver ahora") ----
   function openDetail(id) {
-    // Buscar en catalogoArray (global)
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
       alert('Anime no encontrado');
@@ -2258,7 +2447,6 @@
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
     document.getElementById('detailDesc').textContent = anime.desc || 'Descripción no disponible.';
-    // Configurar botón "Ver ahora" para redirigir a anime-detail.html
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
@@ -2270,100 +2458,73 @@
   window.openDetail = openDetail;
   window.closeDetailModal = closeDetailModal;
 
-  // Cursor personalizado
-  const cursor = document.getElementById('customCursor');
-  document.addEventListener('mousemove', e => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-    cursor.classList.add('active');
-  });
-  document.addEventListener('mouseleave', () => cursor.classList.remove('active'));
-  document.querySelectorAll('a, button, .card, .cyber-btn-icon, .custom-select-trigger, .side-panel-toggle').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('pointer'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('pointer'));
-  });
+  // ---- EVENT MODAL (ventanas emergentes automáticas) ----
+  let eventQueue = [];
+  let isEventModalShowing = false;
 
-  // Efecto Ripple al hacer clic
-  document.addEventListener('click', (e) => {
-    const ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    const size = Math.random() * 60 + 30;
-    ripple.style.width = size + 'px';
-    ripple.style.height = size + 'px';
-    ripple.style.left = (e.clientX - size/2) + 'px';
-    ripple.style.top = (e.clientY - size/2) + 'px';
-    document.body.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 700);
-  });
+  function showNextEvent() {
+    if (eventQueue.length === 0 || isEventModalShowing) return;
+    isEventModalShowing = true;
+    const eventData = eventQueue.shift();
+    // Llenar el modal con los datos del evento
+    document.getElementById('eventBg').style.backgroundImage = `url(${eventData.img || 'placeholder.webp'})`;
+    document.getElementById('eventCoverBack').src = eventData.img || 'placeholder.webp';
+    document.getElementById('eventCoverFront').src = eventData.img || 'placeholder.webp';
+    document.getElementById('eventTitle').textContent = eventData.title || 'Nuevo Anime';
+    document.getElementById('eventMeta').textContent = `⭐ ${getDisplayRating(eventData)} · ${eventData.genres?.slice(0,2).join(', ') || 'Anime'}`;
+    document.getElementById('eventDesc').textContent = eventData.desc || 'Descripción no disponible.';
+    document.getElementById('eventBadge').textContent = eventData.updateType || '🔥 NUEVO';
+    const btn = document.getElementById('eventBtn');
+    btn.onclick = function() {
+      window.location.href = `anime-detail.html?id=${eventData.id}`;
+    };
+    // Mostrar el modal
+    document.getElementById('eventModal').classList.add('show');
+    disableBodyScroll();
+    // Auto-cerrar después de 8 segundos
+    if (window.eventTimeout) clearTimeout(window.eventTimeout);
+    window.eventTimeout = setTimeout(() => {
+      closeEventModal();
+    }, 8000);
+  }
 
-  // Partículas
-  (function() {
-    const canvas = document.getElementById('particlesCanvas');
-    const ctx = canvas.getContext('2d');
-    let w, h;
-    function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resize);
-    resize();
-    const particles = [];
-    const count = 80;
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 2 + 0.5
-      });
+  function closeEventModal() {
+    document.getElementById('eventModal').classList.remove('show');
+    enableBodyScroll();
+    isEventModalShowing = false;
+    // Mostrar el siguiente evento en la cola después de un breve retraso
+    setTimeout(() => {
+      showNextEvent();
+    }, 1500);
+  }
+  window.closeEventModal = closeEventModal;
+
+  // Función para agregar eventos a la cola (máximo 5)
+  function addEventToQueue(anime) {
+    if (eventQueue.length >= 5) return;
+    eventQueue.push(anime);
+    if (!isEventModalShowing) {
+      showNextEvent();
     }
-    let mouse = { x: w/2, y: h/2 };
-    document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    function draw() {
-      ctx.clearRect(0, 0, w, h);
-      for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-        const dx = mouse.x - p.x, dy = mouse.y - p.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 150) {
-          const force = (150 - dist) / 150 * 0.02;
-          p.x += dx * force;
-          p.y += dy * force;
-        }
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 240, 255, ${0.2 + Math.sin(Date.now()/2000 + p.x) * 0.1})`;
-        ctx.fill();
-        // Líneas entre partículas cercanas
-        for (const other of particles) {
-          const dx2 = p.x - other.x, dy2 = p.y - other.y;
-          const d2 = Math.sqrt(dx2*dx2 + dy2*dy2);
-          if (d2 < 120) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.strokeStyle = `rgba(0, 240, 255, ${0.04 * (1 - d2/120)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      }
-      requestAnimationFrame(draw);
-    }
-    draw();
-  })();
+  }
 
-  // ---- CARRUSEL DE BANNERS ----
+  // Detectar nuevos animes al cargar (simulación con los primeros 3 del catálogo)
+  function checkForNewAnimes() {
+    // Tomar los primeros 3 animes del catálogo como "nuevos"
+    const newAnimes = catalogoArray.slice(0, 3);
+    newAnimes.forEach(anime => {
+      addEventToQueue(anime);
+    });
+  }
+
+  // ---- CARRUSEL DE BANNERS (usa imágenes de los animes más recientes) ----
   (function() {
-    // Tomar los primeros 3 animes del catálogo (más recientes)
     const topAnimes = catalogoArray.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
       title: anime.title,
       desc: `⭐ ${getDisplayRating(anime)} · ${anime.genres?.slice(0,3).join(', ') || 'Anime'}`,
       img: anime.img || 'placeholder.webp'
     }));
-    // Si no hay suficientes, rellenar con datos genéricos
     while (banners.length < 3) {
       banners.push({
         title: 'Top Anime',
@@ -2414,10 +2575,10 @@
     `).join('');
   })();
 
-  // Cerrar sesión con tecla Escape
+  // Cerrar con Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      closeAuthModal(); closeProfileModal(); closeDetailModal();
+      closeAuthModal(); closeProfileModal(); closeDetailModal(); closeEventModal();
       document.getElementById('notifMenu').classList.remove('active');
       sidePanel.classList.remove('open');
     }
@@ -2437,7 +2598,19 @@
   window.copiarUID = copiarUID;
 
   inicializarAnuncio();
-  loadRatings().then(cargarDatosYMostrar).catch(() => cargarDatosYMostrar());
+  loadRatings().then(() => {
+    cargarDatosYMostrar();
+    // Después de cargar los datos y ratings, mostrar notificaciones
+    setTimeout(() => {
+      checkForNewAnimes();
+    }, 3000); // Esperar 3 segundos para que la página cargue completamente
+  }).catch(err => {
+    console.error('Error al cargar ratings, mostrando sin ellos:', err);
+    cargarDatosYMostrar();
+    setTimeout(() => {
+      checkForNewAnimes();
+    }, 3000);
+  });
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
   // Móviles: logo no abre nueva pestaña
