@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,12 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase (App + Auth + Firestore) -->
+    <!-- Firebase Auth (solo login con GitHub) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>   <!-- ✅ ESTO FALTABA -->
 
-    <!-- Catálogo local (opcional, puede no existir) -->
+    <!-- Catálogo local -->
     <script src="catalogo.js"></script>
 
     <link rel="stylesheet" href="styles.css">
@@ -76,7 +76,7 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 40px;">
-            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveUserProfile()" style="margin-top: 0; flex: 1;">
+            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveInitialProfile()" style="margin-top: 0; flex: 1;">
                 GUARDAR Y ENTRAR
             </button>
         </div>
@@ -160,16 +160,6 @@
             <img id="mainCoverPreview" style="width:100px; height:140px; border-radius:10px; background:#111; object-fit:cover; display:none; border:1px solid var(--accent)">
         </div>
         
-        <!-- NUEVO CAMPO: Banner Horizontal -->
-        <label style="margin-top:25px">Banner Horizontal (opcional)</label>
-        <div style="font-size:0.8em; color:var(--text-muted); margin-bottom:6px;">Usa una imagen horizontal (ej. 1920x1080). Si no se define, se usará la portada vertical.</div>
-        <div style="display:flex; gap:15px; align-items:center; flex-wrap: wrap;">
-            <div style="flex:1; min-width:200px;">
-                <input type="text" id="bannerAnime" placeholder="https://..." oninput="previewBanner(this); requestPreviewUpdate()" onblur="smartLinkConvert(this)">
-            </div>
-            <img id="bannerPreview" style="max-width:200px; max-height:80px; border-radius:8px; background:#111; object-fit:cover; display:none; border:1px solid var(--accent);">
-        </div>
-
         <label>Géneros (Selecciona varios) <span>*</span></label>
         <div class="genres-box" id="genresContainer"></div>
 
@@ -200,7 +190,7 @@
         <button class="btn btn-add" style="border-color:var(--primary); color:var(--primary)" onclick="addMusic()"><i class="fas fa-music"></i> AGREGAR AUDIO</button>
 
         <button class="btn btn-gen" id="btnSaveAction" onclick="subirAGithHub()">
-            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y SUBIR</span>
+            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y DESCARGAR catalogo.js</span>
         </button>
         
         <div id="statusLog"></div>

@@ -360,6 +360,7 @@ function log(msg) {
 // ========== NUEVA FUNCIÓN: Extraer URL de un iframe ==========
 function extractUrlFromIframe(value) {
     if (!value || typeof value !== 'string') return null;
+    // Buscar etiqueta iframe y extraer el src (comillas simples o dobles)
     const iframeRegex = /<iframe[^>]*src=["']([^"']+)["'][^>]*>/i;
     const match = value.match(iframeRegex);
     if (match && match[1]) {
@@ -372,6 +373,7 @@ function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
 
+    // ----- 1. Detectar y extraer iframe -----
     const extractedUrl = extractUrlFromIframe(val);
     if (extractedUrl) {
         input.value = extractedUrl;
@@ -380,6 +382,7 @@ function smartLinkConvert(input) {
         showToast("✅ Iframe convertido a enlace directo", false);
     }
 
+    // ----- 2. Conversiones existentes para enlaces directos -----
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
@@ -413,8 +416,6 @@ function smartLinkConvert(input) {
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
-        } else if (input.id === 'bannerAnime') {
-            previewBanner(input);
         } else if (input.classList.contains('m-url')) {
             updateAudioPreview(input);
         }
@@ -455,21 +456,6 @@ function checkCoverVisual(input) {
         img.style.display='none'; 
         input.style.borderColor = '#ff4757';
     };
-}
-
-// Nueva función: previsualizar banner horizontal
-function previewBanner(input) {
-    const img = document.getElementById('bannerPreview');
-    if(!img) return;
-    const val = input.value.trim();
-    if(val === "") {
-        img.style.display = 'none';
-        return;
-    }
-    img.src = val;
-    img.style.display = 'block';
-    img.onload = () => {};
-    img.onerror = () => { img.style.display = 'none'; };
 }
 
 function addAlias(value = "") {
@@ -849,7 +835,6 @@ async function loadIndexForSearch() {
                 id: anime.id,
                 title: anime.title,
                 img: anime.img,
-                banner: anime.banner || "", // <-- cargamos el banner también
                 rating: anime.rating || 0,
                 uploader: anime.uploader,
                 uploaderImg: anime.uploaderImg,
@@ -947,10 +932,6 @@ async function loadAnimeForEditing(id) {
         }
         document.getElementById('tituloAnime').value = animeData.title || "";
         document.getElementById('portadaAnime').value = animeData.img || "";
-        // Cargar banner
-        document.getElementById('bannerAnime').value = animeData.banner || "";
-        previewBanner(document.getElementById('bannerAnime'));
-
         document.getElementById('sinopsisAnime').value = animeData.desc || "";
         document.getElementById('aliasContainer').innerHTML = '';
         if(animeData.aliases) animeData.aliases.forEach(a => addAlias(a));
@@ -1043,7 +1024,6 @@ function generateData() {
         titulo: document.getElementById('tituloAnime').value.trim(),
         aliases: aliasList,
         portada: document.getElementById('portadaAnime').value.trim(),
-        banner: document.getElementById('bannerAnime').value.trim(), // <-- guardamos banner
         sinopsis: document.getElementById('sinopsisAnime').value.trim(),
         demografia: demoSelect, 
         generos: selectedGenres,
@@ -1185,7 +1165,6 @@ async function subirAGithHub() {
             title: nuevoAnime.titulo,
             desc: nuevoAnime.sinopsis,
             img: nuevoAnime.portada,
-            banner: nuevoAnime.banner || "", // <-- guardamos el banner
             rating: 0,
             uploader: nuevoAnime.uploader,
             uploaderImg: nuevoAnime.uploaderAvatar || "Logo_Archinime.avif",
