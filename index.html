@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.4";
+      const APP_VERSION = "2025-04-06-v13.5";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1903,7 +1903,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.4"></script>
+<script src="catalogo.js?v=2025-04-06-v13.5"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2464,14 +2464,14 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN PARA CONSTRUIR CONTENIDO ESTRUCTURADO (NUEVA LÓGICA DINÁMICA) ----
+  // ---- FUNCIÓN MEJORADA: CONTAR TODOS LOS TYPES DEL CATÁLOGO ----
   function buildContentDetails(anime) {
     // Si no hay temporadas, mostramos la descripción como fallback
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
-    // Mapa de tipos que queremos mostrar
+    // Mapa de tipos que queremos mostrar (coincide exactamente con los strings del catálogo)
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2485,7 +2485,8 @@
     let totalEpisodios = 0;
 
     anime.seasons.forEach(season => {
-      const type = season.type || 'Temporada'; // Si no tiene tipo, lo tratamos como Temporada
+      // Usamos el tipo que viene en el objeto, o 'Temporada' por defecto
+      const type = season.type || 'Temporada';
       typeCounts[type] = (typeCounts[type] || 0) + 1;
       
       // Contar episodios totales (si existen)
@@ -2522,7 +2523,7 @@
     return html;
   }
 
-  // ---- MODAL DE DETALLE (AHORA SIEMPRE CONTENIDO ESTRUCTURADO) ----
+  // ---- MODAL DE DETALLE ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
@@ -2534,7 +2535,7 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-    // Mostrar contenido estructurado con la nueva función
+    // Mostrar contenido estructurado
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
@@ -2547,7 +2548,7 @@
   window.openDetail = openDetail;
   window.closeDetailModal = closeDetailModal;
 
-  // ---- EVENT MODAL (ventanas emergentes automáticas) ----
+  // ---- EVENT MODAL ----
   let eventQueue = [];
   let isEventModalShowing = false;
 
@@ -2599,7 +2600,7 @@
     });
   }
 
-  // ---- CARRUSEL DE BANNERS (usa imágenes de los animes más recientes) ----
+  // ---- CARRUSEL DE BANNERS ----
   (function() {
     const topAnimes = catalogoArray.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
