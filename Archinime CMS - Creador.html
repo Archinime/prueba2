@@ -9,11 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase Auth (solo login con GitHub) -->
+    <!-- Firebase (App + Auth + Firestore) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>   <!-- ✅ ESTO FALTABA -->
 
-    <!-- Catálogo local -->
+    <!-- Catálogo local (opcional, puede no existir) -->
     <script src="catalogo.js"></script>
 
     <link rel="stylesheet" href="styles.css">
@@ -75,7 +76,7 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 40px;">
-            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveInitialProfile()" style="margin-top: 0; flex: 1;">
+            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveUserProfile()" style="margin-top: 0; flex: 1;">
                 GUARDAR Y ENTRAR
             </button>
         </div>
@@ -199,7 +200,7 @@
         <button class="btn btn-add" style="border-color:var(--primary); color:var(--primary)" onclick="addMusic()"><i class="fas fa-music"></i> AGREGAR AUDIO</button>
 
         <button class="btn btn-gen" id="btnSaveAction" onclick="subirAGithHub()">
-            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y DESCARGAR catalogo.js</span>
+            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y SUBIR</span>
         </button>
         
         <div id="statusLog"></div>
