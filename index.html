@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v10.0";
+      const APP_VERSION = "2025-04-06-v10.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -150,7 +150,7 @@
     ::-webkit-scrollbar-track { background: var(--bg-deep); }
     ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; box-shadow: 0 0 15px var(--neon-blue); }
 
-    /* ===== LOADER ===== */
+    /* ===== LOADER CON GIF ===== */
     #loadingScreen {
       position: fixed;
       inset: 0;
@@ -165,29 +165,32 @@
     }
     #loadingScreen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    .loader-ring {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: var(--neon-blue);
-      border-right-color: var(--neon-purple);
-      animation: spinLoader 1.2s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-      margin-bottom: 30px;
+    .loader-gif-wrapper {
       position: relative;
-      box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);
-    }
-    .loader-ring::after {
-      content: '';
-      position: absolute;
-      inset: 8px;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 30px;
       border-radius: 50%;
-      border: 2px solid transparent;
-      border-bottom-color: var(--neon-pink);
-      border-left-color: var(--neon-gold);
-      animation: spinLoader 0.8s linear infinite reverse;
+      padding: 5px;
+      background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+      animation: spinGradient 3s linear infinite, floatAnim 2s ease-in-out infinite alternate;
+      box-shadow: 0 0 40px rgba(177, 20, 255, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.3);
     }
-    @keyframes spinLoader { to { transform: rotate(360deg); } }
+    .loader-gif-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #000;
+    }
+    .loader-gif-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @keyframes spinGradient { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+    @keyframes floatAnim { 0% { transform: translateY(0px); } 100% { transform: translateY(-12px); } }
 
     .loader-title {
       font-size: 2.8rem;
@@ -959,20 +962,36 @@
       border-radius: var(--radius-xl);
       width: 100%;
       max-width: 600px;
-      padding: 0;
+      max-height: 90vh;
+      overflow-y: auto;
       position: relative;
       transform: scale(0.94) translateY(20px);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: var(--shadow-heavy);
-      max-height: 90vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      box-sizing: border-box;
     }
     .auth-modal.show .auth-card,
     .profile-modal.show .profile-card,
     .detail-modal.show .detail-card {
       transform: scale(1) translateY(0);
+    }
+
+    /* Estilos específicos para cada modal */
+    .auth-card {
+      max-width: 440px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .profile-card {
+      max-width: 500px;
+      padding: 28px 24px;
+    }
+    .detail-card {
+      max-width: 600px;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .auth-close, .profile-close, .detail-close {
@@ -1001,10 +1020,12 @@
       box-shadow: 0 0 20px var(--neon-pink);
     }
 
+    /* Auth */
     .auth-tabs {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      padding: 0 24px;
+      padding-top: 20px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
     .auth-tab {
@@ -1059,7 +1080,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 16px;
       padding: 0 24px 24px;
     }
     .provider-btn {
@@ -1086,7 +1106,6 @@
     .auth-error { color: var(--neon-pink); text-align: center; margin-top: 14px; font-size: 0.85rem; }
 
     /* Perfil */
-    .profile-card { padding: 28px 24px; }
     .profile-avatar {
       display: flex;
       flex-direction: column;
@@ -1180,12 +1199,7 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* ===== DETAIL MODAL ===== */
-    .detail-card {
-      max-width: 600px;
-      padding: 0;
-      overflow: hidden;
-    }
+    /* Detail */
     .detail-cover {
       width: 100%;
       height: 280px;
@@ -1249,7 +1263,7 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
-    /* ===== PANEL LATERAL (DESLIZABLE) ===== */
+    /* ===== PANEL LATERAL ===== */
     .side-panel-toggle {
       position: fixed;
       right: 0;
@@ -1334,7 +1348,7 @@
     .side-panel .panel-item .info .title { font-weight: 600; font-size: 0.9rem; }
     .side-panel .panel-item .info .sub { font-size: 0.7rem; color: var(--text-secondary); }
 
-    /* ===== CHROMA KEY (FG) ===== */
+    /* ===== CHROMA KEY ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     #fgContainer {
       position: fixed;
@@ -1391,6 +1405,8 @@
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
       .detail-card { max-width: 100%; margin: 10px; }
+      .auth-card { max-width: 100%; }
+      .profile-card { max-width: 100%; }
     }
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -1463,9 +1479,13 @@
 </head>
 <body>
 
-<!-- ===== LOADER ===== -->
+<!-- ===== LOADER CON GIF ===== -->
 <div id="loadingScreen">
-  <div class="loader-ring"></div>
+  <div class="loader-gif-wrapper">
+    <div class="loader-gif-inner">
+      <img id="loader-gif-img" src="" alt="Cargando sistema">
+    </div>
+  </div>
   <div class="loader-title">ARCHINIME</div>
   <div class="loader-sub">INICIALIZANDO SISTEMA</div>
   <div class="loader-bar"><div class="loader-bar-fill" id="loaderLine"></div></div>
@@ -1521,7 +1541,6 @@
 
 <!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
-  <!-- Los slides se generan con JS -->
   <div class="banner-dots" id="bannerDots"></div>
 </div>
 
@@ -1569,9 +1588,7 @@
 <div class="side-panel" id="sidePanel">
   <button class="panel-close" id="sidePanelClose"><i class="fas fa-times"></i></button>
   <h3>🔥 TOP ANIME</h3>
-  <div id="sidePanelContent">
-    <!-- Se llena con JS -->
-  </div>
+  <div id="sidePanelContent"></div>
 </div>
 
 <!-- ===== CHAT FLOTANTE ===== -->
@@ -1680,8 +1697,7 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v10.0"></script>
+<script src="catalogo.js?v=2025-04-06-v10.1"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1696,6 +1712,12 @@
     document.getElementById('notifMenu').classList.toggle('active');
   };
   window.startNotificationSequence = function() { console.log("Notificaciones listas"); };
+
+  // ===== CARGAR GIF EN EL LOADER =====
+  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+    const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    document.getElementById('loader-gif-img').src = gifElegido;
+  }
 
   // Service Worker
   if ('serviceWorker' in navigator) {
@@ -1748,14 +1770,6 @@
     if (!document.hidden && isMusicStarted && currentAudio?.paused) currentAudio.play().catch(()=>{});
   });
   window.addEventListener('load', startMusic);
-
-  // GIF aleatorio en el loader
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    // No hay elemento img en el loader actual, usamos el ring como fondo o podemos agregar un img
-    // Pero en este diseño el loader no tiene imagen, solo un ring. 
-    // Si el usuario quiere gif, podemos añadirlo, pero en la versión actual no lo tiene.
-    // Lo dejamos como está.
-  }
 
   // Loader
   let loadingCompleted = false;
@@ -2016,7 +2030,6 @@
     try {
       await currentUser.updateProfile({ displayName: name, photoURL: newAvatarUrl });
       await db.collection('users').doc(currentUser.uid).set({ customColor: color, lastProfileUpdate: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      // Actualizar comentarios
       const commentsRef = db.collection('comments').where('userId', '==', currentUser.uid);
       const snap = await commentsRef.get();
       const batch = db.batch();
@@ -2246,7 +2259,6 @@
 
   // ---- MODAL DE DETALLE ----
   function openDetail(id) {
-    // Buscar en catalogoArray (global)
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
       alert('Anime no encontrado');
@@ -2258,7 +2270,6 @@
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
     document.getElementById('detailDesc').textContent = anime.desc || 'Descripción no disponible.';
-    // Configurar botón "Ver ahora" para redirigir a anime-detail.html
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
@@ -2335,7 +2346,6 @@
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(0, 240, 255, ${0.2 + Math.sin(Date.now()/2000 + p.x) * 0.1})`;
         ctx.fill();
-        // Líneas entre partículas cercanas
         for (const other of particles) {
           const dx2 = p.x - other.x, dy2 = p.y - other.y;
           const d2 = Math.sqrt(dx2*dx2 + dy2*dy2);
@@ -2356,14 +2366,12 @@
 
   // ---- CARRUSEL DE BANNERS ----
   (function() {
-    // Tomar los primeros 3 animes del catálogo (más recientes)
     const topAnimes = catalogoArray.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
       title: anime.title,
       desc: `⭐ ${getDisplayRating(anime)} · ${anime.genres?.slice(0,3).join(', ') || 'Anime'}`,
       img: anime.img || 'placeholder.webp'
     }));
-    // Si no hay suficientes, rellenar con datos genéricos
     while (banners.length < 3) {
       banners.push({
         title: 'Top Anime',
@@ -2414,7 +2422,7 @@
     `).join('');
   })();
 
-  // Cerrar sesión con tecla Escape
+  // Cerrar con Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       closeAuthModal(); closeProfileModal(); closeDetailModal();
