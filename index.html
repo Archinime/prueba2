@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.1";
+      const APP_VERSION = "2025-04-06-v13.2";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1185,7 +1185,7 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* Detail - MEJORADO PARA MÓVILES */
+    /* Detail - MEJORADO PARA MÓVILES Y CONTENIDO */
     .detail-card {
       max-width: 600px;
       padding: 0;
@@ -1197,7 +1197,7 @@
     }
     .detail-cover {
       width: 100%;
-      height: 280px;
+      height: 340px; /* Imagen más grande */
       background-size: cover;
       background-position: center;
       position: relative;
@@ -1231,6 +1231,23 @@
       font-size: 0.9rem;
       line-height: 1.6;
       margin-bottom: 16px;
+    }
+    /* Chips de contenido */
+    .content-chip {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 4px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+    .content-chip i {
+      color: var(--neon-blue);
+      font-size: 0.8rem;
     }
     .detail-body .detail-actions {
       display: flex;
@@ -1405,7 +1422,7 @@
         max-height: 85vh;
         -webkit-overflow-scrolling: touch;
       }
-      .detail-cover { height: 180px; }
+      .detail-cover { height: 240px; } /* Imagen más grande en tablet */
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1415,7 +1432,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
-      .detail-cover { height: 150px; }
+      .detail-cover { height: 190px; } /* Imagen más grande en móvil */
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1884,7 +1901,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.1"></script>
+<script src="catalogo.js?v=2025-04-06-v13.2"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2073,7 +2090,9 @@
       card.setAttribute('onclick', `openDetail('${anime.id}')`);
       const rating = getDisplayRating(anime);
       const img = anime.img || 'placeholder.webp';
-      const badge = getNumericRating(anime) >= 4.8 ? '<div class="badge">🔥 TOP</div>' : '';
+      // BADGE: Solo para rating 4.9 o 5.0
+      const ratingVal = getNumericRating(anime);
+      const badge = (ratingVal >= 4.9 && ratingVal <= 5.0) ? '<div class="badge">🔥 TOP</div>' : '';
       card.innerHTML = `
         <img src="${img}" alt="${anime.title}" loading="eager" decoding="async" style="background:#0b0e14;">
         ${badge}
@@ -2443,7 +2462,33 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- MODAL DE DETALLE (con descripción real y botón "Ver ahora") ----
+  // ---- FUNCIÓN PARA CONSTRUIR CONTENIDO ESTRUCTURADO (Temporadas, OVAs, etc.) ----
+  function buildContentDetails(anime) {
+    const items = [
+      { key: 'temporadas', icon: 'fa-tv', label: 'Temporada(s)' },
+      { key: 'ovas', icon: 'fa-compact-disc', label: 'OVA(s)' },
+      { key: 'especiales', icon: 'fa-star', label: 'Especial(es)' },
+      { key: 'peliculas', icon: 'fa-film', label: 'Película(s)' },
+      { key: 'spin_off', icon: 'fa-code-branch', label: 'Spin-Off(s)' },
+      { key: 'episodios', icon: 'fa-list', label: 'Episodio(s)' }
+    ];
+    let found = false;
+    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
+    for (const item of items) {
+      if (anime[item.key] !== undefined && anime[item.key] !== null && anime[item.key] !== '') {
+        found = true;
+        html += `<span class="content-chip"><i class="fas ${item.icon}"></i> ${anime[item.key]} ${item.label}</span>`;
+      }
+    }
+    html += '</div>';
+    if (!found) {
+      // Fallback a la descripción si no hay datos estructurados
+      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
+    }
+    return html;
+  }
+
+  // ---- MODAL DE DETALLE (ahora con contenido estructurado) ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
@@ -2455,7 +2500,8 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-    document.getElementById('detailDesc').textContent = anime.desc || 'Descripción no disponible.';
+    // Mostrar contenido estructurado en lugar de descripción
+    document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
