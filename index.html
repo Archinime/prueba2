@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.3";
+      const APP_VERSION = "2025-04-06-v13.4";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1903,7 +1903,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.3"></script>
+<script src="catalogo.js?v=2025-04-06-v13.4"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2464,22 +2464,61 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN PARA CONSTRUIR CONTENIDO ESTRUCTURADO (SIEMPRE MUESTRA CHIPS, CON 0 SI NO EXISTE) ----
+  // ---- FUNCIÓN PARA CONSTRUIR CONTENIDO ESTRUCTURADO (NUEVA LÓGICA DINÁMICA) ----
   function buildContentDetails(anime) {
-    const items = [
-      { key: 'temporadas', icon: 'fa-tv', label: 'Temporada(s)' },
-      { key: 'ovas', icon: 'fa-compact-disc', label: 'OVA(s)' },
-      { key: 'especiales', icon: 'fa-star', label: 'Especial(es)' },
-      { key: 'peliculas', icon: 'fa-film', label: 'Película(s)' },
-      { key: 'spin_off', icon: 'fa-code-branch', label: 'Spin-Off(s)' },
-      { key: 'episodios', icon: 'fa-list', label: 'Episodio(s)' }
-    ];
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
-    for (const item of items) {
-      const value = anime[item.key] !== undefined && anime[item.key] !== null && anime[item.key] !== '' ? anime[item.key] : 0;
-      html += `<span class="content-chip"><i class="fas ${item.icon}"></i> ${value} ${item.label}</span>`;
+    // Si no hay temporadas, mostramos la descripción como fallback
+    if (!anime.seasons || anime.seasons.length === 0) {
+      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
+
+    // Mapa de tipos que queremos mostrar
+    const typeLabels = {
+      'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
+      'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
+      'Spin-Off': { icon: 'fa-code-branch', label: 'Spin-Off(s)' },
+      'Pelicula': { icon: 'fa-film', label: 'Película(s)' },
+      'Especial': { icon: 'fa-star', label: 'Especial(es)' }
+    };
+
+    // Contar cuántos de cada tipo hay en el array seasons
+    const typeCounts = {};
+    let totalEpisodios = 0;
+
+    anime.seasons.forEach(season => {
+      const type = season.type || 'Temporada'; // Si no tiene tipo, lo tratamos como Temporada
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+      
+      // Contar episodios totales (si existen)
+      if (season.eps && Array.isArray(season.eps)) {
+        totalEpisodios += season.eps.length;
+      }
+    });
+
+    let hasItems = false;
+    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
+
+    // Generar chips para cada tipo encontrado
+    for (const [type, count] of Object.entries(typeCounts)) {
+      const config = typeLabels[type];
+      if (config && count > 0) {
+        hasItems = true;
+        html += `<span class="content-chip"><i class="fas ${config.icon}"></i> ${count} ${config.label}</span>`;
+      }
+    }
+
+    // Mostrar total de episodios si hay
+    if (totalEpisodios > 0) {
+      hasItems = true;
+      html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
+    }
+
     html += '</div>';
+
+    // Si no se encontró nada estructurado, mostrar descripción
+    if (!hasItems) {
+      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
+    }
+
     return html;
   }
 
@@ -2495,7 +2534,7 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-    // Mostrar contenido estructurado siempre
+    // Mostrar contenido estructurado con la nueva función
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
