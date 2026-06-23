@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.0";
+      const APP_VERSION = "2025-04-06-v13.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -933,7 +933,7 @@
     .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
     .pagination-ellipsis { color: var(--text-secondary); padding: 0 4px; font-weight: 700; }
 
-    /* ===== MODALES (con estilos de referencia) ===== */
+    /* ===== MODALES ===== */
     .auth-modal, .profile-modal, .detail-modal {
       position: fixed;
       inset: 0;
@@ -1185,13 +1185,15 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* Detail */
+    /* Detail - MEJORADO PARA MÓVILES */
     .detail-card {
       max-width: 600px;
       padding: 0;
-      overflow: hidden;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
+      max-height: 90vh;
+      -webkit-overflow-scrolling: touch;
     }
     .detail-cover {
       width: 100%;
@@ -1208,6 +1210,7 @@
     }
     .detail-body {
       padding: 20px 24px 28px;
+      flex: 1;
     }
     .detail-body h2 {
       font-family: 'Orbitron', sans-serif;
@@ -1397,7 +1400,12 @@
       .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
-      .detail-card { max-width: 100%; margin: 10px; }
+      /* MEJORAS PARA EL MODAL DE DETALLE EN MÓVIL */
+      .detail-card {
+        max-height: 85vh;
+        -webkit-overflow-scrolling: touch;
+      }
+      .detail-cover { height: 180px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1407,6 +1415,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
+      .detail-cover { height: 150px; }
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1875,7 +1884,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.0"></script>
+<script src="catalogo.js?v=2025-04-06-v13.1"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2466,7 +2475,6 @@
     if (eventQueue.length === 0 || isEventModalShowing) return;
     isEventModalShowing = true;
     const eventData = eventQueue.shift();
-    // Llenar el modal con los datos del evento
     document.getElementById('eventBg').style.backgroundImage = `url(${eventData.img || 'placeholder.webp'})`;
     document.getElementById('eventCoverBack').src = eventData.img || 'placeholder.webp';
     document.getElementById('eventCoverFront').src = eventData.img || 'placeholder.webp';
@@ -2478,10 +2486,8 @@
     btn.onclick = function() {
       window.location.href = `anime-detail.html?id=${eventData.id}`;
     };
-    // Mostrar el modal
     document.getElementById('eventModal').classList.add('show');
     disableBodyScroll();
-    // Auto-cerrar después de 8 segundos
     if (window.eventTimeout) clearTimeout(window.eventTimeout);
     window.eventTimeout = setTimeout(() => {
       closeEventModal();
@@ -2492,14 +2498,12 @@
     document.getElementById('eventModal').classList.remove('show');
     enableBodyScroll();
     isEventModalShowing = false;
-    // Mostrar el siguiente evento en la cola después de un breve retraso
     setTimeout(() => {
       showNextEvent();
     }, 1500);
   }
   window.closeEventModal = closeEventModal;
 
-  // Función para agregar eventos a la cola (máximo 5)
   function addEventToQueue(anime) {
     if (eventQueue.length >= 5) return;
     eventQueue.push(anime);
@@ -2508,9 +2512,7 @@
     }
   }
 
-  // Detectar nuevos animes al cargar (simulación con los primeros 3 del catálogo)
   function checkForNewAnimes() {
-    // Tomar los primeros 3 animes del catálogo como "nuevos"
     const newAnimes = catalogoArray.slice(0, 3);
     newAnimes.forEach(anime => {
       addEventToQueue(anime);
@@ -2600,10 +2602,9 @@
   inicializarAnuncio();
   loadRatings().then(() => {
     cargarDatosYMostrar();
-    // Después de cargar los datos y ratings, mostrar notificaciones
     setTimeout(() => {
       checkForNewAnimes();
-    }, 3000); // Esperar 3 segundos para que la página cargue completamente
+    }, 3000);
   }).catch(err => {
     console.error('Error al cargar ratings, mostrando sin ellos:', err);
     cargarDatosYMostrar();
