@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v9.0";
+      const APP_VERSION = "2025-04-06-v10.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -958,14 +958,16 @@
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: var(--radius-xl);
       width: 100%;
-      max-width: 440px;
-      padding: 28px 24px;
+      max-width: 600px;
+      padding: 0;
       position: relative;
       transform: scale(0.94) translateY(20px);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: var(--shadow-heavy);
       max-height: 90vh;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
     .auth-modal.show .auth-card,
     .profile-modal.show .profile-card,
@@ -1021,6 +1023,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      padding: 20px 24px;
     }
     .auth-form input {
       width: 100%;
@@ -1057,6 +1060,7 @@
       flex-direction: column;
       gap: 10px;
       margin-top: 16px;
+      padding: 0 24px 24px;
     }
     .provider-btn {
       width: 100%;
@@ -1082,6 +1086,7 @@
     .auth-error { color: var(--neon-pink); text-align: center; margin-top: 14px; font-size: 0.85rem; }
 
     /* Perfil */
+    .profile-card { padding: 28px 24px; }
     .profile-avatar {
       display: flex;
       flex-direction: column;
@@ -1187,6 +1192,7 @@
       background-size: cover;
       background-position: center;
       position: relative;
+      flex-shrink: 0;
     }
     .detail-cover .overlay {
       position: absolute;
@@ -1641,7 +1647,7 @@
       <div class="meta" id="detailMeta"><span>⭐ 0.0</span><span>Géneros</span></div>
       <div class="description" id="detailDesc">Descripción aquí.</div>
       <div class="detail-actions">
-        <button class="btn-primary" onclick="alert('Reproduciendo...')"><i class="fas fa-play"></i> Ver ahora</button>
+        <button class="btn-primary" id="detailWatchBtn"><i class="fas fa-play"></i> Ver ahora</button>
         <button class="btn-secondary" onclick="closeDetailModal()">Cerrar</button>
       </div>
     </div>
@@ -1674,16 +1680,15 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-06-v9.0"></script>
+<!-- Cargar scripts externos -->
+<script src="catalogo.js?v=2025-04-06-v10.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== TODO EL JS =====
-  // (Se mantiene toda la lógica original, pero se añaden las nuevas funcionalidades)
-
+  // ===== TODA LA LÓGICA JS =====
   // Variables globales
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
@@ -1744,10 +1749,12 @@
   });
   window.addEventListener('load', startMusic);
 
-  // GIF aleatorio
+  // GIF aleatorio en el loader
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    const img = document.querySelector('.loader-glow-inner img');
-    if (img) img.src = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
+    // No hay elemento img en el loader actual, usamos el ring como fondo o podemos agregar un img
+    // Pero en este diseño el loader no tiene imagen, solo un ring. 
+    // Si el usuario quiere gif, podemos añadirlo, pero en la versión actual no lo tiene.
+    // Lo dejamos como está.
   }
 
   // Loader
@@ -2237,14 +2244,25 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // Detalle modal
+  // ---- MODAL DE DETALLE ----
   function openDetail(id) {
-    const anime = allAnimes.find(a => a.id == id);
-    if (!anime) return;
+    // Buscar en catalogoArray (global)
+    const anime = catalogoArray.find(a => a.id == id);
+    if (!anime) {
+      alert('Anime no encontrado');
+      return;
+    }
     document.getElementById('detailCover').style.backgroundImage = `url(${anime.img || 'placeholder.webp'})`;
     document.getElementById('detailTitle').textContent = anime.title;
-    document.getElementById('detailMeta').innerHTML = `<span>⭐ ${getDisplayRating(anime)}</span><span>${anime.genres?.join(', ') || 'Sin género'}</span>`;
-    document.getElementById('detailDesc').textContent = anime.description || 'Descripción no disponible.';
+    const rating = getDisplayRating(anime);
+    const genres = anime.genres?.join(', ') || 'Sin género';
+    document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
+    document.getElementById('detailDesc').textContent = anime.desc || 'Descripción no disponible.';
+    // Configurar botón "Ver ahora" para redirigir a anime-detail.html
+    const watchBtn = document.getElementById('detailWatchBtn');
+    watchBtn.onclick = function() {
+      window.location.href = `anime-detail.html?id=${anime.id}`;
+    };
     document.getElementById('detailModal').classList.add('show');
     disableBodyScroll();
   }
@@ -2336,13 +2354,23 @@
     draw();
   })();
 
-  // Carrusel de banners
+  // ---- CARRUSEL DE BANNERS ----
   (function() {
-    const banners = [
-      { title: '🎬 Top Anime del Mes', desc: 'Descubre los animes más populares ahora.', img: 'https://cdn.jsdelivr.net/gh/Archinime/-Archinime-@main/banner1.jpg' },
-      { title: '⚡ Nuevos Estrenos', desc: 'No te pierdas los últimos lanzamientos.', img: 'https://cdn.jsdelivr.net/gh/Archinime/-Archinime-@main/banner2.jpg' },
-      { title: '🔥 Comunidad Activa', desc: 'Únete a la discusión y comparte tu opinión.', img: 'https://cdn.jsdelivr.net/gh/Archinime/-Archinime-@main/banner3.jpg' }
-    ];
+    // Tomar los primeros 3 animes del catálogo (más recientes)
+    const topAnimes = catalogoArray.slice(0, 3);
+    const banners = topAnimes.map((anime, index) => ({
+      title: anime.title,
+      desc: `⭐ ${getDisplayRating(anime)} · ${anime.genres?.slice(0,3).join(', ') || 'Anime'}`,
+      img: anime.img || 'placeholder.webp'
+    }));
+    // Si no hay suficientes, rellenar con datos genéricos
+    while (banners.length < 3) {
+      banners.push({
+        title: 'Top Anime',
+        desc: 'Descubre los mejores animes',
+        img: 'placeholder.webp'
+      });
+    }
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
     let currentBanner = 0;
@@ -2371,10 +2399,10 @@
     setInterval(() => { goTo((currentBanner + 1) % banners.length); }, 5000);
   })();
 
-  // Panel lateral contenido
+  // ---- PANEL LATERAL CONTENIDO ----
   (function() {
     const content = document.getElementById('sidePanelContent');
-    const topAnimes = catalogoArray ? catalogoArray.slice(0, 8) : [];
+    const topAnimes = catalogoArray.slice(0, 8);
     content.innerHTML = topAnimes.map(a => `
       <div class="panel-item" onclick="openDetail('${a.id}')" style="cursor:pointer;">
         <img src="${a.img || 'placeholder.webp'}" alt="${a.title}">
