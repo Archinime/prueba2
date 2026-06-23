@@ -360,7 +360,6 @@ function log(msg) {
 // ========== NUEVA FUNCIÓN: Extraer URL de un iframe ==========
 function extractUrlFromIframe(value) {
     if (!value || typeof value !== 'string') return null;
-    // Buscar etiqueta iframe y extraer el src (comillas simples o dobles)
     const iframeRegex = /<iframe[^>]*src=["']([^"']+)["'][^>]*>/i;
     const match = value.match(iframeRegex);
     if (match && match[1]) {
@@ -373,7 +372,6 @@ function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
 
-    // ----- 1. Detectar y extraer iframe -----
     const extractedUrl = extractUrlFromIframe(val);
     if (extractedUrl) {
         input.value = extractedUrl;
@@ -382,7 +380,6 @@ function smartLinkConvert(input) {
         showToast("✅ Iframe convertido a enlace directo", false);
     }
 
-    // ----- 2. Conversiones existentes para enlaces directos -----
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
@@ -670,6 +667,45 @@ function handleSeasonTypeChange(select) {
     requestPreviewUpdate();
 }
 
+// ============================================
+// NUEVA FUNCIÓN AUXILIAR PARA ESCAPAR HTML
+// ============================================
+function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if(m === '&') return '&amp;';
+        if(m === '<') return '&lt;';
+        if(m === '>') return '&gt;';
+        return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+        return c;
+    });
+}
+
+// ============================================
+// NUEVA FUNCIÓN PARA AGREGAR PARTE A UN CAPÍTULO (MÚLTIPLES PARTES)
+// ============================================
+window.addPartToChapter = function(btn, type) {
+    const row = btn.closest('.chapter-row');
+    const container = type === 'lat' ? row.querySelector('.latino-parts-container') : row.querySelector('.sub-parts-container');
+    const partCount = container.children.length + 1;
+    const inputClass = type === 'lat' ? 'c-link-lat-part' : 'c-link-sub-part';
+    const div = document.createElement('div');
+    div.className = 'part-input-group';
+    div.style.display = 'flex';
+    div.style.gap = '5px';
+    div.style.marginBottom = '5px';
+    div.innerHTML = `
+        <input type="text" class="${inputClass}" placeholder="Parte ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
+        <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
+    `;
+    container.appendChild(div);
+    requestPreviewUpdate();
+};
+
+// ============================================
+// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES)
+// ============================================
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
     const typeSelect = card.querySelector('.s-type');
@@ -679,42 +715,83 @@ function renderChapters(input, existingEps = []) {
     const startSel = card.querySelector('.s-start-index');
     const startNum = startSel ? parseInt(startSel.value) : 1;
     const list = card.querySelector('.chapters-grid');
+    
     let currentData = [];
     if(existingEps.length === 0) {
         card.querySelectorAll('.chapter-row').forEach(row => {
+            const latParts = [];
+            row.querySelectorAll('.c-link-lat-part').forEach(inp => latParts.push(inp.value));
+            const subParts = [];
+            row.querySelectorAll('.c-link-sub-part').forEach(inp => subParts.push(inp.value));
             currentData.push({
-                lat: row.querySelector('.c-link-lat').value,
-                sub: row.querySelector('.c-link-sub').value,
+                lat: latParts,
+                sub: subParts,
                 title: row.querySelector('.c-title-ov').value
             });
         });
     }
     list.innerHTML = '';
     if(isNaN(count) || count < 1) return;
+    
     for(let i=0; i<count; i++) {
         const row = document.createElement('div');
         row.className = 'chapter-row';
-        let sub = '', lat = '', customTitle = '';
+        let subParts = [], latParts = [], customTitle = '';
         if(existingEps[i]) {
-             lat = existingEps[i].link || '';
-             sub = existingEps[i].link2 || ''; 
-             if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
+            latParts = Array.isArray(existingEps[i].link) ? existingEps[i].link : (existingEps[i].link ? [existingEps[i].link] : []);
+            subParts = Array.isArray(existingEps[i].link2) ? existingEps[i].link2 : (existingEps[i].link2 ? [existingEps[i].link2] : []);
+            if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
         } else if(currentData[i]) {
-             lat = currentData[i].lat;
-             sub = currentData[i].sub;
-             customTitle = currentData[i].title;
+            latParts = currentData[i].lat || [];
+            subParts = currentData[i].sub || [];
+            customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
         let titleInputDisabled = ['Temporada', 'Spin-Off'].includes(type) ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
+        
+        let latPartsHtml = '';
+        if(latParts.length === 0) {
+            latPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-lat-part" placeholder="Parte 1 (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
+        } else {
+            latParts.forEach((part, idx) => {
+                latPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
+                    <input type="text" class="c-link-lat-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
+                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
+                </div>`;
+            });
+        }
+        
+        let subPartsHtml = '';
+        if(subParts.length === 0) {
+            subPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-sub-part" placeholder="Parte 1 (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
+        } else {
+            subParts.forEach((part, idx) => {
+                subPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
+                    <input type="text" class="c-link-sub-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
+                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
+                </div>`;
+            });
+        }
+        
         row.innerHTML = `
             <div class="chapter-header"><span class="chapter-num">CAPÍTULO ${currentNum}</span></div>
-            <div class="c-inputs-grid">
-                <input type="text" class="c-link-lat" value="${lat}" placeholder="🔗 Lat" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
-                <input type="text" class="c-link-sub" value="${sub}" placeholder="🔗 Sub" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)">
+            <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:#00f0ff;">🎬 Latino (múltiples partes)</strong>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'lat')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
+                </div>
+                <div class="latino-parts-container">${latPartsHtml}</div>
             </div>
-            <input type="text" class="c-title-ov" value="${customTitle}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:10px; font-size:0.9em; border-color:#333; background:#111;">
+            <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:#ff00cc;">📀 Opción 2 (múltiples partes)</strong>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'sub')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
+                </div>
+                <div class="sub-parts-container">${subPartsHtml}</div>
+            </div>
+            <input type="text" class="c-title-ov" value="${escapeHtml(customTitle)}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:5px; font-size:0.9em; border-color:#333; background:#111;">
         `;
         list.appendChild(row);
     }
@@ -1007,6 +1084,9 @@ function exitEditMode() {
     location.reload();
 }
 
+// ============================================
+// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES)
+// ============================================
 function generateData() {
     const selectedGenres = [];
     document.querySelectorAll('#genresContainer input:checked').forEach(cb => selectedGenres.push(cb.value));
@@ -1048,8 +1128,19 @@ function generateData() {
         if(sType === 'Pelicula') movieCountVP++;
         if(sType === 'Especial') specialCountVP++;
         card.querySelectorAll('.chapter-row').forEach((row, idx) => {
-            const lat = row.querySelector('.c-link-lat').value.trim();
-            const sub = row.querySelector('.c-link-sub').value.trim();
+            // Recolectar todas las partes de latino
+            const latParts = [];
+            row.querySelectorAll('.c-link-lat-part').forEach(inp => {
+                const val = inp.value.trim();
+                if(val) latParts.push(val);
+            });
+            // Recolectar todas las partes de opción 2
+            const subParts = [];
+            row.querySelectorAll('.c-link-sub-part').forEach(inp => {
+                const val = inp.value.trim();
+                if(val) subParts.push(val);
+            });
+            
             let customTitleInput = row.querySelector('.c-title-ov').value.trim();
             let playerTitle = "", detailTitle = ""; 
             let currentEpNum = startNum + idx;
@@ -1069,8 +1160,8 @@ function generateData() {
                 detailTitle = customTitleInput || sName;
                 playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
             }
-            if(sub || lat) {
-                eps.push({ num: idx + 1, link: lat, link2: sub, title: detailTitle, playerTitle: playerTitle });
+            if(subParts.length || latParts.length) {
+                eps.push({ num: idx + 1, link: latParts, link2: subParts, title: detailTitle, playerTitle: playerTitle });
             }
         });
         if(eps.length > 0) {
