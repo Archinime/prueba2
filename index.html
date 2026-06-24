@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.6";
+      const APP_VERSION = "2025-04-06-v13.7";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1922,6 +1922,10 @@
     <div class="detail-body">
       <h2 id="detailTitle">Título</h2>
       <div class="meta" id="detailMeta"><span>⭐ 0.0</span><span>Géneros</span></div>
+      <!-- Contenedor para la etiqueta de emisión -->
+      <div id="detailAiringBadge" style="display:none; margin: 8px 0 12px; background:#ffaa00; color:#000; font-weight:700; font-size:0.75rem; padding:4px 14px; border-radius:20px; width:fit-content;">
+        🔴 EN EMISIÓN
+      </div>
       <div class="description" id="detailDesc">Contenido no disponible.</div>
       <div class="detail-actions">
         <button class="btn-primary" id="detailWatchBtn"><i class="fas fa-play"></i> Ver ahora</button>
@@ -1979,7 +1983,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.6"></script>
+<script src="catalogo.js?v=2025-04-06-v13.7"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2579,34 +2583,39 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN MEJORADA: CONTAR TODOS LOS TYPES DEL CATÁLOGO ----
+  // ---- FUNCIÓN MEJORADA: CONTAR EPISODIOS POR TIPO (incluye OVA, Especial, Tráiler) ----
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
+    // Mapa de tipos con sus iconos y etiquetas
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
       'Spin-Off': { icon: 'fa-code-branch', label: 'Spin-Off(s)' },
       'Pelicula': { icon: 'fa-film', label: 'Película(s)' },
-      'Especial': { icon: 'fa-star', label: 'Especial(es)' }
+      'Especial': { icon: 'fa-star', label: 'Especial(es)' },
+      'Tráiler': { icon: 'fa-video', label: 'Tráiler(es)' }
     };
 
+    // Contador de episodios por tipo
     const typeCounts = {};
-    let totalEpisodios = 0;
 
     anime.seasons.forEach(season => {
       const type = season.type || 'Temporada';
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
+      // Inicializar si no existe
+      if (!typeCounts[type]) typeCounts[type] = 0;
+      // Sumar la cantidad de episodios de esta season
       if (season.eps && Array.isArray(season.eps)) {
-        totalEpisodios += season.eps.length;
+        typeCounts[type] += season.eps.length;
       }
     });
 
     let hasItems = false;
     let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
 
+    // Generar chips para cada tipo con el total de episodios
     for (const [type, count] of Object.entries(typeCounts)) {
       const config = typeLabels[type];
       if (config && count > 0) {
@@ -2615,13 +2624,9 @@
       }
     }
 
-    if (totalEpisodios > 0) {
-      hasItems = true;
-      html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
-    }
-
     html += '</div>';
 
+    // Si no hay ningún tipo con episodios, mostrar descripción
     if (!hasItems) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
@@ -2629,7 +2634,7 @@
     return html;
   }
 
-  // ---- MODAL DE DETALLE ----
+  // ---- MODAL DE DETALLE (ahora con badge de emisión) ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
@@ -2641,7 +2646,18 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
+    
+    // Mostrar badge de emisión si está activo
+    const airingBadge = document.getElementById('detailAiringBadge');
+    if (anime.isAiring === true) {
+      airingBadge.style.display = 'block';
+    } else {
+      airingBadge.style.display = 'none';
+    }
+    
+    // Mostrar contenido estructurado con la función mejorada
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
+    
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
