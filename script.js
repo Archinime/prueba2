@@ -216,7 +216,7 @@ function showCMS() {
     
     injectStateSelect();
     injectFinalBlock();
-    injectAiringToggle(); 
+    injectAiringToggle(); // Nuevo toggle en emisión
 }
 
 function showLogin() {
@@ -308,9 +308,6 @@ function injectFinalBlock() {
 // ---- Toggle "En Emisión" ----
 function injectAiringToggle() {
     if(document.getElementById('airingToggle')) return;
-    const musicContainer = document.getElementById('musicContainer');
-    if(!musicContainer) return;
-    const parent = musicContainer.parentNode;
     const finalBlock = document.querySelector('#finalToggle')?.closest('div[style*="margin-bottom: 25px;"]');
     if(!finalBlock) return;
 
@@ -350,7 +347,6 @@ function syncToggles(applyExclusivity = true) {
     const airingCheckbox = document.getElementById('airingToggle');
     if (!finalCheckbox || !airingCheckbox) return;
 
-    // Actualizar visuales de "Finalizado"
     const finalSlider = finalCheckbox.closest('.switch')?.querySelector('.slider');
     const finalCircle = document.getElementById('sliderCircle');
     if (finalSlider) {
@@ -360,7 +356,6 @@ function syncToggles(applyExclusivity = true) {
         finalCircle.style.transform = finalCheckbox.checked ? "translateX(24px)" : "translateX(0)";
     }
 
-    // Actualizar visuales de "En Emisión"
     const airingSlider = airingCheckbox.closest('.switch')?.querySelector('.slider');
     const airingCircle = document.getElementById('airingSliderCircle');
     if (airingSlider) {
@@ -370,10 +365,8 @@ function syncToggles(applyExclusivity = true) {
         airingCircle.style.transform = airingCheckbox.checked ? "translateX(24px)" : "translateX(0)";
     }
 
-    // Aplicar exclusividad mutua: si ambos están activos, priorizar "Finalizado"
     if (applyExclusivity) {
         if (finalCheckbox.checked && airingCheckbox.checked) {
-            // Desactivar "En Emisión"
             airingCheckbox.checked = false;
             if (airingSlider) {
                 airingSlider.style.backgroundColor = "#333";
@@ -431,7 +424,7 @@ function log(msg) {
     el.scrollTop = el.scrollHeight;
 }
 
-// ========== NUEVA FUNCIÓN: Extraer URL de un iframe ==========
+// ========== Función: Extraer URL de un iframe ==========
 function extractUrlFromIframe(value) {
     if (!value || typeof value !== 'string') return null;
     const iframeRegex = /<iframe[^>]*src=["']([^"']+)["'][^>]*>/i;
@@ -575,6 +568,7 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
+// ---- FUNCIÓN addSeason MODIFICADA: incluye "Tráiler" y permite múltiples capítulos para OVA y Especial ----
 function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
@@ -599,7 +593,7 @@ function addSeason(data = null) {
                     <option value="OVA">OVA</option>
                     <option value="Especial">Especial</option>
                     <option value="Spin-Off">Spin-Off</option>
-                    <option value="Tráiler">Tráiler</option>
+                    <option value="Tráiler">Tráiler</option> <!-- NUEVO -->
                 </select>
             </div>
             <div class="col-flex">
@@ -658,10 +652,12 @@ function addSeason(data = null) {
     checkAutoState();
 }
 
+// ---- handleSeasonTypeChange MODIFICADO ----
 function handleSeasonTypeChange(select) {
     const card = select.closest('.season-card');
     const countInput = card.querySelector('.s-count');
     const type = select.value;
+    // Solo Película fuerza 1 capítulo y deshabilita
     if (type === 'Pelicula') {
         countInput.value = 1;
         countInput.disabled = true;
@@ -718,6 +714,7 @@ function removeSeasonBlock(btn) {
     });
 }
 
+// ---- updateAllBlockNames MODIFICADO: incluye Tráiler y manejo secuencial para OVA y Especial ----
 function updateAllBlockNames() {
     const cards = document.querySelectorAll('.season-card');
     let tempCount = 0, movieCount = 0, ovaCount = 0, specialCount = 0, spinOffCount = 0, trailerCount = 0;
@@ -783,7 +780,7 @@ window.addPartToChapter = function(btn, type) {
 };
 
 // ============================================
-// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES Y TRÁILER)
+// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES Y TIPOS)
 // ============================================
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
@@ -826,6 +823,7 @@ function renderChapters(input, existingEps = []) {
             customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
+        // Para Temporada y Spin-Off el título es automático
         let titleInputDisabled = (type === 'Temporada' || type === 'Spin-Off') ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
@@ -907,9 +905,7 @@ function checkForChanges() {
     }
 }
 
-// ============================================
-// VISTA PREVIA (actualizada para isAiring y Tráiler)
-// ============================================
+// ---- VISTA PREVIA (actualizada para isAiring y Tráiler) ----
 function updateWebPreview() {
     const titleEl = document.getElementById('webTitle');
     const titleVal = document.getElementById('tituloAnime').value;
@@ -937,6 +933,7 @@ function updateWebPreview() {
         });
     }
 
+    // Mostrar badge de emisión en vista previa
     const airingToggle = document.getElementById('airingToggle');
     const airingBadge = document.getElementById('webAiringBadge');
     if (airingBadge) {
@@ -1136,7 +1133,7 @@ async function loadAnimeForEditing(id) {
             animeData.music.forEach(url => addMusic(url));
         }
         
-        // --- Cargar estados de los toggles y sincronizar ---
+        // Cargar estados de toggles
         const toggleFinal = document.getElementById('finalToggle');
         const toggleAiring = document.getElementById('airingToggle');
         if (toggleFinal) {
@@ -1145,7 +1142,6 @@ async function loadAnimeForEditing(id) {
         if (toggleAiring) {
             toggleAiring.checked = animeData.isAiring || false;
         }
-        // Aplicar exclusividad y actualizar visuales
         syncToggles(true);
         
         const estadoSelect = document.getElementById('estadoAnime');
@@ -1215,9 +1211,7 @@ function generateData() {
     // Seguridad extra: si ambos están activos, priorizar isFinal y desactivar isAiring
     if (isFinal && isAiring) {
         isAiring = false;
-        // También actualizar el checkbox visual por si acaso
         if (airingTog) airingTog.checked = false;
-        // Sincronizar visuales nuevamente
         setTimeout(() => syncToggles(true), 0);
     }
     
@@ -1278,13 +1272,13 @@ function generateData() {
                 playerTitle = `${anime.titulo} ${sName} ${detailTitle}`;
             } else if (sType === 'OVA') {
                 detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} OVA ${ovaCountVP}` + (customTitleInput ? ` "${customTitleInput}"` : "");
+                playerTitle = `${anime.titulo} ${sName}`;
             } else if (sType === 'Pelicula') {
                 detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} Película ${movieCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
+                playerTitle = `${anime.titulo} ${sName}`;
             } else if (sType === 'Especial') {
                 detailTitle = customTitleInput || sName;
-                playerTitle = `${anime.titulo} Especial ${specialCountVP}` + (customTitleInput ? `: ${customTitleInput}` : "");
+                playerTitle = `${anime.titulo} ${sName}`;
             }
             if(subParts.length || latParts.length) {
                 eps.push({ num: idx + 1, link: latParts, link2: subParts, title: detailTitle, playerTitle: playerTitle });
