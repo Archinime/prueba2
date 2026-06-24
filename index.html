@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.12";
+      const APP_VERSION = "2025-04-07-v14.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -723,18 +723,18 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr); /* 6 columnas por defecto (PC) */
+      grid-template-columns: repeat(6, 1fr);
       gap: 24px;
     }
     @media (max-width: 1023px) {
       .grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablet */
+        grid-template-columns: repeat(3, 1fr);
         gap: 18px;
       }
     }
     @media (max-width: 767px) {
       .grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
       }
     }
@@ -1440,68 +1440,6 @@
       100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
     }
 
-    /* ===== RESULTADOS DE BÚSQUEDA EN OVERLAY (NUEVO) ===== */
-    #searchResults {
-      margin-top: 16px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 60vh;
-      overflow-y: auto;
-      background: rgba(11, 14, 20, 0.9);
-      backdrop-filter: blur(12px);
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 4px 0;
-      display: none; /* oculto por defecto */
-    }
-    #searchResults.active {
-      display: block;
-    }
-    .search-suggestion {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      cursor: pointer;
-      transition: 0.15s;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-    .search-suggestion:hover {
-      background: rgba(0, 240, 255, 0.04);
-    }
-    .search-suggestion img {
-      width: 40px;
-      height: 56px;
-      object-fit: cover;
-      border-radius: 4px;
-      background: #000;
-    }
-    .search-suggestion .info {
-      flex: 1;
-    }
-    .search-suggestion .info .title {
-      font-weight: 600;
-      color: #fff;
-      font-size: 0.9rem;
-    }
-    .search-suggestion .info .sub {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-    }
-    .search-suggestion .info .sub i {
-      margin-right: 4px;
-    }
-    .search-suggestion .view-all {
-      justify-content: center;
-      color: var(--neon-blue);
-      font-weight: 700;
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-    }
-    .search-suggestion .view-all i {
-      margin-right: 8px;
-    }
-
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .card .info { padding: 30px 10px 10px; }
@@ -1759,7 +1697,7 @@
       transform: scale(1.02);
     }
 
-    /* ===== OVERLAY DE BÚSQUEDA (MÓVIL) ===== */
+    /* ===== OVERLAY DE BÚSQUEDA (MÓVIL) MEJORADO ===== */
     #searchOverlay {
       display: none;
       position: fixed;
@@ -1812,6 +1750,7 @@
       margin-top: 16px;
       text-align: center;
     }
+    #searchOverlay .hint i { color: var(--neon-blue); }
   </style>
 </head>
 <body>
@@ -1876,9 +1815,8 @@
 <!-- ===== OVERLAY DE BÚSQUEDA (MÓVIL) MEJORADO ===== -->
 <div id="searchOverlay">
   <button class="close-btn" id="searchOverlayClose"><i class="fas fa-times"></i></button>
-  <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias..." autofocus>
-  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe para buscar en tiempo real</div>
-  <div id="searchResults" class="search-results"></div>
+  <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias...">
+  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe y los resultados aparecerán al instante</div>
 </div>
 
 <!-- ===== BANNER CARRUSEL ===== -->
@@ -2065,14 +2003,14 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.12"></script>
+<script src="catalogo.js?v=2025-04-07-v14.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== TODA LA LÓGICA JS =====
+  // ===== TODA LA LÓGICA JS (OPTIMIZADA) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2210,7 +2148,8 @@
     return card;
   }
 
-  // Paginación
+  // ===== OPTIMIZACIÓN: CATÁLOGO BASE (shuffle una sola vez) =====
+  let baseAnimes = [];
   let allAnimes = [], currentPage = 1, totalPages = 1, itemsPerPage = 36;
   let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
   let debounceTimer = null;
@@ -2219,161 +2158,53 @@
   const searchInput = document.getElementById('search');
   const searchOverlayInput = document.getElementById('searchOverlayInput');
 
-  // ===== BÚSQUEDA EN TIEMPO REAL (MÓVIL + ESCRITORIO) =====
-  let searchDebounceTimer = null;
-
-  function syncSearch(value) {
-    // Sincronizar ambos inputs
-    document.getElementById('search').value = value;
-    document.getElementById('searchOverlayInput').value = value;
-    currentFilters.search = value;
-
-    // Limpiar timer anterior
-    clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(() => {
-        // Si el overlay está activo, mostramos sugerencias en él
-        const overlay = document.getElementById('searchOverlay');
-        if (overlay.classList.contains('active')) {
-            renderSearchSuggestions(value);
+  // Función de filtrado optimizada (usando baseAnimes)
+  function applyFilters() {
+    let result = baseAnimes.slice(); // copia
+    if (currentFilters.genre) {
+      result = result.filter(a => a.genres && a.genres.includes(currentFilters.genre));
+    }
+    if (currentFilters.demographic) {
+      result = result.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
+    }
+    if (currentFilters.search) {
+      const term = normalizeText(currentFilters.search);
+      result = result.filter(a => {
+        const titleMatch = normalizeText(a.title).startsWith(term);
+        if (titleMatch) return true;
+        if (a.aliases) {
+          return a.aliases.some(alias => normalizeText(alias).startsWith(term));
         }
-        // Siempre actualizamos el grid (con debounce)
-        cargarDatosYMostrar();
-    }, 200);
+        return false;
+      });
+    }
+    if (currentFilters.rating) {
+      result = result.filter(a => {
+        const r = getNumericRating(a);
+        if (currentFilters.rating === 'excellent') return r >= 4.8;
+        if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
+        if (currentFilters.rating === 'regular') return r < 4.6;
+        return true;
+      });
+    }
+    return result;
   }
 
-  function renderSearchSuggestions(query) {
-    const container = document.getElementById('searchResults');
-    if (!query.trim()) {
-        container.classList.remove('active');
-        container.innerHTML = '';
-        return;
+  function cargarDatosYMostrar() {
+    grid.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo...</div>';
+    paginationContainer.innerHTML = '';
+    try {
+      const filtered = applyFilters();
+      allAnimes = filtered;
+      totalPages = Math.ceil(allAnimes.length / itemsPerPage);
+      currentPage = 1;
+      if (!allAnimes.length) { mostrarNoResultados(); paginationContainer.innerHTML = ''; } else renderPage();
+      if (!window.firstAnimesDispatched) { window.firstAnimesDispatched = true; window.dispatchEvent(new CustomEvent('firstAnimesLoaded')); }
+    } catch (e) {
+      grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--neon-pink);">Error: ${e.message}</div>`;
     }
-
-    const term = normalizeText(query);
-    // Filtrar catálogo (sin shuffle ni paginación, solo los primeros 10)
-    const matches = catalogoArray.filter(a =>
-        [a.title, ...(a.aliases||[])].some(t => normalizeText(t).startsWith(term))
-    ).slice(0, 10);
-
-    if (matches.length === 0) {
-        container.innerHTML = `<div style="padding:16px; color:var(--text-secondary); text-align:center;">No se encontraron coincidencias</div>`;
-        container.classList.add('active');
-        return;
-    }
-
-    let html = '';
-    matches.forEach(anime => {
-        const rating = getDisplayRating(anime);
-        html += `
-            <div class="search-suggestion" onclick="openDetail('${anime.id}'); document.getElementById('searchOverlay').classList.remove('active'); document.body.style.overflow='';">
-                <img src="${anime.img || 'placeholder.webp'}" alt="${anime.title}" loading="lazy">
-                <div class="info">
-                    <div class="title">${anime.title}</div>
-                    <div class="sub"><i class="fas fa-star" style="color:var(--neon-gold);"></i> ${rating}</div>
-                </div>
-            </div>
-        `;
-    });
-
-    // Botón "Ver todos los resultados"
-    const totalMatches = catalogoArray.filter(a =>
-        [a.title, ...(a.aliases||[])].some(t => normalizeText(t).startsWith(term))
-    ).length;
-    html += `
-        <div class="search-suggestion view-all" onclick="document.getElementById('searchOverlay').classList.remove('active'); document.body.style.overflow=''; document.getElementById('search').focus(); cargarDatosYMostrar();">
-            <i class="fas fa-arrow-right"></i> Ver todos los resultados (${totalMatches})
-        </div>
-    `;
-
-    container.innerHTML = html;
-    container.classList.add('active');
   }
 
-  // Asegurar que el input del overlay tenga foco y que el evento input funcione
-  document.getElementById('searchToggleMobile').addEventListener('click', () => {
-    const overlay = document.getElementById('searchOverlay');
-    overlay.classList.toggle('active');
-    if (overlay.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
-        const input = document.getElementById('searchOverlayInput');
-        setTimeout(() => {
-            input.focus();
-            // Si ya tiene texto, mostrar sugerencias
-            if (input.value.trim()) {
-                renderSearchSuggestions(input.value);
-            }
-        }, 100);
-    } else {
-        document.body.style.overflow = '';
-        document.getElementById('searchResults').classList.remove('active');
-    }
-  });
-
-  // Cerrar overlay al hacer clic en la "X"
-  document.getElementById('searchOverlayClose').addEventListener('click', () => {
-    document.getElementById('searchOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    document.getElementById('searchResults').classList.remove('active');
-  });
-
-  // Cerrar con Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const overlay = document.getElementById('searchOverlay');
-        if (overlay.classList.contains('active')) {
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-            document.getElementById('searchResults').classList.remove('active');
-        }
-    }
-  });
-
-  // Enter en el overlay → ver todos (cerrar y mostrar grid)
-  document.getElementById('searchOverlayInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('searchOverlay').classList.remove('active');
-        document.body.style.overflow = '';
-        document.getElementById('searchResults').classList.remove('active');
-        // Forzar actualización del grid con el valor actual
-        cargarDatosYMostrar();
-    }
-  });
-
-  // Evento input para el overlay
-  searchOverlayInput.addEventListener('input', (e) => syncSearch(e.target.value));
-
-  // Evento input para el campo de escritorio
-  searchInput.addEventListener('input', (e) => {
-      const val = e.target.value;
-      // Sincronizar overlay si está activo
-      const overlay = document.getElementById('searchOverlay');
-      if (overlay.classList.contains('active')) {
-          document.getElementById('searchOverlayInput').value = val;
-          renderSearchSuggestions(val);
-      }
-      syncSearch(val);
-  });
-
-  // Función para resetear filtros (global)
-  window.resetearFiltrosGlobal = function() {
-    document.getElementById('search').value = '';
-    document.getElementById('searchOverlayInput').value = '';
-    document.getElementById('genre-select').value = '';
-    document.getElementById('demographic-select').value = '';
-    document.getElementById('rating-select').value = '';
-    currentFilters = { search: '', genre: '', demographic: '', rating: '' };
-    document.getElementById('searchResults').classList.remove('active');
-    document.getElementById('searchResults').innerHTML = '';
-    cargarDatosYMostrar();
-  };
-
-  // Filtros
-  document.getElementById('genre-select').addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
-  document.getElementById('demographic-select').addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
-  document.getElementById('rating-select').addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
-
-  // Paginación
   function renderPage() {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -2446,36 +2277,71 @@
 
   window.changePage = function(p) { if (p < 1 || p > totalPages) return; currentPage = p; renderPage(); };
 
-  async function cargarDatosYMostrar() {
-    grid.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo...</div>';
-    paginationContainer.innerHTML = '';
-    try {
-      let animes = (typeof catalogoArray !== 'undefined') ? [...catalogoArray] : [];
-      if (currentFilters.genre) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.genre));
-      if (currentFilters.demographic) animes = animes.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
-      if (currentFilters.search) {
-        const term = normalizeText(currentFilters.search);
-        animes = animes.filter(a => [a.title, ...(a.aliases||[])].some(t => normalizeText(t).startsWith(term)));
+  // ===== SISTEMA DE BÚSQUEDA MEJORADO (con cierre automático en móvil) =====
+  function syncSearch(value, fromOverlay = false) {
+    searchInput.value = value;
+    searchOverlayInput.value = value;
+    currentFilters.search = value;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      cargarDatosYMostrar();
+      // Si estamos en móvil y la búsqueda viene del overlay, cerrar el overlay después del debounce
+      if (isMobile() && fromOverlay) {
+        const overlay = document.getElementById('searchOverlay');
+        if (overlay.classList.contains('active')) {
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
       }
-      if (currentFilters.rating) {
-        animes = animes.filter(a => {
-          const r = getNumericRating(a);
-          if (currentFilters.rating === 'excellent') return r >= 4.8;
-          if (currentFilters.rating === 'good') return r >= 4.6 && r < 4.8;
-          if (currentFilters.rating === 'regular') return r < 4.6;
-          return true;
-        });
-      }
-      allAnimes = shuffleArray(animes);
-      totalPages = Math.ceil(allAnimes.length / itemsPerPage);
-      currentPage = 1;
-      if (!allAnimes.length) { mostrarNoResultados(); paginationContainer.innerHTML = ''; } else renderPage();
-      if (!window.firstAnimesDispatched) { window.firstAnimesDispatched = true; window.dispatchEvent(new CustomEvent('firstAnimesLoaded')); }
-    } catch (e) { grid.innerHTML = `<div style="text-align:center;padding:40px;color:var(--neon-pink);">Error: ${e.message}</div>`; }
+    }, 300);
   }
 
-  function debouncedCargar() { clearTimeout(debounceTimer); debounceTimer = setTimeout(cargarDatosYMostrar, 300); }
-  
+  // Eventos de búsqueda en PC
+  searchInput.addEventListener('input', (e) => syncSearch(e.target.value, false));
+
+  // Eventos de búsqueda en móvil (overlay)
+  searchOverlayInput.addEventListener('input', (e) => syncSearch(e.target.value, true));
+
+  // Abrir overlay móvil
+  document.getElementById('searchToggleMobile').addEventListener('click', () => {
+    const overlay = document.getElementById('searchOverlay');
+    overlay.classList.toggle('active');
+    if (overlay.classList.contains('active')) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => searchOverlayInput.focus(), 100);
+    } else {
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Cerrar overlay móvil
+  document.getElementById('searchOverlayClose').addEventListener('click', () => {
+    document.getElementById('searchOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Filtros
+  document.getElementById('genre-select').addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
+  document.getElementById('demographic-select').addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
+  document.getElementById('rating-select').addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
+
+  window.resetearFiltrosGlobal = function() {
+    document.getElementById('search').value = '';
+    document.getElementById('searchOverlayInput').value = '';
+    document.getElementById('genre-select').value = '';
+    document.getElementById('demographic-select').value = '';
+    document.getElementById('rating-select').value = '';
+    currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    cargarDatosYMostrar();
+  };
+
   // Autenticación
   let currentUser = null, newAvatarUrl = null, lastProfileUpdate = 0;
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
@@ -2610,17 +2476,17 @@
   });
   auth.onAuthStateChanged(updateUserUI);
 
-  // Custom selects
+  // Custom selects (sin cambios, ya funcionan)
   (function() {
     const selects = ['genre-select', 'demographic-select', 'rating-select'];
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobileSelect = window.matchMedia('(max-width: 768px)').matches;
     function updateTrigger(trigger, select) { trigger.textContent = select.options[select.selectedIndex]?.textContent || select.options[0].textContent; }
     selects.forEach(id => {
       const select = document.getElementById(id); if (!select) return;
       const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; updateTrigger(trigger, select);
       select.parentNode.insertBefore(trigger, select);
       trigger.addEventListener('click', () => {
-        if (isMobile) {
+        if (isMobileSelect) {
           const overlay = document.createElement('div'); overlay.className = 'select-popup-overlay';
           const popup = document.createElement('div'); popup.className = 'select-popup';
           const header = document.createElement('div'); header.className = 'select-popup-header'; header.textContent = select.getAttribute('aria-label') || 'Seleccionar';
@@ -2676,7 +2542,7 @@
     });
   }
 
-  // Chroma key
+  // Chroma key (sin cambios)
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
     fg.classList.remove('fg-left', 'fg-right');
@@ -2756,21 +2622,19 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
-  // Panel lateral
+  // Panel lateral (sin cambios)
   const sidePanel = document.getElementById('sidePanel');
   const sideToggle = document.getElementById('sidePanelToggle');
   const sideClose = document.getElementById('sidePanelClose');
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN MEJORADA: CONTAR EPISODIOS PARA OVA, ESPECIAL Y TRÁILER ----
+  // Funciones de detalle y eventos (sin cambios)
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
-
     const sumTypes = ['OVA', 'Especial', 'Tráiler'];
-
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2779,14 +2643,11 @@
       'Especial': { icon: 'fa-star', label: 'Especial(es)' },
       'Tráiler': { icon: 'fa-video', label: 'Tráiler(es)' }
     };
-
     const typeCounts = {};
     let totalEpisodios = 0;
-
     anime.seasons.forEach(season => {
       const type = season.type || 'Temporada';
       const epsCount = season.eps ? season.eps.length : 0;
-
       if (sumTypes.includes(type)) {
         typeCounts[type] = (typeCounts[type] || 0) + epsCount;
       } else {
@@ -2794,10 +2655,8 @@
       }
       totalEpisodios += epsCount;
     });
-
     let hasItems = false;
     let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
-
     for (const [type, count] of Object.entries(typeCounts)) {
       const config = typeLabels[type];
       if (config && count > 0) {
@@ -2805,47 +2664,34 @@
         html += `<span class="content-chip"><i class="fas ${config.icon}"></i> ${count} ${config.label}</span>`;
       }
     }
-
     if (totalEpisodios > 0) {
       hasItems = true;
       html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
     }
-
     html += '</div>';
-
     if (!hasItems) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
-
     return html;
   }
 
-  // ---- MODAL DE DETALLE ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
-    if (!anime) {
-      alert('Anime no encontrado');
-      return;
-    }
-    // Actualizar imagen con object-fit: contain
+    if (!anime) { alert('Anime no encontrado'); return; }
     const coverImg = document.getElementById('detailCoverImg');
     coverImg.src = anime.img || 'placeholder.webp';
     coverImg.alt = anime.title;
-
     document.getElementById('detailTitle').textContent = anime.title;
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-
     const airingBadge = document.getElementById('detailAiringBadge');
     if (anime.isAiring === true) {
       airingBadge.style.display = 'block';
     } else {
       airingBadge.style.display = 'none';
     }
-
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
-
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
@@ -2857,10 +2703,9 @@
   window.openDetail = openDetail;
   window.closeDetailModal = closeDetailModal;
 
-  // ---- EVENT MODAL ----
+  // Event modal (sin cambios)
   let eventQueue = [];
   let isEventModalShowing = false;
-
   function showNextEvent() {
     if (eventQueue.length === 0 || isEventModalShowing) return;
     isEventModalShowing = true;
@@ -2883,7 +2728,6 @@
       closeEventModal();
     }, 8000);
   }
-
   function closeEventModal() {
     document.getElementById('eventModal').classList.remove('show');
     enableBodyScroll();
@@ -2893,7 +2737,6 @@
     }, 1500);
   }
   window.closeEventModal = closeEventModal;
-
   function addEventToQueue(anime) {
     if (eventQueue.length >= 5) return;
     eventQueue.push(anime);
@@ -2901,7 +2744,6 @@
       showNextEvent();
     }
   }
-
   function checkForNewAnimes() {
     const newAnimes = catalogoArray.slice(0, 3);
     newAnimes.forEach(anime => {
@@ -2909,7 +2751,7 @@
     });
   }
 
-  // ---- CARRUSEL DE BANNERS ----
+  // Carrusel de banners (sin cambios)
   (function() {
     const topAnimes = catalogoArray.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
@@ -2952,7 +2794,7 @@
     setInterval(() => { goTo((currentBanner + 1) % banners.length); }, 5000);
   })();
 
-  // ---- PANEL LATERAL CONTENIDO ----
+  // Panel lateral contenido (sin cambios)
   (function() {
     const content = document.getElementById('sidePanelContent');
     const topAnimes = catalogoArray.slice(0, 8);
@@ -2990,19 +2832,32 @@
   window.closeProfileModal = closeProfileModal;
   window.copiarUID = copiarUID;
 
+  // ===== INICIALIZACIÓN FINAL =====
   inicializarAnuncio();
   loadRatings().then(() => {
+    // Una vez cargados los ratings, inicializamos el catálogo base (shuffle)
+    if (typeof catalogoArray !== 'undefined') {
+      baseAnimes = shuffleArray([...catalogoArray]);
+    } else {
+      baseAnimes = [];
+    }
     cargarDatosYMostrar();
     setTimeout(() => {
       checkForNewAnimes();
     }, 3000);
   }).catch(err => {
     console.error('Error al cargar ratings, mostrando sin ellos:', err);
+    if (typeof catalogoArray !== 'undefined') {
+      baseAnimes = shuffleArray([...catalogoArray]);
+    } else {
+      baseAnimes = [];
+    }
     cargarDatosYMostrar();
     setTimeout(() => {
       checkForNewAnimes();
     }, 3000);
   });
+
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
   // Móviles: logo no abre nueva pestaña
