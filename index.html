@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.10";
+      const APP_VERSION = "2025-04-06-v13.11";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -258,14 +258,14 @@
       .cyber-nav .nav-actions { grid-column: 2; justify-self: end; }
       .cyber-nav .search-wrapper { 
         grid-column: 1 / -1; 
-        display: none; /* Oculto por defecto en móviles */
+        display: none;
         margin-top: 6px;
       }
       .cyber-nav .search-wrapper.active {
         display: flex;
       }
       .cyber-btn-icon { width: 36px; height: 36px; font-size: 0.9rem; }
-      #installBtn { display: none; } /* En móviles se muestra condicionalmente con JS */
+      #installBtn { display: none; }
     }
 
     .nav-logo {
@@ -723,9 +723,22 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(6, 1fr); /* 6 columnas por defecto (PC) */
       gap: 24px;
     }
+    @media (max-width: 1023px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablet */
+        gap: 18px;
+      }
+    }
+    @media (max-width: 767px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+        gap: 12px;
+      }
+    }
+
     .card {
       position: relative;
       border-radius: var(--radius-md);
@@ -1199,7 +1212,7 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* Detail - MEJORADO: imagen más grande y contenido estructurado */
+    /* Detail - MEJORADO: imagen con object-fit: contain para que se vea completa */
     .detail-card {
       max-width: 600px;
       padding: 0;
@@ -1212,15 +1225,25 @@
     .detail-cover {
       width: 100%;
       height: 420px;
-      background-size: cover;
-      background-position: center;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+    .detail-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
     .detail-cover .overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(to bottom, transparent 50%, #0b0e14 100%);
+      pointer-events: none;
     }
     .detail-body {
       padding: 20px 24px 28px;
@@ -1246,7 +1269,6 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
-    /* Chips de contenido */
     .content-chip {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.06);
@@ -1420,7 +1442,6 @@
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-      .grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
       .card .info { padding: 30px 10px 10px; }
       .card .info strong { font-size: 0.7rem; }
       .card .info span { font-size: 0.55rem; }
@@ -1442,7 +1463,6 @@
       .profile-card { max-width: 100%; }
     }
     @media (max-width: 480px) {
-      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .banner-carousel { height: 140px; }
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
@@ -1914,7 +1934,8 @@
 <!-- ===== MODAL DE DETALLE ===== -->
 <div id="detailModal" class="detail-modal">
   <div class="detail-card">
-    <div class="detail-cover" id="detailCover" style="background-image: url('placeholder.webp');">
+    <div class="detail-cover" id="detailCover">
+      <img id="detailCoverImg" src="placeholder.webp" alt="Portada">
       <div class="overlay"></div>
       <div class="detail-close" onclick="closeDetailModal()"><i class="fas fa-times"></i></div>
     </div>
@@ -1981,7 +2002,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.10"></script>
+<script src="catalogo.js?v=2025-04-06-v13.11"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2580,7 +2601,6 @@
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
-    // Tipos que suman episodios (en lugar de contar bloques)
     const sumTypes = ['OVA', 'Especial', 'Tráiler'];
 
     const typeLabels = {
@@ -2600,10 +2620,8 @@
       const epsCount = season.eps ? season.eps.length : 0;
 
       if (sumTypes.includes(type)) {
-        // Sumar episodios para OVA, Especial y Tráiler
         typeCounts[type] = (typeCounts[type] || 0) + epsCount;
       } else {
-        // Contar bloques para los demás tipos
         typeCounts[type] = (typeCounts[type] || 0) + 1;
       }
       totalEpisodios += epsCount;
@@ -2641,7 +2659,11 @@
       alert('Anime no encontrado');
       return;
     }
-    document.getElementById('detailCover').style.backgroundImage = `url(${anime.img || 'placeholder.webp'})`;
+    // Actualizar imagen con object-fit: contain
+    const coverImg = document.getElementById('detailCoverImg');
+    coverImg.src = anime.img || 'placeholder.webp';
+    coverImg.alt = anime.title;
+
     document.getElementById('detailTitle').textContent = anime.title;
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
