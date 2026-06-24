@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.8";
+      const APP_VERSION = "2025-04-06-v13.9";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1211,7 +1211,7 @@
     }
     .detail-cover {
       width: 100%;
-      height: 420px;
+      height: 420px; /* Imagen uniforme en escritorio */
       background-size: cover;
       background-position: center;
       position: relative;
@@ -1246,6 +1246,7 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
+    /* Chips de contenido */
     .content-chip {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.06);
@@ -1432,11 +1433,12 @@
       .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
+      /* MEJORAS PARA EL MODAL DE DETALLE EN MÓVIL */
       .detail-card {
         max-height: 85vh;
         -webkit-overflow-scrolling: touch;
       }
-      .detail-cover { height: 320px; }
+      .detail-cover { height: 320px; } /* Imagen uniforme en tablet */
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1446,7 +1448,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
-      .detail-cover { height: 260px; }
+      .detail-cover { height: 260px; } /* Imagen uniforme en móvil */
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1509,7 +1511,7 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== EVENT MODAL ===== */
+    /* ===== EVENT MODAL (ventanas emergentes automáticas de notificaciones) ===== */
     #eventModal {
       position: fixed;
       top: 0;
@@ -1980,7 +1982,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.8"></script>
+<script src="catalogo.js?v=2025-04-06-v13.9"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1988,6 +1990,7 @@
 
 <script>
   // ===== TODA LA LÓGICA JS =====
+  // Variables globales
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2046,6 +2049,11 @@
     if (!document.hidden && isMusicStarted && currentAudio?.paused) currentAudio.play().catch(()=>{});
   });
   window.addEventListener('load', startMusic);
+
+  // GIF aleatorio en el loader (no usado en este diseño, pero mantenemos)
+  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
+    // No hay elemento img en el loader actual, usamos el ring como fondo
+  }
 
   // Loader
   let loadingCompleted = false;
@@ -2151,6 +2159,7 @@
     }
   });
 
+  // Toggle de búsqueda móvil
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.toggle('active');
@@ -2573,12 +2582,13 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN CORREGIDA: CONTAR BLOQUES POR TIPO (no episodios) ----
+  // ---- FUNCIÓN MEJORADA: CONTAR TODOS LOS TYPES DEL CATÁLOGO (INCLUYENDO TRÁILER) ----
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
+    // MAPA ACTUALIZADO: AÑADIDO "Tráiler"
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2589,11 +2599,14 @@
     };
 
     const typeCounts = {};
+    let totalEpisodios = 0;
 
-    // Recorremos cada bloque (season) y sumamos 1 por cada tipo
     anime.seasons.forEach(season => {
       const type = season.type || 'Temporada';
       typeCounts[type] = (typeCounts[type] || 0) + 1;
+      if (season.eps && Array.isArray(season.eps)) {
+        totalEpisodios += season.eps.length;
+      }
     });
 
     let hasItems = false;
@@ -2605,6 +2618,11 @@
         hasItems = true;
         html += `<span class="content-chip"><i class="fas ${config.icon}"></i> ${count} ${config.label}</span>`;
       }
+    }
+
+    if (totalEpisodios > 0) {
+      hasItems = true;
+      html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
     }
 
     html += '</div>';
@@ -2628,16 +2646,18 @@
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
-    
+
+    // Badge de emisión
     const airingBadge = document.getElementById('detailAiringBadge');
     if (anime.isAiring === true) {
       airingBadge.style.display = 'block';
     } else {
       airingBadge.style.display = 'none';
     }
-    
+
+    // Mostrar contenido estructurado
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
-    
+
     const watchBtn = document.getElementById('detailWatchBtn');
     watchBtn.onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
@@ -2770,6 +2790,7 @@
     }
   });
 
+  // Inicializar
   function disableBodyScroll() { const sw = window.innerWidth - document.documentElement.clientWidth; document.body.style.paddingRight = sw + 'px'; document.body.classList.add('modal-open'); }
   function enableBodyScroll() { document.body.style.paddingRight = ''; document.body.classList.remove('modal-open'); }
 
