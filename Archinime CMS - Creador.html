@@ -43,6 +43,46 @@
             height: 80px; border-radius: 50%; object-fit: cover;
             border: 2px solid #00f0ff; margin: 0 auto 20px; display: block; background: #000;
         }
+        /* Toggle personalizado (ya está en script.js, pero añadimos estilo base) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #00f0ff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
     </style>
 </head>
 <body>
@@ -199,7 +239,6 @@
                     <option value="Seijin">Seijin</option>
                 </select>
             </div>
-            <!-- ELIMINADO EL BLOQUE DE VALORACIÓN -->
         </div>
 
         <h2 style="margin-top:50px"><i class="fas fa-layer-group"></i> 2. Estructura</h2>
@@ -230,7 +269,7 @@
                 
                 <div style="display:flex; justify-content:space-between; margin-top:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span id="webDemography" style="color:var(--accent); font-weight:700; font-size:0.8em">DEMO</span>
-                    <!-- ELIMINADO EL RATING DE LA VISTA PREVIA -->
+                    <span id="webAiringBadge" style="display:none; background:#ffaa00; color:#000; font-weight:700; font-size:0.65em; padding:2px 10px; border-radius:20px;">🔴 EN EMISIÓN</span>
                 </div>
                 <div id="webTags" style="display:flex; flex-wrap:wrap; gap:6px; margin:15px 0;"></div>
                 
