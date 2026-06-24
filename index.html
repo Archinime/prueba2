@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.9";
+      const APP_VERSION = "2025-04-06-v13.10";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1211,7 +1211,7 @@
     }
     .detail-cover {
       width: 100%;
-      height: 420px; /* Imagen uniforme en escritorio */
+      height: 420px;
       background-size: cover;
       background-position: center;
       position: relative;
@@ -1433,12 +1433,11 @@
       .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
-      /* MEJORAS PARA EL MODAL DE DETALLE EN MÓVIL */
       .detail-card {
         max-height: 85vh;
         -webkit-overflow-scrolling: touch;
       }
-      .detail-cover { height: 320px; } /* Imagen uniforme en tablet */
+      .detail-cover { height: 320px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1448,7 +1447,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
-      .detail-cover { height: 260px; } /* Imagen uniforme en móvil */
+      .detail-cover { height: 260px; }
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1511,7 +1510,7 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== EVENT MODAL (ventanas emergentes automáticas de notificaciones) ===== */
+    /* ===== EVENT MODAL ===== */
     #eventModal {
       position: fixed;
       top: 0;
@@ -1934,7 +1933,7 @@
   </div>
 </div>
 
-<!-- ===== EVENT MODAL (ventanas emergentes automáticas) ===== -->
+<!-- ===== EVENT MODAL ===== -->
 <div id="eventModal">
   <div class="event-card">
     <div class="event-close" onclick="closeEventModal()"><i class="fas fa-times"></i></div>
@@ -1982,7 +1981,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.9"></script>
+<script src="catalogo.js?v=2025-04-06-v13.10"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1990,7 +1989,6 @@
 
 <script>
   // ===== TODA LA LÓGICA JS =====
-  // Variables globales
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2049,11 +2047,6 @@
     if (!document.hidden && isMusicStarted && currentAudio?.paused) currentAudio.play().catch(()=>{});
   });
   window.addEventListener('load', startMusic);
-
-  // GIF aleatorio en el loader (no usado en este diseño, pero mantenemos)
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    // No hay elemento img en el loader actual, usamos el ring como fondo
-  }
 
   // Loader
   let loadingCompleted = false;
@@ -2159,7 +2152,6 @@
     }
   });
 
-  // Toggle de búsqueda móvil
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.toggle('active');
@@ -2582,13 +2574,15 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN MEJORADA: CONTAR TODOS LOS TYPES DEL CATÁLOGO (INCLUYENDO TRÁILER) ----
+  // ---- FUNCIÓN MEJORADA: CONTAR EPISODIOS PARA OVA, ESPECIAL Y TRÁILER ----
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
-    // MAPA ACTUALIZADO: AÑADIDO "Tráiler"
+    // Tipos que suman episodios (en lugar de contar bloques)
+    const sumTypes = ['OVA', 'Especial', 'Tráiler'];
+
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2603,10 +2597,16 @@
 
     anime.seasons.forEach(season => {
       const type = season.type || 'Temporada';
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-      if (season.eps && Array.isArray(season.eps)) {
-        totalEpisodios += season.eps.length;
+      const epsCount = season.eps ? season.eps.length : 0;
+
+      if (sumTypes.includes(type)) {
+        // Sumar episodios para OVA, Especial y Tráiler
+        typeCounts[type] = (typeCounts[type] || 0) + epsCount;
+      } else {
+        // Contar bloques para los demás tipos
+        typeCounts[type] = (typeCounts[type] || 0) + 1;
       }
+      totalEpisodios += epsCount;
     });
 
     let hasItems = false;
@@ -2647,7 +2647,6 @@
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
 
-    // Badge de emisión
     const airingBadge = document.getElementById('detailAiringBadge');
     if (anime.isAiring === true) {
       airingBadge.style.display = 'block';
@@ -2655,7 +2654,6 @@
       airingBadge.style.display = 'none';
     }
 
-    // Mostrar contenido estructurado
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
 
     const watchBtn = document.getElementById('detailWatchBtn');
@@ -2790,7 +2788,6 @@
     }
   });
 
-  // Inicializar
   function disableBodyScroll() { const sw = window.innerWidth - document.documentElement.clientWidth; document.body.style.paddingRight = sw + 'px'; document.body.classList.add('modal-open'); }
   function enableBodyScroll() { document.body.style.paddingRight = ''; document.body.classList.remove('modal-open'); }
 
