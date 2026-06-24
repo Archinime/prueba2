@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-06-v13.7";
+      const APP_VERSION = "2025-04-06-v13.8";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1211,7 +1211,7 @@
     }
     .detail-cover {
       width: 100%;
-      height: 420px; /* Imagen uniforme en escritorio */
+      height: 420px;
       background-size: cover;
       background-position: center;
       position: relative;
@@ -1246,7 +1246,6 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
-    /* Chips de contenido */
     .content-chip {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.06);
@@ -1433,12 +1432,11 @@
       .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
-      /* MEJORAS PARA EL MODAL DE DETALLE EN MÓVIL */
       .detail-card {
         max-height: 85vh;
         -webkit-overflow-scrolling: touch;
       }
-      .detail-cover { height: 320px; } /* Imagen uniforme en tablet */
+      .detail-cover { height: 320px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
     }
@@ -1448,7 +1446,7 @@
       .banner-slide .banner-info { max-width: 90%; padding: 8px 14px; }
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
-      .detail-cover { height: 260px; } /* Imagen uniforme en móvil */
+      .detail-cover { height: 260px; }
     }
 
     /* ===== BOTÓN FLOTANTE CHAT ===== */
@@ -1511,7 +1509,7 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== EVENT MODAL (ventanas emergentes automáticas de notificaciones) ===== */
+    /* ===== EVENT MODAL ===== */
     #eventModal {
       position: fixed;
       top: 0;
@@ -1922,7 +1920,6 @@
     <div class="detail-body">
       <h2 id="detailTitle">Título</h2>
       <div class="meta" id="detailMeta"><span>⭐ 0.0</span><span>Géneros</span></div>
-      <!-- Contenedor para la etiqueta de emisión -->
       <div id="detailAiringBadge" style="display:none; margin: 8px 0 12px; background:#ffaa00; color:#000; font-weight:700; font-size:0.75rem; padding:4px 14px; border-radius:20px; width:fit-content;">
         🔴 EN EMISIÓN
       </div>
@@ -1983,7 +1980,7 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-06-v13.7"></script>
+<script src="catalogo.js?v=2025-04-06-v13.8"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -1991,7 +1988,6 @@
 
 <script>
   // ===== TODA LA LÓGICA JS =====
-  // Variables globales
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2050,11 +2046,6 @@
     if (!document.hidden && isMusicStarted && currentAudio?.paused) currentAudio.play().catch(()=>{});
   });
   window.addEventListener('load', startMusic);
-
-  // GIF aleatorio en el loader (no usado en este diseño, pero mantenemos)
-  if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
-    // No hay elemento img en el loader actual, usamos el ring como fondo
-  }
 
   // Loader
   let loadingCompleted = false;
@@ -2160,7 +2151,6 @@
     }
   });
 
-  // Toggle de búsqueda móvil
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
     const overlay = document.getElementById('searchOverlay');
     overlay.classList.toggle('active');
@@ -2583,13 +2573,12 @@
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // ---- FUNCIÓN MEJORADA: CONTAR EPISODIOS POR TIPO (incluye OVA, Especial, Tráiler) ----
+  // ---- FUNCIÓN CORREGIDA: CONTAR BLOQUES POR TIPO (no episodios) ----
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
 
-    // Mapa de tipos con sus iconos y etiquetas
     const typeLabels = {
       'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
       'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
@@ -2599,23 +2588,17 @@
       'Tráiler': { icon: 'fa-video', label: 'Tráiler(es)' }
     };
 
-    // Contador de episodios por tipo
     const typeCounts = {};
 
+    // Recorremos cada bloque (season) y sumamos 1 por cada tipo
     anime.seasons.forEach(season => {
       const type = season.type || 'Temporada';
-      // Inicializar si no existe
-      if (!typeCounts[type]) typeCounts[type] = 0;
-      // Sumar la cantidad de episodios de esta season
-      if (season.eps && Array.isArray(season.eps)) {
-        typeCounts[type] += season.eps.length;
-      }
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
     });
 
     let hasItems = false;
     let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
 
-    // Generar chips para cada tipo con el total de episodios
     for (const [type, count] of Object.entries(typeCounts)) {
       const config = typeLabels[type];
       if (config && count > 0) {
@@ -2626,7 +2609,6 @@
 
     html += '</div>';
 
-    // Si no hay ningún tipo con episodios, mostrar descripción
     if (!hasItems) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
     }
@@ -2634,7 +2616,7 @@
     return html;
   }
 
-  // ---- MODAL DE DETALLE (ahora con badge de emisión) ----
+  // ---- MODAL DE DETALLE ----
   function openDetail(id) {
     const anime = catalogoArray.find(a => a.id == id);
     if (!anime) {
@@ -2647,7 +2629,6 @@
     const genres = anime.genres?.join(', ') || 'Sin género';
     document.getElementById('detailMeta').innerHTML = `<span>⭐ ${rating}</span><span>${genres}</span>`;
     
-    // Mostrar badge de emisión si está activo
     const airingBadge = document.getElementById('detailAiringBadge');
     if (anime.isAiring === true) {
       airingBadge.style.display = 'block';
@@ -2655,7 +2636,6 @@
       airingBadge.style.display = 'none';
     }
     
-    // Mostrar contenido estructurado con la función mejorada
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
     
     const watchBtn = document.getElementById('detailWatchBtn');
@@ -2790,7 +2770,6 @@
     }
   });
 
-  // Inicializar
   function disableBodyScroll() { const sw = window.innerWidth - document.documentElement.clientWidth; document.body.style.paddingRight = sw + 'px'; document.body.classList.add('modal-open'); }
   function enableBodyScroll() { document.body.style.paddingRight = ''; document.body.classList.remove('modal-open'); }
 
