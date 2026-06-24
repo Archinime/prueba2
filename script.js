@@ -216,7 +216,7 @@ function showCMS() {
     
     injectStateSelect();
     injectFinalBlock();
-    injectAiringToggle(); // Nueva función para el toggle "En Emisión"
+    injectAiringToggle(); 
 }
 
 function showLogin() {
@@ -294,16 +294,8 @@ function injectFinalBlock() {
         </label>
     `;
     const checkbox = wrapper.querySelector('#finalToggle');
-    const slider = wrapper.querySelector('.slider');
-    const circle = wrapper.querySelector('#sliderCircle');
     checkbox.addEventListener('change', () => {
-        if(checkbox.checked) {
-            slider.style.backgroundColor = "#00f0ff";
-            circle.style.transform = "translateX(24px)";
-        } else {
-            slider.style.backgroundColor = "#333";
-            circle.style.transform = "translateX(0)";
-        }
+        syncToggles(true);
         requestPreviewUpdate();
     });
     if (musicHeader && musicHeader.tagName === 'H2') {
@@ -319,8 +311,6 @@ function injectAiringToggle() {
     const musicContainer = document.getElementById('musicContainer');
     if(!musicContainer) return;
     const parent = musicContainer.parentNode;
-    const finalWrapper = document.getElementById('finalToggle')?.closest('div'); // buscamos el wrapper de final para ponerlo al lado
-    // Lo colocaremos justo debajo del toggle de Finalizado
     const finalBlock = document.querySelector('#finalToggle')?.closest('div[style*="margin-bottom: 25px;"]');
     if(!finalBlock) return;
 
@@ -345,20 +335,54 @@ function injectAiringToggle() {
         </label>
     `;
     const checkbox = wrapper.querySelector('#airingToggle');
-    const slider = wrapper.querySelector('.slider');
-    const circle = wrapper.querySelector('#airingSliderCircle');
     checkbox.addEventListener('change', () => {
-        if(checkbox.checked) {
-            slider.style.backgroundColor = "#ffaa00";
-            circle.style.transform = "translateX(24px)";
-        } else {
-            slider.style.backgroundColor = "#333";
-            circle.style.transform = "translateX(0)";
-        }
+        syncToggles(true);
         requestPreviewUpdate();
     });
-    // Insertar después del bloque de finalizado
     finalBlock.parentNode.insertBefore(wrapper, finalBlock.nextSibling);
+}
+
+// ============================================
+// FUNCIÓN CENTRAL DE SINCRONIZACIÓN DE TOGGLES (EXCLUSIVIDAD)
+// ============================================
+function syncToggles(applyExclusivity = true) {
+    const finalCheckbox = document.getElementById('finalToggle');
+    const airingCheckbox = document.getElementById('airingToggle');
+    if (!finalCheckbox || !airingCheckbox) return;
+
+    // Actualizar visuales de "Finalizado"
+    const finalSlider = finalCheckbox.closest('.switch')?.querySelector('.slider');
+    const finalCircle = document.getElementById('sliderCircle');
+    if (finalSlider) {
+        finalSlider.style.backgroundColor = finalCheckbox.checked ? "#00f0ff" : "#333";
+    }
+    if (finalCircle) {
+        finalCircle.style.transform = finalCheckbox.checked ? "translateX(24px)" : "translateX(0)";
+    }
+
+    // Actualizar visuales de "En Emisión"
+    const airingSlider = airingCheckbox.closest('.switch')?.querySelector('.slider');
+    const airingCircle = document.getElementById('airingSliderCircle');
+    if (airingSlider) {
+        airingSlider.style.backgroundColor = airingCheckbox.checked ? "#ffaa00" : "#333";
+    }
+    if (airingCircle) {
+        airingCircle.style.transform = airingCheckbox.checked ? "translateX(24px)" : "translateX(0)";
+    }
+
+    // Aplicar exclusividad mutua: si ambos están activos, priorizar "Finalizado"
+    if (applyExclusivity) {
+        if (finalCheckbox.checked && airingCheckbox.checked) {
+            // Desactivar "En Emisión"
+            airingCheckbox.checked = false;
+            if (airingSlider) {
+                airingSlider.style.backgroundColor = "#333";
+            }
+            if (airingCircle) {
+                airingCircle.style.transform = "translateX(0)";
+            }
+        }
+    }
 }
 
 const genresList = [
@@ -551,7 +575,6 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
-// ---- FUNCIÓN addSeason MODIFICADA: incluye "Tráiler" ----
 function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
@@ -576,7 +599,7 @@ function addSeason(data = null) {
                     <option value="OVA">OVA</option>
                     <option value="Especial">Especial</option>
                     <option value="Spin-Off">Spin-Off</option>
-                    <option value="Tráiler">Tráiler</option> <!-- NUEVO -->
+                    <option value="Tráiler">Tráiler</option>
                 </select>
             </div>
             <div class="col-flex">
@@ -635,12 +658,10 @@ function addSeason(data = null) {
     checkAutoState();
 }
 
-// ---- handleSeasonTypeChange MODIFICADO ----
 function handleSeasonTypeChange(select) {
     const card = select.closest('.season-card');
     const countInput = card.querySelector('.s-count');
     const type = select.value;
-    // Solo Película fuerza 1 capítulo y deshabilita
     if (type === 'Pelicula') {
         countInput.value = 1;
         countInput.disabled = true;
@@ -705,7 +726,6 @@ function updateAllBlockNames() {
         const nameInput = card.querySelector('.s-name');
         const type = typeSelect.value;
         if (!type) return;
-        // Para Spin-Off y Tráiler el nombre es editable, los demás automáticos
         const isEditable = (type === 'Spin-Off' || type === 'Tráiler');
         nameInput.disabled = !isEditable;
         if (nameInput.disabled || nameInput.value.trim() === "") {
@@ -806,7 +826,6 @@ function renderChapters(input, existingEps = []) {
             customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
-        // Solo Temporada y Spin-Off tienen título bloqueado (automático)
         let titleInputDisabled = (type === 'Temporada' || type === 'Spin-Off') ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
@@ -918,7 +937,6 @@ function updateWebPreview() {
         });
     }
 
-    // Mostrar estado de emisión
     const airingToggle = document.getElementById('airingToggle');
     const airingBadge = document.getElementById('webAiringBadge');
     if (airingBadge) {
@@ -1052,7 +1070,7 @@ function _performFilter() {
     }
 }
 
-// ---- Cargar anime para edición (incluye isAiring) ----
+// ---- Cargar anime para edición (incluye sincronización de toggles) ----
 async function loadAnimeForEditing(id) {
     if(!confirm("¿Cargar anime? Se perderán los datos actuales del formulario.")) return;
     closeSearchModal();
@@ -1117,16 +1135,19 @@ async function loadAnimeForEditing(id) {
         if(animeData.music && Array.isArray(animeData.music)) {
             animeData.music.forEach(url => addMusic(url));
         }
+        
+        // --- Cargar estados de los toggles y sincronizar ---
         const toggleFinal = document.getElementById('finalToggle');
-        if(toggleFinal) {
-            toggleFinal.checked = animeData.isFinal || false;
-            toggleFinal.dispatchEvent(new Event('change'));
-        }
         const toggleAiring = document.getElementById('airingToggle');
-        if(toggleAiring) {
-            toggleAiring.checked = animeData.isAiring || false;
-            toggleAiring.dispatchEvent(new Event('change'));
+        if (toggleFinal) {
+            toggleFinal.checked = animeData.isFinal || false;
         }
+        if (toggleAiring) {
+            toggleAiring.checked = animeData.isAiring || false;
+        }
+        // Aplicar exclusividad y actualizar visuales
+        syncToggles(true);
+        
         const estadoSelect = document.getElementById('estadoAnime');
         if(estadoSelect && animeData.updateType) {
             estadoSelect.value = animeData.updateType;
@@ -1190,6 +1211,16 @@ function generateData() {
     let isAiring = false;
     const airingTog = document.getElementById('airingToggle');
     if(airingTog) isAiring = airingTog.checked;
+    
+    // Seguridad extra: si ambos están activos, priorizar isFinal y desactivar isAiring
+    if (isFinal && isAiring) {
+        isAiring = false;
+        // También actualizar el checkbox visual por si acaso
+        if (airingTog) airingTog.checked = false;
+        // Sincronizar visuales nuevamente
+        setTimeout(() => syncToggles(true), 0);
+    }
+    
     const anime = {
         id: isEditMode ? currentEditingId : 0, 
         titulo: document.getElementById('tituloAnime').value.trim(),
@@ -1361,7 +1392,7 @@ async function subirAGithHub() {
             latestBlockName: lastBlockName,
             latestEpTitle: lastEpTitle,
             isFinal: nuevoAnime.isFinal,
-            isAiring: nuevoAnime.isAiring,  // Nuevo campo
+            isAiring: nuevoAnime.isAiring,
             music: nuevoAnime.musica,
             seasons: nuevoAnime.temporadas.map(t => ({
                 num: t.num,
