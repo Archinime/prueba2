@@ -2004,7 +2004,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- === CARGA DE BANNERS.JS CON VERSIÓN (FORZAR ACTUALIZACIÓN) === -->
+<!-- === CARGA DE BANNERS.JS CON VERSIÓN (RUTA RELATIVA) === -->
 <!-- ============================================================ -->
 <script>
   (function() {
@@ -2014,6 +2014,7 @@
 
     function loadBanners(useVersion) {
       const script = document.createElement('script');
+      // RUTA RELATIVA (sin barra) → busca en la misma carpeta que index.html
       script.src = useVersion ? 'banners.js?v=' + appVersion : 'banners.js';
       script.onload = function() {
         console.log('[Banners] Archivo banners.js cargado correctamente.');
@@ -2027,7 +2028,7 @@
           console.warn('[Banners] Intento ' + attempt + ' fallido. Reintentando sin versión...');
           loadBanners(false);
         } else {
-          console.error('[Banners] No se pudo cargar banners.js. Verifica que el archivo exista en la ruta correcta.');
+          console.error('[Banners] No se pudo cargar banners.js. Verifica que el archivo exista en la misma carpeta que index.html.');
           if (typeof window.renderBannerCarousel === 'function') {
             window.renderBannerCarousel();
           }
