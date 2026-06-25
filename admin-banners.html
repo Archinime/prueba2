@@ -143,14 +143,6 @@
     .btn-secondary:hover {
       background: rgba(255,255,255,0.08);
     }
-    .btn-success {
-      background: #00c853;
-      color: #000;
-    }
-    .btn-success:hover {
-      box-shadow: 0 0 30px rgba(0,200,80,0.3);
-      transform: translateY(-2px);
-    }
 
     /* Lista de banners */
     .banner-list {
@@ -238,33 +230,6 @@
     }
     .empty i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
 
-    /* Export section */
-    .export-section {
-      background: var(--bg-card);
-      border: 1px solid rgba(0,240,255,0.1);
-      border-radius: var(--radius-md);
-      padding: 20px 24px;
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      box-shadow: var(--shadow-heavy);
-    }
-    .export-section .info {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-    .export-section .info strong {
-      color: var(--neon-blue);
-    }
-    .export-section .btn-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
     /* responsive */
     @media (max-width: 600px) {
       .banner-item {
@@ -277,14 +242,6 @@
       }
       .form-row { flex-direction: column; }
       .form-row .form-group { min-width: unset; }
-      .export-section {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-      }
-      .export-section .btn-group {
-        justify-content: center;
-      }
     }
   </style>
 </head>
@@ -294,7 +251,7 @@
       <i class="fas fa-images"></i> Gestión de Banners
       <a href="index.html" target="_blank"><i class="fas fa-external-link-alt"></i> Ver página</a>
     </h1>
-    <p class="sub">Administra los banners del carrusel. Cuando termines, haz clic en <strong>"Exportar banners.js"</strong> y sube el archivo a tu servidor.</p>
+    <p class="sub">Administra los banners del carrusel de la página principal. Cada banner puede tener una imagen o video.</p>
 
     <!-- Formulario -->
     <div class="form-card" id="formCard">
@@ -331,35 +288,24 @@
     <!-- Lista de banners -->
     <div id="bannerListContainer">
       <h2 style="font-size:1.1rem; font-weight:600; margin-bottom:14px; color:var(--text-secondary);">
-        <i class="fas fa-list"></i> Banners actuales <span id="bannerCount" style="color:var(--neon-blue);"></span>
+        <i class="fas fa-list"></i> Banners actuales
       </h2>
       <div id="bannerList" class="banner-list"></div>
     </div>
 
     <!-- Botón para restaurar banners por defecto -->
-    <div style="margin-top:20px; text-align:center;">
+    <div style="margin-top:30px; text-align:center;">
       <button class="btn btn-secondary" id="resetBtn">
-        <i class="fas fa-undo-alt"></i> Restaurar por defecto
+        <i class="fas fa-undo-alt"></i> Restaurar banners por defecto
       </button>
-    </div>
-
-    <!-- Sección de exportación -->
-    <div class="export-section">
-      <div class="info">
-        <i class="fas fa-file-code" style="color:var(--neon-blue); margin-right:8px;"></i>
-        <strong>Exportar a banners.js</strong><br>
-        <span>Descarga el archivo <strong>banners.js</strong> con los datos actuales y súbelo a tu servidor para que todos los dispositivos vean los cambios.</span>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-success" id="exportBtn">
-          <i class="fas fa-download"></i> Exportar banners.js
-        </button>
-      </div>
     </div>
   </div>
 
   <script>
-    // ===== DATOS POR DEFECTO =====
+    // Clave para localStorage
+    const STORAGE_KEY = 'archinime_banners';
+
+    // Banners por defecto (se usan si no hay nada guardado)
     const DEFAULT_BANNERS = [
       {
         id: 1,
@@ -384,11 +330,11 @@
       }
     ];
 
-    // ===== ESTADO =====
+    // Estado
     let banners = [];
     let editingId = null;
 
-    // ===== DOM REFS =====
+    // Elementos del DOM
     const form = document.getElementById('bannerForm');
     const titleInput = document.getElementById('bannerTitle');
     const mediaInput = document.getElementById('bannerMedia');
@@ -399,28 +345,47 @@
     const formTitle = document.getElementById('formTitle');
     const formMessage = document.getElementById('formMessage');
     const bannerList = document.getElementById('bannerList');
-    const bannerCount = document.getElementById('bannerCount');
     const resetBtn = document.getElementById('resetBtn');
-    const exportBtn = document.getElementById('exportBtn');
 
-    // ===== UTILIDADES =====
+    // Generar ID único (sin puntos)
     function generateId() {
       return Date.now() + '_' + Math.random().toString(36).substring(2, 9);
     }
 
-    // ===== RENDER =====
+    // Cargar banners desde localStorage o usar default
+    function loadBanners() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          banners = JSON.parse(stored);
+          if (!banners.length) banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
+        } catch (e) {
+          banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
+        }
+      } else {
+        banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
+      }
+      saveToStorage();
+      renderBanners();
+    }
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
+    }
+
+    // Renderizar lista de banners
     function renderBanners() {
       if (!banners.length) {
         bannerList.innerHTML = `<div class="empty"><i class="fas fa-image"></i><p>No hay banners. ¡Agrega uno!</p></div>`;
-        bannerCount.textContent = '(0)';
         return;
       }
       let html = '';
-      banners.forEach(b => {
+      banners.forEach((b, index) => {
         const isVideo = b.media && (b.media.endsWith('.mp4') || b.media.endsWith('.webm') || b.media.includes('youtube.com') || b.media.includes('youtu.be'));
         const mediaTag = isVideo
           ? `<video src="${b.media}" muted autoplay loop playsinline></video>`
           : `<img src="${b.media}" alt="${b.title}" loading="lazy" onerror="this.style.display='none'">`;
+        // Escapamos el ID para pasarlo como atributo data-id
         const safeId = b.id.toString().replace(/"/g, '&quot;');
         html += `
           <div class="banner-item" data-id="${safeId}">
@@ -437,9 +402,8 @@
         `;
       });
       bannerList.innerHTML = html;
-      bannerCount.textContent = `(${banners.length})`;
 
-      // Event listeners
+      // Asignar event listeners a los botones
       document.querySelectorAll('.banner-item .edit').forEach(btn => {
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -447,6 +411,7 @@
           editBanner(id);
         });
       });
+
       document.querySelectorAll('.banner-item .delete').forEach(btn => {
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -456,7 +421,7 @@
       });
     }
 
-    // ===== CRUD =====
+    // Guardar o actualizar banner
     function saveBanner(e) {
       e.preventDefault();
       const title = titleInput.value.trim();
@@ -471,6 +436,7 @@
       }
 
       if (editingId) {
+        // Editar
         const index = banners.findIndex(b => b.id === editingId);
         if (index !== -1) {
           banners[index] = { ...banners[index], title, media, desc, link };
@@ -482,6 +448,7 @@
         formMessage.textContent = '✅ Banner actualizado correctamente.';
         formMessage.style.color = 'var(--neon-blue)';
       } else {
+        // Nuevo
         const newBanner = {
           id: generateId(),
           title,
@@ -494,11 +461,13 @@
         formMessage.style.color = 'var(--neon-blue)';
       }
 
+      saveToStorage();
       renderBanners();
       form.reset();
       setTimeout(() => { formMessage.textContent = ''; }, 3000);
     }
 
+    // Editar banner
     function editBanner(id) {
       const banner = banners.find(b => b.id === id);
       if (!banner) return;
@@ -514,9 +483,11 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // Eliminar banner
     function deleteBanner(id) {
       if (!confirm('¿Eliminar este banner permanentemente?')) return;
       banners = banners.filter(b => b.id !== id);
+      saveToStorage();
       renderBanners();
       if (editingId === id) {
         editingId = null;
@@ -528,9 +499,21 @@
       }
     }
 
-    function resetDefaultBanners() {
+    // Cancelar edición
+    cancelBtn.addEventListener('click', function() {
+      editingId = null;
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
+      formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
+      cancelBtn.style.display = 'none';
+      form.reset();
+      formMessage.textContent = '';
+    });
+
+    // Restaurar por defecto
+    resetBtn.addEventListener('click', function() {
       if (!confirm('¿Restaurar los banners por defecto? Se perderán los cambios actuales.')) return;
       banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
+      saveToStorage();
       renderBanners();
       editingId = null;
       saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
@@ -540,58 +523,13 @@
       formMessage.textContent = '✅ Banners restaurados.';
       formMessage.style.color = 'var(--neon-blue)';
       setTimeout(() => { formMessage.textContent = ''; }, 3000);
-    }
-
-    // ===== EXPORTAR banners.js =====
-    function exportBanners() {
-      if (!banners.length) {
-        alert('No hay banners para exportar.');
-        return;
-      }
-      // Limpiar IDs para que sean solo números (opcional, pero más limpio)
-      const cleanBanners = banners.map(b => ({
-        id: b.id,
-        title: b.title,
-        desc: b.desc || '',
-        media: b.media,
-        link: b.link || '#'
-      }));
-      
-      const jsonStr = JSON.stringify(cleanBanners, null, 2);
-      const jsContent = `// Archivo generado automáticamente desde admin-banners.html\n// Para actualizar los banners, edita este array y súbelo a tu servidor.\nconst BANNERS_DATA = ${jsonStr};`;
-      
-      const blob = new Blob([jsContent], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'banners.js';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      formMessage.textContent = '✅ Archivo banners.js exportado correctamente.';
-      formMessage.style.color = 'var(--neon-blue)';
-      setTimeout(() => { formMessage.textContent = ''; }, 4000);
-    }
-
-    // ===== EVENT LISTENERS =====
-    form.addEventListener('submit', saveBanner);
-    cancelBtn.addEventListener('click', function() {
-      editingId = null;
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
-      formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
-      cancelBtn.style.display = 'none';
-      form.reset();
-      formMessage.textContent = '';
     });
-    resetBtn.addEventListener('click', resetDefaultBanners);
-    exportBtn.addEventListener('click', exportBanners);
 
-    // ===== INICIALIZAR =====
-    // Cargar los banners por defecto al iniciar (sin localStorage)
-    banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
-    renderBanners();
+    // Event listener del formulario
+    form.addEventListener('submit', saveBanner);
+
+    // Inicializar
+    loadBanners();
   </script>
 </body>
 </html>
