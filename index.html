@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v14.0";
+      const APP_VERSION = "2025-04-07-v15.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -302,6 +302,7 @@
       .cyber-btn-icon { width: 32px; height: 32px; font-size: 0.8rem; }
     }
 
+    /* ==== BARRA DE BÚSQUEDA CON AUTOCOMPLETADO ==== */
     .search-wrapper {
       position: relative;
       width: 100%;
@@ -332,8 +333,78 @@
       transform: translateY(-50%);
       color: var(--neon-blue);
       opacity: 0.5;
+      pointer-events: none;
     }
 
+    /* Sugerencias de búsqueda (Desktop) */
+    #searchSuggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 100%;
+      background: rgba(11, 14, 20, 0.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-heavy);
+      z-index: 10002;
+      max-height: 340px;
+      overflow-y: auto;
+      display: none;
+      padding: 6px 0;
+    }
+    #searchSuggestions.active { display: block; }
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: 0.15s ease;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover {
+      background: rgba(0, 240, 255, 0.05);
+    }
+    .suggestion-item img {
+      width: 36px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .suggestion-item .s-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .suggestion-item .s-title {
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .suggestion-item .s-title strong {
+      color: var(--neon-blue);
+      font-weight: 800;
+    }
+    .suggestion-item .s-genre {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .suggestion-item .s-empty {
+      width: 100%;
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 12px 0;
+    }
+
+    /* ===== NAV ACTIONS ===== */
     .nav-actions {
       display: flex;
       align-items: center;
@@ -1461,6 +1532,16 @@
       .detail-cover { height: 320px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
+      #searchSuggestions {
+        max-height: 260px;
+      }
+      .suggestion-item img {
+        width: 30px;
+        height: 42px;
+      }
+      .suggestion-item .s-title {
+        font-size: 0.8rem;
+      }
     }
     @media (max-width: 480px) {
       .banner-carousel { height: 140px; }
@@ -1726,9 +1807,13 @@
       transition: 0.2s;
     }
     #searchOverlay .close-btn:hover { color: var(--neon-pink); transform: rotate(90deg); }
-    #searchOverlay input {
+    #searchOverlay .search-wrapper-overlay {
       width: 100%;
       max-width: 500px;
+      position: relative;
+    }
+    #searchOverlay input {
+      width: 100%;
       padding: 16px 20px;
       font-size: 1.2rem;
       border-radius: 60px;
@@ -1751,6 +1836,22 @@
       text-align: center;
     }
     #searchOverlay .hint i { color: var(--neon-blue); }
+
+    /* Sugerencias en móvil dentro del overlay */
+    #searchSuggestionsOverlay {
+      width: 100%;
+      max-width: 500px;
+      max-height: 50vh;
+      overflow-y: auto;
+      margin-top: 8px;
+      background: rgba(11, 14, 20, 0.95);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0, 240, 255, 0.1);
+      display: none;
+      padding: 6px 0;
+    }
+    #searchSuggestionsOverlay.active { display: block; }
+    #searchSuggestionsOverlay .suggestion-item { padding: 10px 14px; }
   </style>
 </head>
 <body>
@@ -1783,8 +1884,9 @@
     <span class="nav-logo-text">ARCHINIME</span>
   </a>
   <div class="search-wrapper" id="searchWrapper">
-    <input id="search" class="search-input" placeholder="Buscar anime, género o alias...">
+    <input id="search" class="search-input" placeholder="Buscar anime, género o alias..." autocomplete="off">
     <i class="fas fa-search search-icon"></i>
+    <div id="searchSuggestions"></div>
   </div>
   <div class="nav-actions">
     <button id="searchToggleMobile" class="cyber-btn-icon" title="Buscar" aria-label="Buscar"><i class="fas fa-search"></i></button>
@@ -1815,8 +1917,11 @@
 <!-- ===== OVERLAY DE BÚSQUEDA (MÓVIL) MEJORADO ===== -->
 <div id="searchOverlay">
   <button class="close-btn" id="searchOverlayClose"><i class="fas fa-times"></i></button>
-  <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias...">
-  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe y los resultados aparecerán al instante</div>
+  <div class="search-wrapper-overlay">
+    <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias..." autocomplete="off">
+    <div id="searchSuggestionsOverlay"></div>
+  </div>
+  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe para ver sugerencias en vivo</div>
 </div>
 
 <!-- ===== BANNER CARRUSEL ===== -->
@@ -2003,14 +2108,14 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-07-v14.0"></script>
+<script src="catalogo.js?v=2025-04-07-v15.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== TODA LA LÓGICA JS (OPTIMIZADA) =====
+  // ===== TODA LA LÓGICA JS (OPTIMIZADA CON AUTOCOMPLETADO) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2148,8 +2253,20 @@
     return card;
   }
 
-  // ===== OPTIMIZACIÓN: CATÁLOGO BASE (shuffle una sola vez) =====
+  // ===== DATOS BASE (shuffle e indexación) =====
   let baseAnimes = [];
+  let searchableIndex = []; // { id, searchStr, title, genres, img }
+
+  function buildSearchableIndex(animes) {
+    return animes.map(a => ({
+      id: a.id,
+      title: a.title,
+      img: a.img || 'placeholder.webp',
+      genres: a.genres || [],
+      searchStr: normalizeText(a.title) + ' ' + (a.aliases || []).map(normalizeText).join(' ')
+    }));
+  }
+
   let allAnimes = [], currentPage = 1, totalPages = 1, itemsPerPage = 36;
   let currentFilters = { search: '', genre: '', demographic: '', rating: '' };
   let debounceTimer = null;
@@ -2158,9 +2275,84 @@
   const searchInput = document.getElementById('search');
   const searchOverlayInput = document.getElementById('searchOverlayInput');
 
-  // Función de filtrado optimizada (usando baseAnimes)
+  // ===== SUGERENCIAS (Dropdown) =====
+  const suggestionsDesktop = document.getElementById('searchSuggestions');
+  const suggestionsMobile = document.getElementById('searchSuggestionsOverlay');
+
+  function renderSuggestions(term, container) {
+    if (!container) return;
+    if (term.length < 1) {
+      container.classList.remove('active');
+      container.innerHTML = '';
+      return;
+    }
+    const normTerm = normalizeText(term);
+    const matches = searchableIndex.filter(item => item.searchStr.includes(normTerm)).slice(0, 8);
+    
+    if (matches.length === 0) {
+      container.innerHTML = `<div class="suggestion-item"><span class="s-empty">No se encontraron resultados</span></div>`;
+      container.classList.add('active');
+      return;
+    }
+
+    let html = '';
+    matches.forEach(item => {
+      const title = item.title;
+      const idx = normalizeText(title).indexOf(normTerm);
+      let displayTitle = title;
+      if (idx !== -1) {
+        const start = title.substring(0, idx);
+        const match = title.substring(idx, idx + term.length);
+        const end = title.substring(idx + term.length);
+        displayTitle = `${start}<strong>${match}</strong>${end}`;
+      } else {
+        // Si coincide por alias, mostramos el título normal
+        displayTitle = title;
+      }
+      const genreStr = item.genres.slice(0, 2).join(', ') || 'Anime';
+      html += `
+        <div class="suggestion-item" data-id="${item.id}">
+          <img src="${item.img}" alt="${item.title}" loading="lazy">
+          <div class="s-info">
+            <div class="s-title">${displayTitle}</div>
+            <div class="s-genre">${genreStr}</div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+    container.classList.add('active');
+
+    // Event listeners para los ítems
+    container.querySelectorAll('.suggestion-item[data-id]').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevenir blur
+        const id = el.dataset.id;
+        const anime = baseAnimes.find(a => a.id == id);
+        if (anime) {
+          // Llenar los inputs con el título
+          searchInput.value = anime.title;
+          searchOverlayInput.value = anime.title;
+          // Cerrar sugerencias
+          hideAllSuggestions();
+          // Cerrar overlay móvil
+          document.getElementById('searchOverlay').classList.remove('active');
+          document.body.style.overflow = '';
+          // Abrir detalle
+          openDetail(id);
+        }
+      });
+    });
+  }
+
+  function hideAllSuggestions() {
+    suggestionsDesktop.classList.remove('active');
+    suggestionsMobile.classList.remove('active');
+  }
+
+  // ===== FILTRADO Y PAGINACIÓN (Optimizado) =====
   function applyFilters() {
-    let result = baseAnimes.slice(); // copia
+    let result = baseAnimes.slice();
     if (currentFilters.genre) {
       result = result.filter(a => a.genres && a.genres.includes(currentFilters.genre));
     }
@@ -2170,10 +2362,10 @@
     if (currentFilters.search) {
       const term = normalizeText(currentFilters.search);
       result = result.filter(a => {
-        const titleMatch = normalizeText(a.title).startsWith(term);
+        const titleMatch = normalizeText(a.title).includes(term);
         if (titleMatch) return true;
         if (a.aliases) {
-          return a.aliases.some(alias => normalizeText(alias).startsWith(term));
+          return a.aliases.some(alias => normalizeText(alias).includes(term));
         }
         return false;
       });
@@ -2277,30 +2469,49 @@
 
   window.changePage = function(p) { if (p < 1 || p > totalPages) return; currentPage = p; renderPage(); };
 
-  // ===== SISTEMA DE BÚSQUEDA MEJORADO (con cierre automático en móvil) =====
-  function syncSearch(value, fromOverlay = false) {
-    searchInput.value = value;
-    searchOverlayInput.value = value;
-    currentFilters.search = value;
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      cargarDatosYMostrar();
-      // Si estamos en móvil y la búsqueda viene del overlay, cerrar el overlay después del debounce
-      if (isMobile() && fromOverlay) {
-        const overlay = document.getElementById('searchOverlay');
-        if (overlay.classList.contains('active')) {
-          overlay.classList.remove('active');
-          document.body.style.overflow = '';
-        }
-      }
-    }, 300);
+  // ===== SISTEMA DE BÚSQUEDA MEJORADO (Autocompletado) =====
+  function handleSearchInput(e) {
+    const term = e.target.value;
+    currentFilters.search = term;
+    // Actualizar el otro input
+    if (e.target === searchInput) {
+      searchOverlayInput.value = term;
+    } else {
+      searchInput.value = term;
+    }
+    // Mostrar sugerencias
+    renderSuggestions(term, suggestionsDesktop);
+    renderSuggestions(term, suggestionsMobile);
+    // Limpiar debounce para grid (se aplica al presionar Enter o seleccionar)
   }
 
-  // Eventos de búsqueda en PC
-  searchInput.addEventListener('input', (e) => syncSearch(e.target.value, false));
+  function handleSearchKeydown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      hideAllSuggestions();
+      // Cerrar overlay móvil
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+      // Aplicar filtro a la grid
+      cargarDatosYMostrar();
+    }
+    if (e.key === 'Escape') {
+      hideAllSuggestions();
+    }
+  }
 
-  // Eventos de búsqueda en móvil (overlay)
-  searchOverlayInput.addEventListener('input', (e) => syncSearch(e.target.value, true));
+  // Clic fuera para cerrar sugerencias
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-wrapper') && !e.target.closest('#searchOverlay')) {
+      hideAllSuggestions();
+    }
+  });
+
+  // Asignar eventos
+  searchInput.addEventListener('input', handleSearchInput);
+  searchInput.addEventListener('keydown', handleSearchKeydown);
+  searchOverlayInput.addEventListener('input', handleSearchInput);
+  searchOverlayInput.addEventListener('keydown', handleSearchKeydown);
 
   // Abrir overlay móvil
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
@@ -2314,7 +2525,6 @@
     }
   });
 
-  // Cerrar overlay móvil
   document.getElementById('searchOverlayClose').addEventListener('click', () => {
     document.getElementById('searchOverlay').classList.remove('active');
     document.body.style.overflow = '';
@@ -2327,7 +2537,7 @@
     }
   });
 
-  // Filtros
+  // Filtros (género, demografía, rating)
   document.getElementById('genre-select').addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('demographic-select').addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('rating-select').addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
@@ -2339,10 +2549,11 @@
     document.getElementById('demographic-select').value = '';
     document.getElementById('rating-select').value = '';
     currentFilters = { search: '', genre: '', demographic: '', rating: '' };
+    hideAllSuggestions();
     cargarDatosYMostrar();
   };
 
-  // Autenticación
+  // Autenticación (sin cambios, pero mantenemos las funciones)
   let currentUser = null, newAvatarUrl = null, lastProfileUpdate = 0;
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
   const CLOUDINARY_PRESET = 'stickers_archinime';
@@ -2476,7 +2687,7 @@
   });
   auth.onAuthStateChanged(updateUserUI);
 
-  // Custom selects (sin cambios, ya funcionan)
+  // Custom selects (sin cambios)
   (function() {
     const selects = ['genre-select', 'demographic-select', 'rating-select'];
     const isMobileSelect = window.matchMedia('(max-width: 768px)').matches;
@@ -2676,7 +2887,7 @@
   }
 
   function openDetail(id) {
-    const anime = catalogoArray.find(a => a.id == id);
+    const anime = baseAnimes.find(a => a.id == id);
     if (!anime) { alert('Anime no encontrado'); return; }
     const coverImg = document.getElementById('detailCoverImg');
     coverImg.src = anime.img || 'placeholder.webp';
@@ -2745,7 +2956,7 @@
     }
   }
   function checkForNewAnimes() {
-    const newAnimes = catalogoArray.slice(0, 3);
+    const newAnimes = baseAnimes.slice(0, 3);
     newAnimes.forEach(anime => {
       addEventToQueue(anime);
     });
@@ -2753,7 +2964,7 @@
 
   // Carrusel de banners (sin cambios)
   (function() {
-    const topAnimes = catalogoArray.slice(0, 3);
+    const topAnimes = baseAnimes.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
       title: anime.title,
       desc: `⭐ ${getDisplayRating(anime)} · ${anime.genres?.slice(0,3).join(', ') || 'Anime'}`,
@@ -2797,7 +3008,7 @@
   // Panel lateral contenido (sin cambios)
   (function() {
     const content = document.getElementById('sidePanelContent');
-    const topAnimes = catalogoArray.slice(0, 8);
+    const topAnimes = baseAnimes.slice(0, 8);
     content.innerHTML = topAnimes.map(a => `
       <div class="panel-item" onclick="openDetail('${a.id}')" style="cursor:pointer;">
         <img src="${a.img || 'placeholder.webp'}" alt="${a.title}">
@@ -2817,6 +3028,7 @@
       sidePanel.classList.remove('open');
       document.getElementById('searchOverlay').classList.remove('active');
       document.body.style.overflow = '';
+      hideAllSuggestions();
     }
   });
 
@@ -2835,11 +3047,12 @@
   // ===== INICIALIZACIÓN FINAL =====
   inicializarAnuncio();
   loadRatings().then(() => {
-    // Una vez cargados los ratings, inicializamos el catálogo base (shuffle)
     if (typeof catalogoArray !== 'undefined') {
       baseAnimes = shuffleArray([...catalogoArray]);
+      searchableIndex = buildSearchableIndex(baseAnimes);
     } else {
       baseAnimes = [];
+      searchableIndex = [];
     }
     cargarDatosYMostrar();
     setTimeout(() => {
@@ -2849,8 +3062,10 @@
     console.error('Error al cargar ratings, mostrando sin ellos:', err);
     if (typeof catalogoArray !== 'undefined') {
       baseAnimes = shuffleArray([...catalogoArray]);
+      searchableIndex = buildSearchableIndex(baseAnimes);
     } else {
       baseAnimes = [];
+      searchableIndex = [];
     }
     cargarDatosYMostrar();
     setTimeout(() => {
