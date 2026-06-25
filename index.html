@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-08-v21.0"; // <--- Cambiado para forzar recarga
+      const APP_VERSION = "2025-04-08-v22.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -2008,22 +2008,19 @@
 <!-- ============================================================ -->
 <script>
   (function() {
-    // Usamos la misma versión de la aplicación para forzar la recarga
-    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v21.0';
+    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v22.0';
     const script = document.createElement('script');
     script.src = 'banners.js?v=' + appVersion;
     script.onload = function() {
       console.log('[Banners] Archivo banners.js cargado correctamente.');
-      // Una vez cargado, ejecutamos el carrusel (si no se ha ejecutado ya)
-      if (typeof window.initBannerCarousel === 'function') {
-        window.initBannerCarousel();
+      if (typeof window.renderBannerCarousel === 'function') {
+        window.renderBannerCarousel();
       }
     };
     script.onerror = function() {
-      console.warn('[Banners] Error al cargar banners.js. Usando banners por defecto.');
-      // Si falla, lanzamos el carrusel con los defaults
-      if (typeof window.initBannerCarousel === 'function') {
-        window.initBannerCarousel();
+      console.warn('[Banners] Error al cargar banners.js. No se mostrarán banners.');
+      if (typeof window.renderBannerCarousel === 'function') {
+        window.renderBannerCarousel();
       }
     };
     document.head.appendChild(script);
@@ -2050,7 +2047,7 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-08-v21.0"></script>
+<script src="catalogo.js?v=2025-04-08-v22.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2854,29 +2851,36 @@
   }
 
   // ========================================================
-  // ===== CARRUSEL DE BANNERS (FUNCIÓN GLOBAL) =====
+  // ===== CARRUSEL DE BANNERS (RENDERIZADO DESDE banners.js) =====
   // ========================================================
-  window.initBannerCarousel = function() {
-    // Banners por defecto (fallback si no hay datos)
-    const DEFAULT_BANNERS = [
-      { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
-      { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
-      { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
-    ];
+  window.renderBannerCarousel = function() {
+    const carousel = document.getElementById('bannerCarousel');
+    const dotsContainer = document.getElementById('bannerDots');
+    if (!carousel || !dotsContainer) return;
 
-    // Intentar cargar desde la variable global BANNERS_DATA (definida en banners.js)
-    let banners;
+    let banners = [];
     if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
       banners = window.BANNERS_DATA;
       console.log('[Carrusel] Usando banners desde banners.js:', banners);
     } else {
-      banners = DEFAULT_BANNERS;
-      console.warn('[Carrusel] BANNERS_DATA no encontrado, usando defaults');
+      console.warn('[Carrusel] No se encontraron banners en BANNERS_DATA. El carrusel quedará vacío.');
     }
 
-    const carousel = document.getElementById('bannerCarousel');
-    const dotsContainer = document.getElementById('bannerDots');
-    if (!carousel || !dotsContainer) return;
+    // Limpiar carrusel
+    carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
+    dotsContainer.innerHTML = '';
+
+    if (banners.length === 0) {
+      const emptySlide = document.createElement('div');
+      emptySlide.className = 'banner-slide active';
+      emptySlide.style.background = '#0b0e14';
+      emptySlide.style.display = 'flex';
+      emptySlide.style.alignItems = 'center';
+      emptySlide.style.justifyContent = 'center';
+      emptySlide.innerHTML = `<div class="banner-info" style="max-width:80%;"><h2 style="font-size:1.2rem;">No hay banners configurados</h2><p>Agrega banners desde admin-banners.html</p></div>`;
+      carousel.appendChild(emptySlide);
+      return;
+    }
 
     let currentBanner = 0;
     let intervalId = null;
@@ -2969,17 +2973,14 @@
   // ========================================================
   // ===== INICIALIZAR CARRUSEL CUANDO EL DOM ESTÉ LISTO =====
   // ========================================================
-  // Si el DOM ya está cargado, ejecutamos directamente; si no, esperamos.
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    // Si ya se ha cargado banners.js, initBannerCarousel ya se llamará desde el onload.
-    // Pero por si acaso, lo ejecutamos ahora.
-    if (typeof window.initBannerCarousel === 'function') {
-      window.initBannerCarousel();
+    if (typeof window.renderBannerCarousel === 'function') {
+      window.renderBannerCarousel();
     }
   } else {
     document.addEventListener('DOMContentLoaded', function() {
-      if (typeof window.initBannerCarousel === 'function') {
-        window.initBannerCarousel();
+      if (typeof window.renderBannerCarousel === 'function') {
+        window.renderBannerCarousel();
       }
     });
   }
