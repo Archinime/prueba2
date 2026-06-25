@@ -11,10 +11,10 @@
   <meta name="description" content="La interfaz más inmersiva para ver anime. Efectos visuales, comunidad y calidad HD.">
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
   
-  <!-- VERSIÓN (forzar limpieza de caché) -->
+  <!-- VERSIÓN -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v17.0";
+      const APP_VERSION = "2025-04-07-v18.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -24,7 +24,7 @@
     })();
   </script>
 
-  <!-- Theme-color dinámico (neón) -->
+  <!-- Theme-color dinámico -->
   <script>
     (function() {
       const colors = ["#00f0ff", "#b114ff", "#ff1a6b", "#ffd700", "#00f0ff"];
@@ -34,7 +34,7 @@
       if (!meta) { meta = document.createElement('meta'); meta.name = "theme-color"; document.head.appendChild(meta); }
       const hexToRgb = h => { const v = parseInt(h.slice(1),16); return [(v>>16)&255, (v>>8)&255, v&255]; };
       const lerp = (a,b,t) => a + (b-a)*t;
-      let start = null, last = 0;
+      let start = null;
       function step(ts) {
         if (!start) start = ts;
         const p = (ts - start) / duration * segments;
@@ -78,7 +78,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
   <style>
-    /* ===== NUEVO DISEÑO RADICAL - SISTEMA OPERATIVO CYBERPUNK ===== */
+    /* ===== BASE ===== */
     :root {
       --bg-deep: #05070a;
       --bg-card: #0b0e14;
@@ -98,10 +98,7 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html {
-      scroll-behavior: smooth;
-      overflow-x: hidden;
-    }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
 
     body {
       background: var(--bg-deep);
@@ -112,7 +109,7 @@
       overflow-x: hidden;
     }
 
-    /* ===== CURSOR PERSONALIZADO ===== */
+    /* ===== CURSOR ===== */
     #customCursor {
       position: fixed;
       width: 20px;
@@ -134,7 +131,7 @@
       background: radial-gradient(circle, var(--neon-pink), transparent 70%);
     }
 
-    /* ===== FONDO DE PARTÍCULAS ===== */
+    /* ===== FONDO PARTÍCULAS ===== */
     #particlesCanvas {
       position: fixed;
       top: 0;
@@ -247,20 +244,31 @@
       border-bottom: 1px solid rgba(0, 240, 255, 0.05);
       box-shadow: 0 4px 30px rgba(0,0,0,0.6);
     }
+
+    /* MÓVIL: dos filas, la primera con logo y acciones, la segunda con búsqueda */
     @media (max-width: 768px) {
       .cyber-nav {
-        grid-template-columns: auto auto;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
         height: auto;
         padding: 10px 16px;
-        gap: 8px;
+        gap: 6px 8px;
       }
-      .cyber-nav .nav-logo { grid-column: 1; }
-      .cyber-nav .nav-actions { grid-column: 2; justify-self: end; }
-      /* La barra de búsqueda ocupa toda la fila, oculta por defecto */
-      .cyber-nav .search-wrapper { 
-        grid-column: 1 / -1; 
+      .cyber-nav .nav-logo {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .cyber-nav .nav-actions {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .cyber-nav .search-wrapper {
+        grid-column: 1 / -1;
+        grid-row: 2;
         display: none;
-        margin-top: 6px;
+        margin-top: 4px;
+        max-width: 100%;
       }
       .cyber-nav .search-wrapper.active {
         display: flex;
@@ -303,7 +311,7 @@
       .cyber-btn-icon { width: 32px; height: 32px; font-size: 0.8rem; }
     }
 
-    /* ==== BARRA DE BÚSQUEDA CON AUTOCOMPLETADO MEJORADA ==== */
+    /* ==== BÚSQUEDA ==== */
     .search-wrapper {
       position: relative;
       width: 100%;
@@ -337,7 +345,7 @@
       pointer-events: none;
     }
 
-    /* Sugerencias de búsqueda - TAMAÑO AGRANDADO */
+    /* Sugerencias */
     #searchSuggestions {
       position: absolute;
       top: calc(100% + 8px);
@@ -365,10 +373,7 @@
       border-bottom: 1px solid rgba(255,255,255,0.02);
     }
     .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover {
-      background: rgba(0, 240, 255, 0.08);
-    }
-    /* IMAGEN MÁS GRANDE (Desktop) */
+    .suggestion-item:hover { background: rgba(0, 240, 255, 0.08); }
     .suggestion-item img {
       width: 72px;
       height: 100px;
@@ -379,10 +384,7 @@
       flex-shrink: 0;
       box-shadow: 0 6px 14px rgba(0,0,0,0.5);
     }
-    .suggestion-item .s-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .suggestion-item .s-info { flex: 1; min-width: 0; }
     .suggestion-item .s-title {
       color: #fff;
       font-weight: 700;
@@ -392,10 +394,7 @@
       text-overflow: ellipsis;
       letter-spacing: 0.3px;
     }
-    .suggestion-item .s-title strong {
-      color: var(--neon-blue);
-      font-weight: 900;
-    }
+    .suggestion-item .s-title strong { color: var(--neon-blue); font-weight: 900; }
     .suggestion-item .s-genre {
       font-size: 0.75rem;
       color: var(--text-secondary);
@@ -408,6 +407,21 @@
       color: var(--text-secondary);
       padding: 16px 0;
       font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      #searchSuggestions {
+        max-height: 380px;
+        padding: 6px 0;
+      }
+      .suggestion-item { padding: 10px 14px; gap: 14px; }
+      .suggestion-item img { width: 60px; height: 84px; border-radius: 6px; }
+      .suggestion-item .s-title { font-size: 0.95rem; }
+      .suggestion-item .s-genre { font-size: 0.7rem; }
+    }
+    @media (max-width: 480px) {
+      .suggestion-item img { width: 52px; height: 72px; }
+      .suggestion-item .s-title { font-size: 0.85rem; }
     }
 
     /* ===== NAV ACTIONS ===== */
@@ -594,7 +608,7 @@
     .n-meta { font-size: 0.65rem; color: var(--text-secondary); }
     .tag-final { background: var(--neon-pink); color: #fff; padding: 1px 8px; border-radius: 4px; font-size: 0.55rem; margin-left: 6px; }
 
-    /* ===== BANNER CARRUSEL ===== */
+    /* ===== BANNER ===== */
     .banner-carousel {
       position: relative;
       width: 100%;
@@ -662,7 +676,7 @@
       .banner-slide .banner-info p { font-size: 0.75rem; }
     }
 
-    /* ===== CONTROLES FILTROS ===== */
+    /* ===== FILTROS ===== */
     .controls-container {
       padding: 12px 3%;
       display: flex;
@@ -792,7 +806,7 @@
     }
     @keyframes dropFade { from { opacity: 0; transform: scaleY(0.92); } to { opacity: 1; transform: scaleY(1); } }
 
-    /* ===== GRID Y TARJETAS ===== */
+    /* ===== GRID ===== */
     .container {
       max-width: 1600px;
       margin: 0 auto;
@@ -804,16 +818,10 @@
       gap: 24px;
     }
     @media (max-width: 1023px) {
-      .grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-      }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
     }
     @media (max-width: 767px) {
-      .grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
 
     .card {
@@ -1289,7 +1297,7 @@
     }
     .profile-status { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
-    /* Detail - MEJORADO: imagen con object-fit: contain para que se vea completa */
+    /* Detail */
     .detail-card {
       max-width: 600px;
       padding: 0;
@@ -1359,10 +1367,7 @@
       transition: 0.2s;
       white-space: nowrap;
     }
-    .content-chip i {
-      color: var(--neon-blue);
-      font-size: 0.8rem;
-    }
+    .content-chip i { color: var(--neon-blue); font-size: 0.8rem; }
     .detail-body .detail-actions {
       display: flex;
       gap: 12px;
@@ -1391,7 +1396,7 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
-    /* ===== PANEL LATERAL (DESLIZABLE) ===== */
+    /* ===== PANEL LATERAL ===== */
     .side-panel-toggle {
       position: fixed;
       right: 0;
@@ -1476,7 +1481,7 @@
     .side-panel .panel-item .info .title { font-weight: 600; font-size: 0.9rem; }
     .side-panel .panel-item .info .sub { font-size: 0.7rem; color: var(--text-secondary); }
 
-    /* ===== CHROMA KEY (FG) ===== */
+    /* ===== CHROMA KEY ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
     #fgContainer {
       position: fixed;
@@ -1517,7 +1522,7 @@
       100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* ===== RESPONSIVE EXTRA ===== */
     @media (max-width: 768px) {
       .card .info { padding: 30px 10px 10px; }
       .card .info strong { font-size: 0.7rem; }
@@ -1531,34 +1536,10 @@
       .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
-      .detail-card {
-        max-height: 85vh;
-        -webkit-overflow-scrolling: touch;
-      }
+      .detail-card { max-height: 85vh; -webkit-overflow-scrolling: touch; }
       .detail-cover { height: 320px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
-      
-      /* === SUGERENCIAS MÁS GRANDES EN MÓVIL === */
-      #searchSuggestions {
-        max-height: 380px;
-        padding: 6px 0;
-      }
-      .suggestion-item {
-        padding: 10px 14px;
-        gap: 14px;
-      }
-      .suggestion-item img {
-        width: 60px;
-        height: 84px;
-        border-radius: 6px;
-      }
-      .suggestion-item .s-title {
-        font-size: 0.95rem;
-      }
-      .suggestion-item .s-genre {
-        font-size: 0.7rem;
-      }
     }
     @media (max-width: 480px) {
       .banner-carousel { height: 140px; }
@@ -1566,16 +1547,9 @@
       .banner-slide .banner-info h2 { font-size: 0.9rem; }
       .banner-slide .banner-info p { font-size: 0.65rem; }
       .detail-cover { height: 260px; }
-      .suggestion-item img {
-        width: 52px;
-        height: 72px;
-      }
-      .suggestion-item .s-title {
-        font-size: 0.85rem;
-      }
     }
 
-    /* ===== BOTÓN FLOTANTE CHAT ===== */
+    /* ===== BOTÓN CHAT ===== */
     .chat-float {
       position: fixed;
       bottom: 24px;
@@ -1598,7 +1572,6 @@
     .chat-float:hover { transform: scale(1.1); box-shadow: 0 0 50px rgba(177, 20, 255, 0.6); }
     @media (max-width: 768px) { .chat-float { width: 48px; height: 48px; font-size: 1.2rem; bottom: 16px; right: 16px; } }
 
-    /* ===== EFECTO ONDA AL HACER CLIC ===== */
     .ripple {
       position: fixed;
       border-radius: 50%;
@@ -1612,7 +1585,7 @@
       to { transform: scale(4); opacity: 0; }
     }
 
-    /* ===== PIE DE PÁGINA ===== */
+    /* ===== FOOTER ===== */
     .footer {
       text-align: center;
       padding: 30px 20px;
@@ -1814,13 +1787,13 @@
   <div class="loader-percent" id="loadingPercentage">0%</div>
 </div>
 
-<!-- ===== CURSOR PERSONALIZADO ===== -->
+<!-- ===== CURSOR ===== -->
 <div id="customCursor"></div>
 
-<!-- ===== FONDO DE PARTÍCULAS ===== -->
+<!-- ===== PARTÍCULAS ===== -->
 <canvas id="particlesCanvas"></canvas>
 
-<!-- ===== FONDO VIDEO (opcional) ===== -->
+<!-- ===== FONDO VIDEO ===== -->
 <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto" style="position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; opacity:0; transition:opacity 1.2s; filter:brightness(0.5) contrast(1.1);">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
@@ -1863,7 +1836,7 @@
   </div>
 </nav>
 
-<!-- ===== BANNER CARRUSEL ===== -->
+<!-- ===== BANNER ===== -->
 <div class="banner-carousel" id="bannerCarousel">
   <div class="banner-dots" id="bannerDots"></div>
 </div>
@@ -1890,13 +1863,13 @@
   </select>
 </div>
 
-<!-- ===== GRID PRINCIPAL ===== -->
+<!-- ===== GRID ===== -->
 <main class="container">
   <div class="grid" id="grid"></div>
   <div id="pagination" class="pagination-container"></div>
 </main>
 
-<!-- ===== PIE DE PÁGINA ===== -->
+<!-- ===== FOOTER ===== -->
 <footer class="footer">
   <div class="socials">
     <a href="#"><i class="fab fa-twitter"></i></a>
@@ -1915,7 +1888,7 @@
   <div id="sidePanelContent"></div>
 </div>
 
-<!-- ===== CHAT FLOTANTE ===== -->
+<!-- ===== CHAT ===== -->
 <button class="chat-float" title="Chat comunitario"><i class="fas fa-comment-dots"></i></button>
 
 <!-- ===== MODALES ===== -->
@@ -1976,7 +1949,7 @@
   </div>
 </div>
 
-<!-- ===== MODAL DE DETALLE ===== -->
+<!-- ===== MODAL DETALLE ===== -->
 <div id="detailModal" class="detail-modal">
   <div class="detail-card">
     <div class="detail-cover" id="detailCover">
@@ -2046,15 +2019,14 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-07-v17.0"></script>
+<script src="catalogo.js?v=2025-04-07-v18.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== TODA LA LÓGICA JS (OPTIMIZADA Y SIN OVERLAY OSCURO) =====
+  // ===== CÓDIGO PRINCIPAL (OPTIMIZADO Y CON NAVBAR FIJA EN MÓVIL) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2192,9 +2164,9 @@
     return card;
   }
 
-  // ===== DATOS BASE (shuffle e indexación) =====
+  // ===== DATOS BASE =====
   let baseAnimes = [];
-  let searchableIndex = []; // { id, searchStr, title, genres, img }
+  let searchableIndex = [];
 
   function buildSearchableIndex(animes) {
     return animes.map(a => ({
@@ -2212,23 +2184,22 @@
   const grid = document.getElementById('grid');
   const paginationContainer = document.getElementById('pagination');
   const searchInput = document.getElementById('search');
-
-  // ===== SUGERENCIAS (Dropdown) =====
   const suggestionsDesktop = document.getElementById('searchSuggestions');
 
-  function renderSuggestions(term, container) {
-    if (!container) return;
+  // ===== SUGERENCIAS =====
+  function renderSuggestions(term) {
+    if (!suggestionsDesktop) return;
     if (term.length < 1) {
-      container.classList.remove('active');
-      container.innerHTML = '';
+      suggestionsDesktop.classList.remove('active');
+      suggestionsDesktop.innerHTML = '';
       return;
     }
     const normTerm = normalizeText(term);
     const matches = searchableIndex.filter(item => item.searchStr.includes(normTerm)).slice(0, 8);
     
     if (matches.length === 0) {
-      container.innerHTML = `<div class="suggestion-item"><span class="s-empty">No se encontraron resultados</span></div>`;
-      container.classList.add('active');
+      suggestionsDesktop.innerHTML = `<div class="suggestion-item"><span class="s-empty">No se encontraron resultados</span></div>`;
+      suggestionsDesktop.classList.add('active');
       return;
     }
 
@@ -2242,8 +2213,6 @@
         const match = title.substring(idx, idx + term.length);
         const end = title.substring(idx + term.length);
         displayTitle = `${start}<strong>${match}</strong>${end}`;
-      } else {
-        displayTitle = title;
       }
       const genreStr = item.genres.slice(0, 2).join(', ') || 'Anime';
       html += `
@@ -2256,21 +2225,17 @@
         </div>
       `;
     });
-    container.innerHTML = html;
-    container.classList.add('active');
+    suggestionsDesktop.innerHTML = html;
+    suggestionsDesktop.classList.add('active');
 
-    // Event listeners para los ítems
-    container.querySelectorAll('.suggestion-item[data-id]').forEach(el => {
+    suggestionsDesktop.querySelectorAll('.suggestion-item[data-id]').forEach(el => {
       el.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevenir blur
+        e.preventDefault();
         const id = el.dataset.id;
         const anime = baseAnimes.find(a => a.id == id);
         if (anime) {
           searchInput.value = anime.title;
           hideAllSuggestions();
-          // Cerrar overlay móvil si está abierto (por si acaso, aunque lo eliminamos)
-          document.getElementById('searchOverlay')?.classList.remove('active');
-          document.body.style.overflow = '';
           openDetail(id);
         }
       });
@@ -2278,7 +2243,7 @@
   }
 
   function hideAllSuggestions() {
-    suggestionsDesktop.classList.remove('active');
+    if (suggestionsDesktop) suggestionsDesktop.classList.remove('active');
   }
 
   // ===== FILTRADO Y PAGINACIÓN =====
@@ -2400,11 +2365,11 @@
 
   window.changePage = function(p) { if (p < 1 || p > totalPages) return; currentPage = p; renderPage(); };
 
-  // ===== SISTEMA DE BÚSQUEDA (SIN OVERLAY OSCURO) =====
+  // ===== SISTEMA DE BÚSQUEDA =====
   function handleSearchInput(e) {
     const term = e.target.value;
     currentFilters.search = term;
-    renderSuggestions(term, suggestionsDesktop);
+    renderSuggestions(term);
   }
 
   function handleSearchKeydown(e) {
@@ -2418,18 +2383,16 @@
     }
   }
 
-  // Clic fuera para cerrar sugerencias
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.search-wrapper')) {
       hideAllSuggestions();
     }
   });
 
-  // Asignar eventos
   searchInput.addEventListener('input', handleSearchInput);
   searchInput.addEventListener('keydown', handleSearchKeydown);
 
-  // Botón toggle móvil (MUESTRA LA BARRA SIN OSCURECER)
+  // Botón toggle móvil (solo muestra/oculta la barra, sin mover los botones)
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
     const wrapper = document.getElementById('searchWrapper');
     wrapper.classList.toggle('active');
@@ -2453,7 +2416,7 @@
     cargarDatosYMostrar();
   };
 
-  // Autenticación (completa, sin cambios)
+  // ===== AUTENTICACIÓN =====
   let currentUser = null, newAvatarUrl = null, lastProfileUpdate = 0;
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
   const CLOUDINARY_PRESET = 'stickers_archinime';
@@ -2653,7 +2616,7 @@
     });
   }
 
-  // Chroma key (sin cambios)
+  // Chroma key
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
     fg.classList.remove('fg-left', 'fg-right');
@@ -2733,14 +2696,14 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
-  // Panel lateral (sin cambios)
+  // Panel lateral
   const sidePanel = document.getElementById('sidePanel');
   const sideToggle = document.getElementById('sidePanelToggle');
   const sideClose = document.getElementById('sidePanelClose');
   sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  // Funciones de detalle y eventos (sin cambios)
+  // ===== FUNCIONES DE DETALLE Y EVENTOS =====
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
       return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
@@ -2789,9 +2752,8 @@
   function openDetail(id) {
     const anime = baseAnimes.find(a => a.id == id);
     if (!anime) { alert('Anime no encontrado'); return; }
-    const coverImg = document.getElementById('detailCoverImg');
-    coverImg.src = anime.img || 'placeholder.webp';
-    coverImg.alt = anime.title;
+    document.getElementById('detailCoverImg').src = anime.img || 'placeholder.webp';
+    document.getElementById('detailCoverImg').alt = anime.title;
     document.getElementById('detailTitle').textContent = anime.title;
     const rating = getDisplayRating(anime);
     const genres = anime.genres?.join(', ') || 'Sin género';
@@ -2803,8 +2765,7 @@
       airingBadge.style.display = 'none';
     }
     document.getElementById('detailDesc').innerHTML = buildContentDetails(anime);
-    const watchBtn = document.getElementById('detailWatchBtn');
-    watchBtn.onclick = function() {
+    document.getElementById('detailWatchBtn').onclick = function() {
       window.location.href = `anime-detail.html?id=${anime.id}`;
     };
     document.getElementById('detailModal').classList.add('show');
@@ -2814,7 +2775,7 @@
   window.openDetail = openDetail;
   window.closeDetailModal = closeDetailModal;
 
-  // Event modal (sin cambios)
+  // Event modal
   let eventQueue = [];
   let isEventModalShowing = false;
   function showNextEvent() {
@@ -2828,8 +2789,7 @@
     document.getElementById('eventMeta').textContent = `⭐ ${getDisplayRating(eventData)} · ${eventData.genres?.slice(0,2).join(', ') || 'Anime'}`;
     document.getElementById('eventDesc').textContent = eventData.desc || 'Descripción no disponible.';
     document.getElementById('eventBadge').textContent = eventData.updateType || '🔥 NUEVO';
-    const btn = document.getElementById('eventBtn');
-    btn.onclick = function() {
+    document.getElementById('eventBtn').onclick = function() {
       window.location.href = `anime-detail.html?id=${eventData.id}`;
     };
     document.getElementById('eventModal').classList.add('show');
@@ -2862,7 +2822,7 @@
     });
   }
 
-  // Carrusel de banners (sin cambios)
+  // Carrusel de banners
   (function() {
     const topAnimes = baseAnimes.slice(0, 3);
     const banners = topAnimes.map((anime, index) => ({
@@ -2905,7 +2865,7 @@
     setInterval(() => { goTo((currentBanner + 1) % banners.length); }, 5000);
   })();
 
-  // Panel lateral contenido (sin cambios)
+  // Panel lateral contenido
   (function() {
     const content = document.getElementById('sidePanelContent');
     const topAnimes = baseAnimes.slice(0, 8);
@@ -2920,7 +2880,6 @@
     `).join('');
   })();
 
-  // Cerrar con Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       closeAuthModal(); closeProfileModal(); closeDetailModal(); closeEventModal();
@@ -2958,7 +2917,7 @@
       checkForNewAnimes();
     }, 3000);
   }).catch(err => {
-    console.error('Error al cargar ratings, mostrando sin ellos:', err);
+    console.error('Error al cargar ratings:', err);
     if (typeof catalogoArray !== 'undefined') {
       baseAnimes = shuffleArray([...catalogoArray]);
       searchableIndex = buildSearchableIndex(baseAnimes);
@@ -2974,7 +2933,6 @@
 
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
 
-  // Móviles: logo no abre nueva pestaña
   if (window.matchMedia('(max-width: 768px)').matches) {
     const logo = document.querySelector('.nav-logo');
     if (logo) {
