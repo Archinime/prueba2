@@ -1,13 +1,13 @@
 /* ============================================================
    sw.js - Archinime OS Service Worker
-   Estrategia híbrida con control absoluto sobre catálogo.js
-   MEJORADO: Caché más inteligente, actualizaciones en caliente
+   Estrategia híbrida con control absoluto sobre catálogo.js y banners.js
+   MEJORADO: banners.js siempre fresco, actualización forzada
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v146';
-const CACHE_DYNAMIC = 'archinime-dynamic-v146';
-const CACHE_IMAGES = 'archinime-images-v146';
-const CACHE_FONTS = 'archinime-fonts-v146';
+const CACHE_STATIC = 'archinime-static-v147'; // <--- Cambia la versión para forzar actualización
+const CACHE_DYNAMIC = 'archinime-dynamic-v147';
+const CACHE_IMAGES = 'archinime-images-v147';
+const CACHE_FONTS = 'archinime-fonts-v147';
 
 const STATIC_ASSETS = [
   '/',
@@ -60,11 +60,12 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
 
-  // Catálogo siempre fresco
-  if (url.pathname.endsWith('/catalogo.js')) {
+  // === CATÁLOGO Y BANNERS SIEMPRE FRESCOS (network-first) ===
+  if (url.pathname.endsWith('/catalogo.js') || url.pathname.endsWith('/banners.js')) {
     event.respondWith(
       fetch(request, { cache: 'no-cache' })
         .then(response => {
+          // Guardamos en caché dinámica para futuras offline, pero siempre priorizamos red
           const responseClone = response.clone();
           caches.open(CACHE_DYNAMIC).then(cache => cache.put(request, responseClone));
           return response;
@@ -80,7 +81,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Fuentes, CSS, JS -> stale-while-revalidate
+  // Fuentes, CSS, JS (excepto los ya manejados) -> stale-while-revalidate
   if (request.destination === 'font' || request.destination === 'style' || request.destination === 'script') {
     event.respondWith(staleWhileRevalidate(request));
     return;
