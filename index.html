@@ -11,10 +11,10 @@
   <meta name="description" content="La interfaz más inmersiva para ver anime. Efectos visuales, comunidad y calidad HD.">
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
   
-  <!-- VERSIÓN (forzar limpieza de caché) -->
+  <!-- VERSIÓN (forzar limpieza de caché) - Cambia este número cada vez que exportes nuevos banners -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v19.0";
+      const APP_VERSION = "2025-04-08-v23.0"; // <--- INCREMENTA ESTE NÚMERO CUANDO ACTUALICES BANNERS
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1838,7 +1838,7 @@
   </div>
 </nav>
 
-<!-- ===== BANNER CARRUSEL (dinámico desde localStorage) ===== -->
+<!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
   <div class="banner-dots" id="bannerDots"></div>
 </div>
@@ -2003,7 +2003,33 @@
   </div>
 </div>
 
-<!-- ===== SCRIPTS ===== -->
+<!-- ============================================================ -->
+<!-- === CARGA DE BANNERS.JS CON VERSIÓN === -->
+<!-- ============================================================ -->
+<script>
+  (function() {
+    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v23.0';
+    const script = document.createElement('script');
+    script.src = 'banners.js?v=' + appVersion;
+    script.onload = function() {
+      console.log('[Banners] Archivo banners.js cargado correctamente.');
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
+      }
+    };
+    script.onerror = function() {
+      console.warn('[Banners] Error al cargar banners.js. Usando banners por defecto.');
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
+      }
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+
+<!-- ============================================================ -->
+<!-- ===== SCRIPTS PRINCIPALES (incluyen carrusel) ===== -->
+<!-- ============================================================ -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -2021,14 +2047,14 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v19.0"></script>
+<script src="catalogo.js?v=2025-04-08-v23.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== CÓDIGO PRINCIPAL =====
+  // ===== CÓDIGO PRINCIPAL (con carrusel basado en BANNERS_DATA) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2824,29 +2850,38 @@
     });
   }
 
-  // ===== CARRUSEL DE BANNERS (desde localStorage) =====
-  (function() {
-    const STORAGE_KEY = 'archinime_banners';
-    const DEFAULT_BANNERS = [
-      { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
-      { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
-      { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
-    ];
-
-    function getBanners() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.length) return parsed;
-        } catch (e) {}
-      }
-      return DEFAULT_BANNERS;
-    }
-
-    const banners = getBanners();
+  // ========================================================
+  // ===== CARRUSEL DE BANNERS (RENDERIZADO DESDE BANNERS_DATA) =====
+  // ========================================================
+  window.initBannerCarousel = function() {
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
+    if (!carousel || !dotsContainer) return;
+
+    let banners = [];
+    if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
+      banners = window.BANNERS_DATA;
+      console.log('[Carrusel] Usando banners desde banners.js:', banners);
+    } else {
+      console.warn('[Carrusel] No se encontraron banners en BANNERS_DATA. El carrusel quedará vacío.');
+    }
+
+    // Limpiar carrusel
+    carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
+    dotsContainer.innerHTML = '';
+
+    if (banners.length === 0) {
+      const emptySlide = document.createElement('div');
+      emptySlide.className = 'banner-slide active';
+      emptySlide.style.background = '#0b0e14';
+      emptySlide.style.display = 'flex';
+      emptySlide.style.alignItems = 'center';
+      emptySlide.style.justifyContent = 'center';
+      emptySlide.innerHTML = `<div class="banner-info" style="max-width:80%;"><h2 style="font-size:1.2rem;">No hay banners configurados</h2><p>Agrega banners desde admin-banners.html</p></div>`;
+      carousel.appendChild(emptySlide);
+      return;
+    }
+
     let currentBanner = 0;
     let intervalId = null;
 
@@ -2926,25 +2961,29 @@
 
     function resetInterval() {
       if (intervalId) clearInterval(intervalId);
-      intervalId = setInterval(nextBanner, 5000);
+      if (banners.length > 1) {
+        intervalId = setInterval(nextBanner, 5000);
+      }
     }
 
     renderBanners();
     resetInterval();
+  };
 
-    // Escuchar cambios en localStorage (desde admin-banners.html)
-    window.addEventListener('storage', (e) => {
-      if (e.key === STORAGE_KEY) {
-        const newBanners = getBanners();
-        if (JSON.stringify(newBanners) !== JSON.stringify(banners)) {
-          banners.length = 0;
-          banners.push(...newBanners);
-          renderBanners();
-          resetInterval();
-        }
+  // ========================================================
+  // ===== INICIALIZAR CARRUSEL CUANDO EL DOM ESTÉ LISTO =====
+  // ========================================================
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (typeof window.initBannerCarousel === 'function') {
+      window.initBannerCarousel();
+    }
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
       }
     });
-  })();
+  }
 
   // Panel lateral contenido
   (function() {

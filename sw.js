@@ -1,13 +1,13 @@
 /* ============================================================
    sw.js - Archinime OS Service Worker
-   Estrategia híbrida con control absoluto sobre catálogo.js
-   MEJORADO: Caché más inteligente, actualizaciones en caliente
+   Estrategia híbrida con control absoluto sobre catálogo.js y banners.js
+   VERSIÓN 155 - FORZAR ACTUALIZACIÓN
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v154';
-const CACHE_DYNAMIC = 'archinime-dynamic-v154';
-const CACHE_IMAGES = 'archinime-images-v154';
-const CACHE_FONTS = 'archinime-fonts-v154';
+const CACHE_STATIC = 'archinime-static-v155';
+const CACHE_DYNAMIC = 'archinime-dynamic-v155';
+const CACHE_IMAGES = 'archinime-images-v155';
+const CACHE_FONTS = 'archinime-fonts-v155';
 
 const STATIC_ASSETS = [
   '/',
@@ -23,9 +23,8 @@ const STATIC_ASSETS = [
   '/youtube.avif'
 ];
 
-// Instalación
 self.addEventListener('install', event => {
-  console.log('[SW] Instalando...');
+  console.log('[SW] Instalando v155...');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_STATIC).then(cache => {
@@ -35,9 +34,8 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activación
 self.addEventListener('activate', event => {
-  console.log('[SW] Activando...');
+  console.log('[SW] Activando v155...');
   const currentCaches = [CACHE_STATIC, CACHE_DYNAMIC, CACHE_IMAGES, CACHE_FONTS];
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -54,14 +52,13 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// Fetch
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const request = event.request;
   if (request.method !== 'GET') return;
 
-  // Catálogo siempre fresco
-  if (url.pathname.endsWith('/catalogo.js')) {
+  // === CATÁLOGO Y BANNERS SIEMPRE FRESCOS ===
+  if (url.pathname.endsWith('/catalogo.js') || url.pathname.endsWith('/banners.js')) {
     event.respondWith(
       fetch(request, { cache: 'no-cache' })
         .then(response => {
