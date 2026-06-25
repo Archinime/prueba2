@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-08-v22.1";
+      const APP_VERSION = "2025-04-07-v19.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1838,7 +1838,7 @@
   </div>
 </nav>
 
-<!-- ===== BANNER CARRUSEL ===== -->
+<!-- ===== BANNER CARRUSEL (dinámico desde localStorage) ===== -->
 <div class="banner-carousel" id="bannerCarousel">
   <div class="banner-dots" id="bannerDots"></div>
 </div>
@@ -2003,54 +2003,7 @@
   </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- === CARGA DE BANNERS.JS CON RUTA ABSOLUTA Y FALLBACK === -->
-<!-- ============================================================ -->
-<script>
-  (function() {
-    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v22.1';
-    let attempt = 0;
-    const maxAttempts = 3;
-    const paths = [
-      '/banners.js?v=' + appVersion,        // Intento 1: ruta absoluta con versión
-      '/banners.js',                         // Intento 2: ruta absoluta sin versión
-      'banners.js?v=' + appVersion,          // Intento 3: ruta relativa con versión
-    ];
-
-    function loadBanners() {
-      if (attempt >= maxAttempts) {
-        console.error('[Banners] Todos los intentos fallaron. Verifica que banners.js exista en la raíz o en la misma carpeta que index.html.');
-        if (typeof window.renderBannerCarousel === 'function') {
-          window.renderBannerCarousel();
-        }
-        return;
-      }
-
-      const src = paths[attempt];
-      console.log('[Banners] Intento ' + (attempt + 1) + ': cargando ' + src);
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = function() {
-        console.log('[Banners] Archivo banners.js cargado correctamente desde ' + src);
-        if (typeof window.renderBannerCarousel === 'function') {
-          window.renderBannerCarousel();
-        }
-      };
-      script.onerror = function() {
-        attempt++;
-        console.warn('[Banners] Falló la carga desde ' + src + '. Reintentando...');
-        loadBanners();
-      };
-      document.head.appendChild(script);
-    }
-
-    loadBanners();
-  })();
-</script>
-
-<!-- ============================================================ -->
-<!-- ===== SCRIPTS PRINCIPALES (incluyen carrusel) ===== -->
-<!-- ============================================================ -->
+<!-- ===== SCRIPTS ===== -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -2068,14 +2021,14 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-08-v22.1"></script>
+<script src="catalogo.js?v=2025-04-07-v19.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== CÓDIGO PRINCIPAL (todo lo que ya tenías, con la función renderBannerCarousel mejorada) =====
+  // ===== CÓDIGO PRINCIPAL =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2871,52 +2824,29 @@
     });
   }
 
-  // ========================================================
-  // ===== CARRUSEL DE BANNERS (RENDERIZADO DESDE banners.js) =====
-  // ========================================================
-  window.renderBannerCarousel = function() {
+  // ===== CARRUSEL DE BANNERS (desde localStorage) =====
+  (function() {
+    const STORAGE_KEY = 'archinime_banners';
+    const DEFAULT_BANNERS = [
+      { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
+      { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
+      { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
+    ];
+
+    function getBanners() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.length) return parsed;
+        } catch (e) {}
+      }
+      return DEFAULT_BANNERS;
+    }
+
+    const banners = getBanners();
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
-    if (!carousel || !dotsContainer) return;
-
-    let banners = [];
-    let errorMsg = '';
-
-    // Verificar si BANNERS_DATA está definido y es un array válido
-    if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
-      banners = window.BANNERS_DATA;
-      console.log('[Carrusel] ✅ Usando banners desde banners.js:', banners);
-    } else {
-      errorMsg = 'No se encontraron banners en BANNERS_DATA. Asegúrate de que el archivo banners.js se haya cargado correctamente.';
-      console.warn('[Carrusel] ❌ ' + errorMsg);
-      console.log('[Carrusel] window.BANNERS_DATA actual:', window.BANNERS_DATA);
-    }
-
-    // Limpiar carrusel
-    carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
-    dotsContainer.innerHTML = '';
-
-    if (banners.length === 0) {
-      const emptySlide = document.createElement('div');
-      emptySlide.className = 'banner-slide active';
-      emptySlide.style.background = '#0b0e14';
-      emptySlide.style.display = 'flex';
-      emptySlide.style.alignItems = 'center';
-      emptySlide.style.justifyContent = 'center';
-      emptySlide.innerHTML = `
-        <div class="banner-info" style="max-width:80%; text-align:center;">
-          <h2 style="font-size:1.2rem; color:var(--neon-pink);">⚠️ No se cargaron los banners</h2>
-          <p style="color:var(--text-secondary);">${errorMsg || 'Verifica que el archivo banners.js exista en la misma carpeta que index.html'}</p>
-          <p style="color:var(--text-secondary); font-size:0.8rem; margin-top:8px;">
-            <strong>Ruta esperada:</strong> <span style="color:var(--neon-blue);">/banners.js</span> o <span style="color:var(--neon-blue);">banners.js</span>
-          </p>
-          <button onclick="window.location.reload()" style="margin-top:10px; background:var(--neon-blue); border:none; padding:8px 20px; border-radius:30px; color:#000; font-weight:700; cursor:pointer;">Recargar página</button>
-        </div>
-      `;
-      carousel.appendChild(emptySlide);
-      return;
-    }
-
     let currentBanner = 0;
     let intervalId = null;
 
@@ -2996,29 +2926,25 @@
 
     function resetInterval() {
       if (intervalId) clearInterval(intervalId);
-      if (banners.length > 1) {
-        intervalId = setInterval(nextBanner, 5000);
-      }
+      intervalId = setInterval(nextBanner, 5000);
     }
 
     renderBanners();
     resetInterval();
-  };
 
-  // ========================================================
-  // ===== INICIALIZAR CARRUSEL CUANDO EL DOM ESTÉ LISTO =====
-  // ========================================================
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    if (typeof window.renderBannerCarousel === 'function') {
-      window.renderBannerCarousel();
-    }
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof window.renderBannerCarousel === 'function') {
-        window.renderBannerCarousel();
+    // Escuchar cambios en localStorage (desde admin-banners.html)
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        const newBanners = getBanners();
+        if (JSON.stringify(newBanners) !== JSON.stringify(banners)) {
+          banners.length = 0;
+          banners.push(...newBanners);
+          renderBanners();
+          resetInterval();
+        }
       }
     });
-  }
+  })();
 
   // Panel lateral contenido
   (function() {
