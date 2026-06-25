@@ -2009,21 +2009,34 @@
 <script>
   (function() {
     const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v22.0';
-    const script = document.createElement('script');
-    script.src = 'banners.js?v=' + appVersion;
-    script.onload = function() {
-      console.log('[Banners] Archivo banners.js cargado correctamente.');
-      if (typeof window.renderBannerCarousel === 'function') {
-        window.renderBannerCarousel();
-      }
-    };
-    script.onerror = function() {
-      console.warn('[Banners] Error al cargar banners.js. No se mostrarán banners.');
-      if (typeof window.renderBannerCarousel === 'function') {
-        window.renderBannerCarousel();
-      }
-    };
-    document.head.appendChild(script);
+    let attempt = 0;
+    const maxAttempts = 2;
+
+    function loadBanners(useVersion) {
+      const script = document.createElement('script');
+      script.src = useVersion ? 'banners.js?v=' + appVersion : 'banners.js';
+      script.onload = function() {
+        console.log('[Banners] Archivo banners.js cargado correctamente.');
+        if (typeof window.renderBannerCarousel === 'function') {
+          window.renderBannerCarousel();
+        }
+      };
+      script.onerror = function() {
+        attempt++;
+        if (attempt < maxAttempts) {
+          console.warn('[Banners] Intento ' + attempt + ' fallido. Reintentando sin versión...');
+          loadBanners(false);
+        } else {
+          console.error('[Banners] No se pudo cargar banners.js. Verifica que el archivo exista en la ruta correcta.');
+          if (typeof window.renderBannerCarousel === 'function') {
+            window.renderBannerCarousel();
+          }
+        }
+      };
+      document.head.appendChild(script);
+    }
+
+    loadBanners(true);
   })();
 </script>
 
@@ -2859,11 +2872,14 @@
     if (!carousel || !dotsContainer) return;
 
     let banners = [];
+    let errorMsg = '';
+
     if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
       banners = window.BANNERS_DATA;
       console.log('[Carrusel] Usando banners desde banners.js:', banners);
     } else {
-      console.warn('[Carrusel] No se encontraron banners en BANNERS_DATA. El carrusel quedará vacío.');
+      errorMsg = 'No se encontraron banners en BANNERS_DATA. Asegúrate de que el archivo banners.js se haya cargado correctamente.';
+      console.warn('[Carrusel] ' + errorMsg);
     }
 
     // Limpiar carrusel
@@ -2877,7 +2893,13 @@
       emptySlide.style.display = 'flex';
       emptySlide.style.alignItems = 'center';
       emptySlide.style.justifyContent = 'center';
-      emptySlide.innerHTML = `<div class="banner-info" style="max-width:80%;"><h2 style="font-size:1.2rem;">No hay banners configurados</h2><p>Agrega banners desde admin-banners.html</p></div>`;
+      emptySlide.innerHTML = `
+        <div class="banner-info" style="max-width:80%; text-align:center;">
+          <h2 style="font-size:1.2rem; color:var(--neon-pink);">⚠️ No se cargaron los banners</h2>
+          <p style="color:var(--text-secondary);">${errorMsg || 'Verifica que el archivo banners.js exista en la misma carpeta que index.html'}</p>
+          <button onclick="window.location.reload()" style="margin-top:10px; background:var(--neon-blue); border:none; padding:8px 20px; border-radius:30px; color:#000; font-weight:700; cursor:pointer;">Recargar página</button>
+        </div>
+      `;
       carousel.appendChild(emptySlide);
       return;
     }
