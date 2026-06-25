@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v16.0";
+      const APP_VERSION = "2025-04-07-v17.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -256,6 +256,7 @@
       }
       .cyber-nav .nav-logo { grid-column: 1; }
       .cyber-nav .nav-actions { grid-column: 2; justify-self: end; }
+      /* La barra de búsqueda ocupa toda la fila, oculta por defecto */
       .cyber-nav .search-wrapper { 
         grid-column: 1 / -1; 
         display: none;
@@ -302,7 +303,7 @@
       .cyber-btn-icon { width: 32px; height: 32px; font-size: 0.8rem; }
     }
 
-    /* ==== BARRA DE BÚSQUEDA CON AUTOCOMPLETADO ==== */
+    /* ==== BARRA DE BÚSQUEDA CON AUTOCOMPLETADO MEJORADA ==== */
     .search-wrapper {
       position: relative;
       width: 100%;
@@ -336,7 +337,7 @@
       pointer-events: none;
     }
 
-    /* Sugerencias de búsqueda (Desktop) - TAMAÑO MEJORADO */
+    /* Sugerencias de búsqueda - TAMAÑO AGRANDADO */
     #searchSuggestions {
       position: absolute;
       top: calc(100% + 8px);
@@ -357,26 +358,26 @@
     .suggestion-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 10px 16px;
+      gap: 18px;
+      padding: 12px 16px;
       cursor: pointer;
       transition: 0.15s ease;
       border-bottom: 1px solid rgba(255,255,255,0.02);
     }
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-item:hover {
-      background: rgba(0, 240, 255, 0.06);
+      background: rgba(0, 240, 255, 0.08);
     }
     /* IMAGEN MÁS GRANDE (Desktop) */
     .suggestion-item img {
-      width: 56px;
-      height: 78px;
+      width: 72px;
+      height: 100px;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #000;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
       flex-shrink: 0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
     }
     .suggestion-item .s-info {
       flex: 1;
@@ -385,7 +386,7 @@
     .suggestion-item .s-title {
       color: #fff;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -396,10 +397,10 @@
       font-weight: 900;
     }
     .suggestion-item .s-genre {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
       font-weight: 500;
-      margin-top: 2px;
+      margin-top: 3px;
     }
     .suggestion-item .s-empty {
       width: 100%;
@@ -1540,38 +1541,23 @@
       
       /* === SUGERENCIAS MÁS GRANDES EN MÓVIL === */
       #searchSuggestions {
-        max-height: 340px;
+        max-height: 380px;
         padding: 6px 0;
       }
       .suggestion-item {
-        padding: 8px 12px;
-        gap: 12px;
+        padding: 10px 14px;
+        gap: 14px;
       }
       .suggestion-item img {
-        width: 44px;
-        height: 62px;
-        border-radius: 4px;
+        width: 60px;
+        height: 84px;
+        border-radius: 6px;
       }
       .suggestion-item .s-title {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
       }
       .suggestion-item .s-genre {
-        font-size: 0.65rem;
-      }
-      #searchSuggestionsOverlay .suggestion-item {
-        padding: 8px 12px;
-        gap: 12px;
-      }
-      #searchSuggestionsOverlay .suggestion-item img {
-        width: 44px;
-        height: 62px;
-        border-radius: 4px;
-      }
-      #searchSuggestionsOverlay .suggestion-item .s-title {
-        font-size: 0.85rem;
-      }
-      #searchSuggestionsOverlay .suggestion-item .s-genre {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
       }
     }
     @media (max-width: 480px) {
@@ -1581,11 +1567,11 @@
       .banner-slide .banner-info p { font-size: 0.65rem; }
       .detail-cover { height: 260px; }
       .suggestion-item img {
-        width: 36px;
-        height: 50px;
+        width: 52px;
+        height: 72px;
       }
       .suggestion-item .s-title {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
       }
     }
 
@@ -1815,92 +1801,6 @@
       box-shadow: 0 0 20px var(--neon-cyan);
       transform: scale(1.02);
     }
-
-    /* ===== OVERLAY DE BÚSQUEDA (MÓVIL) MEJORADO ===== */
-    #searchOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(5, 7, 10, 0.97);
-      backdrop-filter: blur(20px);
-      z-index: 99999;
-      padding: 60px 16px;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    #searchOverlay.active { display: flex; }
-    #searchOverlay .close-btn {
-      position: absolute;
-      top: 18px;
-      right: 20px;
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 2rem;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    #searchOverlay .close-btn:hover { color: var(--neon-pink); transform: rotate(90deg); }
-    #searchOverlay .search-wrapper-overlay {
-      width: 100%;
-      max-width: 500px;
-      position: relative;
-    }
-    #searchOverlay input {
-      width: 100%;
-      padding: 16px 20px;
-      font-size: 1.2rem;
-      border-radius: 60px;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.08);
-      color: #fff;
-      outline: none;
-      transition: 0.3s;
-      font-family: 'Poppins', sans-serif;
-      margin-top: 20px;
-    }
-    #searchOverlay input:focus {
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
-    }
-    #searchOverlay .hint {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      margin-top: 16px;
-      text-align: center;
-    }
-    #searchOverlay .hint i { color: var(--neon-blue); }
-
-    /* Sugerencias en móvil dentro del overlay - TAMAÑO MEJORADO */
-    #searchSuggestionsOverlay {
-      width: 100%;
-      max-width: 500px;
-      max-height: 55vh;
-      overflow-y: auto;
-      margin-top: 8px;
-      background: rgba(11, 14, 20, 0.95);
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(0, 240, 255, 0.1);
-      display: none;
-      padding: 6px 0;
-    }
-    #searchSuggestionsOverlay.active { display: block; }
-    #searchSuggestionsOverlay .suggestion-item {
-      padding: 10px 14px;
-      gap: 14px;
-    }
-    #searchSuggestionsOverlay .suggestion-item img {
-      width: 48px;
-      height: 68px;
-      border-radius: 6px;
-    }
-    #searchSuggestionsOverlay .suggestion-item .s-title {
-      font-size: 0.9rem;
-    }
   </style>
 </head>
 <body>
@@ -1962,16 +1862,6 @@
     </div>
   </div>
 </nav>
-
-<!-- ===== OVERLAY DE BÚSQUEDA (MÓVIL) MEJORADO ===== -->
-<div id="searchOverlay">
-  <button class="close-btn" id="searchOverlayClose"><i class="fas fa-times"></i></button>
-  <div class="search-wrapper-overlay">
-    <input type="text" id="searchOverlayInput" placeholder="Buscar anime, género o alias..." autocomplete="off">
-    <div id="searchSuggestionsOverlay"></div>
-  </div>
-  <div class="hint"><i class="fas fa-arrow-up"></i> Escribe para ver sugerencias en vivo</div>
-</div>
 
 <!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
@@ -2157,14 +2047,14 @@
 </script>
 
 <!-- Cargar scripts externos -->
-<script src="catalogo.js?v=2025-04-07-v16.0"></script>
+<script src="catalogo.js?v=2025-04-07-v17.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== TODA LA LÓGICA JS (OPTIMIZADA CON AUTOCOMPLETADO Y SUGERENCIAS GRANDES) =====
+  // ===== TODA LA LÓGICA JS (OPTIMIZADA Y SIN OVERLAY OSCURO) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2322,11 +2212,9 @@
   const grid = document.getElementById('grid');
   const paginationContainer = document.getElementById('pagination');
   const searchInput = document.getElementById('search');
-  const searchOverlayInput = document.getElementById('searchOverlayInput');
 
   // ===== SUGERENCIAS (Dropdown) =====
   const suggestionsDesktop = document.getElementById('searchSuggestions');
-  const suggestionsMobile = document.getElementById('searchSuggestionsOverlay');
 
   function renderSuggestions(term, container) {
     if (!container) return;
@@ -2355,7 +2243,6 @@
         const end = title.substring(idx + term.length);
         displayTitle = `${start}<strong>${match}</strong>${end}`;
       } else {
-        // Si coincide por alias, mostramos el título normal
         displayTitle = title;
       }
       const genreStr = item.genres.slice(0, 2).join(', ') || 'Anime';
@@ -2379,15 +2266,11 @@
         const id = el.dataset.id;
         const anime = baseAnimes.find(a => a.id == id);
         if (anime) {
-          // Llenar los inputs con el título
           searchInput.value = anime.title;
-          searchOverlayInput.value = anime.title;
-          // Cerrar sugerencias
           hideAllSuggestions();
-          // Cerrar overlay móvil
-          document.getElementById('searchOverlay').classList.remove('active');
+          // Cerrar overlay móvil si está abierto (por si acaso, aunque lo eliminamos)
+          document.getElementById('searchOverlay')?.classList.remove('active');
           document.body.style.overflow = '';
-          // Abrir detalle
           openDetail(id);
         }
       });
@@ -2396,10 +2279,9 @@
 
   function hideAllSuggestions() {
     suggestionsDesktop.classList.remove('active');
-    suggestionsMobile.classList.remove('active');
   }
 
-  // ===== FILTRADO Y PAGINACIÓN (Optimizado) =====
+  // ===== FILTRADO Y PAGINACIÓN =====
   function applyFilters() {
     let result = baseAnimes.slice();
     if (currentFilters.genre) {
@@ -2518,30 +2400,17 @@
 
   window.changePage = function(p) { if (p < 1 || p > totalPages) return; currentPage = p; renderPage(); };
 
-  // ===== SISTEMA DE BÚSQUEDA MEJORADO (Autocompletado) =====
+  // ===== SISTEMA DE BÚSQUEDA (SIN OVERLAY OSCURO) =====
   function handleSearchInput(e) {
     const term = e.target.value;
     currentFilters.search = term;
-    // Actualizar el otro input
-    if (e.target === searchInput) {
-      searchOverlayInput.value = term;
-    } else {
-      searchInput.value = term;
-    }
-    // Mostrar sugerencias
     renderSuggestions(term, suggestionsDesktop);
-    renderSuggestions(term, suggestionsMobile);
-    // Limpiar debounce para grid (se aplica al presionar Enter o seleccionar)
   }
 
   function handleSearchKeydown(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       hideAllSuggestions();
-      // Cerrar overlay móvil
-      document.getElementById('searchOverlay').classList.remove('active');
-      document.body.style.overflow = '';
-      // Aplicar filtro a la grid
       cargarDatosYMostrar();
     }
     if (e.key === 'Escape') {
@@ -2551,7 +2420,7 @@
 
   // Clic fuera para cerrar sugerencias
   document.addEventListener('click', function(e) {
-    if (!e.target.closest('.search-wrapper') && !e.target.closest('#searchOverlay')) {
+    if (!e.target.closest('.search-wrapper')) {
       hideAllSuggestions();
     }
   });
@@ -2559,41 +2428,23 @@
   // Asignar eventos
   searchInput.addEventListener('input', handleSearchInput);
   searchInput.addEventListener('keydown', handleSearchKeydown);
-  searchOverlayInput.addEventListener('input', handleSearchInput);
-  searchOverlayInput.addEventListener('keydown', handleSearchKeydown);
 
-  // Abrir overlay móvil
+  // Botón toggle móvil (MUESTRA LA BARRA SIN OSCURECER)
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
-    const overlay = document.getElementById('searchOverlay');
-    overlay.classList.toggle('active');
-    if (overlay.classList.contains('active')) {
-      document.body.style.overflow = 'hidden';
-      setTimeout(() => searchOverlayInput.focus(), 100);
-    } else {
-      document.body.style.overflow = '';
+    const wrapper = document.getElementById('searchWrapper');
+    wrapper.classList.toggle('active');
+    if (wrapper.classList.contains('active')) {
+      setTimeout(() => searchInput.focus(), 150);
     }
   });
 
-  document.getElementById('searchOverlayClose').addEventListener('click', () => {
-    document.getElementById('searchOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      document.getElementById('searchOverlay').classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  });
-
-  // Filtros (género, demografía, rating)
+  // Filtros
   document.getElementById('genre-select').addEventListener('change', e => { currentFilters.genre = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('demographic-select').addEventListener('change', e => { currentFilters.demographic = e.target.value; cargarDatosYMostrar(); });
   document.getElementById('rating-select').addEventListener('change', e => { currentFilters.rating = e.target.value; cargarDatosYMostrar(); });
 
   window.resetearFiltrosGlobal = function() {
     document.getElementById('search').value = '';
-    document.getElementById('searchOverlayInput').value = '';
     document.getElementById('genre-select').value = '';
     document.getElementById('demographic-select').value = '';
     document.getElementById('rating-select').value = '';
@@ -2602,7 +2453,7 @@
     cargarDatosYMostrar();
   };
 
-  // Autenticación (sin cambios, pero mantenemos las funciones)
+  // Autenticación (completa, sin cambios)
   let currentUser = null, newAvatarUrl = null, lastProfileUpdate = 0;
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
   const CLOUDINARY_PRESET = 'stickers_archinime';
@@ -3075,7 +2926,6 @@
       closeAuthModal(); closeProfileModal(); closeDetailModal(); closeEventModal();
       document.getElementById('notifMenu').classList.remove('active');
       sidePanel.classList.remove('open');
-      document.getElementById('searchOverlay').classList.remove('active');
       document.body.style.overflow = '';
       hideAllSuggestions();
     }
