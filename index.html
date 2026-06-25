@@ -11,10 +11,10 @@
   <meta name="description" content="La interfaz más inmersiva para ver anime. Efectos visuales, comunidad y calidad HD.">
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
   
-  <!-- VERSIÓN -->
+  <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v18.0";
+      const APP_VERSION = "2025-04-07-v19.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -245,7 +245,7 @@
       box-shadow: 0 4px 30px rgba(0,0,0,0.6);
     }
 
-    /* MÓVIL: dos filas, la primera con logo y acciones, la segunda con búsqueda */
+    /* MÓVIL: dos filas */
     @media (max-width: 768px) {
       .cyber-nav {
         grid-template-columns: 1fr auto;
@@ -639,6 +639,8 @@
       border-radius: var(--radius-md);
       border-left: 4px solid var(--neon-blue);
       max-width: 60%;
+      position: relative;
+      z-index: 2;
     }
     .banner-slide .banner-info h2 {
       font-family: 'Orbitron', sans-serif;
@@ -1836,7 +1838,7 @@
   </div>
 </nav>
 
-<!-- ===== BANNER ===== -->
+<!-- ===== BANNER CARRUSEL (dinámico desde localStorage) ===== -->
 <div class="banner-carousel" id="bannerCarousel">
   <div class="banner-dots" id="bannerDots"></div>
 </div>
@@ -2019,14 +2021,14 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v18.0"></script>
+<script src="catalogo.js?v=2025-04-07-v19.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== CÓDIGO PRINCIPAL (OPTIMIZADO Y CON NAVBAR FIJA EN MÓVIL) =====
+  // ===== CÓDIGO PRINCIPAL =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2392,7 +2394,7 @@
   searchInput.addEventListener('input', handleSearchInput);
   searchInput.addEventListener('keydown', handleSearchKeydown);
 
-  // Botón toggle móvil (solo muestra/oculta la barra, sin mover los botones)
+  // Botón toggle móvil
   document.getElementById('searchToggleMobile').addEventListener('click', () => {
     const wrapper = document.getElementById('searchWrapper');
     wrapper.classList.toggle('active');
@@ -2550,7 +2552,7 @@
   });
   auth.onAuthStateChanged(updateUserUI);
 
-  // Custom selects (sin cambios)
+  // Custom selects
   (function() {
     const selects = ['genre-select', 'demographic-select', 'rating-select'];
     const isMobileSelect = window.matchMedia('(max-width: 768px)').matches;
@@ -2822,47 +2824,126 @@
     });
   }
 
-  // Carrusel de banners
+  // ===== CARRUSEL DE BANNERS (desde localStorage) =====
   (function() {
-    const topAnimes = baseAnimes.slice(0, 3);
-    const banners = topAnimes.map((anime, index) => ({
-      title: anime.title,
-      desc: `⭐ ${getDisplayRating(anime)} · ${anime.genres?.slice(0,3).join(', ') || 'Anime'}`,
-      img: anime.img || 'placeholder.webp'
-    }));
-    while (banners.length < 3) {
-      banners.push({
-        title: 'Top Anime',
-        desc: 'Descubre los mejores animes',
-        img: 'placeholder.webp'
-      });
+    const STORAGE_KEY = 'archinime_banners';
+    const DEFAULT_BANNERS = [
+      { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
+      { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
+      { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
+    ];
+
+    function getBanners() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.length) return parsed;
+        } catch (e) {}
+      }
+      return DEFAULT_BANNERS;
     }
+
+    const banners = getBanners();
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
     let currentBanner = 0;
+    let intervalId = null;
+
     function renderBanners() {
       carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
+      dotsContainer.innerHTML = '';
+
       banners.forEach((b, i) => {
         const slide = document.createElement('div');
         slide.className = `banner-slide ${i === 0 ? 'active' : ''}`;
-        slide.style.backgroundImage = `url(${b.img})`;
-        slide.innerHTML = `<div class="banner-info"><h2>${b.title}</h2><p>${b.desc}</p></div>`;
+        const isVideo = b.media && (b.media.endsWith('.mp4') || b.media.endsWith('.webm') || b.media.includes('youtube.com') || b.media.includes('youtu.be'));
+        if (isVideo) {
+          slide.style.background = '#000';
+          const videoEl = document.createElement('video');
+          videoEl.src = b.media;
+          videoEl.autoplay = true;
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.style.position = 'absolute';
+          videoEl.style.inset = '0';
+          videoEl.style.width = '100%';
+          videoEl.style.height = '100%';
+          videoEl.style.objectFit = 'cover';
+          videoEl.style.zIndex = '0';
+          slide.appendChild(videoEl);
+          const overlay = document.createElement('div');
+          overlay.style.position = 'absolute';
+          overlay.style.inset = '0';
+          overlay.style.background = 'rgba(0,0,0,0.4)';
+          overlay.style.zIndex = '1';
+          slide.appendChild(overlay);
+        } else {
+          slide.style.backgroundImage = `url(${b.media})`;
+          slide.style.backgroundSize = 'cover';
+          slide.style.backgroundPosition = 'center';
+        }
+        const info = document.createElement('div');
+        info.className = 'banner-info';
+        info.style.position = 'relative';
+        info.style.zIndex = '2';
+        info.innerHTML = `
+          <h2>${b.title}</h2>
+          <p>${b.desc || ''}</p>
+        `;
+        slide.appendChild(info);
+
+        if (b.link && b.link !== '#') {
+          slide.style.cursor = 'pointer';
+          slide.addEventListener('click', () => {
+            window.open(b.link, '_blank');
+          });
+        }
+
         carousel.appendChild(slide);
+
         const dot = document.createElement('button');
         dot.className = `banner-dot ${i === 0 ? 'active' : ''}`;
         dot.addEventListener('click', () => goTo(i));
         dotsContainer.appendChild(dot);
       });
     }
+
     function goTo(index) {
       const slides = carousel.querySelectorAll('.banner-slide');
       const dots = dotsContainer.querySelectorAll('.banner-dot');
       slides.forEach((s, i) => s.classList.toggle('active', i === index));
       dots.forEach((d, i) => d.classList.toggle('active', i === index));
       currentBanner = index;
+      resetInterval();
     }
+
+    function nextBanner() {
+      const total = banners.length;
+      goTo((currentBanner + 1) % total);
+    }
+
+    function resetInterval() {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(nextBanner, 5000);
+    }
+
     renderBanners();
-    setInterval(() => { goTo((currentBanner + 1) % banners.length); }, 5000);
+    resetInterval();
+
+    // Escuchar cambios en localStorage (desde admin-banners.html)
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        const newBanners = getBanners();
+        if (JSON.stringify(newBanners) !== JSON.stringify(banners)) {
+          banners.length = 0;
+          banners.push(...newBanners);
+          renderBanners();
+          resetInterval();
+        }
+      }
+    });
   })();
 
   // Panel lateral contenido
