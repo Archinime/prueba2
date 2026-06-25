@@ -4,10 +4,10 @@
    MEJORADO: Caché más inteligente, actualizaciones en caliente
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v145';
-const CACHE_DYNAMIC = 'archinime-dynamic-v145';
-const CACHE_IMAGES = 'archinime-images-v145';
-const CACHE_FONTS = 'archinime-fonts-v145';
+const CACHE_STATIC = 'archinime-static-v146';
+const CACHE_DYNAMIC = 'archinime-dynamic-v146';
+const CACHE_IMAGES = 'archinime-images-v146';
+const CACHE_FONTS = 'archinime-fonts-v146';
 
 const STATIC_ASSETS = [
   '/',

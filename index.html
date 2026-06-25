@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v19.0";
+      const APP_VERSION = "2025-04-07-v20.0";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -1838,7 +1838,7 @@
   </div>
 </nav>
 
-<!-- ===== BANNER CARRUSEL (dinámico desde localStorage) ===== -->
+<!-- ===== BANNER CARRUSEL ===== -->
 <div class="banner-carousel" id="bannerCarousel">
   <div class="banner-dots" id="bannerDots"></div>
 </div>
@@ -2003,6 +2003,9 @@
   </div>
 </div>
 
+<!-- ===== CARGAR BANNERS DESDE JS ===== -->
+<script src="banners.js"></script>
+
 <!-- ===== SCRIPTS ===== -->
 <script>
   const firebaseConfig = {
@@ -2021,7 +2024,7 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v19.0"></script>
+<script src="catalogo.js?v=2025-04-07-v20.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2824,27 +2827,20 @@
     });
   }
 
-  // ===== CARRUSEL DE BANNERS (desde localStorage) =====
+  // ===== CARRUSEL DE BANNERS (DESDE BANNERS.JS) =====
   (function() {
-    const STORAGE_KEY = 'archinime_banners';
+    // Banners por defecto (en caso de que no exista banners.js)
     const DEFAULT_BANNERS = [
       { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
       { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
       { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
     ];
 
-    function getBanners() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.length) return parsed;
-        } catch (e) {}
-      }
-      return DEFAULT_BANNERS;
-    }
+    // Intentar cargar desde la variable global BANNERS_DATA (definida en banners.js)
+    const banners = (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) 
+      ? window.BANNERS_DATA 
+      : DEFAULT_BANNERS;
 
-    const banners = getBanners();
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
     let currentBanner = 0;
@@ -2931,19 +2927,6 @@
 
     renderBanners();
     resetInterval();
-
-    // Escuchar cambios en localStorage (desde admin-banners.html)
-    window.addEventListener('storage', (e) => {
-      if (e.key === STORAGE_KEY) {
-        const newBanners = getBanners();
-        if (JSON.stringify(newBanners) !== JSON.stringify(banners)) {
-          banners.length = 0;
-          banners.push(...newBanners);
-          renderBanners();
-          resetInterval();
-        }
-      }
-    });
   })();
 
   // Panel lateral contenido
