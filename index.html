@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-08-v22.0";
+      const APP_VERSION = "2025-04-08-v22.1";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -2004,40 +2004,47 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- === CARGA DE BANNERS.JS CON VERSIÓN (RUTA RELATIVA) === -->
+<!-- === CARGA DE BANNERS.JS CON RUTA ABSOLUTA Y FALLBACK === -->
 <!-- ============================================================ -->
 <script>
   (function() {
-    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v22.0';
+    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v22.1';
     let attempt = 0;
-    const maxAttempts = 2;
+    const maxAttempts = 3;
+    const paths = [
+      '/banners.js?v=' + appVersion,        // Intento 1: ruta absoluta con versión
+      '/banners.js',                         // Intento 2: ruta absoluta sin versión
+      'banners.js?v=' + appVersion,          // Intento 3: ruta relativa con versión
+    ];
 
-    function loadBanners(useVersion) {
+    function loadBanners() {
+      if (attempt >= maxAttempts) {
+        console.error('[Banners] Todos los intentos fallaron. Verifica que banners.js exista en la raíz o en la misma carpeta que index.html.');
+        if (typeof window.renderBannerCarousel === 'function') {
+          window.renderBannerCarousel();
+        }
+        return;
+      }
+
+      const src = paths[attempt];
+      console.log('[Banners] Intento ' + (attempt + 1) + ': cargando ' + src);
       const script = document.createElement('script');
-      // RUTA RELATIVA (sin barra) → busca en la misma carpeta que index.html
-      script.src = useVersion ? 'banners.js?v=' + appVersion : 'banners.js';
+      script.src = src;
       script.onload = function() {
-        console.log('[Banners] Archivo banners.js cargado correctamente.');
+        console.log('[Banners] Archivo banners.js cargado correctamente desde ' + src);
         if (typeof window.renderBannerCarousel === 'function') {
           window.renderBannerCarousel();
         }
       };
       script.onerror = function() {
         attempt++;
-        if (attempt < maxAttempts) {
-          console.warn('[Banners] Intento ' + attempt + ' fallido. Reintentando sin versión...');
-          loadBanners(false);
-        } else {
-          console.error('[Banners] No se pudo cargar banners.js. Verifica que el archivo exista en la misma carpeta que index.html.');
-          if (typeof window.renderBannerCarousel === 'function') {
-            window.renderBannerCarousel();
-          }
-        }
+        console.warn('[Banners] Falló la carga desde ' + src + '. Reintentando...');
+        loadBanners();
       };
       document.head.appendChild(script);
     }
 
-    loadBanners(true);
+    loadBanners();
   })();
 </script>
 
@@ -2061,14 +2068,14 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-08-v22.0"></script>
+<script src="catalogo.js?v=2025-04-08-v22.1"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 
 <script>
-  // ===== CÓDIGO PRINCIPAL =====
+  // ===== CÓDIGO PRINCIPAL (todo lo que ya tenías, con la función renderBannerCarousel mejorada) =====
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2875,12 +2882,14 @@
     let banners = [];
     let errorMsg = '';
 
+    // Verificar si BANNERS_DATA está definido y es un array válido
     if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
       banners = window.BANNERS_DATA;
-      console.log('[Carrusel] Usando banners desde banners.js:', banners);
+      console.log('[Carrusel] ✅ Usando banners desde banners.js:', banners);
     } else {
       errorMsg = 'No se encontraron banners en BANNERS_DATA. Asegúrate de que el archivo banners.js se haya cargado correctamente.';
-      console.warn('[Carrusel] ' + errorMsg);
+      console.warn('[Carrusel] ❌ ' + errorMsg);
+      console.log('[Carrusel] window.BANNERS_DATA actual:', window.BANNERS_DATA);
     }
 
     // Limpiar carrusel
@@ -2898,6 +2907,9 @@
         <div class="banner-info" style="max-width:80%; text-align:center;">
           <h2 style="font-size:1.2rem; color:var(--neon-pink);">⚠️ No se cargaron los banners</h2>
           <p style="color:var(--text-secondary);">${errorMsg || 'Verifica que el archivo banners.js exista en la misma carpeta que index.html'}</p>
+          <p style="color:var(--text-secondary); font-size:0.8rem; margin-top:8px;">
+            <strong>Ruta esperada:</strong> <span style="color:var(--neon-blue);">/banners.js</span> o <span style="color:var(--neon-blue);">banners.js</span>
+          </p>
           <button onclick="window.location.reload()" style="margin-top:10px; background:var(--neon-blue); border:none; padding:8px 20px; border-radius:30px; color:#000; font-weight:700; cursor:pointer;">Recargar página</button>
         </div>
       `;
