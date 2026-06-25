@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v20.0";
+      const APP_VERSION = "2025-04-08-v21.0"; // <--- Cambiado para forzar recarga
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -2003,10 +2003,36 @@
   </div>
 </div>
 
-<!-- ===== CARGAR BANNERS DESDE JS ===== -->
-<script src="banners.js"></script>
+<!-- ============================================================ -->
+<!-- === CARGA DE BANNERS.JS CON VERSIÓN (FORZAR ACTUALIZACIÓN) === -->
+<!-- ============================================================ -->
+<script>
+  (function() {
+    // Usamos la misma versión de la aplicación para forzar la recarga
+    const appVersion = localStorage.getItem('archinime_app_version') || '2025-04-08-v21.0';
+    const script = document.createElement('script');
+    script.src = 'banners.js?v=' + appVersion;
+    script.onload = function() {
+      console.log('[Banners] Archivo banners.js cargado correctamente.');
+      // Una vez cargado, ejecutamos el carrusel (si no se ha ejecutado ya)
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
+      }
+    };
+    script.onerror = function() {
+      console.warn('[Banners] Error al cargar banners.js. Usando banners por defecto.');
+      // Si falla, lanzamos el carrusel con los defaults
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
+      }
+    };
+    document.head.appendChild(script);
+  })();
+</script>
 
-<!-- ===== SCRIPTS ===== -->
+<!-- ============================================================ -->
+<!-- ===== SCRIPTS PRINCIPALES (incluyen carrusel) ===== -->
+<!-- ============================================================ -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -2024,7 +2050,7 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v20.0"></script>
+<script src="catalogo.js?v=2025-04-08-v21.0"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
@@ -2827,9 +2853,11 @@
     });
   }
 
-  // ===== CARRUSEL DE BANNERS (DESDE BANNERS.JS) =====
-  (function() {
-    // Banners por defecto (en caso de que no exista banners.js)
+  // ========================================================
+  // ===== CARRUSEL DE BANNERS (FUNCIÓN GLOBAL) =====
+  // ========================================================
+  window.initBannerCarousel = function() {
+    // Banners por defecto (fallback si no hay datos)
     const DEFAULT_BANNERS = [
       { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
       { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
@@ -2837,12 +2865,19 @@
     ];
 
     // Intentar cargar desde la variable global BANNERS_DATA (definida en banners.js)
-    const banners = (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) 
-      ? window.BANNERS_DATA 
-      : DEFAULT_BANNERS;
+    let banners;
+    if (typeof window.BANNERS_DATA !== 'undefined' && Array.isArray(window.BANNERS_DATA) && window.BANNERS_DATA.length > 0) {
+      banners = window.BANNERS_DATA;
+      console.log('[Carrusel] Usando banners desde banners.js:', banners);
+    } else {
+      banners = DEFAULT_BANNERS;
+      console.warn('[Carrusel] BANNERS_DATA no encontrado, usando defaults');
+    }
 
     const carousel = document.getElementById('bannerCarousel');
     const dotsContainer = document.getElementById('bannerDots');
+    if (!carousel || !dotsContainer) return;
+
     let currentBanner = 0;
     let intervalId = null;
 
@@ -2922,12 +2957,32 @@
 
     function resetInterval() {
       if (intervalId) clearInterval(intervalId);
-      intervalId = setInterval(nextBanner, 5000);
+      if (banners.length > 1) {
+        intervalId = setInterval(nextBanner, 5000);
+      }
     }
 
     renderBanners();
     resetInterval();
-  })();
+  };
+
+  // ========================================================
+  // ===== INICIALIZAR CARRUSEL CUANDO EL DOM ESTÉ LISTO =====
+  // ========================================================
+  // Si el DOM ya está cargado, ejecutamos directamente; si no, esperamos.
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    // Si ya se ha cargado banners.js, initBannerCarousel ya se llamará desde el onload.
+    // Pero por si acaso, lo ejecutamos ahora.
+    if (typeof window.initBannerCarousel === 'function') {
+      window.initBannerCarousel();
+    }
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof window.initBannerCarousel === 'function') {
+        window.initBannerCarousel();
+      }
+    });
+  }
 
   // Panel lateral contenido
   (function() {

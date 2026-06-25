@@ -4,10 +4,10 @@
    MEJORADO: banners.js siempre fresco, actualización forzada
    ============================================================ */
 
-const CACHE_STATIC = 'archinime-static-v147'; // <--- Cambia la versión para forzar actualización
-const CACHE_DYNAMIC = 'archinime-dynamic-v147';
-const CACHE_IMAGES = 'archinime-images-v147';
-const CACHE_FONTS = 'archinime-fonts-v147';
+const CACHE_STATIC = 'archinime-static-v148'; // <--- Cambia la versión para forzar actualización
+const CACHE_DYNAMIC = 'archinime-dynamic-v148';
+const CACHE_IMAGES = 'archinime-images-v148';
+const CACHE_FONTS = 'archinime-fonts-v148';
 
 const STATIC_ASSETS = [
   '/',
