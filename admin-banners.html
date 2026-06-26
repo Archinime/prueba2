@@ -1,535 +1,719 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Banners - Archinime</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Banners · Archinime</title>
   <style>
-    :root {
-      --bg-deep: #05070a;
-      --bg-card: #0b0e14;
-      --neon-blue: #00f0ff;
-      --neon-pink: #ff1a6b;
-      --neon-purple: #b114ff;
-      --text-primary: #f0f2f5;
-      --text-secondary: #8a90a0;
-      --radius-md: 12px;
-      --shadow-heavy: 0 10px 30px rgba(0,0,0,0.6);
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
+    /* ===== ESTILOS ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      font-family: 'Poppins', sans-serif;
+      background: #0b0e14;
+      color: #f0f2f5;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       padding: 30px 20px;
-      min-height: 100vh;
     }
     .container {
-      max-width: 900px;
+      max-width: 1100px;
       margin: 0 auto;
     }
     h1 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--neon-blue);
-      font-size: 2rem;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #00f0ff, #b114ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
       margin-bottom: 10px;
-      text-shadow: 0 0 20px var(--neon-blue);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    h1 a {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      background: rgba(255,255,255,0.05);
-      padding: 4px 14px;
-      border-radius: 30px;
-      transition: 0.2s;
-    }
-    h1 a:hover {
-      background: var(--neon-blue);
-      color: #000;
     }
     .sub {
-      color: var(--text-secondary);
+      color: #8a90a0;
       margin-bottom: 30px;
-      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 16px;
     }
-
-    /* Formulario */
-    .form-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: var(--radius-md);
-      padding: 24px;
-      margin-bottom: 30px;
-      box-shadow: var(--shadow-heavy);
-    }
-    .form-card h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--neon-blue);
-    }
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-    .form-group input, .form-group textarea {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #fff;
-      font-family: 'Poppins', sans-serif;
-      transition: 0.2s;
-      font-size: 0.9rem;
-    }
-    .form-group input:focus, .form-group textarea:focus {
-      border-color: var(--neon-blue);
-      outline: none;
-      box-shadow: 0 0 20px rgba(0,240,255,0.05);
-    }
-    .form-group textarea { resize: vertical; min-height: 60px; }
-    .form-row {
+    .grid-actions {
       display: flex;
-      gap: 14px;
       flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 30px;
     }
-    .form-row .form-group { flex: 1; min-width: 180px; }
-
     .btn {
-      padding: 10px 28px;
-      border-radius: 40px;
+      padding: 10px 22px;
       border: none;
-      font-weight: 700;
+      border-radius: 40px;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.25s;
-      font-family: 'Poppins', sans-serif;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       font-size: 0.9rem;
     }
     .btn-primary {
-      background: var(--neon-blue);
-      color: #000;
+      background: #00f0ff;
+      color: #0b0e14;
     }
     .btn-primary:hover {
-      box-shadow: 0 0 30px rgba(0,240,255,0.3);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
       transform: translateY(-2px);
     }
     .btn-danger {
-      background: var(--neon-pink);
+      background: #ff1a6b;
       color: #fff;
     }
     .btn-danger:hover {
-      box-shadow: 0 0 20px var(--neon-pink);
+      box-shadow: 0 0 25px rgba(255, 26, 107, 0.4);
+      transform: translateY(-2px);
+    }
+    .btn-success {
+      background: #00ff88;
+      color: #0b0e14;
+    }
+    .btn-success:hover {
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
       transform: translateY(-2px);
     }
     .btn-secondary {
-      background: rgba(255,255,255,0.05);
-      color: var(--text-secondary);
-      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
     }
     .btn-secondary:hover {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.12);
     }
-
-    /* Lista de banners */
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.75rem;
+    }
     .banner-list {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
     .banner-item {
-      background: var(--bg-card);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
       padding: 16px 20px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       transition: 0.2s;
-      box-shadow: var(--shadow-heavy);
+      position: relative;
     }
     .banner-item:hover {
-      border-color: rgba(0,240,255,0.2);
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(0, 240, 255, 0.15);
     }
     .banner-item .preview {
       width: 100px;
       height: 60px;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #000;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
       flex-shrink: 0;
       border: 1px solid rgba(255,255,255,0.05);
-      position: relative;
-    }
-    .banner-item .preview img,
-    .banner-item .preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
     .banner-item .info {
       flex: 1;
-      min-width: 0;
+      min-width: 200px;
     }
     .banner-item .info .title {
       font-weight: 600;
       font-size: 1rem;
     }
     .banner-item .info .desc {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: #8a90a0;
+      font-size: 0.85rem;
+    }
+    .banner-item .info .links {
+      font-size: 0.7rem;
+      color: #5a6070;
+      margin-top: 2px;
     }
     .banner-item .actions {
       display: flex;
       gap: 8px;
-      flex-shrink: 0;
+      flex-wrap: wrap;
     }
-    .banner-item .actions button {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255,255,255,0.04);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.9rem;
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #8a90a0;
+      border: 2px dashed rgba(255,255,255,0.05);
+      border-radius: 20px;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,7,10,0.85);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
     }
-    .banner-item .actions button:hover {
-      background: rgba(0,240,255,0.08);
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal {
+      background: #14181f;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 24px;
+      max-width: 600px;
+      width: 100%;
+      padding: 28px 30px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+      transform: translateY(20px) scale(0.96);
+      transition: transform 0.3s ease;
+    }
+    .modal-overlay.active .modal {
+      transform: translateY(0) scale(1);
+    }
+    .modal h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #00f0ff;
+    }
+    .modal label {
+      display: block;
+      font-weight: 500;
+      margin: 12px 0 4px;
+      color: #b0b8c8;
+      font-size: 0.85rem;
+    }
+    .modal input, .modal textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.04);
       color: #fff;
+      font-family: inherit;
+      transition: 0.2s;
     }
-    .banner-item .actions .delete:hover {
-      background: var(--neon-pink);
-      color: #fff;
+    .modal input:focus, .modal textarea:focus {
+      border-color: #00f0ff;
+      outline: none;
+      box-shadow: 0 0 20px rgba(0,240,255,0.05);
     }
+    .modal textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .modal .form-row {
+      display: flex;
+      gap: 16px;
+    }
+    .modal .form-row > div { flex: 1; }
+    .modal .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+    .modal .modal-actions .btn { flex: 1; justify-content: center; }
 
-    .empty {
-      text-align: center;
-      color: var(--text-secondary);
-      padding: 40px 0;
+    /* Export */
+    .export-area {
+      margin-top: 30px;
+      background: #0a0c10;
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 16px;
+      padding: 16px 20px;
     }
-    .empty i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+    .export-area pre {
+      background: #05070a;
+      padding: 16px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #c0c8d8;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid rgba(255,255,255,0.03);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .export-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
 
     /* responsive */
     @media (max-width: 600px) {
-      .banner-item {
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-      .banner-item .preview {
-        width: 80px;
-        height: 48px;
-      }
-      .form-row { flex-direction: column; }
-      .form-row .form-group { min-width: unset; }
+      .banner-item { flex-direction: column; align-items: stretch; }
+      .banner-item .preview { width: 100%; height: 120px; }
+      .modal { padding: 20px; }
+      .modal .form-row { flex-direction: column; gap: 0; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>
-      <i class="fas fa-images"></i> Gestión de Banners
-      <a href="index.html" target="_blank"><i class="fas fa-external-link-alt"></i> Ver página</a>
-    </h1>
-    <p class="sub">Administra los banners del carrusel de la página principal. Cada banner puede tener una imagen o video.</p>
+<div class="container">
+  <h1>🎬 Gestor de Banners</h1>
+  <div class="sub">Administra los banners del carrusel. Los cambios se guardan en <strong>localStorage</strong> y se exportan a <code>banner-carousel.js</code>.</div>
 
-    <!-- Formulario -->
-    <div class="form-card" id="formCard">
-      <h2 id="formTitle"><i class="fas fa-plus-circle"></i> Nuevo Banner</h2>
-      <form id="bannerForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Título *</label>
-            <input type="text" id="bannerTitle" placeholder="Ej: Nuevo Anime" required>
-          </div>
-          <div class="form-group">
-            <label>URL de Imagen o Video *</label>
-            <input type="url" id="bannerMedia" placeholder="https://ejemplo.com/imagen.jpg" required>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Descripción (opcional)</label>
-            <input type="text" id="bannerDesc" placeholder="⭐ 4.9 · Acción, Aventura">
-          </div>
-          <div class="form-group">
-            <label>Enlace (opcional)</label>
-            <input type="url" id="bannerLink" placeholder="https://...">
-          </div>
-        </div>
-        <div style="display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;">
-          <button type="submit" class="btn btn-primary" id="saveBtn"><i class="fas fa-save"></i> Guardar Banner</button>
-          <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;"><i class="fas fa-times"></i> Cancelar</button>
-        </div>
-        <div id="formMessage" style="margin-top:12px; font-size:0.85rem; color:var(--neon-blue);"></div>
-      </form>
-    </div>
-
-    <!-- Lista de banners -->
-    <div id="bannerListContainer">
-      <h2 style="font-size:1.1rem; font-weight:600; margin-bottom:14px; color:var(--text-secondary);">
-        <i class="fas fa-list"></i> Banners actuales
-      </h2>
-      <div id="bannerList" class="banner-list"></div>
-    </div>
-
-    <!-- Botón para restaurar banners por defecto -->
-    <div style="margin-top:30px; text-align:center;">
-      <button class="btn btn-secondary" id="resetBtn">
-        <i class="fas fa-undo-alt"></i> Restaurar banners por defecto
-      </button>
-    </div>
+  <div class="grid-actions">
+    <button class="btn btn-primary" onclick="openModal()">➕ Agregar Banner</button>
+    <button class="btn btn-success" onclick="exportCode()">📦 Exportar Código</button>
+    <button class="btn btn-secondary" onclick="resetDefaults()">↺ Restaurar Predeterminados</button>
+    <button class="btn btn-danger" onclick="clearAll()">🗑️ Eliminar Todos</button>
   </div>
 
-  <script>
-    // Clave para localStorage
-    const STORAGE_KEY = 'archinime_banners';
+  <div id="bannerList" class="banner-list"></div>
 
-    // Banners por defecto (se usan si no hay nada guardado)
-    const DEFAULT_BANNERS = [
-      {
-        id: 1,
-        title: 'Attack on Titan',
-        desc: '⭐ 4.9 · Acción, Drama, Fantasía',
-        media: 'https://images.alphacoders.com/135/1354428.jpeg',
-        link: '#'
-      },
-      {
-        id: 2,
-        title: 'Demon Slayer',
-        desc: '⭐ 4.8 · Acción, Aventura, Fantasía',
-        media: 'https://images.alphacoders.com/135/1355118.jpeg',
-        link: '#'
-      },
-      {
-        id: 3,
-        title: 'Jujutsu Kaisen',
-        desc: '⭐ 4.7 · Acción, Sobrenatural',
-        media: 'https://images.alphacoders.com/135/1355122.jpeg',
-        link: '#'
-      }
-    ];
+  <div class="export-area" id="exportArea" style="display:none;">
+    <h3 style="color:#00f0ff; margin-bottom:8px;">📄 Código exportado</h3>
+    <pre id="exportCodeBlock"></pre>
+    <div class="export-actions">
+      <button class="btn btn-primary" onclick="copyExport()">📋 Copiar</button>
+      <button class="btn btn-success" onclick="downloadExport()">⬇️ Descargar .js</button>
+      <button class="btn btn-secondary" onclick="toggleExport()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
-    // Estado
-    let banners = [];
-    let editingId = null;
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Nuevo Banner</h2>
+    <form id="bannerForm" onsubmit="saveBanner(event)">
+      <input type="hidden" id="editIndex" value="-1" />
+      <label>Título <span style="color:#8a90a0; font-weight:400;">(opcional)</span></label>
+      <input type="text" id="formTitle" placeholder="Ej: Attack on Titan" />
 
-    // Elementos del DOM
-    const form = document.getElementById('bannerForm');
-    const titleInput = document.getElementById('bannerTitle');
-    const mediaInput = document.getElementById('bannerMedia');
-    const descInput = document.getElementById('bannerDesc');
-    const linkInput = document.getElementById('bannerLink');
-    const saveBtn = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const formTitle = document.getElementById('formTitle');
-    const formMessage = document.getElementById('formMessage');
-    const bannerList = document.getElementById('bannerList');
-    const resetBtn = document.getElementById('resetBtn');
+      <label>Descripción <span style="color:#8a90a0; font-weight:400;">(opcional)</span></label>
+      <input type="text" id="formDesc" placeholder="⭐ 4.9 · Acción, Drama" />
 
-    // Generar ID único (sin puntos)
-    function generateId() {
-      return Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-    }
+      <label>Media Desktop (PC) <span style="color:#ff1a6b;">*</span></label>
+      <input type="text" id="formDesktop" placeholder="URL imagen o video (PC)" required />
 
-    // Cargar banners desde localStorage o usar default
-    function loadBanners() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          banners = JSON.parse(stored);
-          if (!banners.length) banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
-        } catch (e) {
-          banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
+      <label>Media Mobile <span style="color:#ff1a6b;">*</span></label>
+      <input type="text" id="formMobile" placeholder="URL imagen o video (móvil)" required />
+
+      <label>Enlace <span style="color:#8a90a0; font-weight:400;">(opcional)</span></label>
+      <input type="text" id="formLink" placeholder="https://..." value="#" />
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ===== LÓGICA =====
+  const STORAGE_KEY = 'archinime_banners';
+
+  const DEFAULT_BANNERS = [
+    { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', mediaDesktop: 'https://images.alphacoders.com/135/1354428.jpeg', mediaMobile: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
+    { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', mediaDesktop: 'https://images.alphacoders.com/135/1355118.jpeg', mediaMobile: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
+    { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', mediaDesktop: 'https://images.alphacoders.com/135/1355122.jpeg', mediaMobile: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
+  ];
+
+  let banners = [];
+
+  function loadBanners() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.length) {
+          banners = parsed.map(b => {
+            if (b.media && !b.mediaDesktop) {
+              return { title: b.title || '', desc: b.desc || '', mediaDesktop: b.media, mediaMobile: b.media, link: b.link || '#' };
+            }
+            return b;
+          });
+          return;
         }
-      } else {
-        banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
-      }
-      saveToStorage();
-      renderBanners();
+      } catch (e) {}
     }
+    banners = JSON.parse(JSON.stringify(DEFAULT_BANNERS));
+  }
 
-    function saveToStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
+  function saveBanners() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(banners));
+    renderBanners();
+  }
+
+  function renderBanners() {
+    const container = document.getElementById('bannerList');
+    if (banners.length === 0) {
+      container.innerHTML = `<div class="empty-state">📭 No hay banners. Agrega uno nuevo.</div>`;
+      return;
     }
-
-    // Renderizar lista de banners
-    function renderBanners() {
-      if (!banners.length) {
-        bannerList.innerHTML = `<div class="empty"><i class="fas fa-image"></i><p>No hay banners. ¡Agrega uno!</p></div>`;
-        return;
-      }
-      let html = '';
-      banners.forEach((b, index) => {
-        const isVideo = b.media && (b.media.endsWith('.mp4') || b.media.endsWith('.webm') || b.media.includes('youtube.com') || b.media.includes('youtu.be'));
-        const mediaTag = isVideo
-          ? `<video src="${b.media}" muted autoplay loop playsinline></video>`
-          : `<img src="${b.media}" alt="${b.title}" loading="lazy" onerror="this.style.display='none'">`;
-        // Escapamos el ID para pasarlo como atributo data-id
-        const safeId = b.id.toString().replace(/"/g, '&quot;');
-        html += `
-          <div class="banner-item" data-id="${safeId}">
-            <div class="preview">${mediaTag}</div>
-            <div class="info">
-              <div class="title">${b.title}</div>
-              <div class="desc">${b.desc || ''} ${b.link && b.link !== '#' ? '🔗' : ''}</div>
-            </div>
-            <div class="actions">
-              <button class="edit" data-id="${safeId}" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="delete" data-id="${safeId}" title="Eliminar"><i class="fas fa-trash"></i></button>
-            </div>
+    let html = '';
+    banners.forEach((b, i) => {
+      const preview = b.mediaDesktop || b.mediaMobile || '';
+      html += `
+        <div class="banner-item">
+          <div class="preview" style="background-image: url('${preview}');"></div>
+          <div class="info">
+            <div class="title">${b.title || 'Sin título'}</div>
+            <div class="desc">${b.desc || ''}</div>
+            <div class="links">Desktop: ${b.mediaDesktop || '—'} | Mobile: ${b.mediaMobile || '—'}</div>
           </div>
-        `;
-      });
-      bannerList.innerHTML = html;
+          <div class="actions">
+            <button class="btn btn-primary btn-sm" onclick="editBanner(${i})">✎ Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteBanner(${i})">✕</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveBanner(${i}, -1)">▲</button>
+            <button class="btn btn-secondary btn-sm" onclick="moveBanner(${i}, 1)">▼</button>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
 
-      // Asignar event listeners a los botones
-      document.querySelectorAll('.banner-item .edit').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const id = this.dataset.id;
-          editBanner(id);
-        });
-      });
+  function openModal(index = -1) {
+    const overlay = document.getElementById('modalOverlay');
+    const title = document.getElementById('modalTitle');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const idxField = document.getElementById('editIndex');
 
-      document.querySelectorAll('.banner-item .delete').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const id = this.dataset.id;
-          deleteBanner(id);
-        });
-      });
+    if (index === -1) {
+      title.textContent = '➕ Nuevo Banner';
+      submitBtn.textContent = 'Crear';
+      idxField.value = '-1';
+      document.getElementById('formTitle').value = '';
+      document.getElementById('formDesc').value = '';
+      document.getElementById('formDesktop').value = '';
+      document.getElementById('formMobile').value = '';
+      document.getElementById('formLink').value = '#';
+    } else {
+      const b = banners[index];
+      title.textContent = '✎ Editar Banner';
+      submitBtn.textContent = 'Actualizar';
+      idxField.value = index;
+      document.getElementById('formTitle').value = b.title || '';
+      document.getElementById('formDesc').value = b.desc || '';
+      document.getElementById('formDesktop').value = b.mediaDesktop || '';
+      document.getElementById('formMobile').value = b.mediaMobile || '';
+      document.getElementById('formLink').value = b.link || '#';
+    }
+    overlay.classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+  }
+
+  function saveBanner(e) {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('editIndex').value);
+    const title = document.getElementById('formTitle').value.trim();
+    const desc = document.getElementById('formDesc').value.trim();
+    const mediaDesktop = document.getElementById('formDesktop').value.trim();
+    const mediaMobile = document.getElementById('formMobile').value.trim();
+    const link = document.getElementById('formLink').value.trim() || '#';
+
+    if (!mediaDesktop || !mediaMobile) {
+      alert('Los campos de media son obligatorios.');
+      return;
     }
 
-    // Guardar o actualizar banner
-    function saveBanner(e) {
-      e.preventDefault();
-      const title = titleInput.value.trim();
-      const media = mediaInput.value.trim();
-      const desc = descInput.value.trim();
-      const link = linkInput.value.trim();
+    const newBanner = { title, desc, mediaDesktop, mediaMobile, link };
 
-      if (!title || !media) {
-        formMessage.textContent = '⚠️ El título y la URL son obligatorios.';
-        formMessage.style.color = 'var(--neon-pink)';
-        return;
-      }
+    if (idx === -1) {
+      banners.push(newBanner);
+    } else {
+      banners[idx] = newBanner;
+    }
+    saveBanners();
+    closeModal();
+  }
 
-      if (editingId) {
-        // Editar
-        const index = banners.findIndex(b => b.id === editingId);
-        if (index !== -1) {
-          banners[index] = { ...banners[index], title, media, desc, link };
+  function editBanner(index) {
+    openModal(index);
+  }
+
+  function deleteBanner(index) {
+    if (confirm('¿Eliminar este banner?')) {
+      banners.splice(index, 1);
+      saveBanners();
+    }
+  }
+
+  function moveBanner(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= banners.length) return;
+    const [item] = banners.splice(index, 1);
+    banners.splice(newIndex, 0, item);
+    saveBanners();
+  }
+
+  function resetDefaults() {
+    if (confirm('Restaurar los banners predeterminados? Se perderán los cambios actuales.')) {
+      banners = JSON.parse(JSON.stringify(DEFAULT_BANNERS));
+      saveBanners();
+    }
+  }
+
+  function clearAll() {
+    if (confirm('Eliminar TODOS los banners?')) {
+      banners = [];
+      saveBanners();
+    }
+  }
+
+  // --- EXPORTAR CÓDIGO ---
+  function generateExportCode() {
+    const bannerArray = banners.map(b => ({
+      title: b.title || '',
+      desc: b.desc || '',
+      mediaDesktop: b.mediaDesktop || '',
+      mediaMobile: b.mediaMobile || '',
+      link: b.link || '#'
+    }));
+
+    const jsonStr = JSON.stringify(bannerArray, null, 2);
+    const escaped = jsonStr.replace(/`/g, '\\`').replace(/\${/g, '\\${');
+
+    return `// banner-carousel.js
+// Carrusel de banners con soporte para PC (mediaDesktop) y móvil (mediaMobile)
+// Título y descripción opcionales – AHORA VIDEOS EN MÓVIL TAMBIÉN
+
+(function() {
+  const STORAGE_KEY = 'archinime_banners';
+
+  const DEFAULT_BANNERS = ${jsonStr};
+
+  function isMobile() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function getBanners() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.length) {
+          return parsed.map(b => {
+            if (b.media && !b.mediaDesktop) {
+              return {
+                title: b.title || '',
+                desc: b.desc || '',
+                mediaDesktop: b.media,
+                mediaMobile: b.media,
+                link: b.link || '#'
+              };
+            }
+            return b;
+          });
         }
-        editingId = null;
-        saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
-        formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
-        cancelBtn.style.display = 'none';
-        formMessage.textContent = '✅ Banner actualizado correctamente.';
-        formMessage.style.color = 'var(--neon-blue)';
-      } else {
-        // Nuevo
-        const newBanner = {
-          id: generateId(),
-          title,
-          media,
-          desc,
-          link
+      } catch (e) {}
+    }
+    return DEFAULT_BANNERS;
+  }
+
+  const banners = getBanners();
+  const carousel = document.getElementById('bannerCarousel');
+  const dotsContainer = document.getElementById('bannerDots');
+  let currentBanner = 0;
+  let intervalId = null;
+
+  function renderBanners() {
+    carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
+    dotsContainer.innerHTML = '';
+
+    const isMobileDevice = isMobile();
+
+    banners.forEach((b, i) => {
+      const mediaUrl = isMobileDevice ? (b.mediaMobile || b.mediaDesktop) : b.mediaDesktop;
+      if (!mediaUrl) return;
+
+      const slide = document.createElement('div');
+      slide.className = \`banner-slide \${i === 0 ? 'active' : ''}\`;
+
+      const isVideo = mediaUrl && (mediaUrl.endsWith('.mp4') || mediaUrl.endsWith('.webm') || mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be'));
+
+      if (isVideo) {
+        // Mostrar video en TODOS los dispositivos
+        slide.style.background = '#000';
+        const videoEl = document.createElement('video');
+        videoEl.src = mediaUrl;
+        videoEl.autoplay = true;
+        videoEl.muted = true;
+        videoEl.loop = true;
+        videoEl.playsInline = true;
+        videoEl.style.position = 'absolute';
+        videoEl.style.inset = '0';
+        videoEl.style.width = '100%';
+        videoEl.style.height = '100%';
+        videoEl.style.objectFit = 'cover';
+        videoEl.style.zIndex = '0';
+        slide.appendChild(videoEl);
+
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.3)';
+        overlay.style.zIndex = '1';
+        slide.appendChild(overlay);
+
+        // Fallback si el video no carga
+        videoEl.onerror = function() {
+          slide.style.backgroundImage = \`url(\${mediaUrl})\`;
+          slide.style.backgroundSize = 'cover';
+          slide.style.backgroundPosition = 'center';
+          videoEl.style.display = 'none';
         };
-        banners.push(newBanner);
-        formMessage.textContent = '✅ Banner agregado correctamente.';
-        formMessage.style.color = 'var(--neon-blue)';
+      } else {
+        slide.style.backgroundImage = \`url(\${mediaUrl})\`;
+        slide.style.backgroundSize = 'cover';
+        slide.style.backgroundPosition = 'center';
       }
 
-      saveToStorage();
-      renderBanners();
-      form.reset();
-      setTimeout(() => { formMessage.textContent = ''; }, 3000);
-    }
+      const hasTitle = b.title && b.title.trim() !== '';
+      const hasDesc = b.desc && b.desc.trim() !== '';
 
-    // Editar banner
-    function editBanner(id) {
-      const banner = banners.find(b => b.id === id);
-      if (!banner) return;
-      editingId = id;
-      titleInput.value = banner.title;
-      mediaInput.value = banner.media;
-      descInput.value = banner.desc || '';
-      linkInput.value = banner.link || '';
-      saveBtn.innerHTML = '<i class="fas fa-pen"></i> Actualizar Banner';
-      formTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Banner';
-      cancelBtn.style.display = 'inline-block';
-      formMessage.textContent = '';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+      if (hasTitle || hasDesc) {
+        const info = document.createElement('div');
+        info.className = 'banner-info';
+        info.style.position = 'relative';
+        info.style.zIndex = '2';
+        let html = '';
+        if (hasTitle) html += \`<h2>\${b.title}</h2>\`;
+        if (hasDesc) html += \`<p>\${b.desc}</p>\`;
+        info.innerHTML = html;
+        slide.appendChild(info);
+      }
 
-    // Eliminar banner
-    function deleteBanner(id) {
-      if (!confirm('¿Eliminar este banner permanentemente?')) return;
-      banners = banners.filter(b => b.id !== id);
-      saveToStorage();
-      renderBanners();
-      if (editingId === id) {
-        editingId = null;
-        saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
-        formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
-        cancelBtn.style.display = 'none';
-        form.reset();
-        formMessage.textContent = '';
+      if (b.link && b.link !== '#') {
+        slide.style.cursor = 'pointer';
+        slide.addEventListener('click', () => {
+          window.open(b.link, '_blank');
+        });
+      }
+
+      carousel.appendChild(slide);
+
+      const dot = document.createElement('button');
+      dot.className = \`banner-dot \${i === 0 ? 'active' : ''}\`;
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function goTo(index) {
+    const slides = carousel.querySelectorAll('.banner-slide');
+    const dots = dotsContainer.querySelectorAll('.banner-dot');
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    currentBanner = index;
+    resetInterval();
+  }
+
+  function nextBanner() {
+    const total = banners.length;
+    if (total === 0) return;
+    goTo((currentBanner + 1) % total);
+  }
+
+  function resetInterval() {
+    if (intervalId) clearInterval(intervalId);
+    if (banners.length > 1) {
+      intervalId = setInterval(nextBanner, 5000);
+    }
+  }
+
+  renderBanners();
+  resetInterval();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) {
+      const newBanners = getBanners();
+      if (JSON.stringify(newBanners) !== JSON.stringify(banners)) {
+        banners.length = 0;
+        banners.push(...newBanners);
+        renderBanners();
+        resetInterval();
       }
     }
+  });
 
-    // Cancelar edición
-    cancelBtn.addEventListener('click', function() {
-      editingId = null;
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
-      formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
-      cancelBtn.style.display = 'none';
-      form.reset();
-      formMessage.textContent = '';
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const newIsMobile = isMobile();
+      if (window._lastIsMobile === undefined) {
+        window._lastIsMobile = newIsMobile;
+      } else if (window._lastIsMobile !== newIsMobile) {
+        window._lastIsMobile = newIsMobile;
+        renderBanners();
+        resetInterval();
+      }
+    }, 300);
+  });
+})();`;
+  }
+
+  function toggleExport() {
+    const area = document.getElementById('exportArea');
+    if (area.style.display === 'none') {
+      const code = generateExportCode();
+      document.getElementById('exportCodeBlock').textContent = code;
+      area.style.display = 'block';
+    } else {
+      area.style.display = 'none';
+    }
+  }
+
+  function exportCode() {
+    toggleExport();
+  }
+
+  function copyExport() {
+    const code = document.getElementById('exportCodeBlock').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      alert('✅ Código copiado al portapapeles.');
+    }).catch(() => {
+      const textarea = document.createElement('textarea');
+      textarea.value = code;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('✅ Código copiado.');
     });
+  }
 
-    // Restaurar por defecto
-    resetBtn.addEventListener('click', function() {
-      if (!confirm('¿Restaurar los banners por defecto? Se perderán los cambios actuales.')) return;
-      banners = DEFAULT_BANNERS.map(b => ({...b, id: generateId()}));
-      saveToStorage();
-      renderBanners();
-      editingId = null;
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Banner';
-      formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Banner';
-      cancelBtn.style.display = 'none';
-      form.reset();
-      formMessage.textContent = '✅ Banners restaurados.';
-      formMessage.style.color = 'var(--neon-blue)';
-      setTimeout(() => { formMessage.textContent = ''; }, 3000);
-    });
+  function downloadExport() {
+    const code = document.getElementById('exportCodeBlock').textContent;
+    const blob = new Blob([code], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'banner-carousel.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
-    // Event listener del formulario
-    form.addEventListener('submit', saveBanner);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
 
-    // Inicializar
-    loadBanners();
-  </script>
+  loadBanners();
+  renderBanners();
+</script>
 </body>
 </html>
