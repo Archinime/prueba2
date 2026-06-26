@@ -1587,7 +1587,7 @@
       transform: scale(1.02);
     }
 
-    /* ===== CHAT (PANEL LATERAL) ===== */
+    /* ===== CHAT GLOBAL (PANEL LATERAL) ===== */
     .side-panel-toggle {
       display: none;
     }
@@ -2015,13 +2015,11 @@
       .profile-card { max-width: 100%; }
       .detail-card { max-height: 85vh; }
       .detail-cover { height: 320px; }
-      .banner-carousel { height: 160px; }
     }
     @media (max-width: 480px) {
       .side-panel { width: 100vw; right: -105vw; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
       .detail-cover { height: 260px; }
-      .banner-carousel { height: 140px; }
     }
   </style>
 </head>
@@ -2042,8 +2040,8 @@
 <!-- ===== PARTÍCULAS ===== -->
 <canvas id="particlesCanvas"></canvas>
 
-<!-- ===== FONDO VIDEO (igual a aqui.txt) ===== -->
-<video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto" style="position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; opacity:0; transition:opacity 1.2s; filter:brightness(0.5) contrast(1.1);">
+<!-- ===== FONDO VIDEO (OPACIDAD FIJADA A 1 SIEMPRE) ===== -->
+<video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto" style="position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; opacity:1; filter:brightness(0.5) contrast(1.1);">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
 <div id="overlay" style="position:fixed; inset:0; z-index:-1; background:radial-gradient(ellipse at 30% 40%, rgba(177,20,255,0.08), rgba(5,7,10,0.9)); pointer-events:none;"></div>
@@ -2287,7 +2285,7 @@
   </div>
 </div>
 
-<!-- ===== CHROMA KEY (igual a aqui.txt) ===== -->
+<!-- ===== CHROMA KEY ===== -->
 <div class="stage">
   <div id="fgContainer">
     <canvas id="fgCanvas"></canvas>
@@ -2744,7 +2742,6 @@
       `;
     });
 
-    // Ocultar/mostrar input según login
     const inputContainer = document.getElementById('chatInputContainerPanel');
     if (user) {
       inputContainer.style.display = 'flex';
@@ -2927,7 +2924,7 @@
   window.cerrarStickerModal = cerrarStickerModalGlobal;
 
   // ============================================
-  // ANIMACIONES (VIDEO Y CHROMA KEY) - como en aqui.txt
+  // ANIMACIONES: VIDEO DE FONDO Y CHROMA KEY
   // ============================================
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
@@ -2977,13 +2974,23 @@
   fgVideo.addEventListener('play', () => requestAnimationFrame(processChroma));
 
   function startVisualMedia() {
+    // El video de fondo ya tiene opacity:1, solo lo reproducimos
     const bgVideo = document.getElementById('bg-video');
-    bgVideo.play().then(() => {
-      bgVideo.style.opacity = '1';
-    }).catch(() => {});
+    bgVideo.play().catch(() => {});
+
     fgVideo.muted = true;
     fgVideo.play().catch(() => {});
     randomizeFgPosition();
+
+    // Si el chroma video no se reproduce, forzamos un frame negro para que no se vea transparente
+    setTimeout(() => {
+      if (fgVideo.paused) {
+        fgCtx.fillStyle = '#000';
+        fgCtx.fillRect(0, 0, fgCanvas.width, fgCanvas.height);
+        // Intentar reproducir de nuevo
+        fgVideo.play().catch(() => {});
+      }
+    }, 1000);
   }
 
   function createSparks(cx, cy) {
