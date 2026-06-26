@@ -10,23 +10,23 @@
   {
     "title": "",
     "desc": "",
-    "mediaDesktop": "https://files.catbox.moe/p0sabl.mp4",
-    "mediaMobile": "https://files.catbox.moe/l1egvy.avif",
-    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=4"
+    "mediaDesktop": "https://files.catbox.moe/9snow9.mp4",
+    "mediaMobile": "https://files.catbox.moe/9snow9.mp4",
+    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=2"
   },
   {
     "title": "Demon Slayer",
-    "desc": "⭐ 4.8 · Acción, Aventura, Fantasía",
-    "mediaDesktop": "https://images.alphacoders.com/135/1355118.jpeg",
-    "mediaMobile": "https://images.alphacoders.com/135/1355118.jpeg",
-    "link": "#"
+    "desc": "",
+    "mediaDesktop": "https://files.catbox.moe/eqefiz.mp4",
+    "mediaMobile": "https://files.catbox.moe/eqefiz.mp4",
+    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=10"
   },
   {
-    "title": "Jujutsu Kaisen",
-    "desc": "⭐ 4.7 · Acción, Sobrenatural",
-    "mediaDesktop": "https://images.alphacoders.com/135/1355122.jpeg",
-    "mediaMobile": "https://images.alphacoders.com/135/1355122.jpeg",
-    "link": "#"
+    "title": "Re:Zero",
+    "desc": "⭐ 5 · Acción, Sobrenatural",
+    "mediaDesktop": "https://files.catbox.moe/48rh4u.mp4",
+    "mediaMobile": "https://files.catbox.moe/48rh4u.mp4",
+    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=4"
   }
 ];
 
