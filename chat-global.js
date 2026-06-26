@@ -5,11 +5,12 @@
 // ============================================
 
 (function() {
-  // --- Referencias a Firebase (se toman de app-core.js) ---
+  // --- Referencias a Firebase ---
   let db, auth;
   let currentUser = null;
   let mensajesUnsubscribe = null;
   let stickerSeleccionado = null;
+  let chatIniciado = false;
 
   // Esperar a que Firebase esté listo
   function init() {
@@ -30,13 +31,17 @@
         if (typeof loadUserStickers === 'function') {
           loadUserStickers();
         }
-        // Iniciar escucha de mensajes
-        startListening();
+        // Si el modal está visible, iniciar escucha
+        const modal = document.getElementById('chatModal');
+        if (modal && modal.classList.contains('show')) {
+          startListening();
+        }
       } else {
         if (mensajesUnsubscribe) {
           mensajesUnsubscribe();
           mensajesUnsubscribe = null;
         }
+        chatIniciado = false;
         const container = document.getElementById('chatMessages');
         if (container) {
           container.innerHTML = `
@@ -49,19 +54,36 @@
       }
     });
 
-    // Escuchar el evento de apertura del modal para cargar mensajes
-    const chatModal = document.getElementById('chatModal');
-    if (chatModal) {
-      chatModal.addEventListener('shown.bs.modal', () => {
-        if (currentUser) startListening();
+    // Observar la apertura del modal con MutationObserver
+    const modal = document.getElementById('chatModal');
+    if (modal) {
+      const observer = new MutationObserver(() => {
+        if (modal.classList.contains('show')) {
+          if (currentUser && !chatIniciado) {
+            startListening();
+          }
+        } else {
+          // Opcional: no cancelamos la suscripción al cerrar, para mantener mensajes al reabrir
+          // pero podemos mantenerla activa.
+        }
       });
+      observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
     }
+
+    // Exponer función para iniciar el chat desde fuera
+    window.iniciarChatGlobal = function() {
+      if (currentUser && !chatIniciado) {
+        startListening();
+      }
+    };
   }
 
   function startListening() {
     if (!db) return;
     if (mensajesUnsubscribe) mensajesUnsubscribe();
+    if (!currentUser) return;
 
+    chatIniciado = true;
     const query = db.collection('globalChat')
       .orderBy('timestamp', 'desc')
       .limit(100);
@@ -80,7 +102,7 @@
         return;
       }
 
-      const docs = snapshot.docs.reverse(); // Para orden cronológico ascendente
+      const docs = snapshot.docs.reverse();
       let html = '';
       docs.forEach(doc => {
         const data = doc.data();
@@ -94,16 +116,13 @@
         const customColor = data.customColor || getNeonColor(data.userId || userName);
         const uid = data.userId || '';
 
-        // Procesar texto: emojis, enlaces, etc.
         let contenido = escapeHtml(texto);
         contenido = contenido.replace(/\n/g, '<br>');
-        // Emojis simples
         const emojis = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
         for (const [key, val] of Object.entries(emojis)) {
           contenido = contenido.split(key).join(val);
         }
 
-        // Si tiene sticker, mostrarlo después del texto
         let stickerHtml = '';
         if (esSticker && stickerUrl) {
           const isVideo = stickerUrl.match(/\.(mp4|webm)$/i);
@@ -115,7 +134,6 @@
           `;
         }
 
-        // Verificar si el usuario actual es el autor (para opciones de eliminar)
         const isOwner = currentUser && currentUser.uid === uid;
         const deleteBtn = isOwner ? `
           <button class="chat-delete-msg" data-id="${doc.id}" style="background:transparent; border:none; color:#ff0055; cursor:pointer; font-size:0.7rem; margin-left:12px;">
@@ -140,11 +158,8 @@
       });
 
       container.innerHTML = html;
-
-      // Scroll al último mensaje
       container.scrollTop = container.scrollHeight;
 
-      // Eventos de eliminar
       container.querySelectorAll('.chat-delete-msg').forEach(btn => {
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -173,7 +188,6 @@
     if (!inputContainer) return;
     if (currentUser) {
       inputContainer.style.display = 'flex';
-      // Actualizar avatar del usuario
       const avatarImg = document.querySelector('#chatInputContainer .chat-user-avatar');
       if (avatarImg) {
         avatarImg.src = currentUser.photoURL || 'invitado.avif';
@@ -282,7 +296,7 @@
     }
   }
 
-  // ---- Abrir modal de stickers ----
+  // ---- Abrir panel de stickers ----
   window.toggleStickerPanelChat = function() {
     const panel = document.getElementById('chatStickerPanel');
     if (panel) {
@@ -307,7 +321,6 @@
     return colors[Math.abs(h)%colors.length];
   }
 
-  // Abrir sticker en modal (reutiliza el del sistema de comentarios)
   window.abrirStickerModal = function(url) {
     if (typeof openStickerModal === 'function') {
       openStickerModal(url);
@@ -316,16 +329,17 @@
     }
   };
 
-  // ---- Inicializar cuando el DOM esté listo ----
+  // ---- Inicializar ----
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 
-  // ---- Exponer funciones globales para el HTML ----
+  // Exponer funciones globales
   window.enviarMensajeChat = window.enviarMensajeChat;
   window.seleccionarStickerChat = window.seleccionarStickerChat;
   window.quitarStickerChat = window.quitarStickerChat;
   window.toggleStickerPanelChat = window.toggleStickerPanelChat;
+  window.iniciarChatGlobal = window.iniciarChatGlobal;
 })();

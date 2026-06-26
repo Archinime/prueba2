@@ -1420,33 +1420,9 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
-    /* ===== PANEL LATERAL ===== */
+    /* ===== PANEL LATERAL (ya no se usa, pero lo mantenemos para no romper) ===== */
     .side-panel-toggle {
-      position: fixed;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 999;
-      background: rgba(11, 14, 20, 0.8);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 240, 255, 0.1);
-      border-right: none;
-      border-radius: 12px 0 0 12px;
-      padding: 12px 8px;
-      cursor: pointer;
-      color: var(--neon-blue);
-      font-size: 1.2rem;
-      transition: 0.3s;
-      writing-mode: vertical-rl;
-      letter-spacing: 4px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
-    }
-    .side-panel-toggle:hover {
-      background: rgba(0, 240, 255, 0.1);
-      border-color: var(--neon-blue);
-      padding-right: 12px;
+      display: none; /* Oculto porque usamos el botón de chat */
     }
 
     .side-panel {
@@ -1467,43 +1443,8 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      display: none; /* oculto porque no se usa */
     }
-    .side-panel.open { right: 0; }
-    .side-panel .panel-close {
-      align-self: flex-end;
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 1.4rem;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .side-panel .panel-close:hover { color: var(--neon-pink); transform: rotate(90deg); }
-    .side-panel h3 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--neon-blue);
-      font-size: 1rem;
-      letter-spacing: 2px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      padding-bottom: 10px;
-    }
-    .side-panel .panel-item {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-    .side-panel .panel-item img {
-      width: 50px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .side-panel .panel-item .info { flex: 1; }
-    .side-panel .panel-item .info .title { font-weight: 600; font-size: 0.9rem; }
-    .side-panel .panel-item .info .sub { font-size: 0.7rem; color: var(--text-secondary); }
 
     /* ===== CHROMA KEY ===== */
     .stage { pointer-events: none; position: fixed; inset: 0; z-index: 8; }
@@ -1557,7 +1498,6 @@
       #fgContainer.fg-left { left: 12px; }
       #fgContainer.fg-right { right: 12px; }
       .side-panel { width: 320px; right: -340px; }
-      .side-panel-toggle { display: none; }
       .banner-carousel { height: 160px; }
       .banner-slide .banner-info h2 { font-size: 1rem; }
       .detail-card { max-height: 85vh; -webkit-overflow-scrolling: touch; }
@@ -1807,164 +1747,6 @@
       box-shadow: 0 0 20px var(--neon-cyan);
       transform: scale(1.02);
     }
-
-    /* ===== CHAT GLOBAL - ESTILOS ADICIONALES ===== */
-    .chat-message {
-      transition: background 0.2s;
-    }
-    .chat-message:hover {
-      background: rgba(255,255,255,0.02);
-    }
-    .chat-sticker-wrapper {
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .chat-sticker-wrapper:hover {
-      transform: scale(1.05);
-    }
-    #chatStickerPanel {
-      display: none;
-      background: rgba(0,0,0,0.5);
-      border-radius: 12px;
-      padding: 12px;
-      margin-top: 8px;
-      border: 1px solid rgba(0,243,255,0.2);
-    }
-    #chatStickerPanel.active {
-      display: block;
-    }
-    #chatStickerPanel .sticker-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding-bottom: 10px;
-    }
-    #chatStickerPanel .sticker-tab {
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      padding: 6px 14px;
-      cursor: pointer;
-      font-weight: 600;
-      border-radius: 20px;
-      transition: 0.2s;
-    }
-    #chatStickerPanel .sticker-tab.active {
-      background: rgba(0,243,255,0.15);
-      color: var(--neon-blue);
-    }
-    #chatStickerPanel .sticker-tab-content {
-      display: none;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    #chatStickerPanel .sticker-tab-content.active {
-      display: block;
-    }
-    #chatStickerPanel .stickers-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    #chatStickerPanel .sticker-item {
-      background: rgba(255,255,255,0.03);
-      border-radius: 8px;
-      padding: 4px;
-      cursor: pointer;
-      transition: 0.2s;
-      position: relative;
-    }
-    #chatStickerPanel .sticker-item:hover {
-      background: rgba(0,243,255,0.1);
-      transform: scale(1.05);
-    }
-    #chatStickerPanel .sticker-item .sticker-img {
-      width: 100%;
-      aspect-ratio: 1/1;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-    #chatStickerPanel .sticker-delete-btn {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: var(--neon-pink);
-      border: none;
-      color: #fff;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .sticker-empty {
-      text-align: center;
-      color: var(--text-secondary);
-      padding: 20px;
-      font-size: 0.9rem;
-    }
-    .add-sticker-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      border: 2px dashed rgba(0,243,255,0.3);
-      border-radius: 12px;
-      background: rgba(0,0,0,0.3);
-    }
-    .upload-sticker-label {
-      background: rgba(0,243,255,0.1);
-      border: 1px solid var(--neon-blue);
-      color: var(--neon-blue);
-      padding: 8px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-    .upload-sticker-label:hover {
-      background: var(--neon-blue);
-      color: #000;
-    }
-    #chatStickerPreview {
-      display: none;
-      padding: 8px;
-      background: rgba(0,0,0,0.4);
-      border-radius: 12px;
-      border: 1px solid rgba(0,243,255,0.3);
-      margin-top: 8px;
-    }
-    #chatStickerPreview .preview-sticker-wrapper {
-      position: relative;
-      max-width: 60px;
-      max-height: 60px;
-    }
-    #chatStickerPreview .preview-sticker-wrapper img,
-    #chatStickerPreview .preview-sticker-wrapper video {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    #chatStickerPreview .remove-sticker-btn {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: var(--neon-pink);
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      color: #fff;
-      font-size: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
   </style>
 </head>
 <body>
@@ -2070,16 +1852,8 @@
   <div class="credit">ARCHINIME · 2025 · La nueva era del anime</div>
 </footer>
 
-<!-- ===== PANEL LATERAL ===== -->
-<div class="side-panel-toggle" id="sidePanelToggle">⟡ EXPLORAR</div>
-<div class="side-panel" id="sidePanel">
-  <button class="panel-close" id="sidePanelClose"><i class="fas fa-times"></i></button>
-  <h3>🔥 TOP ANIME</h3>
-  <div id="sidePanelContent"></div>
-</div>
-
 <!-- ===== CHAT GLOBAL ===== -->
-<button class="chat-float" title="Chat comunitario" onclick="document.getElementById('chatModal').classList.add('show')">
+<button class="chat-float" title="Chat comunitario" onclick="abrirChatGlobal()">
   <i class="fas fa-comment-dots"></i>
 </button>
 
@@ -2192,7 +1966,7 @@
       <h3 style="font-family:'Orbitron',sans-serif; color:var(--neon-blue); margin:0; font-size:1.1rem; letter-spacing:2px;">
         <i class="fas fa-globe" style="margin-right:8px;"></i> CHAT GLOBAL
       </h3>
-      <button class="auth-close" onclick="document.getElementById('chatModal').classList.remove('show')" style="position:relative; top:0; right:0; width:34px; height:34px; background:rgba(255,255,255,0.03); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; color:var(--text-secondary); transition:0.2s; border:1px solid transparent;">
+      <button class="auth-close" onclick="cerrarChatGlobal()" style="position:relative; top:0; right:0; width:34px; height:34px; background:rgba(255,255,255,0.03); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; color:var(--text-secondary); transition:0.2s; border:1px solid transparent;">
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -2294,6 +2068,20 @@
     document.getElementById('notifMenu').classList.toggle('active');
   };
   window.startNotificationSequence = function() { console.log("Notificaciones listas"); };
+
+  // Funciones para abrir/cerrar el chat global
+  window.abrirChatGlobal = function() {
+    const modal = document.getElementById('chatModal');
+    modal.classList.add('show');
+    // Si el usuario está logueado y el chat no está iniciado, forzar inicio
+    if (window.currentUser && typeof window.iniciarChatGlobal === 'function') {
+      window.iniciarChatGlobal();
+    }
+  };
+
+  window.cerrarChatGlobal = function() {
+    document.getElementById('chatModal').classList.remove('show');
+  };
 
   // Service Worker
   if ('serviceWorker' in navigator) {
@@ -2981,13 +2769,6 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
-  // Panel lateral
-  const sidePanel = document.getElementById('sidePanel');
-  const sideToggle = document.getElementById('sidePanelToggle');
-  const sideClose = document.getElementById('sidePanelClose');
-  sideToggle.addEventListener('click', () => sidePanel.classList.toggle('open'));
-  sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
-
   // ===== FUNCIONES DE DETALLE Y EVENTOS =====
   function buildContentDetails(anime) {
     if (!anime.seasons || anime.seasons.length === 0) {
@@ -3107,35 +2888,11 @@
     });
   }
 
-  // ===== PANEL LATERAL CONTENIDO (FILTRADO POR RATING >= 4.9) =====
-  (function() {
-    const content = document.getElementById('sidePanelContent');
-    // Filtrar animes con rating >= 4.9 (usando getNumericRating)
-    const topAnimes = baseAnimes
-      .filter(a => getNumericRating(a) >= 4.9)
-      .sort((a, b) => getNumericRating(b) - getNumericRating(a))
-      .slice(0, 8);
-      
-    if (topAnimes.length === 0) {
-      content.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:20px;">No hay animes con puntuación tan alta aún.</div>';
-    } else {
-      content.innerHTML = topAnimes.map(a => `
-        <div class="panel-item" onclick="openDetail('${a.id}')" style="cursor:pointer;">
-          <img src="${a.img || 'placeholder.webp'}" alt="${a.title}">
-          <div class="info">
-            <div class="title">${a.title}</div>
-            <div class="sub">⭐ ${getDisplayRating(a)}</div>
-          </div>
-        </div>
-      `).join('');
-    }
-  })();
-
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       closeAuthModal(); closeProfileModal(); closeDetailModal(); closeEventModal();
+      document.getElementById('chatModal').classList.remove('show');
       document.getElementById('notifMenu').classList.remove('active');
-      sidePanel.classList.remove('open');
       document.body.style.overflow = '';
       hideAllSuggestions();
     }
