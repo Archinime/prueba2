@@ -7,28 +7,28 @@
 
   // Banners por defecto con la nueva estructura
   const DEFAULT_BANNERS = [
-    {
-      title: 'Attack on Titan',
-      desc: '⭐ 4.9 · Acción, Drama, Fantasía',
-      mediaDesktop: 'https://images.alphacoders.com/135/1354428.jpeg',
-      mediaMobile: 'https://images.alphacoders.com/135/1354428.jpeg',
-      link: '#'
-    },
-    {
-      title: 'Demon Slayer',
-      desc: '⭐ 4.8 · Acción, Aventura, Fantasía',
-      mediaDesktop: 'https://images.alphacoders.com/135/1355118.jpeg',
-      mediaMobile: 'https://images.alphacoders.com/135/1355118.jpeg',
-      link: '#'
-    },
-    {
-      title: 'Jujutsu Kaisen',
-      desc: '⭐ 4.7 · Acción, Sobrenatural',
-      mediaDesktop: 'https://images.alphacoders.com/135/1355122.jpeg',
-      mediaMobile: 'https://images.alphacoders.com/135/1355122.jpeg',
-      link: '#'
-    }
-  ];
+  {
+    "title": "",
+    "desc": "",
+    "mediaDesktop": "https://files.catbox.moe/p0sabl.mp4",
+    "mediaMobile": "https://files.catbox.moe/l1egvy.avif",
+    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=4"
+  },
+  {
+    "title": "Demon Slayer",
+    "desc": "⭐ 4.8 · Acción, Aventura, Fantasía",
+    "mediaDesktop": "https://images.alphacoders.com/135/1355118.jpeg",
+    "mediaMobile": "https://images.alphacoders.com/135/1355118.jpeg",
+    "link": "#"
+  },
+  {
+    "title": "Jujutsu Kaisen",
+    "desc": "⭐ 4.7 · Acción, Sobrenatural",
+    "mediaDesktop": "https://images.alphacoders.com/135/1355122.jpeg",
+    "mediaMobile": "https://images.alphacoders.com/135/1355122.jpeg",
+    "link": "#"
+  }
+];
 
   function isMobile() {
     return window.matchMedia('(max-width: 768px)').matches;
@@ -98,7 +98,6 @@
         videoEl.style.objectFit = 'cover';
         videoEl.style.zIndex = '0';
         slide.appendChild(videoEl);
-        // Overlay oscuro para legibilidad
         const overlay = document.createElement('div');
         overlay.style.position = 'absolute';
         overlay.style.inset = '0';
@@ -106,13 +105,11 @@
         overlay.style.zIndex = '1';
         slide.appendChild(overlay);
       } else {
-        // Imagen (siempre para móvil o si no es video)
         slide.style.backgroundImage = `url(${mediaUrl})`;
         slide.style.backgroundSize = 'cover';
         slide.style.backgroundPosition = 'center';
       }
 
-      // Título y descripción opcionales
       const hasTitle = b.title && b.title.trim() !== '';
       const hasDesc = b.desc && b.desc.trim() !== '';
 
@@ -128,7 +125,6 @@
         slide.appendChild(info);
       }
 
-      // Enlace (opcional)
       if (b.link && b.link !== '#') {
         slide.style.cursor = 'pointer';
         slide.addEventListener('click', () => {
@@ -138,7 +134,6 @@
 
       carousel.appendChild(slide);
 
-      // Dot
       const dot = document.createElement('button');
       dot.className = `banner-dot ${i === 0 ? 'active' : ''}`;
       dot.addEventListener('click', () => goTo(i));
@@ -171,7 +166,6 @@
   renderBanners();
   resetInterval();
 
-  // Escuchar cambios en localStorage (desde admin-banners.html)
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY) {
       const newBanners = getBanners();
@@ -184,14 +178,11 @@
     }
   });
 
-  // Reaccionar a cambios de orientación / redimensionamiento que cambien el modo móvil
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      // Si cambia el modo móvil, re-renderizar
       const newIsMobile = isMobile();
-      // Solo re-renderizar si realmente cambió (para evitar bucles)
       if (window._lastIsMobile === undefined) {
         window._lastIsMobile = newIsMobile;
       } else if (window._lastIsMobile !== newIsMobile) {
