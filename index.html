@@ -574,13 +574,13 @@
       justify-content: space-between;
       align-items: center;
     }
-    .notif-close-mobile { display: none; background: none; border: none; color: var(--text-secondary); font-size: 1.1rem; cursor: pointer; }
-    .notif-close-mobile:hover { color: var(--neon-pink); }
-    @media (max-width: 768px) {
-      .notif-close-mobile { display: block; }
-      .notif-dropdown { position: fixed; top: 70px; left: 5vw; right: 5vw; width: 90vw; max-width: none; }
+    /* Eliminamos el botón de cerrar móvil */
+    .notif-close-mobile { display: none; }
+    .notif-list { 
+      flex: 1; 
+      overflow-y: auto;
+      overflow-x: hidden; /* 👈 Evita scroll horizontal */
     }
-    .notif-list { flex: 1; overflow-y: auto; }
     .notif-item {
       display: flex;
       gap: 12px;
@@ -589,6 +589,8 @@
       transition: 0.15s;
       cursor: pointer;
       align-items: center;
+      max-width: 100%;
+      overflow: hidden;
     }
     .notif-item:hover { background: rgba(0, 240, 255, 0.03); }
     .notif-img-box {
@@ -603,10 +605,33 @@
     .notif-img-box img { width: 100%; height: 100%; object-fit: cover; }
     .notif-img-box.rounded-avatar { width: 40px; height: 40px; border-radius: 50% !important; }
     .notif-content { flex: 1; min-width: 0; }
-    .n-title { font-weight: 600; color: #fff; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .n-title { 
+      font-weight: 600; 
+      color: #fff; 
+      font-size: 0.85rem; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
     .n-type { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--neon-blue); }
-    .n-meta { font-size: 0.65rem; color: var(--text-secondary); }
+    .n-meta { 
+      font-size: 0.65rem; 
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .tag-final { background: var(--neon-pink); color: #fff; padding: 1px 8px; border-radius: 4px; font-size: 0.55rem; margin-left: 6px; }
+
+    /* Asegurar que el dropdown no tenga scroll horizontal */
+    .notif-dropdown,
+    .notif-dropdown .notif-list {
+      overflow-x: hidden !important;
+    }
+    /* Forzar que ningún contenido interno se desborde */
+    .notif-dropdown * {
+      max-width: 100%;
+    }
 
     /* ===== BANNER ===== */
     .banner-carousel {
@@ -1820,7 +1845,7 @@
       <div id="notifMenu" class="notif-dropdown">
         <div class="notif-header">
           <span><i class="fas fa-bell"></i> NOTIFICACIONES</span>
-          <button class="notif-close-mobile" onclick="toggleNotifMenu()"><i class="fas fa-times"></i></button>
+          <!-- Botón de cerrar móvil eliminado -->
         </div>
         <div id="notifList" class="notif-list"><div style="padding:20px; text-align:center; color:var(--text-secondary);">Buscando señal...</div></div>
       </div>
@@ -2639,7 +2664,14 @@
     fgCanvas.width = maxW;
     fgCanvas.height = maxW / ratio;
   });
+  // Optimización: procesar chroma a 15 fps
+  let frameCount = 0;
   function processChroma() {
+    frameCount++;
+    if (frameCount % 4 !== 0) { // solo procesa 1 de cada 4 frames (~15 fps)
+      requestAnimationFrame(processChroma);
+      return;
+    }
     if (fgVideo.paused || fgVideo.ended || isTransitioning) { requestAnimationFrame(processChroma); return; }
     fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
     const frame = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
@@ -2900,6 +2932,55 @@
       logo.addEventListener('click', function(e) { e.preventDefault(); window.location.href = this.href; });
     }
   }
+
+  // ===== PAUSAR BANNERS CUANDO NO SON VISIBLES (OPTIMIZACIÓN) =====
+  (function pauseBannersWhenHidden() {
+    const carousel = document.getElementById('bannerCarousel');
+    if (!carousel) return;
+
+    function pauseAllVideos() {
+      const videos = carousel.querySelectorAll('video');
+      videos.forEach(v => v.pause());
+    }
+
+    function resumeActiveVideo() {
+      const activeSlide = carousel.querySelector('.banner-slide.active');
+      if (!activeSlide) return;
+      const video = activeSlide.querySelector('video');
+      if (video) {
+        video.play().catch(() => {});
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          resumeActiveVideo();
+        } else {
+          pauseAllVideos();
+        }
+      });
+    }, { threshold: 0.1 });
+
+    observer.observe(carousel);
+
+    // También cuando cambie el slide, verificamos visibilidad
+    const slideObserver = new MutationObserver(() => {
+      const rect = carousel.getBoundingClientRect();
+      const isVisible = (
+        rect.top < window.innerHeight &&
+        rect.bottom > 0 &&
+        rect.left < window.innerWidth &&
+        rect.right > 0
+      );
+      if (isVisible) {
+        resumeActiveVideo();
+      } else {
+        pauseAllVideos();
+      }
+    });
+    slideObserver.observe(carousel, { attributes: true, attributeFilter: ['class'], subtree: true });
+  })();
 </script>
 </body>
 </html>
