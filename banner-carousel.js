@@ -6,7 +6,7 @@
   const STORAGE_KEY = 'archinime_banners';
   const DEFAULT_BANNERS = [
     { 
-      title: "", 
+      title: "Jujutsu Kaisen", 
       desc: "", 
       media: "https://files.catbox.moe/axewct.mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=2" 
@@ -14,7 +14,7 @@
     { 
       title: "Demon Slayer", 
       desc: "", 
-      media: "https://files.catbox.moe/eqefiz.mp4", 
+      media: "https://files.catbox.moe/8d4q6d.mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=10" 
     },
     { 
