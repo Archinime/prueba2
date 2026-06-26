@@ -612,6 +612,7 @@
       white-space: nowrap; 
       overflow: hidden; 
       text-overflow: ellipsis; 
+      max-width: 100%;
     }
     .n-type { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--neon-blue); }
     .n-meta { 
@@ -620,6 +621,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
     }
     .tag-final { background: var(--neon-pink); color: #fff; padding: 1px 8px; border-radius: 4px; font-size: 0.55rem; margin-left: 6px; }
 
@@ -1567,6 +1569,16 @@
       .detail-cover { height: 320px; }
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
+      
+      /* NOTIFICACIONES EN MÓVIL: centrado y fijo */
+      .notif-dropdown {
+        position: fixed;
+        top: 70px;
+        left: 5vw;
+        right: 5vw;
+        width: 90vw;
+        max-width: none;
+      }
     }
     @media (max-width: 480px) {
       .banner-carousel { height: 140px; }
@@ -2664,15 +2676,38 @@
     fgCanvas.width = maxW;
     fgCanvas.height = maxW / ratio;
   });
-  // Optimización: procesar chroma a 15 fps
+  // Optimización: procesar chroma a 15 fps y solo si el contenedor es visible
   let frameCount = 0;
+  let chromaActive = true; // se pausa si el contenedor no es visible
+
+  // Observador para pausar chroma si no es visible
+  const chromaObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      chromaActive = entry.isIntersecting;
+      if (!chromaActive) {
+        // Si no es visible, no hacemos nada, el loop seguirá pero no procesará.
+        // También podemos pausar el video para ahorrar recursos
+        if (!fgVideo.paused) fgVideo.pause();
+      } else {
+        // Si se vuelve visible y el video está pausado, lo reanudamos
+        if (fgVideo.paused && !fgVideo.ended) {
+          fgVideo.play().catch(() => {});
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+  chromaObserver.observe(fgContainer);
+
   function processChroma() {
+    if (!chromaActive || fgVideo.paused || fgVideo.ended || isTransitioning) {
+      requestAnimationFrame(processChroma);
+      return;
+    }
     frameCount++;
     if (frameCount % 4 !== 0) { // solo procesa 1 de cada 4 frames (~15 fps)
       requestAnimationFrame(processChroma);
       return;
     }
-    if (fgVideo.paused || fgVideo.ended || isTransitioning) { requestAnimationFrame(processChroma); return; }
     fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
     const frame = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
     const data = frame.data;
@@ -2980,6 +3015,18 @@
       }
     });
     slideObserver.observe(carousel, { attributes: true, attributeFilter: ['class'], subtree: true });
+  })();
+
+  // ===== OPTIMIZACIÓN PARTÍCULAS EN MÓVIL =====
+  (function reduceParticlesOnMobile() {
+    const canvas = document.getElementById('particlesCanvas');
+    if (!canvas) return;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+      // Reducir la densidad de partículas (se aplica en animaciones.js, pero si no existe, añadimos un estilo)
+      // También podemos establecer un atributo para que el script lo reconozca
+      canvas.dataset.mobile = 'true';
+    }
   })();
 </script>
 </body>
