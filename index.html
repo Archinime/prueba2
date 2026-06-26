@@ -979,7 +979,6 @@
       box-shadow: 0 0 15px var(--neon-pink);
       letter-spacing: 0.5px;
       z-index: 2;
-      /* Se muestra si rating >= 4.9 (se aplica en el JS) */
     }
 
     .card-ad {
@@ -1421,9 +1420,9 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
-    /* ===== PANEL LATERAL (CHAT GLOBAL) ===== */
+    /* ===== PANEL LATERAL (CHAT) ===== */
     .side-panel-toggle {
-      display: none; /* Oculto porque usamos el botón de chat */
+      display: none;
     }
 
     .side-panel {
@@ -1475,7 +1474,6 @@
       margin-right: 8px;
     }
 
-    /* Contenido del chat dentro del panel */
     #chatMessagesPanel {
       flex: 1;
       overflow-y: auto;
@@ -1541,7 +1539,6 @@
     }
     .chat-delete-msg:hover { background: rgba(255,0,85,0.15); }
 
-    /* Input del chat */
     #chatInputContainerPanel {
       display: none;
       flex-direction: column;
@@ -1608,7 +1605,6 @@
       transform: scale(1.05);
     }
 
-    /* Previsualización sticker en chat */
     #chatStickerPreviewPanel {
       display: none;
       padding: 6px 10px;
@@ -1646,7 +1642,6 @@
       justify-content: center;
     }
 
-    /* Panel de stickers dentro del chat */
     #chatStickerPanelPanel {
       display: none;
       background: rgba(0,0,0,0.5);
@@ -2449,7 +2444,6 @@
       const rating = getDisplayRating(anime);
       const img = anime.img || 'placeholder.webp';
       const ratingVal = getNumericRating(anime);
-      // Mostrar badge "TOP" solo si rating >= 4.9 (incluye 4.9 y 5.0)
       const badge = (ratingVal >= 4.9 && ratingVal <= 5.0) ? '<div class="badge">🔥 TOP</div>' : '';
       card.innerHTML = `
         <img src="${img}" alt="${anime.title}" loading="eager" decoding="async" style="background:#0b0e14;">
@@ -2853,7 +2847,6 @@
   let chatUnsubscribePanel = null;
   let stickerSeleccionadoPanel = null;
 
-  // Cargar stickers del usuario para el panel del chat
   window.cargarStickersChatPanel = async function() {
     const user = auth.currentUser;
     if (!user) {
@@ -2898,9 +2891,7 @@
     try {
       const userRef = db.collection('userStickers').doc(user.uid);
       await userRef.update({ stickers: firebase.firestore.FieldValue.arrayRemove(url) });
-      // Actualizar la lista del panel
       cargarStickersChatPanel();
-      // También actualizar el sistema global si está visible
       if (typeof loadUserStickers === 'function') loadUserStickers();
       showToastSticker('🗑️ Sticker eliminado');
     } catch (e) {
@@ -2911,7 +2902,6 @@
   window.abrirChatPanel = function() {
     sidePanel.classList.toggle('open');
     if (sidePanel.classList.contains('open')) {
-      // Cargar mensajes y stickers
       iniciarEscuchaChatPanel();
       cargarStickersChatPanel();
     }
@@ -2931,7 +2921,6 @@
       return;
     }
     document.getElementById('chatInputContainerPanel').style.display = 'flex';
-    // Actualizar avatar del usuario
     const avatar = document.querySelector('#chatInputContainerPanel .chat-user-avatar');
     if (avatar) avatar.src = user.photoURL || 'invitado.avif';
 
@@ -3004,7 +2993,6 @@
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
 
-      // Eventos eliminar
       container.querySelectorAll('.chat-delete-msg').forEach(btn => {
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -3031,7 +3019,6 @@
     return div.innerHTML;
   }
 
-  // Funciones para el chat del panel
   window.enviarMensajeChatPanel = async function() {
     const user = auth.currentUser;
     if (!user) { alert('Inicia sesión para enviar mensajes'); return; }
@@ -3121,21 +3108,17 @@
     if (tab === 'mis') cargarStickersChatPanel();
   };
 
-  // Subir sticker desde el panel (usando el sistema existente)
   document.getElementById('stickerFileInputPanel')?.addEventListener('change', function(e) {
     const file = this.files[0];
     if (!file) return;
     if (typeof subirStickerDesdePC === 'function') {
-      // Llamar a la función global pasando este input
       subirStickerDesdePC(this);
-      // Después de subir, recargar los stickers del panel
       setTimeout(cargarStickersChatPanel, 2000);
     } else {
       alert('Función de subida no disponible.');
     }
   });
 
-  // Funciones para abrir modal de sticker (reutiliza la de comentarios)
   window.abrirStickerModal = function(url) {
     if (typeof openStickerModal === 'function') {
       openStickerModal(url);
@@ -3144,7 +3127,6 @@
     }
   };
 
-  // Función para mostrar toast (se usa en eliminar sticker)
   function showToastSticker(msg) {
     let toast = document.getElementById('toastSticker');
     if (!toast) {
