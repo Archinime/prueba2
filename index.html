@@ -1069,7 +1069,7 @@
     .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
     .pagination-ellipsis { color: var(--text-secondary); padding: 0 4px; font-weight: 700; }
 
-    /* ===== MODALES ===== */
+    /* ===== MODALES (estilo restaurado de hola.txt) ===== */
     .auth-modal, .profile-modal, .detail-modal {
       position: fixed;
       inset: 0;
@@ -1420,6 +1420,173 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
+    /* ===== EVENT MODAL (restaurado) ===== */
+    #eventModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.4s;
+      padding: 20px;
+      will-change: opacity;
+    }
+    #eventModal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .event-card {
+      background: #0e0e12;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 243, 255, 0.5);
+      box-shadow: 0 0 50px rgba(188, 19, 254, 0.3);
+      transform: scale(0.9) translateY(30px) translateZ(0);
+      transition: transform 0.4s var(--transition-smooth);
+      position: relative;
+      will-change: transform;
+    }
+    #eventModal.show .event-card {
+      transform: scale(1) translateY(0) translateZ(0);
+    }
+    .event-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 36px;
+      height: 36px;
+      z-index: 50;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      font-size: 1.3rem;
+      will-change: transform;
+    }
+    .event-close:hover {
+      background: var(--neon-pink);
+      border-color: var(--neon-pink);
+      transform: rotate(90deg);
+      box-shadow: 0 0 15px var(--neon-pink);
+    }
+    .event-visuals {
+      position: relative;
+      height: 280px;
+      background: #000;
+    }
+    .visual-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      filter: blur(20px) brightness(0.5);
+      transform: scale(1.2) translateZ(0);
+      will-change: transform;
+    }
+    .covers-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 100%;
+      gap: 15px;
+      padding-bottom: 20px;
+      transform: translateZ(0);
+    }
+    .cover-back {
+      width: 110px;
+      height: 165px;
+      object-fit: cover;
+      border-radius: 12px;
+      opacity: 0.8;
+      transform: rotate(-8deg) translateX(15px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .cover-front {
+      width: 130px;
+      height: 195px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 2px solid var(--neon-cyan);
+      transform: rotate(3deg) translateX(-15px);
+      box-shadow: 0 10px 25px black;
+      z-index: 2;
+    }
+    .event-type-badge {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: var(--neon-pink);
+      color: white;
+      font-weight: 800;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px var(--neon-pink);
+      z-index: 3;
+    }
+    .event-info {
+      padding: 25px;
+      text-align: center;
+      background: linear-gradient(to top, #0a0a0e, #111116);
+      transform: translateZ(0);
+    }
+    .event-title {
+      font-family: 'Orbitron';
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .event-meta {
+      color: var(--neon-cyan);
+      font-weight: 600;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
+    .event-desc {
+      color: #aaa;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+    }
+    .event-btn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 40px;
+      font-weight: 900;
+      font-family: 'Orbitron';
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      will-change: transform, box-shadow;
+    }
+    .event-btn:hover {
+      background: var(--neon-cyan);
+      box-shadow: 0 0 20px var(--neon-cyan);
+      transform: scale(1.02);
+    }
+
     /* ===== PANEL LATERAL (CHAT) ===== */
     .side-panel-toggle {
       display: none;
@@ -1474,6 +1641,7 @@
       margin-right: 8px;
     }
 
+    /* Contenido del chat dentro del panel */
     #chatMessagesPanel {
       flex: 1;
       overflow-y: auto;
@@ -1539,6 +1707,7 @@
     }
     .chat-delete-msg:hover { background: rgba(255,0,85,0.15); }
 
+    /* Input del chat */
     #chatInputContainerPanel {
       display: none;
       flex-direction: column;
@@ -1605,6 +1774,7 @@
       transform: scale(1.05);
     }
 
+    /* Previsualización sticker en chat */
     #chatStickerPreviewPanel {
       display: none;
       padding: 6px 10px;
@@ -1642,6 +1812,7 @@
       justify-content: center;
     }
 
+    /* Panel de stickers dentro del chat */
     #chatStickerPanelPanel {
       display: none;
       background: rgba(0,0,0,0.5);
@@ -1839,10 +2010,15 @@
         width: 90vw;
         max-width: none;
       }
+      .auth-card { max-width: 100%; }
+      .profile-card { max-width: 100%; }
+      .detail-card { max-height: 85vh; }
+      .detail-cover { height: 320px; }
     }
     @media (max-width: 480px) {
       .side-panel { width: 100vw; right: -105vw; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
+      .detail-cover { height: 260px; }
     }
   </style>
 </head>
@@ -2006,7 +2182,7 @@
   <i class="fas fa-comment-dots"></i>
 </button>
 
-<!-- ===== MODALES ===== -->
+<!-- ===== MODALES (restaurados de hola.txt) ===== -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
     <div class="auth-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></div>
@@ -2839,7 +3015,7 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
-  // ===== FUNCIONES DE CHAT GLOBAL (PANEL LATERAL) =====
+  // ===== CHAT GLOBAL (PANEL LATERAL) =====
   const sidePanel = document.getElementById('sidePanel');
   const sideClose = document.getElementById('sidePanelClose');
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
@@ -2847,6 +3023,7 @@
   let chatUnsubscribePanel = null;
   let stickerSeleccionadoPanel = null;
 
+  // Cargar stickers del usuario para el panel del chat
   window.cargarStickersChatPanel = async function() {
     const user = auth.currentUser;
     if (!user) {
@@ -3019,6 +3196,7 @@
     return div.innerHTML;
   }
 
+  // Funciones del chat
   window.enviarMensajeChatPanel = async function() {
     const user = auth.currentUser;
     if (!user) { alert('Inicia sesión para enviar mensajes'); return; }
