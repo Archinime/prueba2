@@ -1,59 +1,35 @@
 // banner-carousel.js
-// Carrusel de banners con soporte para PC (mediaDesktop) y móvil (mediaMobile)
-// Título y descripción opcionales
+// Carrusel de banners con almacenamiento local y actualización en caliente
 
 (function() {
   const STORAGE_KEY = 'archinime_banners';
-
-  // Banners por defecto con la nueva estructura
   const DEFAULT_BANNERS = [
-  {
-    "title": "",
-    "desc": "",
-    "mediaDesktop": "https://files.catbox.moe/axewct.mp4",
-    "mediaMobile": "https://files.catbox.moe/axewct.mp4",
-    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=2"
-  },
-  {
-    "title": "Demon Slayer",
-    "desc": "",
-    "mediaDesktop": "https://files.catbox.moe/eqefiz.mp4",
-    "mediaMobile": "https://files.catbox.moe/eqefiz.mp4",
-    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=10"
-  },
-  {
-    "title": "Solo Leveling",
-    "desc": "⭐ 5 · Acción, Sobrenatural",
-    "mediaDesktop": "https://files.catbox.moe/bt5abl.mp4",
-    "mediaMobile": "https://files.catbox.moe/bt5abl.mp4",
-    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=67"
-  }
-];
-
-  function isMobile() {
-    return window.matchMedia('(max-width: 768px)').matches;
-  }
+    { 
+      title: "", 
+      desc: "", 
+      media: "https://files.catbox.moe/axewct.mp4", 
+      link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=2" 
+    },
+    { 
+      title: "Demon Slayer", 
+      desc: "", 
+      media: "https://files.catbox.moe/eqefiz.mp4", 
+      link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=10" 
+    },
+    { 
+      title: "Solo Leveling", 
+      desc: "⭐ 5 · Acción, Sobrenatural", 
+      media: "https://files.catbox.moe/bt5abl.mp4", 
+      link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=67" 
+    }
+  ];
 
   function getBanners() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed && parsed.length) {
-          // Convertir banners antiguos (con propiedad 'media') al nuevo formato
-          return parsed.map(b => {
-            if (b.media && !b.mediaDesktop) {
-              return {
-                title: b.title || '',
-                desc: b.desc || '',
-                mediaDesktop: b.media,
-                mediaMobile: b.media,
-                link: b.link || '#'
-              };
-            }
-            return b;
-          });
-        }
+        if (parsed && parsed.length) return parsed;
       } catch (e) {}
     }
     return DEFAULT_BANNERS;
@@ -69,24 +45,14 @@
     carousel.querySelectorAll('.banner-slide').forEach(el => el.remove());
     dotsContainer.innerHTML = '';
 
-    const isMobileDevice = isMobile();
-
     banners.forEach((b, i) => {
-      // Elegir el medio según dispositivo
-      const mediaUrl = isMobileDevice ? (b.mediaMobile || b.mediaDesktop) : b.mediaDesktop;
-      if (!mediaUrl) return; // Si no hay medio, saltar
-
       const slide = document.createElement('div');
       slide.className = `banner-slide ${i === 0 ? 'active' : ''}`;
-
-      // Determinar si es video (por extensión o presencia de youtube)
-      const isVideo = mediaUrl && (mediaUrl.endsWith('.mp4') || mediaUrl.endsWith('.webm') || mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be'));
-
-      if (isVideo && !isMobileDevice) {
-        // Solo reproducir video en PC
+      const isVideo = b.media && (b.media.endsWith('.mp4') || b.media.endsWith('.webm') || b.media.includes('youtube.com') || b.media.includes('youtu.be'));
+      if (isVideo) {
         slide.style.background = '#000';
         const videoEl = document.createElement('video');
-        videoEl.src = mediaUrl;
+        videoEl.src = b.media;
         videoEl.autoplay = true;
         videoEl.muted = true;
         videoEl.loop = true;
@@ -101,29 +67,23 @@
         const overlay = document.createElement('div');
         overlay.style.position = 'absolute';
         overlay.style.inset = '0';
-        overlay.style.background = 'rgba(0,0,0,0.3)';
+        overlay.style.background = 'rgba(0,0,0,0.4)';
         overlay.style.zIndex = '1';
         slide.appendChild(overlay);
       } else {
-        slide.style.backgroundImage = `url(${mediaUrl})`;
+        slide.style.backgroundImage = `url(${b.media})`;
         slide.style.backgroundSize = 'cover';
         slide.style.backgroundPosition = 'center';
       }
-
-      const hasTitle = b.title && b.title.trim() !== '';
-      const hasDesc = b.desc && b.desc.trim() !== '';
-
-      if (hasTitle || hasDesc) {
-        const info = document.createElement('div');
-        info.className = 'banner-info';
-        info.style.position = 'relative';
-        info.style.zIndex = '2';
-        let html = '';
-        if (hasTitle) html += `<h2>${b.title}</h2>`;
-        if (hasDesc) html += `<p>${b.desc}</p>`;
-        info.innerHTML = html;
-        slide.appendChild(info);
-      }
+      const info = document.createElement('div');
+      info.className = 'banner-info';
+      info.style.position = 'relative';
+      info.style.zIndex = '2';
+      info.innerHTML = `
+        <h2>${b.title}</h2>
+        <p>${b.desc || ''}</p>
+      `;
+      slide.appendChild(info);
 
       if (b.link && b.link !== '#') {
         slide.style.cursor = 'pointer';
@@ -152,15 +112,12 @@
 
   function nextBanner() {
     const total = banners.length;
-    if (total === 0) return;
     goTo((currentBanner + 1) % total);
   }
 
   function resetInterval() {
     if (intervalId) clearInterval(intervalId);
-    if (banners.length > 1) {
-      intervalId = setInterval(nextBanner, 5000);
-    }
+    intervalId = setInterval(nextBanner, 5000);
   }
 
   renderBanners();
@@ -176,20 +133,5 @@
         resetInterval();
       }
     }
-  });
-
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      const newIsMobile = isMobile();
-      if (window._lastIsMobile === undefined) {
-        window._lastIsMobile = newIsMobile;
-      } else if (window._lastIsMobile !== newIsMobile) {
-        window._lastIsMobile = newIsMobile;
-        renderBanners();
-        resetInterval();
-      }
-    }, 300);
   });
 })();
