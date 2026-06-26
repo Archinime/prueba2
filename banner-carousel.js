@@ -19,7 +19,7 @@
     },
     { 
       title: "Solo Leveling", 
-      desc: "⭐ 5 · Acción, Sobrenatural", 
+      desc: "", 
       media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/jin%20(1).mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=67" 
     }
