@@ -1587,7 +1587,7 @@
       transform: scale(1.02);
     }
 
-    /* ===== CHAT GLOBAL (PANEL LATERAL) ===== */
+    /* ===== CHAT (PANEL LATERAL) ===== */
     .side-panel-toggle {
       display: none;
     }
@@ -1696,7 +1696,7 @@
       height: 100%;
       object-fit: contain;
       display: block;
-      border-radius: 0; /* Asegura que no se recorte */
+      border-radius: 0;
     }
     .chat-delete-msg {
       background: transparent;
@@ -2015,11 +2015,13 @@
       .profile-card { max-width: 100%; }
       .detail-card { max-height: 85vh; }
       .detail-cover { height: 320px; }
+      .banner-carousel { height: 160px; }
     }
     @media (max-width: 480px) {
       .side-panel { width: 100vw; right: -105vw; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
       .detail-cover { height: 260px; }
+      .banner-carousel { height: 140px; }
     }
   </style>
 </head>
@@ -2040,7 +2042,7 @@
 <!-- ===== PARTÍCULAS ===== -->
 <canvas id="particlesCanvas"></canvas>
 
-<!-- ===== FONDO VIDEO ===== -->
+<!-- ===== FONDO VIDEO (igual a aqui.txt) ===== -->
 <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto" style="position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; opacity:0; transition:opacity 1.2s; filter:brightness(0.5) contrast(1.1);">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
@@ -2285,7 +2287,7 @@
   </div>
 </div>
 
-<!-- ===== CHROMA KEY ===== -->
+<!-- ===== CHROMA KEY (igual a aqui.txt) ===== -->
 <div class="stage">
   <div id="fgContainer">
     <canvas id="fgCanvas"></canvas>
@@ -2293,7 +2295,7 @@
   </div>
 </div>
 
-<!-- ===== SCRIPTS (embebidos y externos) ===== -->
+<!-- ===== SCRIPTS ===== -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -2552,7 +2554,6 @@
         const timestamp = data.timestamp?.toDate() || new Date();
         const fecha = timestamp.toLocaleString();
         const customColor = data.customColor || '#00f0ff';
-        // Limpiar marcadores de sticker
         texto = texto.replace(/\[Sticker\]\([^)]*\)/g, '');
         texto = texto.replace(/\n/g, '<br>');
         let stickerHtml = '';
@@ -2661,7 +2662,6 @@
   function iniciarEscuchaChatPanel() {
     if (chatUnsubscribePanel) chatUnsubscribePanel();
     const user = auth.currentUser;
-    // Siempre mostrar mensajes, sin importar el login
     const query = db.collection('globalChat')
       .orderBy('timestamp', 'desc')
       .limit(100);
@@ -2868,11 +2868,9 @@
 
   // ===== MODAL PARA STICKER (COPIAR/ROBAR) =====
   function abrirStickerModalGlobal(url) {
-    // Reutiliza el modal de stickers de comentarios
     if (typeof openStickerModal === 'function') {
       openStickerModal(url);
     } else {
-      // Crear modal temporal si no existe
       let modal = document.getElementById('stickerViewModalGlobal');
       if (!modal) {
         modal = document.createElement('div');
@@ -2897,11 +2895,9 @@
       else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
       document.getElementById('stickerModalStealBtnGlobal').onclick = () => {
         if (auth.currentUser) {
-          // Función para robar sticker (usar la misma de comentarios)
           if (typeof window.robarStickerSistema === 'function') {
             window.robarStickerSistema(url);
           } else {
-            // Implementación simple
             db.collection('userStickers').doc(auth.currentUser.uid).set({
               stickers: firebase.firestore.FieldValue.arrayUnion(url)
             }, { merge: true }).then(() => {
@@ -2929,6 +2925,106 @@
   }
   window.abrirStickerModal = abrirStickerModalGlobal;
   window.cerrarStickerModal = cerrarStickerModalGlobal;
+
+  // ============================================
+  // ANIMACIONES (VIDEO Y CHROMA KEY) - como en aqui.txt
+  // ============================================
+  function randomizeFgPosition() {
+    const fg = document.getElementById('fgContainer');
+    fg.classList.remove('fg-left', 'fg-right');
+    fg.classList.add(Math.random() < 0.5 ? 'fg-left' : 'fg-right');
+  }
+
+  const fgContainer = document.getElementById('fgContainer');
+  const fgVideo = document.getElementById('fgVideo');
+  const fgCanvas = document.getElementById('fgCanvas');
+  const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
+  let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
+  let isTransitioning = false;
+  fgVideo.style.display = 'none';
+  fgVideo.src = currentAnim.src;
+  fgVideo.addEventListener('loadedmetadata', () => {
+    const maxW = 300;
+    const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
+    fgCanvas.width = maxW;
+    fgCanvas.height = maxW / ratio;
+  });
+  let frameCount = 0;
+
+  function processChroma() {
+    if (fgVideo.paused || fgVideo.ended || isTransitioning) {
+      requestAnimationFrame(processChroma);
+      return;
+    }
+    frameCount++;
+    if (frameCount % 4 !== 0) {
+      requestAnimationFrame(processChroma);
+      return;
+    }
+    fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
+    const frame = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+    const data = frame.data;
+    const key = currentAnim.keyColor || 'green';
+    const thresh = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i], g = data[i+1], b = data[i+2];
+      if (key === 'blue') { if (b > r + thresh && b > g + thresh) data[i+3] = 0; }
+      else { if (g > r + thresh && g > b + thresh) data[i+3] = 0; }
+    }
+    fgCtx.putImageData(frame, 0, 0);
+    requestAnimationFrame(processChroma);
+  }
+  fgVideo.addEventListener('play', () => requestAnimationFrame(processChroma));
+
+  function startVisualMedia() {
+    const bgVideo = document.getElementById('bg-video');
+    bgVideo.play().then(() => {
+      bgVideo.style.opacity = '1';
+    }).catch(() => {});
+    fgVideo.muted = true;
+    fgVideo.play().catch(() => {});
+    randomizeFgPosition();
+  }
+
+  function createSparks(cx, cy) {
+    const colors = ['#00f0ff','#b114ff','#ff1a6b','#ffd700'];
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark';
+      const size = Math.random() * 5 + 3;
+      s.style.width = size + 'px'; s.style.height = size + 'px';
+      s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      s.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      s.style.boxShadow = `0 0 15px ${s.style.backgroundColor}`;
+      const ang = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 200 + 60;
+      s.style.setProperty('--tx', Math.cos(ang) * dist + 'px');
+      s.style.setProperty('--ty', Math.sin(ang) * dist + 'px');
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 800);
+    }
+  }
+
+  fgContainer.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isTransitioning) return;
+    createSparks(e.clientX, e.clientY);
+    isTransitioning = true;
+    fgContainer.classList.add('poof');
+    setTimeout(() => {
+      let newAnim;
+      do { newAnim = videoList[Math.floor(Math.random() * videoList.length)]; } while (newAnim.id === currentAnim.id && videoList.length > 1);
+      currentAnim = newAnim;
+      fgVideo.src = currentAnim.src;
+      fgVideo.play().then(() => {
+        isTransitioning = false;
+        fgContainer.classList.remove('poof');
+        randomizeFgPosition();
+      }).catch(() => { isTransitioning = false; });
+    }, 600);
+  });
+
+  window.addEventListener('DOMContentLoaded', startVisualMedia);
 
   // ============================================
   // RESTO DEL CÓDIGO (catálogo, filtros, etc.)
@@ -3497,97 +3593,6 @@
       card.addEventListener('mouseleave', () => { if (card._raf) cancelAnimationFrame(card._raf); card.style.transform = ''; });
     });
   }
-
-  // ===== CHROMA KEY (ANIMACIONES FIJAS) =====
-  function randomizeFgPosition() {
-    const fg = document.getElementById('fgContainer');
-    fg.classList.remove('fg-left', 'fg-right');
-    fg.classList.add(Math.random() < 0.5 ? 'fg-left' : 'fg-right');
-  }
-  const fgContainer = document.getElementById('fgContainer');
-  const fgVideo = document.getElementById('fgVideo');
-  const fgCanvas = document.getElementById('fgCanvas');
-  const fgCtx = fgCanvas.getContext('2d', { willReadFrequently: true });
-  let currentAnim = videoList[Math.floor(Math.random() * videoList.length)];
-  let isTransitioning = false;
-  fgVideo.style.display = 'none';
-  fgVideo.src = currentAnim.src;
-  fgVideo.addEventListener('loadedmetadata', () => {
-    const maxW = 300;
-    const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
-    fgCanvas.width = maxW;
-    fgCanvas.height = maxW / ratio;
-  });
-  let frameCount = 0;
-  let chromaActive = true;
-  // Siempre activo, no lo desactivamos con scroll
-  function processChroma() {
-    if (fgVideo.paused || fgVideo.ended || isTransitioning) {
-      requestAnimationFrame(processChroma);
-      return;
-    }
-    frameCount++;
-    if (frameCount % 4 !== 0) {
-      requestAnimationFrame(processChroma);
-      return;
-    }
-    fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
-    const frame = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
-    const data = frame.data;
-    const key = currentAnim.keyColor || 'green';
-    const thresh = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
-    for (let i = 0; i < data.length; i += 4) {
-      let r = data[i], g = data[i+1], b = data[i+2];
-      if (key === 'blue') { if (b > r + thresh && b > g + thresh) data[i+3] = 0; }
-      else { if (g > r + thresh && g > b + thresh) data[i+3] = 0; }
-    }
-    fgCtx.putImageData(frame, 0, 0);
-    requestAnimationFrame(processChroma);
-  }
-  fgVideo.addEventListener('play', () => requestAnimationFrame(processChroma));
-  function startVisualMedia() {
-    document.getElementById('bg-video').play().then(() => document.getElementById('bg-video').style.opacity = '1').catch(()=>{});
-    fgVideo.muted = true;
-    fgVideo.play().catch(()=>{});
-    randomizeFgPosition();
-  }
-  function createSparks(cx, cy) {
-    const colors = ['#00f0ff','#b114ff','#ff1a6b','#ffd700'];
-    for (let i = 0; i < 70; i++) {
-      const s = document.createElement('div');
-      s.className = 'spark';
-      const size = Math.random() * 5 + 3;
-      s.style.width = size + 'px'; s.style.height = size + 'px';
-      s.style.left = cx + 'px'; s.style.top = cy + 'px';
-      s.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      s.style.boxShadow = `0 0 15px ${s.style.backgroundColor}`;
-      const ang = Math.random() * Math.PI * 2;
-      const dist = Math.random() * 200 + 60;
-      s.style.setProperty('--tx', Math.cos(ang) * dist + 'px');
-      s.style.setProperty('--ty', Math.sin(ang) * dist + 'px');
-      document.body.appendChild(s);
-      setTimeout(() => s.remove(), 800);
-    }
-  }
-  fgContainer.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (isTransitioning) return;
-    createSparks(e.clientX, e.clientY);
-    isTransitioning = true;
-    fgContainer.classList.add('poof');
-    setTimeout(() => {
-      let newAnim;
-      do { newAnim = videoList[Math.floor(Math.random() * videoList.length)]; } while (newAnim.id === currentAnim.id && videoList.length > 1);
-      currentAnim = newAnim;
-      fgVideo.src = currentAnim.src;
-      fgVideo.play().then(() => {
-        isTransitioning = false;
-        fgContainer.classList.remove('poof');
-        randomizeFgPosition();
-      }).catch(() => { isTransitioning = false; });
-    }, 600);
-  });
-  window.addEventListener('DOMContentLoaded', startVisualMedia);
 
   // ===== FUNCIONES DE DETALLE Y EVENTOS =====
   function buildContentDetails(anime) {
