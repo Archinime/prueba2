@@ -574,12 +574,11 @@
       justify-content: space-between;
       align-items: center;
     }
-    /* Eliminamos el botón de cerrar móvil */
     .notif-close-mobile { display: none; }
     .notif-list { 
       flex: 1; 
       overflow-y: auto;
-      overflow-x: hidden; /* 👈 Evita scroll horizontal */
+      overflow-x: hidden;
     }
     .notif-item {
       display: flex;
@@ -612,7 +611,6 @@
       white-space: nowrap; 
       overflow: hidden; 
       text-overflow: ellipsis; 
-      max-width: 100%;
     }
     .n-type { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--neon-blue); }
     .n-meta { 
@@ -621,16 +619,13 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 100%;
     }
     .tag-final { background: var(--neon-pink); color: #fff; padding: 1px 8px; border-radius: 4px; font-size: 0.55rem; margin-left: 6px; }
 
-    /* Asegurar que el dropdown no tenga scroll horizontal */
     .notif-dropdown,
     .notif-dropdown .notif-list {
       overflow-x: hidden !important;
     }
-    /* Forzar que ningún contenido interno se desborde */
     .notif-dropdown * {
       max-width: 100%;
     }
@@ -1570,7 +1565,6 @@
       .auth-card { max-width: 100%; }
       .profile-card { max-width: 100%; }
       
-      /* NOTIFICACIONES EN MÓVIL: centrado y fijo */
       .notif-dropdown {
         position: fixed;
         top: 70px;
@@ -1813,6 +1807,164 @@
       box-shadow: 0 0 20px var(--neon-cyan);
       transform: scale(1.02);
     }
+
+    /* ===== CHAT GLOBAL - ESTILOS ADICIONALES ===== */
+    .chat-message {
+      transition: background 0.2s;
+    }
+    .chat-message:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    .chat-sticker-wrapper {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .chat-sticker-wrapper:hover {
+      transform: scale(1.05);
+    }
+    #chatStickerPanel {
+      display: none;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid rgba(0,243,255,0.2);
+    }
+    #chatStickerPanel.active {
+      display: block;
+    }
+    #chatStickerPanel .sticker-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 10px;
+    }
+    #chatStickerPanel .sticker-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+    #chatStickerPanel .sticker-tab.active {
+      background: rgba(0,243,255,0.15);
+      color: var(--neon-blue);
+    }
+    #chatStickerPanel .sticker-tab-content {
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #chatStickerPanel .sticker-tab-content.active {
+      display: block;
+    }
+    #chatStickerPanel .stickers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    #chatStickerPanel .sticker-item {
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 4px;
+      cursor: pointer;
+      transition: 0.2s;
+      position: relative;
+    }
+    #chatStickerPanel .sticker-item:hover {
+      background: rgba(0,243,255,0.1);
+      transform: scale(1.05);
+    }
+    #chatStickerPanel .sticker-item .sticker-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    #chatStickerPanel .sticker-delete-btn {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--neon-pink);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sticker-empty {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 20px;
+      font-size: 0.9rem;
+    }
+    .add-sticker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      border: 2px dashed rgba(0,243,255,0.3);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.3);
+    }
+    .upload-sticker-label {
+      background: rgba(0,243,255,0.1);
+      border: 1px solid var(--neon-blue);
+      color: var(--neon-blue);
+      padding: 8px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .upload-sticker-label:hover {
+      background: var(--neon-blue);
+      color: #000;
+    }
+    #chatStickerPreview {
+      display: none;
+      padding: 8px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 12px;
+      border: 1px solid rgba(0,243,255,0.3);
+      margin-top: 8px;
+    }
+    #chatStickerPreview .preview-sticker-wrapper {
+      position: relative;
+      max-width: 60px;
+      max-height: 60px;
+    }
+    #chatStickerPreview .preview-sticker-wrapper img,
+    #chatStickerPreview .preview-sticker-wrapper video {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    #chatStickerPreview .remove-sticker-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--neon-pink);
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      color: #fff;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -1857,7 +2009,6 @@
       <div id="notifMenu" class="notif-dropdown">
         <div class="notif-header">
           <span><i class="fas fa-bell"></i> NOTIFICACIONES</span>
-          <!-- Botón de cerrar móvil eliminado -->
         </div>
         <div id="notifList" class="notif-list"><div style="padding:20px; text-align:center; color:var(--text-secondary);">Buscando señal...</div></div>
       </div>
@@ -1927,8 +2078,10 @@
   <div id="sidePanelContent"></div>
 </div>
 
-<!-- ===== CHAT ===== -->
-<button class="chat-float" title="Chat comunitario"><i class="fas fa-comment-dots"></i></button>
+<!-- ===== CHAT GLOBAL ===== -->
+<button class="chat-float" title="Chat comunitario" onclick="document.getElementById('chatModal').classList.add('show')">
+  <i class="fas fa-comment-dots"></i>
+</button>
 
 <!-- ===== MODALES ===== -->
 <div id="authModal" class="auth-modal">
@@ -2032,6 +2185,70 @@
   </div>
 </div>
 
+<!-- ===== MODAL CHAT GLOBAL ===== -->
+<div id="chatModal" class="auth-modal">
+  <div class="auth-card" style="max-width:600px; max-height:80vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+    <div style="padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3);">
+      <h3 style="font-family:'Orbitron',sans-serif; color:var(--neon-blue); margin:0; font-size:1.1rem; letter-spacing:2px;">
+        <i class="fas fa-globe" style="margin-right:8px;"></i> CHAT GLOBAL
+      </h3>
+      <button class="auth-close" onclick="document.getElementById('chatModal').classList.remove('show')" style="position:relative; top:0; right:0; width:34px; height:34px; background:rgba(255,255,255,0.03); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; color:var(--text-secondary); transition:0.2s; border:1px solid transparent;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="chatMessages" style="flex:1; overflow-y:auto; padding:16px; min-height:300px; max-height:50vh; background:rgba(0,0,0,0.2);">
+      <div style="text-align:center; padding:40px; color:var(--text-secondary);">
+        <i class="fas fa-spinner fa-spin" style="font-size:2rem; display:block; margin-bottom:15px;"></i>
+        Cargando mensajes...
+      </div>
+    </div>
+    <div id="chatInputContainer" style="display:none; padding:16px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.3); flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="invitado.avif" class="chat-user-avatar" style="width:36px; height:36px; border-radius:50%; border:2px solid var(--neon-blue); object-fit:cover;">
+        <input id="chatInput" type="text" placeholder="Escribe un mensaje..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:30px; padding:10px 18px; color:#fff; font-family:'Poppins',sans-serif; outline:none;" maxlength="300">
+        <button class="cyber-btn-icon" onclick="toggleStickerPanelChat()" title="Stickers" style="flex-shrink:0; width:40px; height:40px;"><i class="fas fa-smile"></i></button>
+        <button id="chatSendBtn" onclick="enviarMensajeChat()" style="background:var(--neon-blue); border:none; border-radius:50%; width:44px; height:44px; color:#000; font-size:1.1rem; cursor:pointer; transition:0.2s; display:flex; align-items:center; justify-content:center;">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div id="chatStickerPreview" style="display:none; padding:8px; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(0,243,255,0.3);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="position:relative; max-width:60px; max-height:60px;">
+            <img id="chatPreviewImg" src="" style="display:none; width:100%; height:auto; border-radius:8px;">
+            <video id="chatPreviewVid" src="" autoplay loop muted playsinline style="display:none; width:100%; height:auto; border-radius:8px;"></video>
+            <button onclick="quitarStickerChat()" style="position:absolute; top:-8px; right:-8px; background:#ff0055; border:none; border-radius:50%; width:22px; height:22px; color:#fff; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✖</button>
+          </div>
+          <span style="font-size:0.8rem; color:var(--text-secondary);">Sticker seleccionado</span>
+        </div>
+      </div>
+      <div id="chatStickerPanel" class="sticker-panel-full" style="margin-top:8px;">
+        <div class="sticker-tabs">
+          <button class="sticker-tab active" data-tab="mis" onclick="switchStickerTab('mis')">📦 MIS STICKERS</button>
+          <button class="sticker-tab" data-tab="subir" onclick="switchStickerTab('subir')">➕ SUBIR</button>
+        </div>
+        <div id="misStickersTab" class="sticker-tab-content active">
+          <div id="userStickersContainer" class="stickers-grid">
+            <div class="sticker-empty">Cargando...</div>
+          </div>
+        </div>
+        <div id="subirStickersTab" class="sticker-tab-content">
+          <div class="add-sticker-container" id="dragDropZone">
+            <p style="color:#fff; margin-bottom:10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 5 MB)</p>
+            <label for="stickerFileInput" class="upload-sticker-label" id="dropZoneLabel">
+              <i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo
+            </label>
+            <input type="file" id="stickerFileInput" accept="image/*,video/mp4,video/webm" style="display:none">
+            <div id="stickerPreview" style="display:none; margin-top:20px;">
+              <img id="previewImage" style="display:none; max-width:150px; border-radius:12px;">
+              <video id="previewVideo" autoplay loop muted playsinline style="display:none; max-width:150px; border-radius:12px;"></video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== CHROMA KEY ===== -->
 <div class="stage">
   <div id="fgContainer">
@@ -2064,6 +2281,10 @@
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
 <script src="banner-carousel.js?v=2025-04-07-v19.0"></script>
+<script src="stickers-system.js"></script>
+<script src="chat-global.js"></script>
+<script src="comentarios.js"></script>
+<script src="reacciones.js"></script>
 
 <script>
   // ===== CÓDIGO PRINCIPAL =====
@@ -2676,20 +2897,14 @@
     fgCanvas.width = maxW;
     fgCanvas.height = maxW / ratio;
   });
-  // Optimización: procesar chroma a 15 fps y solo si el contenedor es visible
   let frameCount = 0;
-  let chromaActive = true; // se pausa si el contenedor no es visible
-
-  // Observador para pausar chroma si no es visible
+  let chromaActive = true;
   const chromaObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       chromaActive = entry.isIntersecting;
       if (!chromaActive) {
-        // Si no es visible, no hacemos nada, el loop seguirá pero no procesará.
-        // También podemos pausar el video para ahorrar recursos
         if (!fgVideo.paused) fgVideo.pause();
       } else {
-        // Si se vuelve visible y el video está pausado, lo reanudamos
         if (fgVideo.paused && !fgVideo.ended) {
           fgVideo.play().catch(() => {});
         }
@@ -2704,7 +2919,7 @@
       return;
     }
     frameCount++;
-    if (frameCount % 4 !== 0) { // solo procesa 1 de cada 4 frames (~15 fps)
+    if (frameCount % 4 !== 0) {
       requestAnimationFrame(processChroma);
       return;
     }
@@ -2892,19 +3107,28 @@
     });
   }
 
-  // ===== PANEL LATERAL CONTENIDO =====
+  // ===== PANEL LATERAL CONTENIDO (FILTRADO POR RATING >= 4.9) =====
   (function() {
     const content = document.getElementById('sidePanelContent');
-    const topAnimes = baseAnimes.slice(0, 8);
-    content.innerHTML = topAnimes.map(a => `
-      <div class="panel-item" onclick="openDetail('${a.id}')" style="cursor:pointer;">
-        <img src="${a.img || 'placeholder.webp'}" alt="${a.title}">
-        <div class="info">
-          <div class="title">${a.title}</div>
-          <div class="sub">⭐ ${getDisplayRating(a)}</div>
+    // Filtrar animes con rating >= 4.9 (usando getNumericRating)
+    const topAnimes = baseAnimes
+      .filter(a => getNumericRating(a) >= 4.9)
+      .sort((a, b) => getNumericRating(b) - getNumericRating(a))
+      .slice(0, 8);
+      
+    if (topAnimes.length === 0) {
+      content.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:20px;">No hay animes con puntuación tan alta aún.</div>';
+    } else {
+      content.innerHTML = topAnimes.map(a => `
+        <div class="panel-item" onclick="openDetail('${a.id}')" style="cursor:pointer;">
+          <img src="${a.img || 'placeholder.webp'}" alt="${a.title}">
+          <div class="info">
+            <div class="title">${a.title}</div>
+            <div class="sub">⭐ ${getDisplayRating(a)}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
   })();
 
   document.addEventListener('keydown', e => {
@@ -2999,7 +3223,6 @@
 
     observer.observe(carousel);
 
-    // También cuando cambie el slide, verificamos visibilidad
     const slideObserver = new MutationObserver(() => {
       const rect = carousel.getBoundingClientRect();
       const isVisible = (
@@ -3023,8 +3246,6 @@
     if (!canvas) return;
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (isMobile) {
-      // Reducir la densidad de partículas (se aplica en animaciones.js, pero si no existe, añadimos un estilo)
-      // También podemos establecer un atributo para que el script lo reconozca
       canvas.dataset.mobile = 'true';
     }
   })();
