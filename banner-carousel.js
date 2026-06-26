@@ -120,11 +120,12 @@
       `;
       slide.appendChild(info);
 
-      // --- Enlace (Click) ---
+      // --- Enlace (Click) - Ahora navega en la misma pestaña ---
       if (b.link && b.link !== '#') {
         slide.style.cursor = 'pointer';
         slide.addEventListener('click', () => {
-          window.open(b.link, '_blank');
+          // Cambio: en lugar de window.open con '_blank', usamos location.href
+          window.location.href = b.link;
         });
       }
 
