@@ -4,8 +4,8 @@
 (function() {
   const STORAGE_KEY = 'archinime_banners';
   const DEFAULT_BANNERS = [
-    { title: 'Attack on Titan', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://images.alphacoders.com/135/1354428.jpeg', link: '#' },
-    { title: 'Demon Slayer', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://images.alphacoders.com/135/1355118.jpeg', link: '#' },
+    { title: 'gg', desc: '⭐ 4.9 · Acción, Drama, Fantasía', media: 'https://t4.ftcdn.net/jpg/07/32/10/81/360_F_732108134_fJIaxPtPWeZ6NB9oOrspxZ2YsAk7EDJ8.jpg', link: '#' },
+    { title: '132', desc: '⭐ 4.8 · Acción, Aventura, Fantasía', media: 'https://files.catbox.moe/yce62j.mp4', link: '#' },
     { title: 'Jujutsu Kaisen', desc: '⭐ 4.7 · Acción, Sobrenatural', media: 'https://images.alphacoders.com/135/1355122.jpeg', link: '#' }
   ];
 
