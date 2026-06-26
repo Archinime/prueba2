@@ -8,19 +8,19 @@
     { 
       title: "Jujutsu Kaisen", 
       desc: "", 
-      media: "https://files.catbox.moe/axewct.mp4", 
+      media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/sukuna.mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=2" 
     },
     { 
       title: "Demon Slayer", 
       desc: "", 
-      media: "https://files.catbox.moe/8d4q6d.mp4", 
+      media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/damonsd.mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=10" 
     },
     { 
       title: "Solo Leveling", 
       desc: "⭐ 5 · Acción, Sobrenatural", 
-      media: "https://files.catbox.moe/bt5abl.mp4", 
+      media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/jin%20(1).mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=67" 
     }
   ];
