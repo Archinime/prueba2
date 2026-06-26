@@ -1587,7 +1587,7 @@
       transform: scale(1.02);
     }
 
-    /* ===== CHAT (PANEL LATERAL) ===== */
+    /* ===== CHAT GLOBAL (PANEL LATERAL) ===== */
     .side-panel-toggle {
       display: none;
     }
@@ -1641,7 +1641,6 @@
       margin-right: 8px;
     }
 
-    /* Contenido del chat dentro del panel */
     #chatMessagesPanel {
       flex: 1;
       overflow-y: auto;
@@ -1683,7 +1682,7 @@
     }
     .chat-message .chat-sticker-wrapper {
       margin-top: 6px;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       max-width: 150px;
       max-height: 150px;
@@ -1697,6 +1696,7 @@
       height: 100%;
       object-fit: contain;
       display: block;
+      border-radius: 0; /* Asegura que no se recorte */
     }
     .chat-delete-msg {
       background: transparent;
@@ -1710,7 +1710,6 @@
     }
     .chat-delete-msg:hover { background: rgba(255,0,85,0.15); }
 
-    /* Input del chat */
     #chatInputContainerPanel {
       display: none;
       flex-direction: column;
@@ -1777,7 +1776,6 @@
       transform: scale(1.05);
     }
 
-    /* Previsualización sticker en chat */
     #chatStickerPreviewPanel {
       display: none;
       padding: 6px 10px;
@@ -1819,7 +1817,6 @@
       justify-content: center;
     }
 
-    /* Panel de stickers dentro del chat */
     #chatStickerPanelPanel {
       display: none;
       background: rgba(0,0,0,0.5);
@@ -1830,9 +1827,7 @@
       max-height: 200px;
       overflow-y: auto;
     }
-    #chatStickerPanelPanel.active {
-      display: block;
-    }
+    #chatStickerPanelPanel.active { display: block; }
     #chatStickerPanelPanel .sticker-tabs {
       display: flex;
       gap: 8px;
@@ -1855,12 +1850,8 @@
       background: rgba(0,243,255,0.15);
       color: var(--neon-blue);
     }
-    #chatStickerPanelPanel .sticker-tab-content {
-      display: none;
-    }
-    #chatStickerPanelPanel .sticker-tab-content.active {
-      display: block;
-    }
+    #chatStickerPanelPanel .sticker-tab-content { display: none; }
+    #chatStickerPanelPanel .sticker-tab-content.active { display: block; }
     #chatStickerPanelPanel .stickers-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -2005,7 +1996,7 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== RESPONSIVE EXTRA ===== */
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .side-panel { width: 90vw; right: -95vw; padding: 16px; }
       .side-panel.open { right: 0; }
@@ -2302,7 +2293,7 @@
   </div>
 </div>
 
-<!-- ===== SCRIPTS (embebidos para asegurar correcciones) ===== -->
+<!-- ===== SCRIPTS (embebidos y externos) ===== -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
@@ -2319,6 +2310,13 @@
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
+
+<script src="catalogo.js?v=2025-04-07-v19.0"></script>
+<script src="animaciones.js"></script>
+<script src="musica_fondo.js"></script>
+<script src="notification-system.js"></script>
+<script src="gifs.js"></script>
+<script src="banner-carousel.js?v=2025-04-07-v19.0"></script>
 
 <script>
   // ============================================
@@ -2427,7 +2425,6 @@
     setTimeout(() => toast.style.display = 'none', 2500);
   }
 
-  // Subir sticker desde PC (usado en comentarios y chat)
   window.subirStickerDesdePC = async function(inputElement) {
     const user = auth.currentUser;
     if (!user) {
@@ -2475,7 +2472,6 @@
         if (previewContainer) previewContainer.style.display = 'none';
         inputElement.value = '';
         showToastSticker('✅ Sticker subido');
-        // Recargar stickers del chat
         if (typeof cargarStickersChatPanel === 'function') cargarStickersChatPanel();
       } else {
         throw new Error(fileUrl || 'Error de Catbox');
@@ -2490,14 +2486,13 @@
     }
   };
 
-  // Inicializar stickers
   auth.onAuthStateChanged(user => {
     if (user) loadUserStickers();
     else { userStickersCollection = []; renderUserStickers(); }
   });
 
   // ============================================
-  // COMENTARIOS (CORREGIDO: sin login para leer)
+  // COMENTARIOS (SIN LOGIN PARA VER)
   // ============================================
   let comentariosUnsubscribe = null;
   let comentariosInicializados = false;
@@ -2505,11 +2500,7 @@
   function initComentariosSystem() {
     if (comentariosInicializados) return;
     comentariosInicializados = true;
-
-    // Inyectar estilos (se puede omitir si ya existen)
     setupComentariosRealtimeListener();
-
-    // Actualizar UI según login
     auth.onAuthStateChanged(user => {
       const loginMsg = document.getElementById('comentarioLoginMessage');
       const formContainer = document.getElementById('comentarioFormContainer');
@@ -2520,18 +2511,17 @@
         if (avatar) avatar.src = user.photoURL || 'invitado.avif';
         const name = document.getElementById('comentarioUserName');
         if (name) name.innerText = user.displayName || user.email.split('@')[0];
-        // Cargar stickers para comentarios
         loadUserStickers();
       } else {
-        if (loginMsg) loginMsg.style.display = 'block';
-        if (formContainer) formContainer.style.display = 'none';
+        if (loginMsg) loginMsg.style.display = 'none'; // No mostrar mensaje de login
+        if (formContainer) formContainer.style.display = 'none'; // Ocultar formulario
       }
     });
   }
 
   function setupComentariosRealtimeListener() {
     if (comentariosUnsubscribe) comentariosUnsubscribe();
-    const animeId = window.comentariosAnimeId || '1'; // valor por defecto para prueba
+    const animeId = window.comentariosAnimeId || '1';
     const season = parseInt(window.comentariosSeason) || 1;
     const episode = parseInt(window.comentariosEpisode) || 1;
     if (!animeId || isNaN(season) || isNaN(episode)) {
@@ -2553,25 +2543,23 @@
         container.innerHTML = `<div class="empty-comments"><i class="fas fa-ghost"></i> Sé el primero en comentar.</div>`;
         return;
       }
-      // Renderizar comentarios (simplificado para no depender de otros módulos)
       let html = '';
       snapshot.docs.reverse().forEach(doc => {
         const data = doc.data();
         const userName = data.userName || 'Usuario';
         const userAvatar = data.userAvatar || 'invitado.avif';
-        const texto = data.texto || '';
+        let texto = data.texto || '';
         const timestamp = data.timestamp?.toDate() || new Date();
         const fecha = timestamp.toLocaleString();
         const customColor = data.customColor || '#00f0ff';
-        // Procesar texto (eliminar marcador de sticker)
-        let contenido = texto.replace(/\[Sticker\]\([^)]*\)/g, '');
-        contenido = contenido.replace(/\n/g, '<br>');
-        // Si es sticker, mostrarlo
+        // Limpiar marcadores de sticker
+        texto = texto.replace(/\[Sticker\]\([^)]*\)/g, '');
+        texto = texto.replace(/\n/g, '<br>');
         let stickerHtml = '';
         if (data.esSticker && data.stickerUrl) {
           const isVideo = data.stickerUrl.match(/\.(mp4|webm)$/i);
           const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img';
-          stickerHtml = `<div style="margin-top:8px; max-width:150px; border-radius:8px; overflow:hidden; border:1px solid ${customColor};"><${tag} src="${data.stickerUrl}" style="width:100%; height:auto; display:block; object-fit:contain;"></div>`;
+          stickerHtml = `<div style="margin-top:8px; max-width:150px; border-radius:8px; overflow:hidden; border:1px solid ${customColor}; background:#000;"><${tag} src="${data.stickerUrl}" style="width:100%; height:auto; display:block; object-fit:contain;"></div>`;
         }
         html += `
           <div style="display:flex; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:flex-start;">
@@ -2581,7 +2569,7 @@
                 <span style="font-weight:700; color:${customColor};">${userName}</span>
                 <span style="font-size:0.65rem; color:#aaa;">${fecha}</span>
               </div>
-              <div style="margin-top:4px; word-wrap:break-word;">${contenido}</div>
+              <div style="margin-top:4px; word-wrap:break-word;">${texto}</div>
               ${stickerHtml}
             </div>
           </div>
@@ -2595,9 +2583,7 @@
     });
   }
 
-  // Inicializar comentarios al cargar la página
   document.addEventListener('DOMContentLoaded', () => {
-    // Si no hay parámetros, usar valores por defecto para demostración
     if (!window.comentariosAnimeId) {
       window.comentariosAnimeId = '1';
       window.comentariosSeason = '1';
@@ -2616,7 +2602,6 @@
   let chatUnsubscribePanel = null;
   let stickerSeleccionadoPanel = null;
 
-  // Cargar stickers para el panel del chat
   window.cargarStickersChatPanel = async function() {
     const user = auth.currentUser;
     const container = document.getElementById('userStickersContainerPanel');
@@ -2660,7 +2645,7 @@
     try {
       await db.collection('userStickers').doc(user.uid).update({ stickers: firebase.firestore.FieldValue.arrayRemove(url) });
       cargarStickersChatPanel();
-      loadUserStickers(); // actualizar también la lista de comentarios
+      loadUserStickers();
       showToastSticker('🗑️ Sticker eliminado');
     } catch (e) { alert('Error al eliminar'); }
   };
@@ -2676,20 +2661,7 @@
   function iniciarEscuchaChatPanel() {
     if (chatUnsubscribePanel) chatUnsubscribePanel();
     const user = auth.currentUser;
-    if (!user) {
-      document.getElementById('chatMessagesPanel').innerHTML = `
-        <div style="text-align:center; padding:40px; color:var(--text-secondary);">
-          <i class="fas fa-lock" style="font-size:2rem; display:block; margin-bottom:15px;"></i>
-          Inicia sesión para ver y enviar mensajes.
-        </div>
-      `;
-      document.getElementById('chatInputContainerPanel').style.display = 'none';
-      return;
-    }
-    document.getElementById('chatInputContainerPanel').style.display = 'flex';
-    const avatar = document.querySelector('#chatInputContainerPanel .chat-user-avatar');
-    if (avatar) avatar.src = user.photoURL || 'invitado.avif';
-
+    // Siempre mostrar mensajes, sin importar el login
     const query = db.collection('globalChat')
       .orderBy('timestamp', 'desc')
       .limit(100);
@@ -2707,7 +2679,7 @@
         const data = doc.data();
         const userName = data.userName || 'Usuario';
         const userAvatar = data.userAvatar || 'invitado.avif';
-        const texto = data.texto || '';
+        let texto = data.texto || '';
         const timestamp = data.timestamp?.toDate() || new Date();
         const fecha = timestamp.toLocaleString();
         const esSticker = data.esSticker || false;
@@ -2715,21 +2687,18 @@
         const customColor = data.customColor || getNeonColor(data.userId || userName);
         const uid = data.userId || '';
 
-        // Procesar texto: eliminar marcador de sticker para que no se muestre el texto feo
-        let contenido = escapeHtml(texto);
-        contenido = contenido.replace(/\[Sticker\]\([^)]*\)/g, '');
-        contenido = contenido.replace(/\n/g, '<br>');
-        // Emojis
+        texto = texto.replace(/\[Sticker\]\([^)]*\)/g, '');
+        texto = texto.replace(/\n/g, '<br>');
         const emojis = { ':D': '😃', ':)': '😊', ':(': '😢', ':P': '😛', ';)': '😉', '<3': '❤️' };
-        for (const [key, val] of Object.entries(emojis)) contenido = contenido.split(key).join(val);
+        for (const [key, val] of Object.entries(emojis)) texto = texto.split(key).join(val);
 
         let stickerHtml = '';
         if (esSticker && stickerUrl) {
           const isVideo = stickerUrl.match(/\.(mp4|webm)$/i);
           const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img';
           stickerHtml = `
-            <div class="chat-sticker-wrapper">
-              <${tag} src="${stickerUrl}" onclick="window.abrirStickerModal('${stickerUrl}')">
+            <div class="chat-sticker-wrapper" onclick="abrirStickerModalGlobal('${stickerUrl}')">
+              <${tag} src="${stickerUrl}">
             </div>
           `;
         }
@@ -2748,7 +2717,7 @@
                 <span class="msg-time">${fecha}</span>
                 ${deleteBtn}
               </div>
-              <div class="msg-text">${contenido}</div>
+              <div class="msg-text">${texto}</div>
               ${stickerHtml}
             </div>
           </div>
@@ -2774,6 +2743,16 @@
         </div>
       `;
     });
+
+    // Ocultar/mostrar input según login
+    const inputContainer = document.getElementById('chatInputContainerPanel');
+    if (user) {
+      inputContainer.style.display = 'flex';
+      const avatar = document.querySelector('#chatInputContainerPanel .chat-user-avatar');
+      if (avatar) avatar.src = user.photoURL || 'invitado.avif';
+    } else {
+      inputContainer.style.display = 'none';
+    }
   }
 
   function escapeHtml(text) {
@@ -2876,7 +2855,6 @@
     if (tab === 'mis') cargarStickersChatPanel();
   };
 
-  // Subir sticker desde el panel
   document.getElementById('stickerFileInputPanel')?.addEventListener('change', function(e) {
     const file = this.files[0];
     if (!file) return;
@@ -2888,35 +2866,73 @@
     }
   });
 
-  window.abrirStickerModal = function(url) {
+  // ===== MODAL PARA STICKER (COPIAR/ROBAR) =====
+  function abrirStickerModalGlobal(url) {
+    // Reutiliza el modal de stickers de comentarios
     if (typeof openStickerModal === 'function') {
       openStickerModal(url);
     } else {
-      window.open(url, '_blank');
+      // Crear modal temporal si no existe
+      let modal = document.getElementById('stickerViewModalGlobal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'stickerViewModalGlobal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,10,0.95);backdrop-filter:blur(10px);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;transition:0.3s;';
+        modal.innerHTML = `
+          <div style="position:relative; text-align:center; max-width:90vw;">
+            <button onclick="cerrarStickerModalGlobal()" style="position:absolute;top:-50px;right:-10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;"><i class="fas fa-times"></i></button>
+            <img id="stickerModalImgGlobal" src="" style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);object-fit:contain;">
+            <video id="stickerModalVidGlobal" src="" autoplay loop muted playsinline style="display:none; max-width:100%;max-height:70vh;border-radius:16px;box-shadow:0 10px 40px rgba(0,255,247,0.2);object-fit:contain;"></video>
+            <br><button id="stickerModalStealBtnGlobal" style="margin-top:25px;background:var(--neon-blue);border:none;color:#000;padding:12px 25px;border-radius:25px;font-weight:800;font-family:'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 0 15px rgba(0,255,247,0.4);transition:0.2s;">
+              <i class="fas fa-mask"></i> ROBAR STICKER
+            </button>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      const isVideo = url.match(/\.(mp4|webm)$/i);
+      const imgEl = document.getElementById('stickerModalImgGlobal');
+      const vidEl = document.getElementById('stickerModalVidGlobal');
+      if (isVideo) { imgEl.style.display = 'none'; vidEl.src = url; vidEl.style.display = 'block'; }
+      else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
+      document.getElementById('stickerModalStealBtnGlobal').onclick = () => {
+        if (auth.currentUser) {
+          // Función para robar sticker (usar la misma de comentarios)
+          if (typeof window.robarStickerSistema === 'function') {
+            window.robarStickerSistema(url);
+          } else {
+            // Implementación simple
+            db.collection('userStickers').doc(auth.currentUser.uid).set({
+              stickers: firebase.firestore.FieldValue.arrayUnion(url)
+            }, { merge: true }).then(() => {
+              alert('Sticker robado!');
+              cargarStickersChatPanel();
+              loadUserStickers();
+            }).catch(alert);
+          }
+          cerrarStickerModalGlobal();
+        } else {
+          alert('Inicia sesión para robar stickers');
+        }
+      };
+      modal.style.display = 'flex';
+      setTimeout(() => modal.style.opacity = '1', 10);
     }
-  };
+  }
+
+  function cerrarStickerModalGlobal() {
+    const modal = document.getElementById('stickerViewModalGlobal');
+    if (modal) {
+      modal.style.opacity = '0';
+      setTimeout(() => { modal.style.display = 'none'; const vid = document.getElementById('stickerModalVidGlobal'); if (vid) vid.src = ''; }, 300);
+    }
+  }
+  window.abrirStickerModal = abrirStickerModalGlobal;
+  window.cerrarStickerModal = cerrarStickerModalGlobal;
 
   // ============================================
-  // RESTO DEL CÓDIGO (catalogo, ratings, etc.)
+  // RESTO DEL CÓDIGO (catálogo, filtros, etc.)
   // ============================================
-  // (Aquí va el resto del código que ya tenías, como el manejo de catálogo, filtros, etc.)
-  // Lo he dejado igual que en tu versión anterior, solo he añadido las correcciones necesarias.
-</script>
-
-<!-- ===== SCRIPTS EXTERNOS (catalogo, etc.) ===== -->
-<script src="catalogo.js?v=2025-04-07-v19.0"></script>
-<script src="animaciones.js"></script>
-<script src="musica_fondo.js"></script>
-<script src="notification-system.js"></script>
-<script src="gifs.js"></script>
-<script src="banner-carousel.js?v=2025-04-07-v19.0"></script>
-
-<!-- ===== SCRIPT PRINCIPAL (CON EL RESTO DE LA LÓGICA) ===== -->
-<script>
-  // (Aquí continúa el código que tenías en tu index original, como window.videoList, música, loader, ratings, etc.)
-  // Para no sobrecargar, mantengo la estructura; pero como el usuario pidió "todo el código completo", incluyo lo esencial.
-
-  // Nota: Se asume que catalogoArray está definido en catalogo.js
   window.videoList = videoList || [];
   window.musicListGlobal = musicListGlobal || [];
   window.toggleNotifMenu = function() {
@@ -2924,7 +2940,6 @@
   };
   window.startNotificationSequence = function() { console.log("Notificaciones listas"); };
 
-  // Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -2933,7 +2948,6 @@
     });
   }
 
-  // Instalación (app)
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const isIos = () => /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
@@ -2958,7 +2972,6 @@
   window.matchMedia('(display-mode: standalone)').addEventListener('change', updateButtons);
   window.addEventListener('DOMContentLoaded', updateButtons);
 
-  // Música de fondo
   let isMusicStarted = false, currentAudio = null;
   function playNextTrack() {
     if (!isMusicStarted) return;
@@ -3004,10 +3017,8 @@
   window.addEventListener('firstAnimesLoaded', () => { clearInterval(loadInterval); updateProgress(100); finishLoading(); });
   setTimeout(() => { if (!loadingCompleted) finishLoading(); }, 8000);
 
-  // Funciones auxiliares
   function shuffleArray(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-  // Ratings
   let firestoreRatings = new Map();
   async function loadRatings() {
     try {
@@ -3030,7 +3041,6 @@
   }
   function normalizeText(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 
-  // Anuncios
   let anuncioActual = null, cachedAdCard = null;
   function inicializarAnuncio() {
     if (typeof window.listaAnuncios !== 'undefined' && window.listaAnuncios.length > 0) {
@@ -3054,10 +3064,8 @@
     return card;
   }
 
-  // ===== DATOS BASE =====
   let baseAnimes = [];
   let searchableIndex = [];
-
   function buildSearchableIndex(animes) {
     return animes.map(a => ({
       id: a.id,
@@ -3075,7 +3083,6 @@
   const searchInput = document.getElementById('search');
   const suggestionsDesktop = document.getElementById('searchSuggestions');
 
-  // ===== SUGERENCIAS =====
   function renderSuggestions(term) {
     if (!suggestionsDesktop) return;
     if (term.length < 1) {
@@ -3114,7 +3121,6 @@
     });
     suggestionsDesktop.innerHTML = html;
     suggestionsDesktop.classList.add('active');
-
     suggestionsDesktop.querySelectorAll('.suggestion-item[data-id]').forEach(el => {
       el.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -3133,23 +3139,16 @@
     if (suggestionsDesktop) suggestionsDesktop.classList.remove('active');
   }
 
-  // ===== FILTRADO Y PAGINACIÓN =====
   function applyFilters() {
     let result = baseAnimes.slice();
-    if (currentFilters.genre) {
-      result = result.filter(a => a.genres && a.genres.includes(currentFilters.genre));
-    }
-    if (currentFilters.demographic) {
-      result = result.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
-    }
+    if (currentFilters.genre) result = result.filter(a => a.genres && a.genres.includes(currentFilters.genre));
+    if (currentFilters.demographic) result = result.filter(a => a.genres && a.genres.includes(currentFilters.demographic));
     if (currentFilters.search) {
       const term = normalizeText(currentFilters.search);
       result = result.filter(a => {
         const titleMatch = normalizeText(a.title).includes(term);
         if (titleMatch) return true;
-        if (a.aliases) {
-          return a.aliases.some(alias => normalizeText(alias).includes(term));
-        }
+        if (a.aliases) return a.aliases.some(alias => normalizeText(alias).includes(term));
         return false;
       });
     }
@@ -3252,7 +3251,6 @@
 
   window.changePage = function(p) { if (p < 1 || p > totalPages) return; currentPage = p; renderPage(); };
 
-  // ===== SISTEMA DE BÚSQUEDA =====
   function handleSearchInput(e) {
     const term = e.target.value;
     currentFilters.search = term;
@@ -3298,7 +3296,7 @@
     cargarDatosYMostrar();
   };
 
-  // ===== AUTENTICACIÓN (resto de funciones) =====
+  // ===== AUTENTICACIÓN =====
   let currentUser = null, newAvatarUrl = null, lastProfileUpdate = 0;
   const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dbcqcai1q/upload';
   const CLOUDINARY_PRESET = 'stickers_archinime';
@@ -3481,7 +3479,6 @@
     });
   })();
 
-  // ===== TILT =====
   function aplicarTilt() {
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) return;
@@ -3501,7 +3498,7 @@
     });
   }
 
-  // ===== CHROMA KEY =====
+  // ===== CHROMA KEY (ANIMACIONES FIJAS) =====
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
     fg.classList.remove('fg-left', 'fg-right');
@@ -3523,22 +3520,9 @@
   });
   let frameCount = 0;
   let chromaActive = true;
-  const chromaObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      chromaActive = entry.isIntersecting;
-      if (!chromaActive) {
-        if (!fgVideo.paused) fgVideo.pause();
-      } else {
-        if (fgVideo.paused && !fgVideo.ended) {
-          fgVideo.play().catch(() => {});
-        }
-      }
-    });
-  }, { threshold: 0.1 });
-  chromaObserver.observe(fgContainer);
-
+  // Siempre activo, no lo desactivamos con scroll
   function processChroma() {
-    if (!chromaActive || fgVideo.paused || fgVideo.ended || isTransitioning) {
+    if (fgVideo.paused || fgVideo.ended || isTransitioning) {
       requestAnimationFrame(processChroma);
       return;
     }
@@ -3730,6 +3714,7 @@
       sidePanel.classList.remove('open');
       document.body.style.overflow = '';
       hideAllSuggestions();
+      cerrarStickerModalGlobal();
     }
   });
 
