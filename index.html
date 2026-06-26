@@ -1421,9 +1421,9 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
-    /* ===== PANEL LATERAL (ahora para el chat) ===== */
+    /* ===== PANEL LATERAL (CHAT GLOBAL) ===== */
     .side-panel-toggle {
-      display: none; /* Oculto porque usamos el botón de chat para abrirlo */
+      display: none;
     }
 
     .side-panel {
@@ -1543,7 +1543,7 @@
 
     /* Input del chat */
     #chatInputContainerPanel {
-      display: none; /* se muestra si usuario logueado */
+      display: none;
       flex-direction: column;
       gap: 8px;
       padding-top: 8px;
@@ -1769,6 +1769,30 @@
       border-radius: 8px;
     }
 
+    /* ===== FOOTER (restaurado) ===== */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      margin-top: 40px;
+    }
+    .footer .socials {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+    .footer .socials a {
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      transition: 0.2s;
+    }
+    .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
+    .footer .credit { opacity: 0.5; }
+
     /* ===== RESPONSIVE EXTRA ===== */
     @media (max-width: 768px) {
       .side-panel { width: 90vw; right: -95vw; padding: 16px; }
@@ -1776,6 +1800,7 @@
       .chat-message { padding: 8px 10px; gap: 8px; }
       .chat-message img { width: 30px; height: 30px; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
+      .footer { padding: 20px; }
     }
     @media (max-width: 480px) {
       .side-panel { width: 100vw; right: -105vw; }
@@ -1875,7 +1900,7 @@
   <div id="pagination" class="pagination-container"></div>
 </main>
 
-<!-- ===== FOOTER ===== -->
+<!-- ===== FOOTER (restaurado) ===== -->
 <footer class="footer">
   <div class="socials">
     <a href="#"><i class="fab fa-twitter"></i></a>
@@ -2777,21 +2802,77 @@
   });
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
-  // ===== PANEL LATERAL (CHAT GLOBAL) - FUNCIONES =====
+  // ===== FUNCIONES DE CHAT GLOBAL (PANEL LATERAL) =====
   const sidePanel = document.getElementById('sidePanel');
   const sideClose = document.getElementById('sidePanelClose');
   sideClose.addEventListener('click', () => sidePanel.classList.remove('open'));
 
-  window.abrirChatPanel = function() {
-    sidePanel.classList.toggle('open');
-    if (sidePanel.classList.contains('open')) {
-      // Cargar mensajes y stickers si es necesario
-      if (typeof cargarStickersUsuario === 'function') cargarStickersUsuario();
-      iniciarEscuchaChatPanel();
+  let chatUnsubscribePanel = null;
+  let stickerSeleccionadoPanel = null;
+
+  // Cargar stickers del usuario para el panel del chat
+  window.cargarStickersChatPanel = async function() {
+    const user = auth.currentUser;
+    if (!user) {
+      const container = document.getElementById('userStickersContainerPanel');
+      if (container) container.innerHTML = '<div class="sticker-empty-msg">Inicia sesión para ver tus stickers</div>';
+      return;
+    }
+    const container = document.getElementById('userStickersContainerPanel');
+    if (!container) return;
+    try {
+      const doc = await db.collection('userStickers').doc(user.uid).get();
+      let stickers = [];
+      if (doc.exists && doc.data().stickers) {
+        stickers = doc.data().stickers.filter(url => url && typeof url === 'string' && url.trim() !== '');
+      }
+      if (stickers.length === 0) {
+        container.innerHTML = '<div class="sticker-empty-msg">No tienes stickers aún.</div>';
+        return;
+      }
+      let html = '';
+      stickers.forEach(url => {
+        const isVideo = url.match(/\.(mp4|webm)$/i);
+        const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img';
+        html += `
+          <div class="sticker-item" onclick="seleccionarStickerChatPanel('${url}')">
+            <${tag} src="${url}" class="sticker-img">
+            <button class="sticker-delete-btn" onclick="event.stopPropagation(); eliminarStickerChatPanel('${url}')">✖</button>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    } catch (e) {
+      console.error(e);
+      container.innerHTML = '<div class="sticker-empty-msg">Error al cargar stickers.</div>';
     }
   };
 
-  let chatUnsubscribePanel = null;
+  window.eliminarStickerChatPanel = async function(url) {
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!confirm('¿Eliminar este sticker?')) return;
+    try {
+      const userRef = db.collection('userStickers').doc(user.uid);
+      await userRef.update({ stickers: firebase.firestore.FieldValue.arrayRemove(url) });
+      // Actualizar la lista del panel
+      cargarStickersChatPanel();
+      // También actualizar el sistema global si está visible
+      if (typeof loadUserStickers === 'function') loadUserStickers();
+      showToastSticker('🗑️ Sticker eliminado');
+    } catch (e) {
+      alert('Error al eliminar');
+    }
+  };
+
+  window.abrirChatPanel = function() {
+    sidePanel.classList.toggle('open');
+    if (sidePanel.classList.contains('open')) {
+      // Cargar mensajes y stickers
+      iniciarEscuchaChatPanel();
+      cargarStickersChatPanel();
+    }
+  };
 
   function iniciarEscuchaChatPanel() {
     if (chatUnsubscribePanel) chatUnsubscribePanel();
@@ -2907,11 +2988,7 @@
     return div.innerHTML;
   }
 
-  // Función para obtener color neón (ya definida antes)
-
-  // ===== FUNCIONES DEL CHAT DENTRO DEL PANEL =====
-  let stickerSeleccionadoPanel = null;
-
+  // Funciones para el chat del panel
   window.enviarMensajeChatPanel = async function() {
     const user = auth.currentUser;
     if (!user) { alert('Inicia sesión para enviar mensajes'); return; }
@@ -2987,8 +3064,8 @@
     const panel = document.getElementById('chatStickerPanelPanel');
     if (panel) {
       panel.classList.toggle('active');
-      if (panel.classList.contains('active') && typeof loadUserStickers === 'function') {
-        loadUserStickers();
+      if (panel.classList.contains('active')) {
+        cargarStickersChatPanel();
       }
     }
   };
@@ -2998,58 +3075,45 @@
     document.querySelector(`#chatStickerPanelPanel .sticker-tab[data-tab="${tab}"]`)?.classList.add('active');
     document.querySelectorAll('#chatStickerPanelPanel .sticker-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tab === 'mis' ? 'misStickersTabPanel' : 'subirStickersTabPanel')?.classList.add('active');
-    if (tab === 'mis' && typeof loadUserStickers === 'function') loadUserStickers();
+    if (tab === 'mis') cargarStickersChatPanel();
   };
 
-  // ===== STICKERS DENTRO DEL CHAT PANEL (reutiliza funciones globales) =====
-  // Cargar stickers del usuario en el contenedor del panel
-  window.cargarStickersUsuarioPanel = function() {
-    const container = document.getElementById('userStickersContainerPanel');
-    if (!container) return;
-    const user = auth.currentUser;
-    if (!user) { container.innerHTML = '<div class="sticker-empty-msg">Inicia sesión para ver tus stickers</div>'; return; }
-    // Usar la función global loadUserStickers que debe estar definida en stickers-system.js
-    if (typeof loadUserStickers === 'function') {
-      // Sobrescribimos temporalmente la función renderUserStickers para que use el contenedor del panel
-      const originalRender = window.renderUserStickers;
-      window.renderUserStickers = function() {
-        const stickers = userStickersCollection || [];
-        if (stickers.length === 0) {
-          container.innerHTML = '<div class="sticker-empty-msg">No tienes stickers aún.</div>';
-          return;
-        }
-        let html = '';
-        stickers.forEach(url => {
-          const isVideo = url.match(/\.(mp4|webm)$/i);
-          const tag = isVideo ? 'video autoplay loop muted playsinline' : 'img';
-          html += `
-            <div class="sticker-item" onclick="seleccionarStickerChatPanel('${url}')">
-              <${tag} src="${url}" class="sticker-img">
-              <button class="sticker-delete-btn" onclick="event.stopPropagation(); eliminarSticker('${url}', event)">✖</button>
-            </div>
-          `;
-        });
-        container.innerHTML = html;
-      };
-      loadUserStickers();
-      // Restaurar la función original después de un tiempo
-      setTimeout(() => { if (originalRender) window.renderUserStickers = originalRender; }, 100);
-    } else {
-      container.innerHTML = '<div class="sticker-empty-msg">Sistema de stickers no disponible.</div>';
-    }
-  };
-
-  // Subir sticker desde el panel
+  // Subir sticker desde el panel (usando el sistema existente)
   document.getElementById('stickerFileInputPanel')?.addEventListener('change', function(e) {
     const file = this.files[0];
     if (!file) return;
     if (typeof subirStickerDesdePC === 'function') {
       // Llamar a la función global pasando este input
       subirStickerDesdePC(this);
+      // Después de subir, recargar los stickers del panel
+      setTimeout(cargarStickersChatPanel, 2000);
     } else {
       alert('Función de subida no disponible.');
     }
   });
+
+  // Funciones para abrir modal de sticker (reutiliza la de comentarios)
+  window.abrirStickerModal = function(url) {
+    if (typeof openStickerModal === 'function') {
+      openStickerModal(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  // Función para mostrar toast (se usa en eliminar sticker)
+  function showToastSticker(msg) {
+    let toast = document.getElementById('toastSticker');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toastSticker';
+      toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f0f13;color:#00fff7;padding:12px 25px;border-radius:30px;z-index:1001;font-weight:bold;box-shadow:0 0 20px rgba(0,255,247,0.5); border:1px solid #00fff7;';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2500);
+  }
 
   // ===== FUNCIONES DE DETALLE Y EVENTOS =====
   function buildContentDetails(anime) {
