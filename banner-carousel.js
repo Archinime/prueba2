@@ -10,8 +10,8 @@
   {
     "title": "",
     "desc": "",
-    "mediaDesktop": "https://files.catbox.moe/9snow9.mp4",
-    "mediaMobile": "https://files.catbox.moe/9snow9.mp4",
+    "mediaDesktop": "https://files.catbox.moe/axewct.mp4",
+    "mediaMobile": "https://files.catbox.moe/axewct.mp4",
     "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=2"
   },
   {
@@ -22,11 +22,11 @@
     "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=10"
   },
   {
-    "title": "Re:Zero",
+    "title": "Solo Leveling",
     "desc": "⭐ 5 · Acción, Sobrenatural",
-    "mediaDesktop": "https://files.catbox.moe/48rh4u.mp4",
-    "mediaMobile": "https://files.catbox.moe/48rh4u.mp4",
-    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=4"
+    "mediaDesktop": "https://files.catbox.moe/bt5abl.mp4",
+    "mediaMobile": "https://files.catbox.moe/bt5abl.mp4",
+    "link": "https://archinime.github.io/-Archinime-/anime-detail.html?id=67"
   }
 ];
 
