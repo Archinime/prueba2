@@ -2179,21 +2179,22 @@
     }
 
     /* ===== AJUSTE PARA PANEL LATERAL ===== */
-    /* Tablets (769px - 1024px) */
+    /* Tablets (769px - 1024px) - Más estrecho */
     @media (min-width: 769px) and (max-width: 1024px) {
       .side-panel {
-        width: 350px;
-        right: -350px;
-        max-width: 60vw;
+        width: 280px;
+        right: -280px;
+        max-width: 45vw;
+        padding: 18px 16px;
       }
       .side-panel.open { right: 0; }
     }
     /* Móviles grandes (481px - 768px) */
     @media (max-width: 768px) {
       .side-panel {
-        width: 70vw;
-        right: -70vw;
-        max-width: 70vw;
+        width: 60vw;
+        right: -60vw;
+        max-width: 60vw;
         padding: 16px;
       }
       .side-panel.open { right: 0; }
@@ -2216,9 +2217,10 @@
     /* Móviles pequeños (<=480px) */
     @media (max-width: 480px) {
       .side-panel {
-        width: 80vw;
-        right: -80vw;
-        max-width: 80vw;
+        width: 70vw;
+        right: -70vw;
+        max-width: 70vw;
+        padding: 12px 10px;
       }
       .side-panel.open { right: 0; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
