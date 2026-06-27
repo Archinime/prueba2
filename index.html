@@ -1996,12 +1996,12 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== CHROMA KEY FIX ===== */
+    /* ===== CHROMA KEY FIX (FONDO TRANSPARENTE Y POSICIÓN) ===== */
     .stage {
       position: fixed;
-      bottom: 20px;
+      bottom: 80px;      /* Suficiente espacio para no tapar el botón de chat */
       right: 20px;
-      z-index: 9999;
+      z-index: 99;       /* Por debajo del botón de chat (z-index:100) */
       pointer-events: auto;
       width: 220px;
       height: auto;
@@ -2009,7 +2009,7 @@
       overflow: hidden;
       border: 2px solid rgba(0, 240, 255, 0.3);
       box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
-      background: #000;
+      background: transparent;  /* Fondo transparente */
       transition: transform 0.3s ease;
     }
 
@@ -2017,7 +2017,7 @@
       position: relative;
       width: 100%;
       height: auto;
-      background: #000;
+      background: transparent;  /* Fondo transparente */
     }
 
     #fgContainer canvas,
