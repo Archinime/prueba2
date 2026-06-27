@@ -2074,9 +2074,14 @@
       }
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* ===== AJUSTE PARA PANEL LATERAL EN MÓVILES ===== */
     @media (max-width: 768px) {
-      .side-panel { width: 90vw; right: -95vw; padding: 16px; }
+      .side-panel {
+        width: 75vw;          /* Reduce el ancho para no tapar toda la pantalla */
+        right: -75vw;         /* Desplazamiento correspondiente */
+        max-width: 75vw;
+        padding: 16px;
+      }
       .side-panel.open { right: 0; }
       .chat-message { padding: 8px 10px; gap: 8px; }
       .chat-message img { width: 30px; height: 30px; }
@@ -2095,7 +2100,12 @@
       .detail-cover { height: 320px; }
     }
     @media (max-width: 480px) {
-      .side-panel { width: 100vw; right: -105vw; }
+      .side-panel {
+        width: 85vw;          /* En pantallas muy pequeñas, un poco más ancho */
+        right: -85vw;
+        max-width: 85vw;
+      }
+      .side-panel.open { right: 0; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
       .detail-cover { height: 260px; }
     }
