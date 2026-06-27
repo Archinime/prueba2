@@ -8,7 +8,7 @@
     { 
       title: "Jujutsu Kaisen", 
       desc: "", 
-      media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/aggojodff_edit.mp4", 
+      media: "https://cdn.jsdelivr.net/gh/Archinime/Banners@main/toji%20(2)%20(1).mp4", 
       link: "https://archinime.github.io/-Archinime-/anime-detail.html?id=2" 
     },
     { 
