@@ -1996,6 +1996,85 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
+    /* ===== CHROMA KEY FIX ===== */
+    .stage {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      pointer-events: auto;
+      width: 220px;
+      height: auto;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+      background: #000;
+      transition: transform 0.3s ease;
+    }
+
+    #fgContainer {
+      position: relative;
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+
+    #fgContainer canvas,
+    #fgContainer video {
+      width: 100% !important;
+      height: auto !important;
+      display: block;
+      border-radius: 0;
+    }
+
+    .fg-left {
+      right: auto;
+      left: 20px;
+    }
+    .fg-right {
+      left: auto;
+      right: 20px;
+    }
+
+    #fgContainer.poof {
+      animation: poofAnim 0.6s ease forwards;
+    }
+    @keyframes poofAnim {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .spark {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      animation: sparkFly 0.8s ease-out forwards;
+    }
+    @keyframes sparkFly {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .stage {
+        width: 150px;
+        bottom: 80px;
+        right: 10px;
+      }
+      .fg-left { left: 10px; right: auto; }
+      .fg-right { right: 10px; left: auto; }
+    }
+    @media (max-width: 480px) {
+      .stage {
+        width: 120px;
+        bottom: 70px;
+        right: 6px;
+      }
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .side-panel { width: 90vw; right: -95vw; padding: 16px; }
@@ -2552,7 +2631,6 @@
         const timestamp = data.timestamp?.toDate() || new Date();
         const fecha = timestamp.toLocaleString();
         const customColor = data.customColor || '#00f0ff';
-        // Limpiar marcadores de sticker
         texto = texto.replace(/\[Sticker\]\([^)]*\)/g, '');
         texto = texto.replace(/\n/g, '<br>');
         let stickerHtml = '';
@@ -2661,7 +2739,6 @@
   function iniciarEscuchaChatPanel() {
     if (chatUnsubscribePanel) chatUnsubscribePanel();
     const user = auth.currentUser;
-    // Siempre mostrar mensajes, sin importar el login
     const query = db.collection('globalChat')
       .orderBy('timestamp', 'desc')
       .limit(100);
@@ -2744,7 +2821,6 @@
       `;
     });
 
-    // Ocultar/mostrar input según login
     const inputContainer = document.getElementById('chatInputContainerPanel');
     if (user) {
       inputContainer.style.display = 'flex';
@@ -2868,11 +2944,9 @@
 
   // ===== MODAL PARA STICKER (COPIAR/ROBAR) =====
   function abrirStickerModalGlobal(url) {
-    // Reutiliza el modal de stickers de comentarios
     if (typeof openStickerModal === 'function') {
       openStickerModal(url);
     } else {
-      // Crear modal temporal si no existe
       let modal = document.getElementById('stickerViewModalGlobal');
       if (!modal) {
         modal = document.createElement('div');
@@ -2897,11 +2971,9 @@
       else { vidEl.style.display = 'none'; imgEl.src = url; imgEl.style.display = 'block'; }
       document.getElementById('stickerModalStealBtnGlobal').onclick = () => {
         if (auth.currentUser) {
-          // Función para robar sticker (usar la misma de comentarios)
           if (typeof window.robarStickerSistema === 'function') {
             window.robarStickerSistema(url);
           } else {
-            // Implementación simple
             db.collection('userStickers').doc(auth.currentUser.uid).set({
               stickers: firebase.firestore.FieldValue.arrayUnion(url)
             }, { merge: true }).then(() => {
@@ -3520,7 +3592,6 @@
   });
   let frameCount = 0;
   let chromaActive = true;
-  // Siempre activo, no lo desactivamos con scroll
   function processChroma() {
     if (fgVideo.paused || fgVideo.ended || isTransitioning) {
       requestAnimationFrame(processChroma);
