@@ -1,5 +1,6 @@
 // notification-system.js - Con límite de 5 popups por carga de página
-// OPTIMIZADO: Delegación de eventos, fragmentos, debounce en snapshot, templates
+// CORREGIDO: Evita popups duplicados al cargar, cola sincronizada correctamente
+// MODIFICADO: Colores de tipo y episodio en popups ahora son celestes (--neon-blue)
 (function(global) {
   'use strict';
 
@@ -74,7 +75,7 @@
       this.isMenuOpen = false;
       this.isShowingPopup = false;
       this.popupsShownInThisLoad = 0;
-      this.isProcessingQueue = false;
+      this.isProcessingQueue = false; // 🔥 nuevo flag para evitar colisiones
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -85,8 +86,6 @@
       this.handlePageShow = this.handlePageShow.bind(this);
       this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
       this.handleClickOutside = this.handleClickOutside.bind(this);
-      // Delegación de eventos
-      this.handleNotifListClick = this.handleNotifListClick.bind(this);
     }
 
     async init() {
@@ -108,6 +107,7 @@
       this.renderNotificationList();
       this.updateBadge();
       
+      // Esperar un pequeño tick para que todo esté listo y luego mostrar popups
       setTimeout(() => {
         this.attemptResumeQueue('init');
       }, 100);
@@ -119,9 +119,6 @@
       this.dom.menu = document.getElementById('notifMenu');
       this.dom.list = document.getElementById('notifList');
       this.dom.badge = document.getElementById('notifBadge');
-      if (this.dom.list) {
-        this.dom.list.addEventListener('click', this.handleNotifListClick);
-      }
     }
 
     loadPersistedData() {
@@ -157,6 +154,7 @@
         this.rebuildQueueFromHistory();
         this.renderNotificationList();
         this.updateBadge();
+        // No llamar a attemptResumeQueue aquí para evitar duplicados, se llamará en pageshow o mediante el primer popup
       } else {
         if (this.repliesUnsubscribe) { this.repliesUnsubscribe(); this.repliesUnsubscribe = null; }
       }
@@ -168,6 +166,7 @@
       this.rebuildQueueFromHistory();
       this.updateBadge();
       this.renderNotificationList();
+      // Solo intentar reanudar si no hay un popup mostrándose y no está procesando
       if (!this.isShowingPopup && !this.isProcessingQueue) {
         this.attemptResumeQueue('pageshow');
       }
@@ -327,16 +326,6 @@
     listenForReplies(uid) {
       if (this.repliesUnsubscribe) this.repliesUnsubscribe();
       const db = getFirestore(); if (!db) return;
-      // Debounce en el snapshot para evitar muchas actualizaciones
-      const debouncedRender = domUtils.debounce(() => {
-        this.rebuildQueueFromHistory();
-        this.renderNotificationList();
-        if (!this.isMenuOpen) this.updateBadge();
-        if (!this.isShowingPopup && !this.isProcessingQueue) {
-          this.attemptResumeQueue('reply');
-        }
-      }, 300);
-
       this.repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -359,7 +348,13 @@
             this.markAsSeenInStorage(notifId);
           }
           if (hasNew) {
-            debouncedRender();
+            this.rebuildQueueFromHistory();
+            this.renderNotificationList();
+            if (!this.isMenuOpen) this.updateBadge();
+            // Solo intentar reanudar si no hay popup mostrándose ni procesando
+            if (!this.isShowingPopup && !this.isProcessingQueue) {
+              this.attemptResumeQueue('reply');
+            }
           }
         }, error => console.error('[Replies] Error:', error));
     }
@@ -394,6 +389,7 @@
     }
 
     attemptResumeQueue(source) {
+      // Evitar ejecuciones concurrentes
       if (this.isProcessingQueue) {
         console.log(`⏳ [${source}] Ya procesando cola, ignorando.`);
         return;
@@ -416,19 +412,26 @@
     }
 
     showNextPopup() {
+      // Si ya hay un popup mostrándose, no hacer nada
       if (this.isShowingPopup) {
         console.log('⏳ Ya hay un popup mostrándose, esperando...');
         return;
       }
+      
+      // Si la cola está vacía, liberar el flag y salir
       if (this.queue.length === 0) {
         this.isProcessingQueue = false;
         return;
       }
+      
+      // Verificar límite por carga de página
       if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
         console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
         this.isProcessingQueue = false;
         return;
       }
+      
+      // Tomar la primera notificación (ya está ordenada por fecha)
       const notif = this.queue[0];
       this.popupsShownInThisLoad++;
       console.log(`🎬 Mostrando popup ${this.popupsShownInThisLoad}/${CONFIG.MAX_POPUPS_PER_PAGE_LOAD}: ${notif.title}`);
@@ -437,23 +440,19 @@
     }
 
     renderPopup(notif) {
+      // Marcar como vista inmediatamente al mostrar el popup
       if (!notif.seen) {
         this.markAsRead(notif.notifId);
+        // Eliminar de la cola (ya que se marcó como vista)
         this.queue = this.queue.filter(n => n.notifId !== notif.notifId);
         this.persistQueue();
       }
 
       const existing = document.getElementById('eventModal');
       if (existing) existing.remove();
-      
-      // Usar un template para construir el modal eficientemente
-      const template = document.createElement('template');
-      const html = this.generatePopupHTML(notif);
-      template.innerHTML = html.trim();
-      const modal = template.content.firstElementChild;
-      if (!modal) return;
-      
+      const modal = document.createElement('div');
       modal.id = 'eventModal';
+      modal.innerHTML = this.generatePopupHTML(notif);
       document.body.appendChild(modal);
       domUtils.disableScroll();
       requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('show')));
@@ -462,17 +461,17 @@
     generatePopupHTML(notif) {
       if (notif.type === 'RESPUESTA') {
         return `
-          <div class="event-card" style="border: 1px solid var(--neon-cyan); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
-            <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
+          <div class="event-card" style="border: 1px solid var(--neon-blue); box-shadow: 0 10px 40px rgba(0, 243, 255, 0.15); background: #0a0a0f; overflow: hidden; border-radius: 20px; max-width: 420px; width: 90%;">
+            <button class="event-close" onclick="closePopup()" aria-label="Cerrar" style="background: rgba(0,0,0,0.5); border: 1px solid var(--neon-blue); color: var(--neon-blue); top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fas fa-times"></i></button>
             <div style="background: linear-gradient(135deg, rgba(0,243,255,0.1) 0%, transparent 100%); padding: 25px 20px 15px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; align-items: center; gap: 15px; position: relative;">
               <div style="position: relative; flex-shrink: 0;">
-                <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
-                <div style="position: absolute; bottom: -2px; right: -2px; background: #0a0a0f; border-radius: 50%; padding: 4px; border: 1px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
-                  <i class="fas fa-reply" style="color: var(--neon-cyan); font-size: 0.65rem;"></i>
+                <img src="${notif.img}" alt="Avatar Usuario" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0,243,255,0.4);">
+                <div style="position: absolute; bottom: -2px; right: -2px; background: #0a0a0f; border-radius: 50%; padding: 4px; border: 1px solid var(--neon-blue); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;">
+                  <i class="fas fa-reply" style="color: var(--neon-blue); font-size: 0.65rem;"></i>
                 </div>
               </div>
               <div style="flex: 1; text-align: left; padding-right: 20px; overflow: hidden;">
-                <div style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px;">NUEVA RESPUESTA</div>
+                <div style="color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px;">NUEVA RESPUESTA</div>
                 <h2 style="font-size: 1.05rem; color: #fff; margin: 0; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${domUtils.sanitizeHTML(notif.title)}</h2>
               </div>
             </div>
@@ -483,16 +482,16 @@
                 <span style="font-size: 0.85rem; color: #aaa; font-style: italic; display: block; padding-right: 20px; line-height: 1.4;">${domUtils.sanitizeHTML(notif.originalText)}</span>
               </div>
               <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <p style="color: #fff; font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">${domUtils.sanitizeHTML(notif.epTitle)}</p>
+                <p style="color: var(--neon-blue); font-size: 0.95rem; margin: 0; line-height: 1.5; word-wrap: break-word;">${domUtils.sanitizeHTML(notif.epTitle)}</p>
               </div>
-              <button class="event-btn" style="background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"> <i class="fas fa-comments"></i> VER CONVERSACIÓN </button>
+              <button class="event-btn" style="background: var(--neon-blue); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-radius: 10px; font-size: 0.85rem; padding: 12px; width: 100%; border: none; font-weight: 800; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="goToAnimeFromPopup('${notif.animeId}', '${notif.notifId}')"> <i class="fas fa-comments"></i> VER CONVERSACIÓN </button>
             </div>
           </div>`;
       }
 
       let infoString = "";
-      if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-cyan)">${notif.blockName}</span>`;
-      if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:#fff">${notif.epTitle}</span>`;
+      if (notif.blockName && notif.blockName !== "Novedad") infoString += `<span style="color:var(--neon-blue)">${notif.blockName}</span>`;
+      if (notif.epTitle && notif.epTitle !== "Nuevo Contenido") infoString += (infoString ? " • " : "") + `<span style="color:var(--neon-blue)">${notif.epTitle}</span>`;
       else if (!infoString) infoString = "Nuevo Contenido";
 
       let badgeColor = "#bc13fe";
@@ -508,7 +507,7 @@
               <img src="${notif.img}" class="cover-back" alt="Poster">
               <img src="${notif.seasonCover}" class="cover-front" alt="Season">
             </div>
-            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${notif.type}</div>
+            <div class="event-type-badge" style="background: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor}; color: var(--neon-blue);">${notif.type}</div>
             ${notif.isFinal ? '<div style="position: absolute; bottom: 15px; right: 15px; z-index: 20; color: #fff; background: rgba(255, 0, 0, 0.8); border: 2px solid #ff0000; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-family: \'Orbitron\', sans-serif; font-size: 0.85rem; transform: rotate(-10deg); box-shadow: 0 0 15px #ff0000; letter-spacing: 1px;">FINALIZADO</div>' : ''}
           </div>
           <div class="event-info">
@@ -527,12 +526,15 @@
         modal.remove();
         domUtils.enableScroll();
         this.isShowingPopup = false;
+        // Mostrar el siguiente popup (si hay más y no se ha alcanzado el límite)
         this.showNextPopup();
       }, 300);
     }
 
     goToAnimeFromPopup(animeId, notifId) {
-      this.closePopup();
+      // Ya está marcada como vista, solo redirigir
+      this.closePopup(); // cierra el popup y limpia
+      // Redirigir
       const targetNotif = this.history.find(n => n.notifId === notifId);
       if (targetNotif && targetNotif.url) window.location.href = targetNotif.url;
       else window.location.href = `anime-detail.html?id=${animeId}`;
@@ -555,8 +557,8 @@
         this.persistHistory(); 
         this.renderNotificationList(); 
         this.updateBadge();
-        this.rebuildQueueFromHistory();
-        this.isProcessingQueue = false;
+        this.rebuildQueueFromHistory(); // vacía la cola porque todos están vistos
+        this.isProcessingQueue = false; // liberar flag
       }
     }
 
@@ -567,6 +569,7 @@
         this.persistHistory();
         this.updateBadge();
         this.renderNotificationList();
+        // Eliminar de la cola si está
         this.queue = this.queue.filter(n => n.notifId !== notifId);
         this.persistQueue();
       }
@@ -582,7 +585,7 @@
         btn.title = 'Marcar todas las notificaciones como vistas';
         btn.onclick = (e) => { e.stopPropagation(); this.markAllAsRead(); };
         btn.style.cssText = `
-          background: rgba(0,243,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+          background: rgba(0,243,255,0.1); border: 1px solid var(--neon-blue); color: var(--neon-blue);
           border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; font-family: 'Orbitron', sans-serif;
           cursor: pointer; transition: all 0.2s; margin-left: 10px;
           ${window.innerWidth <= 768 ? 'margin-right: 35px;' : ''}
@@ -603,7 +606,6 @@
       visible.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
-        div.dataset.id = item.notifId;
 
         let imgClass = 'notif-img-box';
         if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
@@ -616,13 +618,11 @@
         let typeColor = "var(--neon-purple)";
         if (item.type.includes("ESTRENO")) typeColor = "var(--neon-pink)";
         else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
-        else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
-
-        const unreadDot = !item.seen ? '<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>' : '';
+        else if (item.type === "RESPUESTA") typeColor = "var(--neon-blue)";
 
         div.innerHTML = `
           <div style="position:relative; display:inline-block;">
-            ${unreadDot}
+            ${!item.seen ? '<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>' : ''}
             <div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div>
           </div>
           <div class="notif-content">
@@ -630,6 +630,15 @@
             <div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal ? '<span class="tag-final">FINALIZADO</span>' : ''}</div>
             <div class="n-meta">${infoString}</div>
           </div>`;
+
+        div.addEventListener('click', () => {
+          if (!item.seen) {
+            this.markAsRead(item.notifId);
+            div.querySelector('.unread-dot')?.remove();
+          }
+          location.href = item.url || `anime-detail.html?id=${item.animeId}`;
+        });
+
         fragment.appendChild(div);
       });
 
@@ -645,22 +654,6 @@
         container.appendChild(more);
       }
     }, 100);
-
-    // Delegación de eventos en la lista de notificaciones
-    handleNotifListClick(e) {
-      const item = e.target.closest('.notif-item');
-      if (!item) return;
-      const id = item.dataset.id;
-      if (!id) return;
-      const notif = this.history.find(n => n.notifId === id);
-      if (!notif) return;
-      if (!notif.seen) {
-        this.markAsRead(id);
-        const dot = item.querySelector('.unread-dot');
-        if (dot) dot.remove();
-      }
-      location.href = notif.url || `anime-detail.html?id=${notif.animeId}`;
-    }
 
     updateBadge() {
       const unread = this.history.filter(n => !n.seen).length;
