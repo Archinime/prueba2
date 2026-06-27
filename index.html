@@ -1997,26 +1997,25 @@
     .footer .credit { opacity: 0.5; }
 
     /* ===== CHROMA KEY FIX (FONDO TRANSPARENTE, SIN MARCO, MÁS ABAJO) ===== */
-    .stage {
+    #stageContainer {
       position: fixed;
-      bottom: 10px;          /* Casi pegado al borde inferior */
+      bottom: 10px;
       right: 20px;
-      z-index: 99;           /* Por debajo del botón de chat (z-index:100) */
+      z-index: 99;
       pointer-events: auto;
       width: 220px;
       height: auto;
       border-radius: 16px;
       overflow: hidden;
-      background: transparent;  /* Fondo transparente */
+      background: transparent;
       transition: transform 0.3s ease;
-      /* Sin borde ni sombra */
     }
 
     #fgContainer {
       position: relative;
       width: 100%;
       height: auto;
-      background: transparent;  /* Fondo transparente */
+      background: transparent;
     }
 
     #fgContainer canvas,
@@ -2027,6 +2026,7 @@
       border-radius: 0;
     }
 
+    /* Clases para el contenedor padre (stageContainer) */
     .fg-left {
       right: auto;
       left: 20px;
@@ -2058,7 +2058,7 @@
     }
 
     @media (max-width: 768px) {
-      .stage {
+      #stageContainer {
         width: 150px;
         bottom: 10px;
         right: 10px;
@@ -2067,7 +2067,7 @@
       .fg-right { right: 10px; left: auto; }
     }
     @media (max-width: 480px) {
-      .stage {
+      #stageContainer {
         width: 120px;
         bottom: 10px;
         right: 6px;
@@ -2077,8 +2077,8 @@
     /* ===== AJUSTE PARA PANEL LATERAL EN MÓVILES ===== */
     @media (max-width: 768px) {
       .side-panel {
-        width: 75vw;          /* Reduce el ancho para no tapar toda la pantalla */
-        right: -75vw;         /* Desplazamiento correspondiente */
+        width: 75vw;
+        right: -75vw;
         max-width: 75vw;
         padding: 16px;
       }
@@ -2101,7 +2101,7 @@
     }
     @media (max-width: 480px) {
       .side-panel {
-        width: 85vw;          /* En pantallas muy pequeñas, un poco más ancho */
+        width: 85vw;
         right: -85vw;
         max-width: 85vw;
       }
@@ -2374,7 +2374,7 @@
 </div>
 
 <!-- ===== CHROMA KEY ===== -->
-<div class="stage">
+<div id="stageContainer">
   <div id="fgContainer">
     <canvas id="fgCanvas"></canvas>
     <video id="fgVideo" muted loop playsinline></video>
@@ -3581,10 +3581,12 @@
 
   // ===== CHROMA KEY (ANIMACIONES FIJAS) =====
   function randomizeFgPosition() {
-    const fg = document.getElementById('fgContainer');
-    fg.classList.remove('fg-left', 'fg-right');
-    fg.classList.add(Math.random() < 0.5 ? 'fg-left' : 'fg-right');
+    const container = document.getElementById('stageContainer');
+    if (!container) return;
+    container.classList.remove('fg-left', 'fg-right');
+    container.classList.add(Math.random() < 0.5 ? 'fg-left' : 'fg-right');
   }
+
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
   const fgCanvas = document.getElementById('fgCanvas');
@@ -3663,7 +3665,7 @@
       fgVideo.play().then(() => {
         isTransitioning = false;
         fgContainer.classList.remove('poof');
-        randomizeFgPosition();
+        randomizeFgPosition(); // Cambia de lado al cambiar de animación
       }).catch(() => { isTransitioning = false; });
     }, 600);
   });
