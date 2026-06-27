@@ -1996,21 +1996,20 @@
     .footer .socials a:hover { color: var(--neon-blue); transform: translateY(-3px); }
     .footer .credit { opacity: 0.5; }
 
-    /* ===== CHROMA KEY FIX (FONDO TRANSPARENTE Y POSICIÓN) ===== */
+    /* ===== CHROMA KEY FIX (FONDO TRANSPARENTE, SIN MARCO, MÁS ABAJO) ===== */
     .stage {
       position: fixed;
-      bottom: 80px;      /* Suficiente espacio para no tapar el botón de chat */
+      bottom: 10px;          /* Casi pegado al borde inferior */
       right: 20px;
-      z-index: 99;       /* Por debajo del botón de chat (z-index:100) */
+      z-index: 99;           /* Por debajo del botón de chat (z-index:100) */
       pointer-events: auto;
       width: 220px;
       height: auto;
       border-radius: 16px;
       overflow: hidden;
-      border: 2px solid rgba(0, 240, 255, 0.3);
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
       background: transparent;  /* Fondo transparente */
       transition: transform 0.3s ease;
+      /* Sin borde ni sombra */
     }
 
     #fgContainer {
@@ -2061,7 +2060,7 @@
     @media (max-width: 768px) {
       .stage {
         width: 150px;
-        bottom: 80px;
+        bottom: 10px;
         right: 10px;
       }
       .fg-left { left: 10px; right: auto; }
@@ -2070,7 +2069,7 @@
     @media (max-width: 480px) {
       .stage {
         width: 120px;
-        bottom: 70px;
+        bottom: 10px;
         right: 6px;
       }
     }
