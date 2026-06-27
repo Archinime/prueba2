@@ -1,5 +1,5 @@
 // notification-system.js - Con límite de 5 popups por carga de página
-// CORREGIDO: Evita popups duplicados al cargar, cola sincronizada correctamente
+// OPTIMIZADO: Delegación de eventos, fragmentos, debounce en snapshot, templates
 (function(global) {
   'use strict';
 
@@ -74,7 +74,7 @@
       this.isMenuOpen = false;
       this.isShowingPopup = false;
       this.popupsShownInThisLoad = 0;
-      this.isProcessingQueue = false; // 🔥 nuevo flag para evitar colisiones
+      this.isProcessingQueue = false;
       this.repliesUnsubscribe = null;
       this.dom = { menu: null, list: null, badge: null, modal: null };
       this.toggleMenu = this.toggleMenu.bind(this);
@@ -85,6 +85,8 @@
       this.handlePageShow = this.handlePageShow.bind(this);
       this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
       this.handleClickOutside = this.handleClickOutside.bind(this);
+      // Delegación de eventos
+      this.handleNotifListClick = this.handleNotifListClick.bind(this);
     }
 
     async init() {
@@ -106,7 +108,6 @@
       this.renderNotificationList();
       this.updateBadge();
       
-      // Esperar un pequeño tick para que todo esté listo y luego mostrar popups
       setTimeout(() => {
         this.attemptResumeQueue('init');
       }, 100);
@@ -118,6 +119,9 @@
       this.dom.menu = document.getElementById('notifMenu');
       this.dom.list = document.getElementById('notifList');
       this.dom.badge = document.getElementById('notifBadge');
+      if (this.dom.list) {
+        this.dom.list.addEventListener('click', this.handleNotifListClick);
+      }
     }
 
     loadPersistedData() {
@@ -153,7 +157,6 @@
         this.rebuildQueueFromHistory();
         this.renderNotificationList();
         this.updateBadge();
-        // No llamar a attemptResumeQueue aquí para evitar duplicados, se llamará en pageshow o mediante el primer popup
       } else {
         if (this.repliesUnsubscribe) { this.repliesUnsubscribe(); this.repliesUnsubscribe = null; }
       }
@@ -165,7 +168,6 @@
       this.rebuildQueueFromHistory();
       this.updateBadge();
       this.renderNotificationList();
-      // Solo intentar reanudar si no hay un popup mostrándose y no está procesando
       if (!this.isShowingPopup && !this.isProcessingQueue) {
         this.attemptResumeQueue('pageshow');
       }
@@ -325,6 +327,16 @@
     listenForReplies(uid) {
       if (this.repliesUnsubscribe) this.repliesUnsubscribe();
       const db = getFirestore(); if (!db) return;
+      // Debounce en el snapshot para evitar muchas actualizaciones
+      const debouncedRender = domUtils.debounce(() => {
+        this.rebuildQueueFromHistory();
+        this.renderNotificationList();
+        if (!this.isMenuOpen) this.updateBadge();
+        if (!this.isShowingPopup && !this.isProcessingQueue) {
+          this.attemptResumeQueue('reply');
+        }
+      }, 300);
+
       this.repliesUnsubscribe = db.collection('comments')
         .where('replyToUserId', '==', uid)
         .orderBy('timestamp', 'desc')
@@ -347,13 +359,7 @@
             this.markAsSeenInStorage(notifId);
           }
           if (hasNew) {
-            this.rebuildQueueFromHistory();
-            this.renderNotificationList();
-            if (!this.isMenuOpen) this.updateBadge();
-            // Solo intentar reanudar si no hay popup mostrándose ni procesando
-            if (!this.isShowingPopup && !this.isProcessingQueue) {
-              this.attemptResumeQueue('reply');
-            }
+            debouncedRender();
           }
         }, error => console.error('[Replies] Error:', error));
     }
@@ -388,7 +394,6 @@
     }
 
     attemptResumeQueue(source) {
-      // Evitar ejecuciones concurrentes
       if (this.isProcessingQueue) {
         console.log(`⏳ [${source}] Ya procesando cola, ignorando.`);
         return;
@@ -411,26 +416,19 @@
     }
 
     showNextPopup() {
-      // Si ya hay un popup mostrándose, no hacer nada
       if (this.isShowingPopup) {
         console.log('⏳ Ya hay un popup mostrándose, esperando...');
         return;
       }
-      
-      // Si la cola está vacía, liberar el flag y salir
       if (this.queue.length === 0) {
         this.isProcessingQueue = false;
         return;
       }
-      
-      // Verificar límite por carga de página
       if (this.popupsShownInThisLoad >= CONFIG.MAX_POPUPS_PER_PAGE_LOAD) {
         console.log(`⏸️ Límite de ${CONFIG.MAX_POPUPS_PER_PAGE_LOAD} popups por carga alcanzado. Restantes en cola: ${this.queue.length}`);
         this.isProcessingQueue = false;
         return;
       }
-      
-      // Tomar la primera notificación (ya está ordenada por fecha)
       const notif = this.queue[0];
       this.popupsShownInThisLoad++;
       console.log(`🎬 Mostrando popup ${this.popupsShownInThisLoad}/${CONFIG.MAX_POPUPS_PER_PAGE_LOAD}: ${notif.title}`);
@@ -439,19 +437,23 @@
     }
 
     renderPopup(notif) {
-      // Marcar como vista inmediatamente al mostrar el popup
       if (!notif.seen) {
         this.markAsRead(notif.notifId);
-        // Eliminar de la cola (ya que se marcó como vista)
         this.queue = this.queue.filter(n => n.notifId !== notif.notifId);
         this.persistQueue();
       }
 
       const existing = document.getElementById('eventModal');
       if (existing) existing.remove();
-      const modal = document.createElement('div');
+      
+      // Usar un template para construir el modal eficientemente
+      const template = document.createElement('template');
+      const html = this.generatePopupHTML(notif);
+      template.innerHTML = html.trim();
+      const modal = template.content.firstElementChild;
+      if (!modal) return;
+      
       modal.id = 'eventModal';
-      modal.innerHTML = this.generatePopupHTML(notif);
       document.body.appendChild(modal);
       domUtils.disableScroll();
       requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('show')));
@@ -525,15 +527,12 @@
         modal.remove();
         domUtils.enableScroll();
         this.isShowingPopup = false;
-        // Mostrar el siguiente popup (si hay más y no se ha alcanzado el límite)
         this.showNextPopup();
       }, 300);
     }
 
     goToAnimeFromPopup(animeId, notifId) {
-      // Ya está marcada como vista, solo redirigir
-      this.closePopup(); // cierra el popup y limpia
-      // Redirigir
+      this.closePopup();
       const targetNotif = this.history.find(n => n.notifId === notifId);
       if (targetNotif && targetNotif.url) window.location.href = targetNotif.url;
       else window.location.href = `anime-detail.html?id=${animeId}`;
@@ -556,8 +555,8 @@
         this.persistHistory(); 
         this.renderNotificationList(); 
         this.updateBadge();
-        this.rebuildQueueFromHistory(); // vacía la cola porque todos están vistos
-        this.isProcessingQueue = false; // liberar flag
+        this.rebuildQueueFromHistory();
+        this.isProcessingQueue = false;
       }
     }
 
@@ -568,7 +567,6 @@
         this.persistHistory();
         this.updateBadge();
         this.renderNotificationList();
-        // Eliminar de la cola si está
         this.queue = this.queue.filter(n => n.notifId !== notifId);
         this.persistQueue();
       }
@@ -605,6 +603,7 @@
       visible.forEach(item => {
         const div = document.createElement('div');
         div.className = 'notif-item';
+        div.dataset.id = item.notifId;
 
         let imgClass = 'notif-img-box';
         if (item.type === 'RESPUESTA') imgClass += ' rounded-avatar';
@@ -619,9 +618,11 @@
         else if (item.type.includes("PRÓXIMAMENTE")) typeColor = "var(--neon-yellow)";
         else if (item.type === "RESPUESTA") typeColor = "var(--neon-cyan)";
 
+        const unreadDot = !item.seen ? '<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>' : '';
+
         div.innerHTML = `
           <div style="position:relative; display:inline-block;">
-            ${!item.seen ? '<div class="unread-dot" style="position:absolute; top:-4px; left:-4px; width:12px; height:12px; background:#ff0000; border-radius:50%; box-shadow:0 0 8px #ff0000; z-index:20; border:1px solid #fff;"></div>' : ''}
+            ${unreadDot}
             <div class="${imgClass}"><img src="${item.seasonCover}" alt="cover" loading="lazy"></div>
           </div>
           <div class="notif-content">
@@ -629,15 +630,6 @@
             <div class="n-type" style="color:${typeColor}">${item.type} ${item.isFinal ? '<span class="tag-final">FINALIZADO</span>' : ''}</div>
             <div class="n-meta">${infoString}</div>
           </div>`;
-
-        div.addEventListener('click', () => {
-          if (!item.seen) {
-            this.markAsRead(item.notifId);
-            div.querySelector('.unread-dot')?.remove();
-          }
-          location.href = item.url || `anime-detail.html?id=${item.animeId}`;
-        });
-
         fragment.appendChild(div);
       });
 
@@ -653,6 +645,22 @@
         container.appendChild(more);
       }
     }, 100);
+
+    // Delegación de eventos en la lista de notificaciones
+    handleNotifListClick(e) {
+      const item = e.target.closest('.notif-item');
+      if (!item) return;
+      const id = item.dataset.id;
+      if (!id) return;
+      const notif = this.history.find(n => n.notifId === id);
+      if (!notif) return;
+      if (!notif.seen) {
+        this.markAsRead(id);
+        const dot = item.querySelector('.unread-dot');
+        if (dot) dot.remove();
+      }
+      location.href = notif.url || `anime-detail.html?id=${notif.animeId}`;
+    }
 
     updateBadge() {
       const unread = this.history.filter(n => !n.seen).length;

@@ -1,7 +1,7 @@
 // ============================================
 // SISTEMA DE STICKERS (CATBOX + FIRESTORE)
 // CON PROXY CORS Y DRAG & DROP (MÁX. 5 MB)
-// MEJORADO: Rendimiento, feedback visual, validaciones
+// OPTIMIZADO: Fragmentos, requestAnimationFrame, reducción de reflows
 // ============================================
 
 let stickersDb = null;
@@ -87,20 +87,37 @@ function renderUserStickers() {
         return;
     }
     
-    let html = '';
+    const fragment = document.createDocumentFragment();
     validStickers.forEach(url => {
         const isVideo = url.match(/\.(mp4|webm)$/i);
-        const tagMedia = isVideo
-            ? `<video src="${url}" class="sticker-img" autoplay loop muted playsinline onclick="seleccionarStickerParaEnviar('${url}')"></video>`
-            : `<img src="${url}" class="sticker-img" loading="lazy" onclick="seleccionarStickerParaEnviar('${url}')">`;
-        html += `
-            <div class="sticker-item">
-                ${tagMedia}
-                <button class="sticker-delete-btn" onclick="eliminarSticker('${url}', event)" aria-label="Eliminar sticker">✖</button>
-            </div>
-        `;
+        const div = document.createElement('div');
+        div.className = 'sticker-item';
+        const media = isVideo
+            ? document.createElement('video')
+            : document.createElement('img');
+        media.src = url;
+        media.className = 'sticker-img';
+        media.setAttribute('loading', 'lazy');
+        if (isVideo) {
+            media.setAttribute('autoplay', '');
+            media.setAttribute('loop', '');
+            media.setAttribute('muted', '');
+            media.setAttribute('playsinline', '');
+        }
+        media.onclick = () => seleccionarStickerParaEnviar(url);
+        div.appendChild(media);
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'sticker-delete-btn';
+        delBtn.textContent = '✖';
+        delBtn.setAttribute('aria-label', 'Eliminar sticker');
+        delBtn.onclick = (e) => eliminarSticker(url, e);
+        div.appendChild(delBtn);
+        
+        fragment.appendChild(div);
     });
-    container.innerHTML = html;
+    container.innerHTML = '';
+    container.appendChild(fragment);
 }
 
 window.switchStickerTab = function(tabName) {
@@ -110,8 +127,12 @@ window.switchStickerTab = function(tabName) {
     if (btn) btn.classList.add('active');
     const content = document.getElementById(`${tabName}StickersTab`);
     if (content) content.classList.add('active');
-    if (tabName === 'mis') loadUserStickers();
-    if (tabName === 'subir') renderSubirStickersTab();
+    if (tabName === 'mis') {
+        requestAnimationFrame(() => loadUserStickers());
+    }
+    if (tabName === 'subir') {
+        requestAnimationFrame(() => renderSubirStickersTab());
+    }
 };
 
 async function eliminarSticker(urlSticker, event) {
@@ -134,6 +155,13 @@ async function eliminarSticker(urlSticker, event) {
 function renderSubirStickersTab() {
     const container = document.querySelector('#subirStickersTab .add-sticker-container');
     if (!container) return;
+
+    // Mantener la estructura básica, solo actualizar si es necesario
+    if (container.dataset.rendered === 'true') {
+        // Ya está renderizado, no hacer nada para evitar reflows
+        return;
+    }
+    container.dataset.rendered = 'true';
 
     container.innerHTML = `
         <p style="color:#fff; margin-bottom: 10px;">Arrastra una imagen o video aquí, o haz clic para seleccionar (máx. 5 MB)</p>

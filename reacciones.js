@@ -1,6 +1,6 @@
 // reacciones.js
-// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v5.0
-// MEJORADO: Rendimiento, tooltips, accesibilidad, animaciones
+// SISTEMA DE REACCIONES TIPO FACEBOOK CYBERPUNK v5.1
+// OPTIMIZADO: Delegación de eventos, uso de fragmentos, menos reflows
 
 const REACTIONS_MAP = {
     'like':  { emoji: '👍', color: '#00f3ff', name: 'Me gusta' },
@@ -39,6 +39,7 @@ function injectReaccionesCSS() {
             pointer-events: none;
             transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 99999;
+            will-change: transform, opacity;
         }
         
         .reactions-picker::after {
@@ -64,6 +65,7 @@ function injectReaccionesCSS() {
             filter: grayscale(0.6) opacity(0.8);
             position: relative;
             transform-origin: bottom;
+            will-change: transform;
         }
         .reaction-icon:hover {
             transform: scale(1.5) translateY(-5px);
@@ -198,6 +200,7 @@ window.procesarReaccionesHTML = function(commentId, reactionsObj) {
     });
     
     const sortedTypes = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
+    // Usamos join para evitar concatenación lenta
     const topIconsHTML = sortedTypes.map(type => `<span class="r-emoji">${REACTIONS_MAP[type].emoji}</span>`).join('');
     
     let summaryContent = '';
