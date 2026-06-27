@@ -3440,7 +3440,9 @@
       const rating = getDisplayRating(anime);
       const img = anime.img || 'placeholder.webp';
       const ratingVal = getNumericRating(anime);
-      const badge = (ratingVal >= 4.9 && ratingVal <= 5.0) ? '<div class="badge">🔥 TOP</div>' : '';
+      // 🔥 Corregido: redondear para que 4.89 se convierta en 4.9 y muestre TOP
+      const roundedRating = Math.round(ratingVal * 10) / 10;
+      const badge = (roundedRating >= 4.9 && roundedRating <= 5.0) ? '<div class="badge">🔥 TOP</div>' : '';
       card.innerHTML = `
         <img src="${img}" alt="${anime.title}" loading="eager" decoding="async" style="background:#0b0e14;">
         ${badge}
