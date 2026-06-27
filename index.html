@@ -1810,11 +1810,22 @@
       font-weight: 700;
       cursor: pointer;
       transition: 0.2s;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      font-family: 'Poppins', sans-serif;
     }
     #chatGuestArea .guest-login-btn:hover {
       background: #fff;
       box-shadow: 0 0 20px var(--neon-blue);
       transform: translateY(-2px);
+    }
+
+    @media (max-width: 480px) {
+      #chatGuestArea .guest-login-btn {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+        white-space: normal;
+      }
     }
 
     #chatStickerPreviewPanel {
@@ -2311,7 +2322,7 @@
   <div id="chatGuestArea" style="display:none;">
     <i class="fas fa-lock"></i>
     <span>Inicia sesión para participar en el chat</span>
-    <button class="guest-login-btn" onclick="openLoginModal()">Iniciar sesión</button>
+    <button class="guest-login-btn" onclick="showAuthModal()">Iniciar sesión</button>
   </div>
 </div>
 
@@ -2841,7 +2852,6 @@
           <button class="chat-delete-msg" data-id="${doc.id}"><i class="fas fa-trash"></i></button>
         ` : '';
 
-        // Estructura modificada: fecha debajo del mensaje
         html += `
           <div class="chat-message" data-id="${doc.id}">
             <img src="${userAvatar}" onerror="this.src='invitado.avif'">
@@ -2858,7 +2868,6 @@
         `;
       });
       container.innerHTML = html;
-      // Scroll suave al final
       requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
       });
@@ -2887,7 +2896,6 @@
     if (user) {
       inputArea.style.display = 'flex';
       guestArea.style.display = 'none';
-      // Restaurar el input si estaba oculto
       const avatar = document.querySelector('#chatInputArea .chat-user-avatar');
       if (avatar) avatar.src = user.photoURL || 'invitado.avif';
     } else {
