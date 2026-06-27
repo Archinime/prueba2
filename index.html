@@ -2026,7 +2026,6 @@
       border-radius: 0;
     }
 
-    /* Clases para el contenedor padre (stageContainer) */
     .fg-left {
       right: auto;
       left: 20px;
@@ -2580,7 +2579,7 @@
   });
 
   // ============================================
-  // COMENTARIOS (SIN LOGIN PARA VER)
+  // COMENTARIOS - SOLO LECTURA (DESACTIVADOS)
   // ============================================
   let comentariosUnsubscribe = null;
   let comentariosInicializados = false;
@@ -2588,23 +2587,21 @@
   function initComentariosSystem() {
     if (comentariosInicializados) return;
     comentariosInicializados = true;
+    
+    // Ocultar el formulario de comentarios y mostrar mensaje de deshabilitado
+    const formContainer = document.getElementById('comentarioFormContainer');
+    const loginMsg = document.getElementById('comentarioLoginMessage');
+    if (formContainer) formContainer.style.display = 'none';
+    if (loginMsg) {
+      loginMsg.style.display = 'block';
+      loginMsg.innerHTML = '<i class="fas fa-info-circle"></i> Los comentarios están deshabilitados. Solo puedes visualizar los existentes.';
+      loginMsg.style.color = 'var(--text-secondary)';
+      loginMsg.style.textAlign = 'center';
+      loginMsg.style.padding = '20px';
+    }
+    
+    // Solo mostrar comentarios existentes (lectura)
     setupComentariosRealtimeListener();
-    auth.onAuthStateChanged(user => {
-      const loginMsg = document.getElementById('comentarioLoginMessage');
-      const formContainer = document.getElementById('comentarioFormContainer');
-      if (user) {
-        if (loginMsg) loginMsg.style.display = 'none';
-        if (formContainer) formContainer.style.display = 'block';
-        const avatar = document.getElementById('comentarioUserAvatar');
-        if (avatar) avatar.src = user.photoURL || 'invitado.avif';
-        const name = document.getElementById('comentarioUserName');
-        if (name) name.innerText = user.displayName || user.email.split('@')[0];
-        loadUserStickers();
-      } else {
-        if (loginMsg) loginMsg.style.display = 'none'; // No mostrar mensaje de login
-        if (formContainer) formContainer.style.display = 'none'; // Ocultar formulario
-      }
-    });
   }
 
   function setupComentariosRealtimeListener() {
@@ -2628,7 +2625,7 @@
       const container = document.getElementById('comentariosList');
       if (!container) return;
       if (snapshot.empty) {
-        container.innerHTML = `<div class="empty-comments"><i class="fas fa-ghost"></i> Sé el primero en comentar.</div>`;
+        container.innerHTML = `<div class="empty-comments"><i class="fas fa-ghost"></i> No hay comentarios aún.</div>`;
         return;
       }
       let html = '';
