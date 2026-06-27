@@ -2021,57 +2021,6 @@
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
       .detail-cover { height: 260px; }
     }
-
-    /* ===== ANIMACIONES CHROMA KEY (desde version.html) ===== */
-    .stage {
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 8;
-    }
-    #fgContainer {
-      position: fixed;
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      bottom: 20px;
-      width: 280px;
-      height: auto;
-      max-height: 350px;
-      overflow: hidden;
-      background: transparent;
-      border-radius: 10px;
-      filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.2));
-      z-index: 50;
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease, filter 0.6s;
-      transform-origin: center bottom;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      outline: none;
-      user-select: none;
-    }
-    #fgContainer.fg-left { left: 20px; right: auto; }
-    #fgContainer.fg-right { right: 20px; left: auto; }
-    #fgContainer.poof {
-      transform: scale(1.15) translateZ(0);
-      opacity: 0;
-      filter: drop-shadow(0 0 20px var(--neon-pink)) brightness(1.5) blur(4px);
-    }
-    #fgCanvas { width: 100%; height: 100%; display: block; object-fit: contain; }
-    #fgVideo { display: none; }
-
-    .spark {
-      position: fixed;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      animation: sparkAnim 0.8s ease-out forwards;
-    }
-    @keyframes sparkAnim {
-      0% { transform: scale(1) translate(0, 0); opacity: 1; }
-      100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -2336,9 +2285,9 @@
   </div>
 </div>
 
-<!-- ===== CHROMA KEY (ANIMACIONES) - ACTUALIZADO DESDE version.html ===== -->
-<div class="stage" aria-hidden="true">
-  <div id="fgContainer" aria-label="Vídeo frontal">
+<!-- ===== CHROMA KEY ===== -->
+<div class="stage">
+  <div id="fgContainer">
     <canvas id="fgCanvas"></canvas>
     <video id="fgVideo" muted loop playsinline></video>
   </div>
@@ -3549,17 +3498,12 @@
     });
   }
 
-  // ============================================================
-  // 🔥 CHROMA KEY (ANIMACIONES) - ACTUALIZADO DESDE version.html
-  // ============================================================
+  // ===== CHROMA KEY (ANIMACIONES FIJAS) =====
   function randomizeFgPosition() {
     const fg = document.getElementById('fgContainer');
-    if (!fg) return;
     fg.classList.remove('fg-left', 'fg-right');
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    fg.classList.add(`fg-${side}`);
+    fg.classList.add(Math.random() < 0.5 ? 'fg-left' : 'fg-right');
   }
-
   const fgContainer = document.getElementById('fgContainer');
   const fgVideo = document.getElementById('fgVideo');
   const fgCanvas = document.getElementById('fgCanvas');
@@ -3569,66 +3513,62 @@
   fgVideo.style.display = 'none';
   fgVideo.src = currentAnim.src;
   fgVideo.addEventListener('loadedmetadata', () => {
-    const maxCanvasWidth = 300;
+    const maxW = 300;
     const ratio = fgVideo.videoWidth / fgVideo.videoHeight;
-    fgCanvas.width = maxCanvasWidth;
-    fgCanvas.height = maxCanvasWidth / ratio;
+    fgCanvas.width = maxW;
+    fgCanvas.height = maxW / ratio;
   });
-
-  function processChromaKey() {
+  let frameCount = 0;
+  let chromaActive = true;
+  // Siempre activo, no lo desactivamos con scroll
+  function processChroma() {
     if (fgVideo.paused || fgVideo.ended || isTransitioning) {
-      requestAnimationFrame(processChromaKey);
+      requestAnimationFrame(processChroma);
+      return;
+    }
+    frameCount++;
+    if (frameCount % 4 !== 0) {
+      requestAnimationFrame(processChroma);
       return;
     }
     fgCtx.drawImage(fgVideo, 0, 0, fgCanvas.width, fgCanvas.height);
-    const frameData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
-    const data = frameData.data;
-    const keyColor = currentAnim.keyColor || 'green';
-    const threshold = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
+    const frame = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
+    const data = frame.data;
+    const key = currentAnim.keyColor || 'green';
+    const thresh = currentAnim.preset?.threshold ? currentAnim.preset.threshold * 255 : 30;
     for (let i = 0; i < data.length; i += 4) {
       let r = data[i], g = data[i+1], b = data[i+2];
-      if (keyColor === 'blue') {
-        if (b > r + threshold && b > g + threshold) data[i+3] = 0;
-      } else {
-        if (g > r + threshold && g > b + threshold) data[i+3] = 0;
-      }
+      if (key === 'blue') { if (b > r + thresh && b > g + thresh) data[i+3] = 0; }
+      else { if (g > r + thresh && g > b + thresh) data[i+3] = 0; }
     }
-    fgCtx.putImageData(frameData, 0, 0);
-    requestAnimationFrame(processChromaKey);
+    fgCtx.putImageData(frame, 0, 0);
+    requestAnimationFrame(processChroma);
   }
-
-  fgVideo.addEventListener('play', () => { requestAnimationFrame(processChromaKey); });
-
+  fgVideo.addEventListener('play', () => requestAnimationFrame(processChroma));
   function startVisualMedia() {
-    const bgVideo = document.getElementById('bg-video');
-    bgVideo.muted = true;
-    bgVideo.play().then(() => bgVideo.style.opacity = '1').catch(e => console.log('Fondo bloqueado', e));
+    document.getElementById('bg-video').play().then(() => document.getElementById('bg-video').style.opacity = '1').catch(()=>{});
     fgVideo.muted = true;
-    fgVideo.play().catch(e => console.log('Animación bloqueada', e));
+    fgVideo.play().catch(()=>{});
     randomizeFgPosition();
   }
-
-  function createSparks(clientX, clientY) {
-    const neonColors = ['#00f0ff', '#b114ff', '#ff1a6b', '#ffd700'];
-    for (let i = 0; i < 80; i++) {
-      const spark = document.createElement('div');
-      spark.className = 'spark';
-      const size = Math.random() * 6 + 3;
-      spark.style.width = size + 'px';
-      spark.style.height = size + 'px';
-      spark.style.left = clientX + 'px';
-      spark.style.top = clientY + 'px';
-      spark.style.backgroundColor = neonColors[Math.floor(Math.random() * neonColors.length)];
-      spark.style.boxShadow = `0 0 10px ${spark.style.backgroundColor}, 0 0 20px ${spark.style.backgroundColor}`;
-      const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * 250 + 80;
-      spark.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
-      spark.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
-      document.body.appendChild(spark);
-      setTimeout(() => spark.remove(), 800);
+  function createSparks(cx, cy) {
+    const colors = ['#00f0ff','#b114ff','#ff1a6b','#ffd700'];
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark';
+      const size = Math.random() * 5 + 3;
+      s.style.width = size + 'px'; s.style.height = size + 'px';
+      s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      s.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      s.style.boxShadow = `0 0 15px ${s.style.backgroundColor}`;
+      const ang = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 200 + 60;
+      s.style.setProperty('--tx', Math.cos(ang) * dist + 'px');
+      s.style.setProperty('--ty', Math.sin(ang) * dist + 'px');
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 800);
     }
   }
-
   fgContainer.addEventListener('click', (e) => {
     e.stopPropagation();
     if (isTransitioning) return;
@@ -3644,10 +3584,9 @@
         isTransitioning = false;
         fgContainer.classList.remove('poof');
         randomizeFgPosition();
-      }).catch(err => { console.log('Error cambiando anim', err); isTransitioning = false; });
+      }).catch(() => { isTransitioning = false; });
     }, 600);
   });
-
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
   // ===== FUNCIONES DE DETALLE Y EVENTOS =====
