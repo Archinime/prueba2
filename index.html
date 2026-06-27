@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v19.0";
+      const APP_VERSION = "2025-04-07-v20.0-optimized";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -129,6 +129,9 @@
       width: 40px;
       height: 40px;
       background: radial-gradient(circle, var(--neon-pink), transparent 70%);
+    }
+    @media (max-width: 768px), (hover: none) {
+      #customCursor { display: none !important; }
     }
 
     /* ===== FONDO PARTÍCULAS ===== */
@@ -927,7 +930,7 @@
       transform: translateY(30px);
       opacity: 0;
       animation: cardEntry 0.6s ease forwards;
-      will-change: transform;
+      will-change: transform, opacity;
     }
     .card:nth-child(1) { animation-delay: 0.02s; }
     .card:nth-child(2) { animation-delay: 0.06s; }
@@ -2530,12 +2533,12 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v19.0"></script>
+<script src="catalogo.js?v=2025-04-07-v20.0-optimized"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
-<script src="banner-carousel.js?v=2025-04-07-v19.0"></script>
+<script src="banner-carousel.js?v=2025-04-07-v20.0-optimized"></script>
 
 <script>
   // ============================================
@@ -4056,7 +4059,7 @@
     resize();
   })();
 
-  console.log('🚀 Archinime cargado correctamente con todas las correcciones.');
+  console.log('🚀 Archinime cargado correctamente con optimizaciones para móviles.');
 </script>
 
 </body>
