@@ -216,7 +216,7 @@ function showCMS() {
     
     injectStateSelect();
     injectFinalBlock();
-    injectAiringToggle(); // Nuevo toggle en emisión
+    injectAiringToggle();
 }
 
 function showLogin() {
@@ -568,7 +568,9 @@ function updateAudioPreview(input) {
 
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
-// ---- FUNCIÓN addSeason MODIFICADA: incluye "Tráiler" y permite múltiples capítulos para OVA y Especial ----
+// ============================================================
+// FUNCIÓN addSeason MODIFICADA: se quitó el disabled del nombre
+// ============================================================
 function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
     const div = document.createElement('div');
@@ -593,12 +595,13 @@ function addSeason(data = null) {
                     <option value="OVA">OVA</option>
                     <option value="Especial">Especial</option>
                     <option value="Spin-Off">Spin-Off</option>
-                    <option value="Tráiler">Tráiler</option> <!-- NUEVO -->
+                    <option value="Tráiler">Tráiler</option>
                 </select>
             </div>
             <div class="col-flex">
                  <label>Nombre Bloque</label>
-                 <input type="text" class="s-name" placeholder="Auto" disabled oninput="requestPreviewUpdate()">
+                 <!-- ELIMINADO EL ATRIBUTO disabled -->
+                 <input type="text" class="s-name" placeholder="Nombre (opcional)" oninput="requestPreviewUpdate()">
             </div>
         </div>
         <label>Poster Bloque</label>
@@ -652,12 +655,11 @@ function addSeason(data = null) {
     checkAutoState();
 }
 
-// ---- handleSeasonTypeChange MODIFICADO ----
+// ---- handleSeasonTypeChange (sin cambios) ----
 function handleSeasonTypeChange(select) {
     const card = select.closest('.season-card');
     const countInput = card.querySelector('.s-count');
     const type = select.value;
-    // Solo Película fuerza 1 capítulo y deshabilita
     if (type === 'Pelicula') {
         countInput.value = 1;
         countInput.disabled = true;
@@ -714,7 +716,9 @@ function removeSeasonBlock(btn) {
     });
 }
 
-// ---- updateAllBlockNames MODIFICADO: incluye Tráiler y manejo secuencial para OVA y Especial ----
+// ============================================================
+// FUNCIÓN updateAllBlockNames MODIFICADA: ya no deshabilita
+// ============================================================
 function updateAllBlockNames() {
     const cards = document.querySelectorAll('.season-card');
     let tempCount = 0, movieCount = 0, ovaCount = 0, specialCount = 0, spinOffCount = 0, trailerCount = 0;
@@ -723,22 +727,23 @@ function updateAllBlockNames() {
         const nameInput = card.querySelector('.s-name');
         const type = typeSelect.value;
         if (!type) return;
-        const isEditable = (type === 'Spin-Off' || type === 'Tráiler');
-        nameInput.disabled = !isEditable;
-        if (nameInput.disabled || nameInput.value.trim() === "") {
-             if (type === 'Temporada') { tempCount++; nameInput.value = `Temporada ${tempCount}`; }
-             else if (type === 'Pelicula') { movieCount++; nameInput.value = `Película ${movieCount}`; }
-             else if (type === 'OVA') { ovaCount++; nameInput.value = `OVA ${ovaCount}`; }
-             else if (type === 'Especial') { specialCount++; nameInput.value = `Especial ${specialCount}`; }
-             else if (type === 'Spin-Off') { spinOffCount++; if (!nameInput.value) nameInput.value = `Spin-Off ${spinOffCount}`; }
-             else if (type === 'Tráiler') { trailerCount++; if (!nameInput.value) nameInput.value = `Tráiler ${trailerCount}`; }
+
+        // Si el campo está vacío, asignar nombre automático según el tipo
+        if (nameInput.value.trim() === "") {
+            if (type === 'Temporada') { tempCount++; nameInput.value = `Temporada ${tempCount}`; }
+            else if (type === 'Pelicula') { movieCount++; nameInput.value = `Película ${movieCount}`; }
+            else if (type === 'OVA') { ovaCount++; nameInput.value = `OVA ${ovaCount}`; }
+            else if (type === 'Especial') { specialCount++; nameInput.value = `Especial ${specialCount}`; }
+            else if (type === 'Spin-Off') { spinOffCount++; nameInput.value = `Spin-Off ${spinOffCount}`; }
+            else if (type === 'Tráiler') { trailerCount++; nameInput.value = `Tráiler ${trailerCount}`; }
         } else {
-             if (type === 'Temporada') tempCount++;
-             else if (type === 'Pelicula') movieCount++;
-             else if (type === 'OVA') ovaCount++;
-             else if (type === 'Especial') specialCount++;
-             else if (type === 'Spin-Off') spinOffCount++;
-             else if (type === 'Tráiler') trailerCount++;
+            // Si ya tiene nombre, solo incrementamos contadores para no perder la numeración
+            if (type === 'Temporada') tempCount++;
+            else if (type === 'Pelicula') movieCount++;
+            else if (type === 'OVA') ovaCount++;
+            else if (type === 'Especial') specialCount++;
+            else if (type === 'Spin-Off') spinOffCount++;
+            else if (type === 'Tráiler') trailerCount++;
         }
     });
 }
