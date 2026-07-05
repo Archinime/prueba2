@@ -1,6 +1,6 @@
 // app-core.js
 // Inicialización central de Firebase y estado del usuario
-// ACTUALIZADO: Usa ArchinimeState para el estado global
+// ACTUALIZADO: Sistema de presencia y contador global
 
 // ========== CONFIGURACIÓN DE FIREBASE ==========
 const firebaseConfig = {
@@ -25,16 +25,11 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ========== ESTADO GLOBAL DEL USUARIO ==========
-// Variable de respaldo para compatibilidad con código antiguo
 window.currentUser = null;
 
-// Función para actualizar la UI en función del usuario (puedes sobrescribirla)
+// Función para actualizar la UI en función del usuario
 function updateUserUI(user) {
-  // Esta función puede ser redefinida por otros scripts
-  // Por defecto, simplemente actualiza window.currentUser
   window.currentUser = user;
-  
-  // Si existe un sistema de notificaciones, lo refrescamos
   if (user) {
     if (window.syncNotificationsWithCloud) {
       requestIdleCallback(() => window.syncNotificationsWithCloud(user.uid));
@@ -43,26 +38,17 @@ function updateUserUI(user) {
       requestIdleCallback(() => window.listenForReplies(user.uid));
     }
   }
-  
-  // Disparar evento personalizado para que otros scripts reaccionen
   const event = new CustomEvent('userChanged', { detail: { user } });
   document.dispatchEvent(event);
 }
 
-// Escuchar cambios de autenticación y actualizar el estado central
+// Escuchar cambios de autenticación
 auth.onAuthStateChanged(user => {
-  // Actualizar variable de compatibilidad
   window.currentUser = user;
-  
-  // Actualizar el estado central si existe
   if (window.ArchinimeState) {
     window.ArchinimeState.set('currentUser', user);
   }
-  
-  // Llamar a la función de UI
   updateUserUI(user);
-  
-  // Sincronizar notificaciones y respuestas (si están disponibles)
   if (user) {
     if (window.syncNotificationsWithCloud) {
       requestIdleCallback(() => window.syncNotificationsWithCloud(user.uid));
@@ -71,14 +57,11 @@ auth.onAuthStateChanged(user => {
       requestIdleCallback(() => window.listenForReplies(user.uid));
     }
   } else {
-    // Limpiar suscripciones si es necesario
     if (window.repliesUnsubscribe) window.repliesUnsubscribe();
   }
 });
 
 // ========== FUNCIONES DE AUTENTICACIÓN ==========
-// (Conectan con los botones del modal)
-
 window.loginWithEmail = async () => {
   const email = document.getElementById('loginEmail')?.value;
   const password = document.getElementById('loginPassword')?.value;
@@ -88,7 +71,6 @@ window.loginWithEmail = async () => {
   }
   try {
     await auth.signInWithEmailAndPassword(email, password);
-    // Cerrar modal si existe
     const modal = document.getElementById('authModal');
     if (modal) modal.classList.remove('show');
   } catch (error) {
@@ -153,15 +135,23 @@ window.loginWithGitHub = async () => {
 
 window.logout = async () => {
   try {
+    const user = auth.currentUser;
+    if (user) {
+      await db.collection('stats').doc('onlineCount').set({
+        count: firebase.firestore.FieldValue.increment(-1)
+      }, { merge: true });
+      await db.collection('users').doc(user.uid).set({
+        online: false,
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
     await auth.signOut();
-    // Opcional: recargar la página o redirigir
-    // location.reload();
+    location.reload();
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
   }
 };
 
-// ========== FUNCIÓN PARA MOSTRAR/MODAL DE AUTENTICACIÓN ==========
 window.showAuthModal = () => {
   const modal = document.getElementById('authModal');
   if (modal) modal.classList.add('show');
@@ -174,12 +164,71 @@ window.closeAuthModal = () => {
   if (errorEl) errorEl.innerText = '';
 };
 
+// ========== PRESENCIA Y CONTADOR GLOBAL ==========
+window.isCurrentUserAdmin = function() {
+  const user = auth.currentUser;
+  if (!user) return false;
+  const admins = ['archinime12@gmail.com', 'alejandroarchi12@gmail.com', 'lucioguapofeo@gmail.com'];
+  return admins.includes(user.email);
+};
+
+window.getOnlineCount = async function() {
+  try {
+    const doc = await db.collection('stats').doc('onlineCount').get();
+    return doc.exists ? doc.data().count || 0 : 0;
+  } catch { return 0; }
+};
+
+window.updateActiveCounter = async function(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.innerText = await window.getOnlineCount();
+};
+
+window.getUserList = async function() {
+  if (!window.isCurrentUserAdmin()) throw new Error('No autorizado');
+  const snapshot = await db.collection('users').orderBy('lastSeen', 'desc').get();
+  const users = [];
+  snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+  return users;
+};
+
+// Sobrescribir updateUserUI para incluir presencia
+const originalUpdateUserUI = window.updateUserUI || function() {};
+window.updateUserUI = function(user) {
+  originalUpdateUserUI(user);
+  if (user) {
+    const userRef = db.collection('users').doc(user.uid);
+    userRef.set({
+      online: true,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      displayName: user.displayName || user.email?.split('@')[0] || 'Usuario',
+      email: user.email || '',
+      photoURL: user.photoURL || '',
+    }, { merge: true });
+
+    userRef.onDisconnect().set({
+      online: false,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    db.collection('stats').doc('onlineCount').set({
+      count: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true }).catch(console.warn);
+  }
+};
+
 // ========== INICIALIZACIÓN ADICIONAL ==========
-// Si el documento ya está cargado, ejecutar; si no, esperar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ app-core.js cargado y listo');
+    // Crear documento de contador si no existe
+    db.collection('stats').doc('onlineCount').get().then(doc => {
+      if (!doc.exists) db.collection('stats').doc('onlineCount').set({ count: 0 });
+    }).catch(console.warn);
   });
 } else {
   console.log('✅ app-core.js cargado y listo');
+  db.collection('stats').doc('onlineCount').get().then(doc => {
+    if (!doc.exists) db.collection('stats').doc('onlineCount').set({ count: 0 });
+  }).catch(console.warn);
 }
