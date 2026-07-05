@@ -22,7 +22,7 @@ const db = firebase.firestore();
 window.db = db;
 window.auth = auth;
 
-// ========== FUNCIONES DE AUTENTICACIÓN (compatibles con el modal) ==========
+// ========== FUNCIONES DE AUTENTICACIÓN ==========
 window.loginWithEmail = async () => {
   const email = document.getElementById('loginEmail')?.value;
   const password = document.getElementById('loginPassword')?.value;
@@ -91,7 +91,11 @@ window.closeAuthModal = () => {
 
 // ========== PRESENCIA Y CONTADOR GLOBAL ==========
 window.initPresence = function(user) {
-  if (!user) return;
+  if (!user) {
+    console.warn('initPresence: no hay usuario');
+    return;
+  }
+  console.log('✅ initPresence llamado para', user.uid);
   const userRef = db.collection('users').doc(user.uid);
   userRef.set({
     online: true,
@@ -108,7 +112,11 @@ window.initPresence = function(user) {
 
   db.collection('stats').doc('onlineCount').set({
     count: firebase.firestore.FieldValue.increment(1)
-  }, { merge: true }).catch(console.warn);
+  }, { merge: true }).then(() => {
+    console.log('✅ onlineCount incrementado');
+  }).catch(err => {
+    console.error('❌ Error al incrementar onlineCount:', err);
+  });
 };
 
 window.isCurrentUserAdmin = function() {
@@ -138,7 +146,6 @@ window.getUserList = async function() {
   return users;
 };
 
-// Cierre de sesión con decremento del contador
 window.logoutWithPresence = async function() {
   try {
     const user = auth.currentUser;
@@ -160,16 +167,20 @@ window.logoutWithPresence = async function() {
 
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', () => {
-  // Crear documento de contador si no existe
   db.collection('stats').doc('onlineCount').get().then(doc => {
     if (!doc.exists) db.collection('stats').doc('onlineCount').set({ count: 0 });
   }).catch(console.warn);
   console.log('✅ app-core.js cargado');
 });
 
-// Escuchar cambios de autenticación para actualizar presencia
+// ESCUCHAR CAMBIOS DE AUTENTICACIÓN Y ACTUALIZAR PRESENCIA + UI
 auth.onAuthStateChanged(user => {
+  window.currentUser = user;
   if (user) {
     window.initPresence(user);
+  }
+  // Si existe la función de UI definida en index.html, la llamamos
+  if (typeof window.updateUserUI === 'function') {
+    window.updateUserUI(user);
   }
 });

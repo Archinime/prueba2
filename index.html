@@ -2596,6 +2596,9 @@
 <script src="gifs.js"></script>
 <script src="banner-carousel.js?v=2025-04-07-v20.0-optimized"></script>
 
+<!-- ===== app-core.js (debe cargarse después de Firebase y antes del script principal) ===== -->
+<script src="app-core.js?v=2025-04-07-v20.0-optimized"></script>
+
 <script>
   // ============================================
   // SISTEMA DE STICKERS (CORREGIDO)
@@ -3694,14 +3697,19 @@
   }
   async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); } catch (e) { document.getElementById('authError').textContent = e.message; } }
   function logoutUser() { auth.signOut().then(() => location.reload()); }
+
+  // ===== FUNCIÓN updateUserUI ACTUALIZADA =====
   function updateUserUI(user) {
+    console.log('updateUserUI llamado', user?.uid || 'null');
     currentUser = user;
     const avatar = document.getElementById('userAvatarBtn'), dAvatar = document.getElementById('dropdownAvatar'), dName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
     if (user) {
       const photo = user.photoURL || 'invitado.avif';
       avatar.src = photo; dAvatar.src = photo;
       dName.textContent = user.displayName || user.email.split('@')[0];
-      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = logoutUser;
+      // Usar logoutWithPresence para decrementar el contador
+      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
+      loginItem.onclick = window.logoutWithPresence;  // <--- CLAVE
       db.collection('users').doc(user.uid).get().then(doc => {
         const color = doc.exists && doc.data().customColor ? doc.data().customColor : getNeonColor(user.uid);
         avatar.style.borderColor = color; avatar.style.boxShadow = `0 0 20px ${color}`;
@@ -3711,19 +3719,23 @@
     } else {
       avatar.src = 'invitado.avif'; dAvatar.src = 'invitado.avif';
       dName.textContent = 'Invitado';
-      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = showAuthModal;
+      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
+      loginItem.onclick = showAuthModal;
       avatar.style.borderColor = 'var(--neon-blue)'; avatar.style.boxShadow = 'none';
       dAvatar.style.borderColor = 'var(--neon-blue)'; dAvatar.style.boxShadow = 'none';
       dName.style.color = 'var(--neon-blue)'; dName.style.textShadow = 'none';
     }
   }
+
   document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
   document.getElementById('userAvatarBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('userDropdown').classList.toggle('active'); });
   document.addEventListener('click', e => {
     const dd = document.getElementById('userDropdown');
     if (!e.target.closest('.user-menu')) dd.classList.remove('active');
   });
-  auth.onAuthStateChanged(updateUserUI);
+
+  // NOTA: EL LISTENER auth.onAuthStateChanged YA ESTÁ EN app-core.js
+  // Por lo tanto, NO debemos duplicarlo aquí. La función updateUserUI será llamada desde app-core.js.
 
   // ===== CUSTOM SELECTS =====
   (function() {
@@ -4054,52 +4066,6 @@
     return users;
   };
 
-  // Sobrescribir updateUserUI para incluir presencia
-  const originalUpdateUserUI = window.updateUserUI || function() {};
-  window.updateUserUI = function(user) {
-    originalUpdateUserUI(user);
-    if (user) {
-      const userRef = db.collection('users').doc(user.uid);
-      userRef.set({
-        online: true,
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        displayName: user.displayName || user.email?.split('@')[0] || 'Usuario',
-        email: user.email || '',
-        photoURL: user.photoURL || '',
-      }, { merge: true });
-
-      userRef.onDisconnect().set({
-        online: false,
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      db.collection('stats').doc('onlineCount').set({
-        count: firebase.firestore.FieldValue.increment(1)
-      }, { merge: true }).catch(console.warn);
-    }
-  };
-
-  // Modificar logout para decrementar contador
-  const originalLogout = window.logout;
-  window.logout = async function() {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        await db.collection('stats').doc('onlineCount').set({
-          count: firebase.firestore.FieldValue.increment(-1)
-        }, { merge: true });
-        await db.collection('users').doc(user.uid).set({
-          online: false,
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      }
-      await auth.signOut();
-      location.reload();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
-
   // ===== ADMIN PANEL FUNCTIONS =====
   window.openAdminPanel = async function() {
     if (!window.isCurrentUserAdmin()) return alert('No autorizado');
@@ -4137,7 +4103,7 @@
     enableBodyScroll();
   };
 
-  // Mostrar/ocultar botón admin
+  // Mostrar/ocultar botón admin (se maneja desde app-core.js, pero lo reforzamos)
   auth.onAuthStateChanged(user => {
     const btn = document.getElementById('adminPanelBtn');
     if (user && window.isCurrentUserAdmin()) {
