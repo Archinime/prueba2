@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  
+ 
   <title>ARCHINIME · La Nueva Era del Anime</title>
   <meta name="description" content="La interfaz más inmersiva para ver anime. Efectos visuales, comunidad y calidad HD.">
   <link rel="canonical" href="https://archinime.github.io/-Archinime-/">
@@ -14,7 +14,7 @@
   <!-- VERSIÓN (forzar limpieza de caché) -->
   <script>
     (function() {
-      const APP_VERSION = "2025-04-07-v20.0-optimized";
+      const APP_VERSION = "2025-04-07-v21.0-chat-fixes";
       const stored = localStorage.getItem('archinime_app_version');
       if (stored !== APP_VERSION) {
         localStorage.setItem('archinime_app_version', APP_VERSION);
@@ -247,16 +247,17 @@
       background-clip: text;
       -webkit-text-fill-color: transparent;
       text-shadow: 0 0 60px rgba(0, 240, 255, 0.3);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-family: 'Orbitron', sans-serif;
     }
 
     .loader-sub {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--text-secondary);
       letter-spacing: 4px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       font-family: 'Poppins', sans-serif;
+      margin-top: 4px;
     }
 
     .loader-bar {
@@ -1699,7 +1700,6 @@
       align-items: center;
       border-bottom: 1px solid rgba(255,255,255,0.04);
       padding-bottom: 12px;
-      flex-wrap: wrap;
     }
     .side-panel .panel-header h3 {
       font-family: 'Orbitron', sans-serif;
@@ -1795,9 +1795,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      width: 100%;
     }
     .chat-input-row input {
       flex: 1;
+      min-width: 0;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 30px;
@@ -1824,6 +1826,7 @@
       cursor: pointer;
       transition: 0.3s;
       font-size: 1rem;
+      flex-shrink: 0;
     }
     .chat-input-row .chat-btn-icon:hover {
       background: rgba(0, 240, 255, 0.08);
@@ -1843,6 +1846,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
     .chat-input-row .chat-send-btn:hover {
       background: #fff;
@@ -2217,6 +2221,19 @@
       .profile-card { max-width: 100%; }
       .detail-card { max-height: 85vh; }
       .detail-cover { height: 320px; }
+
+      /* Corrección para móvil: botones visibles */
+      .chat-input-row .chat-btn-icon,
+      .chat-input-row .chat-send-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+      }
+      .chat-input-row input {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+      }
     }
     /* Móviles pequeños (<=480px) */
     @media (max-width: 480px) {
@@ -2229,33 +2246,17 @@
       .side-panel.open { right: 0; }
       #chatStickerPanelPanel .stickers-grid { grid-template-columns: repeat(3, 1fr); }
       .detail-cover { height: 260px; }
+      .chat-input-row .chat-btn-icon,
+      .chat-input-row .chat-send-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+      }
+      .chat-input-row input {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+      }
     }
-
-    /* ===== ADMIN PANEL ===== */
-    #adminUserListContainer table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    #adminUserListContainer th {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      color: var(--neon-blue);
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
-      font-size: 0.7rem;
-      letter-spacing: 1px;
-    }
-    #adminUserListContainer td {
-      padding: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    #adminUserListContainer tr:hover td {
-      background: rgba(0, 240, 255, 0.03);
-    }
-    .admin-status-online { color: #00ff88; }
-    .admin-status-offline { color: #666; }
   </style>
 </head>
 <body>
@@ -2301,8 +2302,6 @@
   <div class="nav-actions">
     <button id="searchToggleMobile" class="cyber-btn-icon" title="Buscar" aria-label="Buscar"><i class="fas fa-search"></i></button>
     <button id="installBtn" class="cyber-btn-icon install-pulse" title="Instalar App"><i class="fas fa-download"></i></button>
-    <!-- BOTÓN ADMIN (solo visible para admins) -->
-    <button id="adminPanelBtn" class="cyber-btn-icon" title="Panel Admin" style="display:none;"><i class="fas fa-users-cog"></i></button>
     <div class="notif-wrapper">
       <button id="notifBtn" class="cyber-btn-icon" onclick="toggleNotifMenu()"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge" style="display:none"></span></button>
       <div id="notifMenu" class="notif-dropdown">
@@ -2335,7 +2334,7 @@
   <select id="genre-select" aria-label="Género">
       <option value="">🎭 Todos los géneros</option>
       <option>Acción</option><option>Animación</option><option>Artes Marciales</option><option>Aventura</option>
-      <option>Ciencia ficción</option><option>Cocina</option><option>Comedia</option><option>Comedia oscura</option>
+      <option>Cambio de género</option><option>Ciencia ficción</option><option>Cocina</option><option>Comedia</option><option>Comedia oscura</option>
       <option>Coming-of-age</option><option>Cosplay</option><option>Crimen</option><option>Cyberpunk</option>
       <option>Deducción Social</option><option>Deportivo</option><option>Divulgación Científica</option><option>Drama</option>
       <option>Ecchi</option><option>Espionaje</option><option>Escolar</option><option>Fantasía</option>
@@ -2349,7 +2348,7 @@
       <option>Sobrenatural</option><option>Steampunk</option><option>Superhéroes</option><option>Survival</option>
       <option>Survival Game</option><option>Suspenso</option><option>Tentáculos</option><option>Terror</option>
       <option>Terror psicológico</option><option>Thriller</option><option>Thriller psicológico</option>
-      <option>Tokusatsu</option><option>Tragedia</option><option>Venganza</option><option>VRMMO</option><option>Yanki</option>
+      <option>Tokusatsu</option><option>Tragedia</option><option>Venganza</option><option>VRMMO</option><option>Yankī</option>
       <option>Yaoi</option><option>Yuri</option>
   </select>
   <select id="demographic-select" aria-label="Demografía">
@@ -2385,10 +2384,6 @@
 <div class="side-panel" id="sidePanel">
   <div class="panel-header">
     <h3><i class="fas fa-globe"></i> CHAT GLOBAL</h3>
-    <!-- WIDGET CONTADOR -->
-    <div id="activeUsersWidget" style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary);">
-      <span id="activeCount">0</span> usuarios activos
-    </div>
     <button class="panel-close" id="sidePanelClose"><i class="fas fa-times"></i></button>
   </div>
   <div id="chatMessagesPanel">
@@ -2508,17 +2503,6 @@
   </div>
 </div>
 
-<!-- ===== ADMIN PANEL MODAL ===== -->
-<div id="adminPanelModal" class="auth-modal">
-  <div class="profile-card" style="max-width: 800px; width: 90%;">
-    <div class="profile-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></div>
-    <h2 style="font-family:'Orbitron'; text-align:center; color:var(--neon-blue); margin-bottom:16px;">PANEL DE ADMINISTRACIÓN</h2>
-    <div id="adminUserListContainer" style="max-height: 60vh; overflow-y: auto; padding:10px 0;">
-      <div style="text-align:center; color:var(--text-secondary);">Cargando...</div>
-    </div>
-  </div>
-</div>
-
 <!-- ===== MODAL DETALLE ===== -->
 <div id="detailModal" class="detail-modal">
   <div class="detail-card">
@@ -2589,15 +2573,12 @@
   const providerGoogle = new firebase.auth.GoogleAuthProvider();
 </script>
 
-<script src="catalogo.js?v=2025-04-07-v20.0-optimized"></script>
+<script src="catalogo.js?v=2025-04-07-v21.0-chat-fixes"></script>
 <script src="animaciones.js"></script>
 <script src="musica_fondo.js"></script>
 <script src="notification-system.js"></script>
 <script src="gifs.js"></script>
-<script src="banner-carousel.js?v=2025-04-07-v20.0-optimized"></script>
-
-<!-- ===== app-core.js (debe cargarse después de Firebase y antes del script principal) ===== -->
-<script src="app-core.js?v=2025-04-07-v20.0-optimized"></script>
+<script src="banner-carousel.js?v=2025-04-07-v21.0-chat-fixes"></script>
 
 <script>
   // ============================================
@@ -2674,8 +2655,8 @@
     const preview = document.getElementById('comentarioStickerPreview');
     if (preview) preview.style.display = 'none';
     const img = document.getElementById('previewStickerImgObj');
-    if (img) img.src = '';
     const vid = document.getElementById('previewStickerVidObj');
+    if (img) img.src = '';
     if (vid) vid.src = '';
     const textarea = document.getElementById('comentarioTexto');
     if (textarea) validarBotonPrincipal(textarea);
@@ -2782,6 +2763,7 @@
     if (comentariosInicializados) return;
     comentariosInicializados = true;
     
+    // Ocultar el formulario de comentarios y mostrar mensaje de deshabilitado
     const formContainer = document.getElementById('comentarioFormContainer');
     const loginMsg = document.getElementById('comentarioLoginMessage');
     if (formContainer) formContainer.style.display = 'none';
@@ -2793,6 +2775,7 @@
       loginMsg.style.padding = '20px';
     }
     
+    // Solo mostrar comentarios existentes (lectura)
     setupComentariosRealtimeListener();
   }
 
@@ -2931,18 +2914,31 @@
     if (sidePanel.classList.contains('open')) {
       iniciarEscuchaChatPanel();
       cargarStickersChatPanel();
-      // Actualizar contador al abrir
-      if (window.updateActiveCounter) {
-        window.updateActiveCounter('activeCount');
-        if (window.activeCounterInterval) clearInterval(window.activeCounterInterval);
-        window.activeCounterInterval = setInterval(() => {
-          window.updateActiveCounter('activeCount');
-        }, 30000);
-      }
-    } else {
-      if (window.activeCounterInterval) clearInterval(window.activeCounterInterval);
+      // Asegurar scroll al final después de abrir
+      setTimeout(() => {
+        const container = document.getElementById('chatMessagesPanel');
+        if (container) container.scrollTop = container.scrollHeight;
+      }, 300);
     }
   };
+
+  // Función para actualizar la UI del chat según autenticación
+  function actualizarEstadoChatPanel() {
+    const user = auth.currentUser;
+    const inputArea = document.getElementById('chatInputArea');
+    const guestArea = document.getElementById('chatGuestArea');
+    const container = document.getElementById('chatInputContainerPanel');
+    if (!inputArea || !guestArea || !container) return;
+    if (user) {
+      inputArea.style.display = 'flex';
+      guestArea.style.display = 'none';
+      container.style.display = 'flex';
+    } else {
+      inputArea.style.display = 'none';
+      guestArea.style.display = 'block';
+      container.style.display = 'flex';
+    }
+  }
 
   function iniciarEscuchaChatPanel() {
     if (chatUnsubscribePanel) chatUnsubscribePanel();
@@ -3009,6 +3005,7 @@
         `;
       });
       container.innerHTML = html;
+      // Scroll al final después de renderizar
       requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
       });
@@ -3031,15 +3028,8 @@
       `;
     });
 
-    const inputArea = document.getElementById('chatInputArea');
-    const guestArea = document.getElementById('chatGuestArea');
-    if (user) {
-      inputArea.style.display = 'flex';
-      guestArea.style.display = 'none';
-    } else {
-      inputArea.style.display = 'none';
-      guestArea.style.display = 'block';
-    }
+    // Actualizar UI según estado de autenticación
+    actualizarEstadoChatPanel();
   }
 
   function escapeHtml(text) {
@@ -3697,19 +3687,14 @@
   }
   async function loginWithGoogle() { try { await auth.signInWithPopup(providerGoogle); closeAuthModal(); } catch (e) { document.getElementById('authError').textContent = e.message; } }
   function logoutUser() { auth.signOut().then(() => location.reload()); }
-
-  // ===== FUNCIÓN updateUserUI ACTUALIZADA =====
   function updateUserUI(user) {
-    console.log('updateUserUI llamado', user?.uid || 'null');
     currentUser = user;
     const avatar = document.getElementById('userAvatarBtn'), dAvatar = document.getElementById('dropdownAvatar'), dName = document.getElementById('dropdownName'), loginItem = document.getElementById('loginBtnItem');
     if (user) {
       const photo = user.photoURL || 'invitado.avif';
       avatar.src = photo; dAvatar.src = photo;
       dName.textContent = user.displayName || user.email.split('@')[0];
-      // Usar logoutWithPresence para decrementar el contador
-      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión';
-      loginItem.onclick = window.logoutWithPresence;  // <--- CLAVE
+      loginItem.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; loginItem.onclick = logoutUser;
       db.collection('users').doc(user.uid).get().then(doc => {
         const color = doc.exists && doc.data().customColor ? doc.data().customColor : getNeonColor(user.uid);
         avatar.style.borderColor = color; avatar.style.boxShadow = `0 0 20px ${color}`;
@@ -3719,23 +3704,23 @@
     } else {
       avatar.src = 'invitado.avif'; dAvatar.src = 'invitado.avif';
       dName.textContent = 'Invitado';
-      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión';
-      loginItem.onclick = showAuthModal;
+      loginItem.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'; loginItem.onclick = showAuthModal;
       avatar.style.borderColor = 'var(--neon-blue)'; avatar.style.boxShadow = 'none';
       dAvatar.style.borderColor = 'var(--neon-blue)'; dAvatar.style.boxShadow = 'none';
       dName.style.color = 'var(--neon-blue)'; dName.style.textShadow = 'none';
     }
+    // Actualizar también el panel de chat si está abierto
+    if (sidePanel.classList.contains('open')) {
+      actualizarEstadoChatPanel();
+    }
   }
-
   document.getElementById('profileDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); showProfileModal(); });
   document.getElementById('userAvatarBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('userDropdown').classList.toggle('active'); });
   document.addEventListener('click', e => {
     const dd = document.getElementById('userDropdown');
     if (!e.target.closest('.user-menu')) dd.classList.remove('active');
   });
-
-  // NOTA: EL LISTENER auth.onAuthStateChanged YA ESTÁ EN app-core.js
-  // Por lo tanto, NO debemos duplicarlo aquí. La función updateUserUI será llamada desde app-core.js.
+  auth.onAuthStateChanged(updateUserUI);
 
   // ===== CUSTOM SELECTS =====
   (function() {
@@ -4036,84 +4021,6 @@
   window.closeProfileModal = closeProfileModal;
   window.copiarUID = copiarUID;
 
-  // ============================================
-  // PRESENCIA Y CONTADOR GLOBAL (NUEVO)
-  // ============================================
-  window.isCurrentUserAdmin = function() {
-    const user = auth.currentUser;
-    if (!user) return false;
-    const admins = ['archinime12@gmail.com', 'alejandroarchi12@gmail.com', 'lucioguapofeo@gmail.com'];
-    return admins.includes(user.email);
-  };
-
-  window.getOnlineCount = async function() {
-    try {
-      const doc = await db.collection('stats').doc('onlineCount').get();
-      return doc.exists ? doc.data().count || 0 : 0;
-    } catch { return 0; }
-  };
-
-  window.updateActiveCounter = async function(elementId) {
-    const el = document.getElementById(elementId);
-    if (el) el.innerText = await window.getOnlineCount();
-  };
-
-  window.getUserList = async function() {
-    if (!window.isCurrentUserAdmin()) throw new Error('No autorizado');
-    const snapshot = await db.collection('users').orderBy('lastSeen', 'desc').get();
-    const users = [];
-    snapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
-    return users;
-  };
-
-  // ===== ADMIN PANEL FUNCTIONS =====
-  window.openAdminPanel = async function() {
-    if (!window.isCurrentUserAdmin()) return alert('No autorizado');
-    const modal = document.getElementById('adminPanelModal');
-    modal.classList.add('show');
-    disableBodyScroll();
-    const container = document.getElementById('adminUserListContainer');
-    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
-    try {
-      const users = await window.getUserList();
-      if (!users.length) { container.innerHTML = '<div style="text-align:center; padding:20px;">No hay usuarios.</div>'; return; }
-      let html = `<table>
-        <thead><tr>
-          <th>Nombre</th><th>Email</th><th>Estado</th><th>Última conexión</th>
-        </tr></thead><tbody>`;
-      users.forEach(u => {
-        const status = u.online ? '🟢 Activo' : '⚪ Inactivo';
-        const last = u.lastSeen?.toDate().toLocaleString() || 'Nunca';
-        html += `<tr>
-          <td>${u.displayName || 'Anónimo'}</td>
-          <td>${u.email || '—'}</td>
-          <td style="text-align:center;">${status}</td>
-          <td>${last}</td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-      container.innerHTML = html;
-    } catch (e) {
-      container.innerHTML = `<div style="color:var(--neon-pink); padding:20px;">Error: ${e.message}</div>`;
-    }
-  };
-
-  window.closeAdminPanel = function() {
-    document.getElementById('adminPanelModal').classList.remove('show');
-    enableBodyScroll();
-  };
-
-  // Mostrar/ocultar botón admin (se maneja desde app-core.js, pero lo reforzamos)
-  auth.onAuthStateChanged(user => {
-    const btn = document.getElementById('adminPanelBtn');
-    if (user && window.isCurrentUserAdmin()) {
-      btn.style.display = 'flex';
-      btn.onclick = window.openAdminPanel;
-    } else {
-      btn.style.display = 'none';
-    }
-  });
-
   // ===== INICIALIZACIÓN FINAL =====
   inicializarAnuncio();
   loadRatings().then(() => {
@@ -4141,16 +4048,6 @@
     setTimeout(() => {
       checkForNewAnimes();
     }, 3000);
-  });
-
-  // Inicializar contador al cargar la página
-  document.addEventListener('DOMContentLoaded', () => {
-    // Crear stats/onlineCount si no existe
-    db.collection('stats').doc('onlineCount').get().then(doc => {
-      if (!doc.exists) db.collection('stats').doc('onlineCount').set({ count: 0 });
-    }).catch(console.warn);
-    // Actualizar contador en el widget del chat
-    window.updateActiveCounter('activeCount');
   });
 
   window.addEventListener('load', () => { if (window.startNotificationSequence) window.startNotificationSequence(); });
