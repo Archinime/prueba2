@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v11.0
-// MEJORADO: Rendimiento, accesibilidad, animaciones, scroll perfecto
+// SISTEMA DE COMENTARIOS "PREMIUM" CYBERPUNK v11.1
+// MEJORADO: Envío de comentarios al chat global
 // ============================================
 
 let comentariosDb = null;
@@ -13,7 +13,7 @@ window.respondiendoA = null;
 window.lastPostedCommentId = null;
 window.hasScrolledToTarget = false;
 
-// --- FUNCIÓN DE LIMPIEZA INDUSTRIAL (DOMPurify) ---
+// --- FUNCIÓN DE LIMPIEZA ---
 function archinimeClean(html, isSticker = false) {
     if (typeof DOMPurify !== 'undefined') {
         const config = isSticker 
@@ -22,7 +22,6 @@ function archinimeClean(html, isSticker = false) {
                 ALLOWED_ATTR: ['src', 'class', 'style', 'alt', 'href', 'target', 'rel'] };
         return DOMPurify.sanitize(html, config);
     }
-    // Fallback seguro
     return html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
 }
 
@@ -304,7 +303,6 @@ function setupComentariosRealtimeListener() {
             return;
         }
 
-        // Guardar estado de contenedores abiertos
         const openContainers = new Set();
         document.querySelectorAll('.replies-thread').forEach(el => {
             if (el.style.display !== 'none') openContainers.add(el.id);
@@ -380,7 +378,6 @@ function setupComentariosRealtimeListener() {
         roots.forEach(root => html += renderNode(root, 0, false, null));
         container.innerHTML = html;
 
-        // Restaurar contenedores abiertos
         openContainers.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -393,7 +390,6 @@ function setupComentariosRealtimeListener() {
 
         window.lastPostedCommentId = null;
 
-        // Scroll perfecto a comentario destino (desde URL)
         const urlParams = new URLSearchParams(window.location.search);
         const targetCommentId = urlParams.get('targetComment');
         
@@ -409,7 +405,6 @@ function setupComentariosRealtimeListener() {
                     return;
                 }
 
-                // Expandir padres
                 let parent = targetEl.parentElement;
                 const parentsToExpand = [];
                 while (parent && parent.id !== 'comentariosList') {
@@ -425,7 +420,6 @@ function setupComentariosRealtimeListener() {
                     if (textSpan) textSpan.innerText = 'Ocultar respuestas';
                 });
 
-                // Si está dentro de hidden-reply
                 let hiddenContainer = targetEl.closest('[class*="hidden-reply-"]');
                 if (hiddenContainer) {
                     const match = hiddenContainer.className.match(/hidden-reply-([^ ]+)/);
@@ -845,6 +839,7 @@ async function enviarComentarioTexto() {
     
     validarBotonPrincipal(textoInput);
     try {
+        // 1) Guardar en colección 'comments'
         const docRef = await comentariosDb.collection('comments').add({
             animeId: window.comentariosAnimeId,
             season: parseInt(window.comentariosSeason),
@@ -863,6 +858,32 @@ async function enviarComentarioTexto() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         window.lastPostedCommentId = docRef.id;
+
+        // 2) Si es un comentario raíz (no respuesta), enviar también al chat global
+        const animeTitle = window.comentariosAnimeTitle || 'Anime';
+        const seasonNum = window.comentariosSeason || '?';
+        const episodeNum = window.comentariosEpisode || '?';
+        const mensajeChat = `🗣️ En ${animeTitle} T${seasonNum} Cap${episodeNum}: ${texto || '(sticker)'}`;
+
+        // Solo si hay texto o sticker, y no es respuesta (replyToId es null)
+        // y además tenemos acceso a la colección globalChat
+        if (comentariosDb && !window.respondiendoA) {
+            await comentariosDb.collection('globalChat').add({
+                userId: currentUser.uid,
+                userName: currentUser.displayName || currentUser.email.split('@')[0],
+                userAvatar: currentUser.photoURL || 'invitado.avif',
+                texto: mensajeChat,
+                esSticker: !!stickerUrl,
+                stickerUrl: stickerUrl || null,
+                customColor: getCurrentUserColor() || null,
+                tipo: 'comentario_video',
+                animeId: window.comentariosAnimeId,
+                season: parseInt(window.comentariosSeason),
+                episode: parseInt(window.comentariosEpisode),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
         showToastComent('✅ Comentario enviado');
     } catch (error) {
         console.error("Error al enviar:", error);
