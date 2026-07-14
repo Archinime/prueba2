@@ -78,6 +78,7 @@
             animation: spinLoader 1s linear infinite;
             margin-bottom: 30px;
             box-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
+            position: relative;
         }
         .loader-ring::after {
             content: '';
@@ -89,7 +90,6 @@
             border-left-color: var(--neon-gold);
             animation: spinLoader 0.6s linear infinite reverse;
         }
-        .loader-ring { position: relative; }
         @keyframes spinLoader { to { transform: rotate(360deg); } }
         .loader-title {
             font-family: 'Orbitron', sans-serif;
@@ -400,7 +400,7 @@
         }
 
         /* ============================================
-           SEARCH MODAL
+           SEARCH MODAL (ACCESIBLE DESDE EL BOTÓN "CARGAR")
            ============================================ */
         #searchModal {
             display: none;
@@ -620,8 +620,8 @@
         .editor-panel textarea,
         .editor-panel select {
             width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
             padding: 11px 16px;
             border-radius: var(--radius-sm);
             color: #fff;
@@ -729,51 +729,72 @@
         }
 
         /* ============================================
-           GENRES
+           GENRES (MEJORADO)
            ============================================ */
         .genres-box {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            padding: 12px;
+            gap: 8px;
+            padding: 16px;
             background: rgba(255,255,255,0.02);
-            border-radius: var(--radius-sm);
-            border: 1px solid rgba(255,255,255,0.04);
-            max-height: 240px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.05);
+            max-height: 260px;
             overflow-y: auto;
+            transition: 0.3s;
+        }
+        .genres-box:hover {
+            border-color: rgba(0, 240, 255, 0.1);
         }
         .genres-box label {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            background: rgba(255,255,255,0.03);
-            padding: 4px 10px 4px 6px;
-            border-radius: 20px;
+            gap: 6px;
+            background: rgba(255,255,255,0.04);
+            padding: 6px 14px 6px 10px;
+            border-radius: 30px;
             font-size: 0.7rem;
             font-weight: 500;
             color: var(--text-secondary);
             margin: 0;
             cursor: pointer;
-            transition: 0.15s;
+            transition: all 0.25s ease;
             white-space: nowrap;
+            border: 1px solid transparent;
+            user-select: none;
         }
         .genres-box label:hover {
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.07);
+            color: #fff;
+            transform: translateY(-1px);
         }
         .genres-box label input[type="checkbox"] {
             accent-color: var(--neon-blue);
-            width: 13px;
-            height: 13px;
+            width: 14px;
+            height: 14px;
             cursor: pointer;
+            filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.2));
         }
         .genres-box label:has(input:checked) {
-            background: rgba(0, 240, 255, 0.08);
+            background: rgba(0, 240, 255, 0.1);
             color: #fff;
-            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-color: rgba(0, 240, 255, 0.25);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
+            transform: translateY(-1px);
+        }
+        .genres-box label:has(input:checked)::before {
+            content: '✦ ';
+            color: var(--neon-gold);
+            font-size: 0.6rem;
         }
 
+        /* Scrollbar personalizada para géneros */
+        .genres-box::-webkit-scrollbar { width: 3px; }
+        .genres-box::-webkit-scrollbar-track { background: transparent; }
+        .genres-box::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
         /* ============================================
-           SEASONS
+           SEASONS (CORREGIDO - FONDO OSCURO CON TEXTO LEGIBLE)
            ============================================ */
         #seasonsContainer {
             display: flex;
@@ -782,8 +803,8 @@
             margin-top: 10px;
         }
         .season-card {
-            background: rgba(19, 20, 25, 0.8);
-            border: 1px solid rgba(255,255,255,0.04);
+            background: rgba(19, 20, 28, 0.95);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: var(--radius-lg);
             padding: 18px;
             transition: 0.3s;
@@ -791,7 +812,7 @@
             overflow: hidden;
         }
         .season-card:hover {
-            border-color: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.1);
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .season-card .card-controls {
@@ -802,8 +823,8 @@
             flex-wrap: wrap;
         }
         .season-card .card-controls .btn-move {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.06);
             color: var(--text-secondary);
             padding: 4px 10px;
             border-radius: 4px;
@@ -839,21 +860,41 @@
             flex: 1;
             min-width: 120px;
         }
+        /* Corregido: inputs dentro de season-card con fondo más oscuro y texto visible */
+        .season-card input,
+        .season-card select {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            color: #fff !important;
+        }
+        .season-card input:focus,
+        .season-card select:focus {
+            border-color: var(--neon-blue) !important;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
+        }
+        .season-card label {
+            color: var(--text-secondary) !important;
+            font-size: 0.7rem !important;
+            font-weight: 600 !important;
+            margin-top: 8px !important;
+            margin-bottom: 3px !important;
+        }
         .season-card .chapters-grid {
             margin-top: 10px;
             border-top: 1px solid rgba(255,255,255,0.04);
             padding-top: 10px;
         }
         .chapter-row {
-            background: rgba(255,255,255,0.02);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: var(--radius-sm);
             padding: 10px 12px;
             margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
             transition: 0.15s;
         }
         .chapter-row:hover {
-            background: rgba(255,255,255,0.04);
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255,255,255,0.06);
         }
         .chapter-row .chapter-header {
             display: flex;
@@ -874,25 +915,25 @@
         }
         .chapter-row .part-input-group input {
             flex: 1;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
             padding: 5px 10px;
             border-radius: 4px;
-            color: #fff;
+            color: #fff !important;
             font-size: 0.78rem;
             font-family: 'Outfit', sans-serif;
         }
         .chapter-row .part-input-group input:focus {
-            border-color: var(--neon-blue);
+            border-color: var(--neon-blue) !important;
             outline: none;
         }
         .chapter-row .c-title-ov {
             width: 100%;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
             padding: 5px 10px;
             border-radius: 4px;
-            color: #aaa;
+            color: #ccc !important;
             font-size: 0.78rem;
             font-family: 'Outfit', sans-serif;
             margin-top: 4px;
@@ -900,6 +941,10 @@
         .chapter-row .c-title-ov:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+        }
+        .chapter-row .c-title-ov:focus {
+            border-color: var(--neon-blue) !important;
+            outline: none;
         }
         .btn-mini-del {
             background: transparent;
@@ -927,6 +972,17 @@
         }
         .dynamic-item input {
             flex: 1;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+        }
+        .dynamic-item input:focus {
+            border-color: var(--neon-blue);
+            outline: none;
         }
         .audio-preview-box {
             flex: 1;
@@ -1199,12 +1255,13 @@
             .chapter-row .part-input-group { flex-wrap: wrap; }
             .chapter-row .part-input-group input { min-width: 80px; }
             .preview-sidebar .web-card .web-cover { aspect-ratio: 16/9; }
+            .genres-box { padding: 12px; gap: 6px; }
+            .genres-box label { font-size: 0.65rem; padding: 4px 10px 4px 8px; }
         }
         @media (max-width: 480px) {
             .editor-panel { padding: 12px; }
             .loader-title { font-size: 1.2rem; letter-spacing: 4px; }
             .login-card h1 { font-size: 1.2rem; }
-            .genres-box label { font-size: 0.65rem; }
             .preview-seasons-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
@@ -1271,7 +1328,7 @@
     </div>
 </div>
 
-<!-- ===== HEADER ===== -->
+<!-- ===== HEADER (SIN BOTÓN CARGAR) ===== -->
 <div id="userHeader">
     <div class="header-profile" onclick="openProfileEditor()" title="Editar perfil">
         <img id="userAvatarImg" src="">
@@ -1282,16 +1339,13 @@
         <i class="fas fa-pen" style="font-size:0.6em; color:var(--text-muted); margin-left:4px;"></i>
     </div>
     <div class="header-actions">
-        <button class="header-btn header-btn-primary" onclick="openSearchModal()">
-            <i class="fas fa-folder-open"></i> <span>Cargar</span>
-        </button>
         <button class="header-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
+            <i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
         </button>
     </div>
 </div>
 
-<!-- ===== SEARCH MODAL ===== -->
+<!-- ===== SEARCH MODAL (ACCESIBLE DESDE EL BOTÓN "CARGAR" EN EL HEADER) ===== -->
 <div id="searchModal" onclick="handleModalClick(event)">
     <div class="search-box">
         <div class="search-header">
