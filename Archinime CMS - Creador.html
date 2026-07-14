@@ -83,10 +83,678 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
+
+        /* Estilos para el CMS - Mejora visual */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+        .editor-panel {
+            background: rgba(11, 14, 20, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+        }
+        .editor-panel h2 {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 30px 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
+        }
+        .editor-panel h2:first-of-type {
+            margin-top: 0;
+        }
+        .editor-panel label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
+        .editor-panel label span {
+            color: #ff4757;
+        }
+        .editor-panel input[type="text"],
+        .editor-panel input[type="number"],
+        .editor-panel textarea,
+        .editor-panel select {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+        .editor-panel input:focus,
+        .editor-panel textarea:focus,
+        .editor-panel select:focus {
+            border-color: #00f0ff;
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
+        }
+        .editor-panel textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .editor-panel select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b8d96'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+        .btn-add {
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed rgba(255,255,255,0.15);
+            color: var(--text-secondary);
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+        }
+        .btn-add:hover {
+            background: rgba(0, 240, 255, 0.05);
+            border-color: #00f0ff;
+            color: #fff;
+        }
+        .btn-gen {
+            background: linear-gradient(135deg, #00f0ff, #b114ff);
+            color: #fff;
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            margin-top: 30px;
+        }
+        .btn-gen:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+        }
+        .btn-gen:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .row-flex {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .col-flex {
+            flex: 1;
+            min-width: 150px;
+        }
+        .genres-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .genres-box label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.04);
+            padding: 4px 12px 4px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .genres-box label:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        .genres-box label input[type="checkbox"] {
+            accent-color: #00f0ff;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        .genres-box label:has(input:checked) {
+            background: rgba(0, 240, 255, 0.12);
+            color: #fff;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        /* Temporadas */
+        #seasonsContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .season-card {
+            background: linear-gradient(120deg, rgba(19, 20, 25, 0.95) 0%, rgba(19, 20, 25, 0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 18px;
+            transition: 0.2s;
+        }
+        .season-card:hover {
+            border-color: rgba(255,255,255,0.08);
+        }
+        .season-card .card-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .season-card .card-controls .btn-move {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        .season-card .card-controls .btn-move:hover {
+            background: rgba(0, 240, 255, 0.08);
+            color: #fff;
+        }
+        .season-card .card-controls .btn-del-section {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .season-card .card-controls .btn-del-section:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+        .season-card .row-flex {
+            margin-bottom: 10px;
+        }
+        .season-card .chapters-grid {
+            margin-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 12px;
+        }
+        .chapter-row {
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .chapter-row .chapter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .chapter-row .chapter-num {
+            font-weight: 700;
+            color: #00f0ff;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        .chapter-row .part-input-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .chapter-row .part-input-group input {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .chapter-row .part-input-group input:focus {
+            border-color: #00f0ff;
+            outline: none;
+        }
+        .chapter-row .c-title-ov {
+            width: 100%;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: #aaa;
+            font-size: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 6px;
+        }
+        .chapter-row .c-title-ov:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-mini-del {
+            background: transparent;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .btn-mini-del:hover {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        /* Alias y Música */
+        .dynamic-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .dynamic-item input {
+            flex: 1;
+        }
+        .audio-preview-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .audio-preview-box audio {
+            width: 100%;
+            height: 32px;
+            border-radius: 6px;
+        }
+        .audio-status-text {
+            font-size: 0.7rem;
+            min-height: 18px;
+        }
+
+        /* Vista Previa */
+        .preview-sidebar {
+            position: sticky;
+            top: 80px;
+            align-self: flex-start;
+        }
+        .web-card {
+            background: rgba(11, 14, 20, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .web-cover {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: #111;
+        }
+        .web-info {
+            padding: 16px;
+        }
+        .web-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .web-alias {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .web-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 12px 0;
+        }
+        .web-tags span {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.06);
+            color: #aaa;
+        }
+        .preview-seasons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .preview-s-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .preview-s-item img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        .preview-s-count {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #00f0ff;
+            padding: 2px 6px;
+            text-align: center;
+        }
+        .preview-s-title {
+            font-size: 0.65rem;
+            color: #aaa;
+            padding: 2px 6px 6px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Edit Mode Bar */
+        #editModeBar {
+            display: none;
+            background: rgba(0, 240, 255, 0.06);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #00f0ff;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Login */
+        .login-card {
+            background: rgba(11, 14, 20, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+        }
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 16px;
+            border: 2px solid #00f0ff;
+        }
+        .login-btn {
+            background: linear-gradient(135deg, #00f0ff, #b114ff);
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.25s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+        }
+
+        /* User Header */
+        .user-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: rgba(11, 14, 20, 0.95);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.05);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #00f0ff;
+            background: rgba(0, 240, 255, 0.1);
+            padding: 1px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .user-name {
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        /* Search Modal */
+        #searchModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 20000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .search-box {
+            background: #131419;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .search-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .search-tabs .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+        .search-tabs .tab-btn.active {
+            color: #00f0ff;
+            border-bottom: 2px solid #00f0ff;
+        }
+        .search-tabs .tab-btn:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .s-result-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .s-result-item:hover {
+            background: rgba(0, 240, 255, 0.04);
+        }
+        .s-result-img {
+            width: 44px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #111;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #131419;
+            border: 1px solid #00f0ff;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: none;
+        }
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #statusLog {
+            display: none;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #aaa;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        #statusLog b {
+            color: #00f0ff;
+        }
+
+        #loginScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #0a0a0f, #05070a);
+            padding: 20px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 10px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                padding: 0 12px;
+                gap: 16px;
+            }
+            .editor-panel {
+                padding: 16px;
+            }
+            .preview-sidebar {
+                position: static;
+            }
+            .season-card {
+                padding: 12px;
+            }
+            .row-flex {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .col-flex {
+                min-width: auto;
+            }
+            .genres-box {
+                max-height: 180px;
+            }
+            .user-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .login-card {
+                padding: 24px;
+                margin: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            .editor-panel {
+                padding: 12px;
+            }
+            .web-card .web-cover {
+                aspect-ratio: 16/9;
+            }
+            .preview-seasons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- ===== LOGIN ===== -->
 <div id="loginScreen">
     <div class="login-card">
         <img src="Logo_Archinime.avif" alt="Archinime Logo" class="login-logo">
@@ -103,6 +771,7 @@
     </div>
 </div>
 
+<!-- ===== PERFIL ===== -->
 <div id="profileSetupModal">
     <div class="profile-card">
         <img id="setupAvatarPreview" src="Logo_Archinime.avif" class="profile-preview-img">
@@ -133,8 +802,8 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 40px;">
-            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveUserProfile()" style="margin-top: 0; flex: 1;">
-                 GUARDAR PERFIL
+            <button class="btn btn-gen" id="btnSaveProfile" onclick="saveUserProfile()" style="margin-top: 0; flex: 1; background: linear-gradient(135deg, #00f0ff, #b114ff);">
+                GUARDAR PERFIL
             </button>
             <button class="btn" id="btnCancelProfile" onclick="closeProfileModal()" style="margin-top: 0; background: transparent; border: 1px solid #333; color: #aaa; width: auto; display: none;">
                 <i class="fas fa-times"></i>
@@ -144,9 +813,10 @@
     </div>
 </div>
 
+<!-- ===== HEADER ===== -->
 <div id="userHeader" class="user-header">
     <div class="header-profile" onclick="openProfileEditor()" style="cursor: pointer;" title="Clic para editar perfil">
-        <img id="userAvatarImg" src="" style="width:36px; height:36px; border-radius:50%; border:2px solid var(--primary);">
+        <img id="userAvatarImg" src="" style="width:36px; height:36px; border-radius:50%; border:2px solid #00f0ff;">
         <div>
             <div class="user-badge">Verificado</div>
             <div id="userNameDisplay" class="user-name">Usuario</div>
@@ -154,15 +824,16 @@
         <i class="fas fa-pen" style="font-size:0.7em; color:#555; margin-left:5px;"></i>
     </div>
     <div style="display:flex; gap:10px;">
-        <button onclick="openSearchModal()" style="background:var(--primary); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:0.8em;">
+        <button onclick="openSearchModal()" style="background:#00f0ff; color:#000; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:0.8em;">
             <i class="fas fa-folder-open"></i> CARGAR / EDITAR
         </button>
-        <button onclick="logout()" style="background:transparent; color:#fff; border:1px solid #333; padding:8px 12px; border-radius:8px; cursor:pointer;">
+        <button onclick="logout()" style="background:transparent; color:#fff; border:1px solid #333; padding:8px 14px; border-radius:8px; cursor:pointer;">
             <i class="fas fa-power-off"></i>
         </button>
     </div>
 </div>
 
+<!-- ===== SEARCH MODAL ===== -->
 <div id="searchModal" onclick="handleModalClick(event)">
     <div class="search-box">
         <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
@@ -175,28 +846,31 @@
                 <i class="fas fa-user-tag"></i> Mis Animes
             </button>
             <button class="tab-btn" id="tabGeneral" onclick="switchSearchTab('general')">
-                 <i class="fas fa-globe"></i> General
+                <i class="fas fa-globe"></i> General
             </button>
         </div>
 
         <div style="padding:10px;">
-            <input type="text" id="searchInput" placeholder="Buscar por nombre..." style="margin:0;" oninput="filterSearch()">
-            <div id="loadingSearch" style="color:var(--accent); text-align:center; padding:10px; display:none;">Cargando índice...</div>
+            <input type="text" id="searchInput" placeholder="Buscar por nombre..." style="margin:0; width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); padding:10px 14px; border-radius:8px; color:#fff; font-family:'Outfit',sans-serif;" oninput="filterSearch()">
+            <div id="loadingSearch" style="color:#00f0ff; text-align:center; padding:10px; display:none;">Cargando índice...</div>
         </div>
         <div id="searchResults" class="search-results"></div>
     </div>
 </div>
 
+<!-- ===== CMS CONTENT ===== -->
 <div class="main-wrapper" id="cmsContent">
     
     <div class="editor-panel">
         
+        <!-- Edit Mode Bar -->
         <div id="editModeBar">
             <i class="fas fa-edit"></i> MODO EDICIÓN ACTIVADO (ID: <span id="editIdDisplay">0</span>)
             <div style="font-size:0.8em; font-weight:normal; margin-top:5px;">Los cambios sobrescribirán el anime existente.</div>
             <button onclick="exitEditMode()" style="background:rgba(0,0,0,0.3); border:1px solid #fff; color:#fff; padding:4px 10px; border-radius:4px; margin-top:5px; cursor:pointer;">Cancelar Edición</button>
         </div>
 
+        <!-- ===== SECCIÓN 1: FICHA TÉCNICA ===== -->
         <h2><i class="fas fa-pen-to-square"></i> 1. Ficha Técnica</h2>
         
         <label>Título Principal <span>*</span></label>
@@ -209,80 +883,9 @@
         </button>
 
         <label style="margin-top:25px">URL Portada Vertical (.AVIF) <span>*</span></label>
-        <div style="margin-bottom:5px; font-size:0.8em; color:var(--accent);">
+        <div style="margin-bottom:5px; font-size:0.8em; color:#00f0ff;">
             Permitido: 1000x1500, 1400x2100, 2000x3000, 2090x3135, 3412x5120
         </div>
         <div style="display:flex; gap:15px; align-items: flex-start; flex-wrap: wrap;">
             <div style="flex:1; min-width: 200px;">
-                <input type="text" id="portadaAnime" placeholder="https://..." oninput="checkCoverVisual(this); requestPreviewUpdate()" onblur="validate(this); smartLinkConvert(this)">
-                <div id="dimDisplay" style="color:var(--text-muted); font-size:0.8em; margin-top:8px; font-family:'JetBrains Mono'"></div>
-            </div>
-            <img id="mainCoverPreview" style="width:100px; height:140px; border-radius:10px; background:#111; object-fit:cover; display:none; border:1px solid var(--accent)">
-        </div>
-        
-        <label>Géneros (Selecciona varios) <span>*</span></label>
-        <div class="genres-box" id="genresContainer"></div>
-
-        <label>Sinopsis <span>*</span></label>
-        <textarea id="sinopsisAnime" rows="5" placeholder="Sinopsis oficial..." onblur="autoCap(this); validate(this)" oninput="requestPreviewUpdate()"></textarea>
-        
-        <div class="row-flex">
-            <div class="col-flex">
-                <label>Demografía <span>*</span></label>
-                <select id="demografiaAnime" onchange="requestPreviewUpdate()">
-                    <option value="" disabled selected>Elegir Demografía...</option>
-                    <option value="Shōnen">Shōnen</option>
-                    <option value="Seinen">Seinen</option>
-                    <option value="Shōjo">Shōjo</option>
-                    <option value="Josei">Josei</option>
-                    <option value="Kodomo">Kodomo</option>
-                    <option value="Seijin">Seijin</option>
-                </select>
-            </div>
-        </div>
-
-        <h2 style="margin-top:50px"><i class="fas fa-layer-group"></i> 2. Estructura</h2>
-        <div id="seasonsContainer"></div>
-        <button class="btn btn-add" onclick="addSeason()"><i class="fas fa-folder-plus"></i> NUEVA TEMPORADA / PELÍCULA</button>
-
-        <h2 style="margin-top:50px"><i class="fas fa-music"></i> 3. Banda Sonora</h2>
-        <div id="musicContainer"></div>
-        <button class="btn btn-add" style="border-color:var(--primary); color:var(--primary)" onclick="addMusic()"><i class="fas fa-music"></i> AGREGAR AUDIO</button>
-
-        <button class="btn btn-gen" id="btnSaveAction" onclick="subirAGithHub()">
-            <i class="fas fa-cloud-arrow-up"></i> <span id="btnActionText">COMPILAR Y SUBIR</span>
-        </button>
-        
-        <div id="statusLog"></div>
-    </div>
-
-    <div class="preview-sidebar">
-        <h3 style="color:var(--text-muted); font-size:0.8em; margin-bottom:15px; letter-spacing:2px; text-transform:uppercase; font-weight:700;">Vista Previa App</h3>
-        <div class="web-card">
-            <img id="webCover" class="web-cover" src="https://via.placeholder.com/400x600/111/333?text=Cover">
-            <div class="web-info">
-                <div id="webTitle" class="web-title">Título</div>
-                <div id="webAlias" class="web-alias">
-                    <div>ID: <span id="previewId">###</span></div>
-                    <div id="previewAliasesList" style="margin-top:4px; font-style: italic; color:#777;"></div>
-                </div>
-                
-                <div style="display:flex; justify-content:space-between; margin-top:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <span id="webDemography" style="color:var(--accent); font-weight:700; font-size:0.8em">DEMO</span>
-                    <span id="webAiringBadge" style="display:none; background:#ffaa00; color:#000; font-weight:700; font-size:0.65em; padding:2px 10px; border-radius:20px;">🔴 EN EMISIÓN</span>
-                </div>
-                <div id="webTags" style="display:flex; flex-wrap:wrap; gap:6px; margin:15px 0;"></div>
-                
-                <div style="font-size:0.7em; font-weight:bold; color:#777; margin-top:20px; letter-spacing:1px;">COLECCIÓN:</div>
-                <div id="webSeasonsGrid" class="preview-seasons-grid"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="toast"><i class="fas fa-check-circle"></i> <span>Notificación</span></div>
-
-<script src="script.js"></script>
-
-</body>
-</html>
+                <input type="text

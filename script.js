@@ -569,7 +569,7 @@ function updateAudioPreview(input) {
 const colorPalette = ['#00f0ff', '#8c52ff', '#ff0055', '#00ff9d', '#ffeb3b', '#ff9100', '#2979ff', '#e040fb'];
 
 // ============================================================
-// FUNCIÓN addSeason MODIFICADA: se quitó el disabled del nombre
+// FUNCIÓN addSeason MODIFICADA: Se agregó "ONA" y se permite múltiples capítulos en Película
 // ============================================================
 function addSeason(data = null) {
     const container = document.getElementById('seasonsContainer');
@@ -593,6 +593,7 @@ function addSeason(data = null) {
                     <option value="Temporada">Temporada</option>
                     <option value="Pelicula">Película</option>
                     <option value="OVA">OVA</option>
+                    <option value="ONA">ONA</option>
                     <option value="Especial">Especial</option>
                     <option value="Spin-Off">Spin-Off</option>
                     <option value="Tráiler">Tráiler</option>
@@ -600,7 +601,6 @@ function addSeason(data = null) {
             </div>
             <div class="col-flex">
                  <label>Nombre Bloque</label>
-                 <!-- ELIMINADO EL ATRIBUTO disabled -->
                  <input type="text" class="s-name" placeholder="Nombre (opcional)" oninput="requestPreviewUpdate()">
             </div>
         </div>
@@ -629,6 +629,7 @@ function addSeason(data = null) {
             if(data.name.startsWith('Temporada')) selectedType = 'Temporada';
             else if(data.name.startsWith('Película')) selectedType = 'Pelicula';
             else if(data.name.startsWith('OVA')) selectedType = 'OVA';
+            else if(data.name.startsWith('ONA')) selectedType = 'ONA';
             else if(data.name.startsWith('Especial')) selectedType = 'Especial';
             else if(data.name.startsWith('Tráiler')) selectedType = 'Tráiler';
             else selectedType = 'Spin-Off';
@@ -655,17 +656,12 @@ function addSeason(data = null) {
     checkAutoState();
 }
 
-// ---- handleSeasonTypeChange (sin cambios) ----
+// ---- handleSeasonTypeChange (modificado: Película ya no deshabilita el contador) ----
 function handleSeasonTypeChange(select) {
     const card = select.closest('.season-card');
     const countInput = card.querySelector('.s-count');
-    const type = select.value;
-    if (type === 'Pelicula') {
-        countInput.value = 1;
-        countInput.disabled = true;
-    } else {
-        countInput.disabled = false;
-    }
+    // Ya no deshabilitamos el contador para Película
+    countInput.disabled = false;
     updateAllBlockNames();
     if(countInput.value) renderChapters(countInput);
     checkAutoState();
@@ -717,30 +713,30 @@ function removeSeasonBlock(btn) {
 }
 
 // ============================================================
-// FUNCIÓN updateAllBlockNames MODIFICADA: ya no deshabilita
+// FUNCIÓN updateAllBlockNames (agregado soporte para ONA)
 // ============================================================
 function updateAllBlockNames() {
     const cards = document.querySelectorAll('.season-card');
-    let tempCount = 0, movieCount = 0, ovaCount = 0, specialCount = 0, spinOffCount = 0, trailerCount = 0;
+    let tempCount = 0, movieCount = 0, ovaCount = 0, onaCount = 0, specialCount = 0, spinOffCount = 0, trailerCount = 0;
     cards.forEach(card => {
         const typeSelect = card.querySelector('.s-type');
         const nameInput = card.querySelector('.s-name');
         const type = typeSelect.value;
         if (!type) return;
 
-        // Si el campo está vacío, asignar nombre automático según el tipo
         if (nameInput.value.trim() === "") {
             if (type === 'Temporada') { tempCount++; nameInput.value = `Temporada ${tempCount}`; }
             else if (type === 'Pelicula') { movieCount++; nameInput.value = `Película ${movieCount}`; }
             else if (type === 'OVA') { ovaCount++; nameInput.value = `OVA ${ovaCount}`; }
+            else if (type === 'ONA') { onaCount++; nameInput.value = `ONA ${onaCount}`; }
             else if (type === 'Especial') { specialCount++; nameInput.value = `Especial ${specialCount}`; }
             else if (type === 'Spin-Off') { spinOffCount++; nameInput.value = `Spin-Off ${spinOffCount}`; }
             else if (type === 'Tráiler') { trailerCount++; nameInput.value = `Tráiler ${trailerCount}`; }
         } else {
-            // Si ya tiene nombre, solo incrementamos contadores para no perder la numeración
             if (type === 'Temporada') tempCount++;
             else if (type === 'Pelicula') movieCount++;
             else if (type === 'OVA') ovaCount++;
+            else if (type === 'ONA') onaCount++;
             else if (type === 'Especial') specialCount++;
             else if (type === 'Spin-Off') spinOffCount++;
             else if (type === 'Tráiler') trailerCount++;
@@ -962,7 +958,10 @@ function updateWebPreview() {
                 const div = document.createElement('div');
                 div.className = 'preview-s-item';
                 let label = '';
-                if (['Temporada', 'Spin-Off', 'Tráiler'].includes(type)) {
+                // Para Película, mostramos "Película" aunque tenga varios capítulos internos
+                if (type === 'Pelicula') {
+                    label = `Película`;
+                } else if (['Temporada', 'Spin-Off', 'Tráiler'].includes(type)) {
                     label = `${count} Caps`;
                 } else {
                     label = (count > 1 ? `${count} ${type}s` : `${count} ${type}`);
@@ -1195,7 +1194,7 @@ function exitEditMode() {
 }
 
 // ============================================
-// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES, TRÁILER, isAiring)
+// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES, TRÁILER, isAiring, ONA)
 // ============================================
 function generateData() {
     const selectedGenres = [];
@@ -1238,7 +1237,7 @@ function generateData() {
         isAiring: isAiring
     };
     document.querySelectorAll('#musicContainer .m-url').forEach(i => { if(i.value) anime.musica.push(i.value.trim()); });
-    let globalOrder = 1, seasonCountVP = 0, ovaCountVP = 0, movieCountVP = 0, specialCountVP = 0, spinOffCount = 0, trailerCount = 0;
+    let globalOrder = 1, seasonCountVP = 0, ovaCountVP = 0, onaCountVP = 0, movieCountVP = 0, specialCountVP = 0, spinOffCount = 0, trailerCount = 0;
     document.querySelectorAll('.season-card').forEach(card => {
         const eps = [];
         const sName = card.querySelector('.s-name').value;
@@ -1247,6 +1246,7 @@ function generateData() {
         const startNum = startSel ? parseInt(startSel.value) : 1;
         if(sType === 'Temporada') seasonCountVP++;
         if(sType === 'OVA') ovaCountVP++;
+        if(sType === 'ONA') onaCountVP++;
         if(sType === 'Pelicula') movieCountVP++;
         if(sType === 'Especial') specialCountVP++;
         if(sType === 'Spin-Off') spinOffCount++;
@@ -1276,6 +1276,9 @@ function generateData() {
                 detailTitle = customTitleInput || `Tráiler ${trailerCount} - ${currentEpNum}`;
                 playerTitle = `${anime.titulo} ${sName} ${detailTitle}`;
             } else if (sType === 'OVA') {
+                detailTitle = customTitleInput || sName;
+                playerTitle = `${anime.titulo} ${sName}`;
+            } else if (sType === 'ONA') {
                 detailTitle = customTitleInput || sName;
                 playerTitle = `${anime.titulo} ${sName}`;
             } else if (sType === 'Pelicula') {
