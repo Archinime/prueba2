@@ -1,8 +1,6 @@
-// video-player-core.js - Versión con catálogo local + Firestore
-// MEJORADO: Descarga única (bloqueo de botón), barra de progreso única
-// SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
-// NUEVO: Extracción de enlace directo de Doodstream (sin iframe)
-// ACTUALIZADO: Prioriza Doodstream y usa video nativo cuando es posible
+// video-player-core.js - Versión simplificada y estable
+// Para Doodstream: usa iframe con URL original /e/
+// Para otros: usa video directo o iframe según extensión
 
 class VideoPlayer {
   constructor() {
@@ -19,7 +17,6 @@ class VideoPlayer {
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
-    this.currentPartIndex = 0;
     this.activeOption = 'latino';
     this.currentVideoElement = null;
     this.isDownloading = false;
@@ -55,14 +52,12 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ---------- CONVERSIÓN DE ENLACES ----------
+  // ---------- CONVERSIÓN DE ENLACES (para descarga) ----------
   generateDirectLink(url) {
     if (!url) return "#";
-    
     if (this.isDoomStreamUrl(url)) {
       return url.replace(/\/e\//, '/d/');
     }
-
     if (url.includes("drive.google.com")) {
       const match = url.match(/\/d\/(.+?)\//);
       if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
@@ -86,7 +81,7 @@ class VideoPlayer {
     return url;
   }
 
-  // ---------- CONTROL DEL LOGO (ARCHINIME HD) ----------
+  // ---------- CONTROL DEL LOGO ----------
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
@@ -97,7 +92,7 @@ class VideoPlayer {
     }
   }
 
-  // ---------- REPRODUCIR EPISODIO (VERSIÓN MEJORADA CON EXTRACCIÓN) ----------
+  // ---------- REPRODUCIR EPISODIO (VERSIÓN SIMPLIFICADA) ----------
   async playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -108,81 +103,85 @@ class VideoPlayer {
     
     const isDood = this.isDoomStreamUrl(url);
     
-    // --- SI ES DOODSTREAM, INTENTAR EXTRAER ENLACE DIRECTO ---
     if (isDood) {
-      try {
-        container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#aaa; font-size:1.2rem; background:#000;">
-          <i class="fas fa-spinner fa-spin" style="margin-right:12px;"></i> Extrayendo enlace directo...
-        </div>`;
-        
-        const directUrl = await window.extractDoodstreamUrl(url);
-        
-        if (directUrl) {
-          console.log('🎬 Enlace directo obtenido:', directUrl);
-          const video = document.createElement('video');
-          video.src = directUrl;
-          video.controls = true;
-          video.style.width = '100%';
-          video.style.height = '100%';
-          video.style.background = '#000';
-          container.innerHTML = '';
-          container.appendChild(video);
-          this.currentVideoElement = video;
-          this.updateLogoBlocker(directUrl);
-          
-          const onEnded = () => {
-            if (partIndex + 1 < urlsArray.length) {
-              this.playPart(partIndex + 1, urlsArray);
-            } else {
-              console.log('Episodio completado');
-            }
-          };
-          video.addEventListener('ended', onEnded, { once: true });
-          return;
-        }
-      } catch (e) {
-        console.warn('⚠️ Falló la extracción, usando iframe:', e);
-      }
-    }
-    
-    // --- FALLBACK: IFRAME NORMAL ---
-    const finalUrl = isDood ? url : this.generateDirectLink(url);
-    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(finalUrl) && !isDood;
-    
-    if (isVideoFile) {
-      const video = document.createElement('video');
-      video.src = finalUrl;
-      video.controls = true;
-      video.style.width = '100%';
-      video.style.height = '100%';
-      container.appendChild(video);
-      this.currentVideoElement = video;
-      this.updateLogoBlocker(finalUrl);
-      
-      const onEnded = () => {
-        if (partIndex + 1 < urlsArray.length) {
-          this.playPart(partIndex + 1, urlsArray);
-        } else {
-          console.log('Episodio completado');
-        }
-      };
-      video.addEventListener('ended', onEnded, { once: true });
-    } else {
+      // --- DOODSTREAM: USAR IFRAME CON URL ORIGINAL /e/ ---
+      console.log('🎬 Cargando Doodstream en iframe:', url);
       const iframe = document.createElement('iframe');
-      iframe.src = finalUrl;
+      iframe.src = url; // URL original
       iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
       iframe.allowFullscreen = true;
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       iframe.style.border = 'none';
       iframe.style.background = '#000';
+      iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       container.appendChild(iframe);
       this.currentVideoElement = null;
-      this.updateLogoBlocker(finalUrl);
+      this.updateLogoBlocker(url);
+      
+      // Reintentar carga si falla (3 intentos)
+      let attempts = 0;
+      const maxAttempts = 3;
+      const reloadIframe = () => {
+        if (attempts < maxAttempts) {
+          attempts++;
+          console.log(`🔄 Reintentando cargar iframe (${attempts}/${maxAttempts})...`);
+          iframe.src = iframe.src; // recarga
+          setTimeout(reloadIframe, 3000);
+        }
+      };
+      iframe.addEventListener('load', () => {
+        console.log('✅ Iframe Doodstream cargado');
+        // Después de 5 segundos, si no hay contenido, reintentar
+        setTimeout(reloadIframe, 5000);
+      });
+      iframe.addEventListener('error', () => {
+        console.warn('⚠️ Error en iframe, reintentando...');
+        reloadIframe();
+      });
+      // Iniciar primer reintento después de 2 segundos
+      setTimeout(reloadIframe, 2000);
+      
+    } else {
+      // --- OTROS ENLACES (Google Drive, Catbox, etc.) ---
+      const finalUrl = this.generateDirectLink(url);
+      const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(finalUrl);
+      
+      if (isVideoFile) {
+        const video = document.createElement('video');
+        video.src = finalUrl;
+        video.controls = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        container.appendChild(video);
+        this.currentVideoElement = video;
+        this.updateLogoBlocker(finalUrl);
+        
+        const onEnded = () => {
+          if (partIndex + 1 < urlsArray.length) {
+            this.playPart(partIndex + 1, urlsArray);
+          } else {
+            console.log('Episodio completado');
+          }
+        };
+        video.addEventListener('ended', onEnded, { once: true });
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = finalUrl;
+        iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.background = '#000';
+        container.appendChild(iframe);
+        this.currentVideoElement = null;
+        this.updateLogoBlocker(finalUrl);
+      }
     }
   }
 
-  // ========== DESCARGA (sin alert, directa para DoomStream) ==========
+  // ========== DESCARGA (sin cambios) ==========
   async forceDownload(url, suggestedFilename = 'video.mp4') {
     this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
@@ -496,7 +495,6 @@ class VideoPlayer {
     return `${animeTitle} - ${seasonName} - ${episodeTitle}`;
   }
 
-  // ========== FUNCIÓN PRINCIPAL DE CARGA DE EPISODIO (prioriza Doodstream) ==========
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
@@ -526,7 +524,7 @@ class VideoPlayer {
       const latinoUrls = this.normalizeUrls(episodeData.link);
       const subUrls = this.normalizeUrls(episodeData.link2);
       
-      // Filtrar y priorizar Doodstream
+      // Priorizar Doodstream
       const isDoodstream = (url) => /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
       const doodLatino = latinoUrls.filter(isDoodstream);
       const doodSub = subUrls.filter(isDoodstream);
@@ -611,7 +609,6 @@ class VideoPlayer {
     }
   }
 
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
