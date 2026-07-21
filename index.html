@@ -3473,73 +3473,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ============================================
-  // FUNCIÓN buildContentDetails ACTUALIZADA (ONA + Película)
-  // ============================================
-  function buildContentDetails(anime) {
-    if (!anime.seasons || anime.seasons.length === 0) {
-      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
-    }
-    // Tipos que se suman por cantidad de episodios (OVA, ONA, Especial, Tráiler)
-    const sumTypes = ['OVA', 'ONA', 'Especial', 'Tráiler'];
-    // Tipos que siempre se muestran como una sola unidad (Película, Temporada, Spin-Off)
-    const unitTypes = ['Pelicula', 'Temporada', 'Spin-Off'];
-    
-    const typeLabels = {
-      'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
-      'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
-      'ONA': { icon: 'fa-wifi', label: 'ONA(s)' },
-      'Spin-Off': { icon: 'fa-code-branch', label: 'Spin-Off(s)' },
-      'Pelicula': { icon: 'fa-film', label: 'Película(s)' },
-      'Especial': { icon: 'fa-star', label: 'Especial(es)' },
-      'Tráiler': { icon: 'fa-video', label: 'Tráiler(es)' }
-    };
-    const typeCounts = {};
-    let totalEpisodios = 0;
-    
-    anime.seasons.forEach(season => {
-      const type = season.type || 'Temporada';
-      const epsCount = season.eps ? season.eps.length : 0;
-      
-      if (sumTypes.includes(type)) {
-        // Para OVA, ONA, Especial, Tráiler: sumamos los episodios
-        typeCounts[type] = (typeCounts[type] || 0) + epsCount;
-      } else if (unitTypes.includes(type)) {
-        // Para Película, Temporada, Spin-Off: contamos como 1 unidad
-        typeCounts[type] = (typeCounts[type] || 0) + 1;
-      } else {
-        // Fallback: contar como 1
-        typeCounts[type] = (typeCounts[type] || 0) + 1;
-      }
-      totalEpisodios += epsCount;
-    });
-    
-    let hasItems = false;
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
-    for (const [type, count] of Object.entries(typeCounts)) {
-      const config = typeLabels[type];
-      if (config && count > 0) {
-        hasItems = true;
-        let label = config.label;
-        // Si es Película y tiene más de 1, mostramos "Película(s)"
-        if (type === 'Pelicula' && count > 1) {
-          label = 'Película(s)';
-        }
-        html += `<span class="content-chip"><i class="fas ${config.icon}"></i> ${count} ${label}</span>`;
-      }
-    }
-    // Mostramos el total de episodios solo si hay episodios reales
-    if (totalEpisodios > 0) {
-      hasItems = true;
-      html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
-    }
-    html += '</div>';
-    if (!hasItems) {
-      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
-    }
-    return html;
-  }
-
   function renderAnimes(animes, append = false) {
     if (!append) grid.innerHTML = '';
     if (!animes.length) { mostrarNoResultados(); paginationContainer.innerHTML = ''; return; }
@@ -3948,8 +3881,51 @@
   window.addEventListener('DOMContentLoaded', startVisualMedia);
 
   // ===== FUNCIONES DE DETALLE Y EVENTOS =====
-  // buildContentDetails ya está definido arriba (versión actualizada)
-  
+  function buildContentDetails(anime) {
+    if (!anime.seasons || anime.seasons.length === 0) {
+      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
+    }
+    const sumTypes = ['OVA', 'Especial', 'Tráiler'];
+    const typeLabels = {
+      'Temporada': { icon: 'fa-tv', label: 'Temporada(s)' },
+      'OVA': { icon: 'fa-compact-disc', label: 'OVA(s)' },
+      'Spin-Off': { icon: 'fa-code-branch', label: 'Spin-Off(s)' },
+      'Pelicula': { icon: 'fa-film', label: 'Película(s)' },
+      'Especial': { icon: 'fa-star', label: 'Especial(es)' },
+      'Tráiler': { icon: 'fa-video', label: 'Tráiler(es)' }
+    };
+    const typeCounts = {};
+    let totalEpisodios = 0;
+    anime.seasons.forEach(season => {
+      const type = season.type || 'Temporada';
+      const epsCount = season.eps ? season.eps.length : 0;
+      if (sumTypes.includes(type)) {
+        typeCounts[type] = (typeCounts[type] || 0) + epsCount;
+      } else {
+        typeCounts[type] = (typeCounts[type] || 0) + 1;
+      }
+      totalEpisodios += epsCount;
+    });
+    let hasItems = false;
+    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0;">';
+    for (const [type, count] of Object.entries(typeCounts)) {
+      const config = typeLabels[type];
+      if (config && count > 0) {
+        hasItems = true;
+        html += `<span class="content-chip"><i class="fas ${config.icon}"></i> ${count} ${config.label}</span>`;
+      }
+    }
+    if (totalEpisodios > 0) {
+      hasItems = true;
+      html += `<span class="content-chip"><i class="fas fa-list"></i> ${totalEpisodios} Episodio(s) Total</span>`;
+    }
+    html += '</div>';
+    if (!hasItems) {
+      return `<p style="color: var(--text-secondary); line-height: 1.6;">${anime.desc || 'Descripción no disponible.'}</p>`;
+    }
+    return html;
+  }
+
   function openDetail(id) {
     const anime = baseAnimes.find(a => a.id == id);
     if (!anime) { alert('Anime no encontrado'); return; }

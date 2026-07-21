@@ -1,6 +1,8 @@
 // video-player-core.js - Versión con catálogo local + Firestore
-// MEJORADO: Descarga única, barra de progreso, envío a chat global
+// MEJORADO: Descarga única (bloqueo de botón), barra de progreso única
 // SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
+// NUEVO: Conversión de enlaces DoomStream (/e/ -> /d/), ocultar logo en DoomStream, sin alert en fallos de descarga
+// ACTUALIZADO: Prioriza enlaces Doodstream sobre otros (Google Drive, Dropbox, etc.)
 
 class VideoPlayer {
   constructor() {
@@ -25,8 +27,6 @@ class VideoPlayer {
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
     window.comentariosEpisode = this.episode;
-    // Inicializar título por defecto (se actualizará al cargar el anime)
-    window.comentariosAnimeTitle = 'Anime';
     
     this.initFirebase();
     this.initUI();
@@ -49,289 +49,22 @@ class VideoPlayer {
     window.videoPlayer = window.videoPlayerMethods;
   }
   
-  async waitForCatalogAndLoad() {
-    if (typeof catalogoArray !== 'undefined') {
-      this.loadEpisodeData();
-      return;
-    }
-    console.log('⏳ Esperando catalogoArray...');
-    const checkInterval = setInterval(() => {
-      if (typeof catalogoArray !== 'undefined') {
-        clearInterval(checkInterval);
-        this.loadEpisodeData();
-      }
-    }, 50);
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      if (typeof catalogoArray === 'undefined') {
-        console.error('❌ No se cargó catalogoArray');
-        document.getElementById('epTitle').innerText = 'Error: Catálogo no disponible';
-      }
-    }, 5000);
-  }
-  
-  initFirebase() {
-    const firebaseConfig = {
-      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
-      authDomain: "login-admin-archinime.firebaseapp.com",
-      projectId: "login-admin-archinime",
-      storageBucket: "login-admin-archinime.firebasestorage.app",
-      messagingSenderId: "938164660242",
-      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    
-    this.auth = firebase.auth();
-    this.db = firebase.firestore();
-    
-    this.auth.onAuthStateChanged(user => {
-      if (window.ArchinimeState) {
-        window.ArchinimeState.set('currentUser', user);
-      } else {
-        this.currentUser = user;
-      }
-      this.authReady = true;
-      this.updateCommentFormVisibility();
-      
-      if (typeof initComentariosSystem === 'function') {
-        initComentariosSystem(this.db, this.auth);
-      }
-      if (typeof initStickersSystem === 'function') {
-        initStickersSystem(this.db, this.auth);
-      }
-    });
-  }
-  
-  getCurrentUser() {
-    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
-    return this.currentUser;
-  }
-  
-  async migrateLocalToFirestore(userId) {
-    if (!userId) return;
-    const watchedKeys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('watched_')) watchedKeys.push(key);
-    }
-    if (watchedKeys.length === 0) return;
-    
-    console.log(`🔄 Migrando ${watchedKeys.length} registros...`);
-    const historyRef = this.db.collection('watchHistory').doc(userId);
-    
-    for (const key of watchedKeys) {
-      const parts = key.split('_');
-      if (parts.length < 4) continue;
-      const animeId = parts[1];
-      const seasonNum = parseInt(parts[2]);
-      const episodeNum = parseInt(parts[3]);
-      if (isNaN(seasonNum) || isNaN(episodeNum)) continue;
-      
-      try {
-        const doc = await historyRef.get();
-        let data = doc.exists ? doc.data() : {};
-        if (!data[animeId]) data[animeId] = {};
-        if (!data[animeId][seasonNum]) data[animeId][seasonNum] = [];
-        if (!data[animeId][seasonNum].includes(episodeNum)) {
-          data[animeId][seasonNum].push(episodeNum);
-        }
-        await historyRef.set(data, { merge: true });
-        localStorage.removeItem(key);
-      } catch (e) { console.warn(e); }
-    }
-    console.log('✅ Migración completada');
-  }
-  
-  setupAuthMigration() {
-    this.auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        await this.migrateLocalToFirestore(user.uid);
-        if (this.pendingMarks.length > 0) {
-          for (const mark of this.pendingMarks) {
-            await this.saveToFirestore(mark.animeId, mark.season, mark.episode, user.uid);
-          }
-          this.pendingMarks = [];
-        }
-      }
-    });
-  }
-  
-  async saveToFirestore(animeId, seasonNum, episodeNum, userId) {
-    if (!userId) return false;
-    try {
-      const docRef = this.db.collection('watchHistory').doc(userId);
-      const doc = await docRef.get();
-      let data = doc.exists ? doc.data() : {};
-      if (!data[animeId]) data[animeId] = {};
-      if (!data[animeId][seasonNum]) data[animeId][seasonNum] = [];
-      if (!data[animeId][seasonNum].includes(episodeNum)) {
-        data[animeId][seasonNum].push(episodeNum);
-        await docRef.set(data, { merge: true });
-      }
-      return true;
-    } catch (e) { return false; }
-  }
-  
-  async autoMarkAsWatched() {
-    const aId = this.animeId;
-    const sNum = parseInt(this.season);
-    const eNum = parseInt(this.episode);
-    if (!aId || isNaN(sNum) || isNaN(eNum)) return;
-    
-    const user = this.getCurrentUser();
-    const localKey = `watched_${aId}_${sNum}_${eNum}`;
-    
-    if (user && user.uid) {
-      const success = await this.saveToFirestore(aId, sNum, eNum, user.uid);
-      if (success) {
-        localStorage.removeItem(localKey);
-        return;
-      }
-    }
-    
-    localStorage.setItem(localKey, 'true');
-    if (!user && !this.authReady) {
-      this.pendingMarks.push({ animeId: aId, season: sNum, episode: eNum });
-    }
-  }
-  
-  initUI() {
-    const backLink = document.getElementById('backLink');
-    if (backLink && this.animeId) backLink.href = `anime-detail.html?id=${this.animeId}`;
-    
-    const textarea = document.getElementById('comentarioTexto');
-    if (textarea) {
-      textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          this.enviarComentario();
-        }
-      });
-      textarea.addEventListener('input', () => this.validateSendButton());
-    }
-    
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
-      downloadBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.handleDownloadClick();
-      });
-    }
-    
-    document.querySelectorAll('.sticker-tab').forEach(tab => {
-      tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
-    });
-  }
-  
-  formatEpisodeTitle(season, epNum, episodeData) {
-    const animeTitle = this.animeData?.title || 'Anime';
-    const seasonName = season.name || `Temporada ${season.num}`;
-    const episodeTitle = episodeData.title || `Capítulo ${epNum}`;
-    return `${animeTitle} - ${seasonName} - ${episodeTitle}`;
-  }
-  
-  async loadEpisodeData() {
-    try {
-      const anime = catalogoArray.find(a => a.id == this.animeId);
-      if (!anime) {
-        document.getElementById('epTitle').innerText = 'Anime no encontrado';
-        return;
-      }
-      this.animeData = anime;
-      // 🔥 Establecer título para usar en comentarios → chat global
-      window.comentariosAnimeTitle = anime.title;
-
-      const seasons = this.animeData.seasons || [];
-      const season = seasons.find(s => s.num === parseInt(this.season));
-      if (!season) {
-        document.getElementById('epTitle').innerText = 'Temporada no encontrada';
-        return;
-      }
-      const epIndex = parseInt(this.episode) - 1;
-      const episodeData = season.eps?.[epIndex];
-      if (!episodeData) {
-        document.getElementById('epTitle').innerText = 'Episodio no encontrado';
-        return;
-      }
-      
-      this.currentEpisodeData = episodeData;
-      const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
-      document.title = `Ver ${formattedTitle} - Archinime`;
-      document.getElementById('epTitle').innerText = formattedTitle;
-      
-      const latinoUrls = this.normalizeUrls(episodeData.link);
-      const subUrls = this.normalizeUrls(episodeData.link2);
-      
-      let activeUrls;
-      let activeOptionLabel;
-      
-      if (latinoUrls.length > 0) {
-        activeUrls = latinoUrls;
-        activeOptionLabel = 'latino';
-      } else if (subUrls.length > 0) {
-        activeUrls = subUrls;
-        activeOptionLabel = 'sub';
-      } else {
-        document.getElementById('epTitle').innerText = 'No hay enlaces disponibles';
-        return;
-      }
-      
-      this.updateDownloadUrls(activeUrls);
-      this.activeOption = activeOptionLabel;
-      this.playPart(0, activeUrls);
-      
-      const serverContainer = document.getElementById('serverOptions');
-      serverContainer.innerHTML = '';
-      if (latinoUrls.length > 0) {
-        this.createServerButton('Latino', latinoUrls, activeOptionLabel === 'latino');
-      }
-      if (subUrls.length > 0) {
-        this.createServerButton('Opción 2', subUrls, activeOptionLabel === 'sub');
-      }
-      
-      this.setupNavigation();
-      await this.autoMarkAsWatched();
-    } catch (error) {
-      console.error(error);
-      document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
-    }
-  }
-  
-  normalizeUrls(urls) {
-    if (!urls) return [];
-    if (Array.isArray(urls)) return urls.filter(u => u && u.trim() !== '');
-    if (typeof urls === 'string' && urls.trim() !== '') return [urls];
-    return [];
-  }
-  
-  createServerButton(label, urls, isActive) {
-    const container = document.getElementById('serverOptions');
-    const btn = document.createElement('button');
-    btn.className = 'opt-btn' + (isActive ? ' active' : '');
-    btn.innerText = label;
-    btn.onclick = () => {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      this.activeOption = (label === 'Latino') ? 'latino' : 'sub';
-      this.updateDownloadUrls(urls);
-      this.playPart(0, urls);
-    };
-    container.appendChild(btn);
-  }
-  
-  updateDownloadUrls(urls) {
-    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
-    this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
-  }
-  
-  isPeerTubeUrl(url) {
+  // ---------- DETECCIÓN DE DOOMSTREAM ----------
+  isDoomStreamUrl(url) {
     if (!url) return false;
-    return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
+    // Detecta dominios comunes de DoomStream y la ruta /e/
+    return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
-  
+
+  // ---------- CONVERSIÓN DE ENLACES ----------
   generateDirectLink(url) {
     if (!url) return "#";
+    
+    // --- NUEVO: convertir DoomStream /e/ -> /d/ ---
+    if (this.isDoomStreamUrl(url)) {
+      return url.replace(/\/e\//, '/d/');
+    }
+
     if (url.includes("drive.google.com")) {
       const match = url.match(/\/d\/(.+?)\//);
       if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
@@ -354,7 +87,20 @@ class VideoPlayer {
     }
     return url;
   }
-  
+
+  // ---------- CONTROL DEL LOGO (ARCHINIME HD) ----------
+  updateLogoBlocker(url) {
+    const logo = document.querySelector('.logo-blocker');
+    if (!logo) return;
+    // Ocultar si es DoomStream, mostrar en cualquier otro caso
+    if (this.isDoomStreamUrl(url)) {
+      logo.style.display = 'none';
+    } else {
+      logo.style.display = 'flex';
+    }
+  }
+
+  // ---------- REPRODUCIR EPISODIO ----------
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -373,6 +119,9 @@ class VideoPlayer {
       container.appendChild(video);
       this.currentVideoElement = video;
       
+      // --- Actualizar logo (para videos directos no es DoomStream) ---
+      this.updateLogoBlocker(url);
+
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
           this.playPart(partIndex + 1, urlsArray);
@@ -390,41 +139,13 @@ class VideoPlayer {
       iframe.style.height = '100%';
       container.appendChild(iframe);
       this.currentVideoElement = null;
+      
+      // --- Actualizar logo según la URL del iframe ---
+      this.updateLogoBlocker(url);
     }
   }
-  
-  getActiveEpisodeUrls() {
-    const episodeData = this.currentEpisodeData;
-    if (!episodeData) return [];
-    if (this.activeOption === 'latino') {
-      return this.normalizeUrls(episodeData.link);
-    } else {
-      return this.normalizeUrls(episodeData.link2);
-    }
-  }
-  
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
-  showProgressBar() {
-    if (document.getElementById('customDownloadProgress')) return;
-    const div = document.createElement('div');
-    div.id = 'customDownloadProgress';
-    div.innerHTML = `
-      <div style="position:fixed; bottom:20px; left:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.9); border-radius:16px; padding:16px; border:1px solid var(--primary-color); backdrop-filter:blur(8px); text-align:center; font-family:'Poppins',sans-serif;">
-        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando video... <span id="progressPercent">0</span>%</div>
-        <div style="background:#222; border-radius:50px; overflow:hidden; height:10px;">
-          <div id="progressBarFill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f3ff, #bc13fe); transition:width 0.2s;"></div>
-        </div>
-        <div style="font-size:0.7rem; color:#aaa; margin-top:8px;">No cierres la página hasta que termine</div>
-      </div>
-    `;
-    document.body.appendChild(div);
-  }
 
-  hideProgressBar() {
-    const el = document.getElementById('customDownloadProgress');
-    if (el) el.remove();
-  }
-
+  // ========== DESCARGA (sin alert, directa para DoomStream) ==========
   async forceDownload(url, suggestedFilename = 'video.mp4') {
     this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
@@ -463,8 +184,10 @@ class VideoPlayer {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.warn(error);
-      alert('No se pudo descargar automáticamente.\nHaz clic derecho en el enlace y selecciona "Guardar enlace como..."');
+      // --- SIN ALERT: solo abrir la URL en nueva pestaña ---
       window.open(url, '_blank');
+    } finally {
+      // La barra se oculta en handleDownloadClick
     }
   }
 
@@ -509,11 +232,17 @@ class VideoPlayer {
       downloadBtn.style.cursor = 'not-allowed';
       downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
     }
-    this.showProgressBar();
 
     try {
       for (let i = 0; i < urlsToDownload.length; i++) {
         const url = urlsToDownload[i];
+        
+        // --- NUEVO: si es DoomStream, abrir directamente sin barra ---
+        if (this.isDoomStreamUrl(url)) {
+          window.open(url, '_blank');
+          continue;
+        }
+
         const isCatbox = url.includes('catbox.moe');
         const isCrossOrigin = !url.startsWith(location.origin);
         
@@ -548,11 +277,333 @@ class VideoPlayer {
       this.hideProgressBar();
     }
   }
-  
+
+  // ---------- RESTO DE MÉTODOS (sin cambios) ----------
+  async waitForCatalogAndLoad() {
+    if (typeof catalogoArray !== 'undefined') {
+      this.loadEpisodeData();
+      return;
+    }
+    console.log('⏳ Esperando catalogoArray...');
+    const checkInterval = setInterval(() => {
+      if (typeof catalogoArray !== 'undefined') {
+        clearInterval(checkInterval);
+        this.loadEpisodeData();
+      }
+    }, 50);
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (typeof catalogoArray === 'undefined') {
+        console.error('❌ No se cargó catalogoArray');
+        document.getElementById('epTitle').innerText = 'Error: Catálogo no disponible';
+      }
+    }, 5000);
+  }
+
+  initFirebase() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpzYARIxaJijLbbL-2S6F9MWecbAbvK_I",
+      authDomain: "login-admin-archinime.firebaseapp.com",
+      projectId: "login-admin-archinime",
+      storageBucket: "login-admin-archinime.firebasestorage.app",
+      messagingSenderId: "938164660242",
+      appId: "1:938164660242:web:648e0dce0e0d18dd78d0cb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    
+    this.auth = firebase.auth();
+    this.db = firebase.firestore();
+    
+    this.auth.onAuthStateChanged(user => {
+      if (window.ArchinimeState) {
+        window.ArchinimeState.set('currentUser', user);
+      } else {
+        this.currentUser = user;
+      }
+      this.authReady = true;
+      this.updateCommentFormVisibility();
+      
+      if (typeof initComentariosSystem === 'function') {
+        initComentariosSystem(this.db, this.auth);
+      }
+      if (typeof initStickersSystem === 'function') {
+        initStickersSystem(this.db, this.auth);
+      }
+    });
+  }
+
+  getCurrentUser() {
+    if (window.ArchinimeState) return window.ArchinimeState.get('currentUser');
+    return this.currentUser;
+  }
+
+  async migrateLocalToFirestore(userId) {
+    if (!userId) return;
+    const watchedKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('watched_')) watchedKeys.push(key);
+    }
+    if (watchedKeys.length === 0) return;
+    
+    console.log(`🔄 Migrando ${watchedKeys.length} registros...`);
+    const historyRef = this.db.collection('watchHistory').doc(userId);
+    
+    for (const key of watchedKeys) {
+      const parts = key.split('_');
+      if (parts.length < 4) continue;
+      const animeId = parts[1];
+      const seasonNum = parseInt(parts[2]);
+      const episodeNum = parseInt(parts[3]);
+      if (isNaN(seasonNum) || isNaN(episodeNum)) continue;
+      
+      try {
+        const doc = await historyRef.get();
+        let data = doc.exists ? doc.data() : {};
+        if (!data[animeId]) data[animeId] = {};
+        if (!data[animeId][seasonNum]) data[animeId][seasonNum] = [];
+        if (!data[animeId][seasonNum].includes(episodeNum)) {
+          data[animeId][seasonNum].push(episodeNum);
+        }
+        await historyRef.set(data, { merge: true });
+        localStorage.removeItem(key);
+      } catch (e) { console.warn(e); }
+    }
+    console.log('✅ Migración completada');
+  }
+
+  setupAuthMigration() {
+    this.auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        await this.migrateLocalToFirestore(user.uid);
+        if (this.pendingMarks.length > 0) {
+          for (const mark of this.pendingMarks) {
+            await this.saveToFirestore(mark.animeId, mark.season, mark.episode, user.uid);
+          }
+          this.pendingMarks = [];
+        }
+      }
+    });
+  }
+
+  async saveToFirestore(animeId, seasonNum, episodeNum, userId) {
+    if (!userId) return false;
+    try {
+      const docRef = this.db.collection('watchHistory').doc(userId);
+      const doc = await docRef.get();
+      let data = doc.exists ? doc.data() : {};
+      if (!data[animeId]) data[animeId] = {};
+      if (!data[animeId][seasonNum]) data[animeId][seasonNum] = [];
+      if (!data[animeId][seasonNum].includes(episodeNum)) {
+        data[animeId][seasonNum].push(episodeNum);
+        await docRef.set(data, { merge: true });
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+
+  async autoMarkAsWatched() {
+    const aId = this.animeId;
+    const sNum = parseInt(this.season);
+    const eNum = parseInt(this.episode);
+    if (!aId || isNaN(sNum) || isNaN(eNum)) return;
+    
+    const user = this.getCurrentUser();
+    const localKey = `watched_${aId}_${sNum}_${eNum}`;
+    
+    if (user && user.uid) {
+      const success = await this.saveToFirestore(aId, sNum, eNum, user.uid);
+      if (success) {
+        localStorage.removeItem(localKey);
+        return;
+      }
+    }
+    
+    localStorage.setItem(localKey, 'true');
+    if (!user && !this.authReady) {
+      this.pendingMarks.push({ animeId: aId, season: sNum, episode: eNum });
+    }
+  }
+
+  initUI() {
+    const backLink = document.getElementById('backLink');
+    if (backLink && this.animeId) backLink.href = `anime-detail.html?id=${this.animeId}`;
+    
+    const textarea = document.getElementById('comentarioTexto');
+    if (textarea) {
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.enviarComentario();
+        }
+      });
+      textarea.addEventListener('input', () => this.validateSendButton());
+    }
+    
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.handleDownloadClick();
+      });
+    }
+    
+    document.querySelectorAll('.sticker-tab').forEach(tab => {
+      tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
+    });
+  }
+
+  formatEpisodeTitle(season, epNum, episodeData) {
+    const animeTitle = this.animeData?.title || 'Anime';
+    const seasonName = season.name || `Temporada ${season.num}`;
+    const episodeTitle = episodeData.title || `Capítulo ${epNum}`;
+    return `${animeTitle} - ${seasonName} - ${episodeTitle}`;
+  }
+
+  // ========== FUNCIÓN PRINCIPAL ACTUALIZADA ==========
+  // PRIORIZA DOODSTREAM SOBRE OTROS ENLACES
+  async loadEpisodeData() {
+    try {
+      const anime = catalogoArray.find(a => a.id == this.animeId);
+      if (!anime) {
+        document.getElementById('epTitle').innerText = 'Anime no encontrado';
+        return;
+      }
+      this.animeData = anime;
+      const seasons = this.animeData.seasons || [];
+      const season = seasons.find(s => s.num === parseInt(this.season));
+      if (!season) {
+        document.getElementById('epTitle').innerText = 'Temporada no encontrada';
+        return;
+      }
+      const epIndex = parseInt(this.episode) - 1;
+      const episodeData = season.eps?.[epIndex];
+      if (!episodeData) {
+        document.getElementById('epTitle').innerText = 'Episodio no encontrado';
+        return;
+      }
+      
+      this.currentEpisodeData = episodeData;
+      const formattedTitle = this.formatEpisodeTitle(season, parseInt(this.episode), episodeData);
+      document.title = `Ver ${formattedTitle} - Archinime`;
+      document.getElementById('epTitle').innerText = formattedTitle;
+      
+      const latinoUrls = this.normalizeUrls(episodeData.link);
+      const subUrls = this.normalizeUrls(episodeData.link2);
+      
+      // --- ACTUALIZACIÓN: Filtrar y priorizar Doodstream ---
+      const isDoodstream = (url) => /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
+      const doodLatino = latinoUrls.filter(isDoodstream);
+      const doodSub = subUrls.filter(isDoodstream);
+      
+      // Usar Doodstream si existe, si no usar los originales (fallback)
+      const activeLatino = doodLatino.length > 0 ? doodLatino : latinoUrls;
+      const activeSub = doodSub.length > 0 ? doodSub : subUrls;
+      
+      let activeUrls;
+      let activeOptionLabel;
+      
+      if (activeLatino.length > 0) {
+        activeUrls = activeLatino;
+        activeOptionLabel = 'latino';
+      } else if (activeSub.length > 0) {
+        activeUrls = activeSub;
+        activeOptionLabel = 'sub';
+      } else {
+        document.getElementById('epTitle').innerText = 'No hay enlaces disponibles';
+        return;
+      }
+      
+      this.updateDownloadUrls(activeUrls);
+      this.activeOption = activeOptionLabel;
+      this.playPart(0, activeUrls);
+      
+      const serverContainer = document.getElementById('serverOptions');
+      serverContainer.innerHTML = '';
+      if (activeLatino.length > 0) {
+        this.createServerButton('Latino', activeLatino, activeOptionLabel === 'latino');
+      }
+      if (activeSub.length > 0) {
+        this.createServerButton('Opción 2', activeSub, activeOptionLabel === 'sub');
+      }
+      
+      this.setupNavigation();
+      await this.autoMarkAsWatched();
+    } catch (error) {
+      console.error(error);
+      document.getElementById('epTitle').innerText = 'Error al cargar el episodio';
+    }
+  }
+
+  normalizeUrls(urls) {
+    if (!urls) return [];
+    if (Array.isArray(urls)) return urls.filter(u => u && u.trim() !== '');
+    if (typeof urls === 'string' && urls.trim() !== '') return [urls];
+    return [];
+  }
+
+  createServerButton(label, urls, isActive) {
+    const container = document.getElementById('serverOptions');
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (isActive ? ' active' : '');
+    btn.innerText = label;
+    btn.onclick = () => {
+      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      this.activeOption = (label === 'Latino') ? 'latino' : 'sub';
+      this.updateDownloadUrls(urls);
+      this.playPart(0, urls);
+    };
+    container.appendChild(btn);
+  }
+
+  updateDownloadUrls(urls) {
+    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
+    this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
+  }
+
+  isPeerTubeUrl(url) {
+    if (!url) return false;
+    return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
+  }
+
+  getActiveEpisodeUrls() {
+    const episodeData = this.currentEpisodeData;
+    if (!episodeData) return [];
+    if (this.activeOption === 'latino') {
+      return this.normalizeUrls(episodeData.link);
+    } else {
+      return this.normalizeUrls(episodeData.link2);
+    }
+  }
+
+  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
+  showProgressBar() {
+    if (document.getElementById('customDownloadProgress')) return;
+    const div = document.createElement('div');
+    div.id = 'customDownloadProgress';
+    div.innerHTML = `
+      <div style="position:fixed; bottom:20px; left:20px; right:20px; z-index:9999; background:rgba(0,0,0,0.9); border-radius:16px; padding:16px; border:1px solid var(--primary-color); backdrop-filter:blur(8px); text-align:center; font-family:'Poppins',sans-serif;">
+        <div style="margin-bottom:8px; color:#fff;">⬇ Descargando video... <span id="progressPercent">0</span>%</div>
+        <div style="background:#222; border-radius:50px; overflow:hidden; height:10px;">
+          <div id="progressBarFill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f3ff, #bc13fe); transition:width 0.2s;"></div>
+        </div>
+        <div style="font-size:0.7rem; color:#aaa; margin-top:8px;">No cierres la página hasta que termine</div>
+      </div>
+    `;
+    document.body.appendChild(div);
+  }
+
+  hideProgressBar() {
+    const el = document.getElementById('customDownloadProgress');
+    if (el) el.remove();
+  }
+
   isMobile() {
     return /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent.toLowerCase());
   }
-  
+
   setupNavigation() {
     if (!this.animeData?.seasons) return;
     const flat = [];
@@ -586,7 +637,7 @@ class VideoPlayer {
       nextBtn.classList.add('btn-hidden');
     }
   }
-  
+
   setupAuthUI() {
     document.querySelectorAll('.auth-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -598,14 +649,14 @@ class VideoPlayer {
       });
     });
   }
-  
+
   openLoginModal() { document.getElementById('authModal').classList.add('show'); }
   closeAuthModal() { 
     document.getElementById('authModal').classList.remove('show'); 
     const errEl = document.getElementById('authError');
     if (errEl) errEl.innerText = '';
   }
-  
+
   async loginWithEmail() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
@@ -616,7 +667,7 @@ class VideoPlayer {
       document.getElementById('authError').innerText = e.message; 
     }
   }
-  
+
   async registerWithEmail() {
     const email = document.getElementById('registerEmail').value;
     const pass = document.getElementById('registerPassword').value;
@@ -632,7 +683,7 @@ class VideoPlayer {
       document.getElementById('authError').innerText = e.message; 
     }
   }
-  
+
   async loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     try { 
@@ -642,7 +693,7 @@ class VideoPlayer {
       document.getElementById('authError').innerText = e.message; 
     }
   }
-  
+
   async loginWithGitHub() {
     const provider = new firebase.auth.GithubAuthProvider();
     try { 
@@ -652,7 +703,7 @@ class VideoPlayer {
       document.getElementById('authError').innerText = e.message; 
     }
   }
-  
+
   updateCommentFormVisibility() {
     const user = this.getCurrentUser();
     const loginMsg = document.getElementById('comentarioLoginMessage');
@@ -671,7 +722,7 @@ class VideoPlayer {
       if (form) form.style.display = 'none';
     }
   }
-  
+
   toggleStickerPanel() {
     const panel = document.getElementById('stickerPanelFull');
     if (panel) {
@@ -681,7 +732,7 @@ class VideoPlayer {
       }
     }
   }
-  
+
   switchStickerTab(tabId) {
     if (typeof window.switchStickerTab === 'function') {
       window.switchStickerTab(tabId);
@@ -692,7 +743,7 @@ class VideoPlayer {
       document.getElementById(tabId === 'mis' ? 'misStickersTab' : 'subirStickersTab')?.classList.add('active');
     }
   }
-  
+
   validateSendButton() {
     const textarea = document.getElementById('comentarioTexto');
     const btn = document.getElementById('enviarComentarioBtn');
@@ -702,11 +753,11 @@ class VideoPlayer {
       btn.style.opacity = hasContent ? '1' : '0.5';
     }
   }
-  
+
   enviarComentario() { 
     if (typeof enviarComentarioTexto === 'function') enviarComentarioTexto();
   }
-  
+
   quitarStickerPreview() { 
     if (typeof quitarStickerPreview === 'function') { quitarStickerPreview(); } 
     this.validateSendButton();
