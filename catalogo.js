@@ -34032,42 +34032,6 @@ const catalogoArray = [
       "Shōnen"
     ]
   }
-  {
-    "id": 999, // Usa un número que no se repita, como 999
-    "updateType": "NUEVO 🔥", // Para que salga como notificación
-    "isAiring": false,
-    "genres": ["Tutorial"],
-    "seasons": [
-      {
-        "num": 1,
-        "type": "Especial",
-        "name": "Guía Rápida",
-        "cover": "https://img.youtube.com/vi/nCw6bVwFBvo/hqdefault.jpg", // Miniatura del video
-        "eps": [
-          {
-            "title": "Ver en YouTube",
-            "link": [
-              "https://www.youtube.com/embed/nCw6bVwFBvo" // Enlace para reproducir
-            ],
-            "link2": [] // Lo dejamos vacío
-          }
-        ]
-      }
-    ],
-    "uploader": "archinime12@gmail.com",
-    "uploaderImg": "https://avatars.githubusercontent.com/u/227717199?v=4",
-    "img": "https://img.youtube.com/vi/nCw6bVwFBvo/hqdefault.jpg",
-    "title": "📺 Archinime SIN Publicidad | Guía Rápida",
-    "desc": "Aprende a ver Archinime sin anuncios instalando Brave y la PWA. ¡Mira este short tutorial!",
-    "latestBlockName": "Guía Rápida",
-    "latestEpTitle": "Ver en YouTube",
-    "latestSeasonCover": "https://img.youtube.com/vi/nCw6bVwFBvo/hqdefault.jpg",
-    "music": [],
-    "isFinal": false,
-    "lastUpdate": Date.now(), // Esto usará la fecha y hora actual
-    "rating": 5,
-    "aliases": ["Sin anuncios", "Brave", "PWA"]
-  }
 ];
 
 // Si prefieres un objeto indexado por ID:
