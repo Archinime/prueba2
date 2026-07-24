@@ -17,15 +17,15 @@
         type: 'TUTORIAL',
         animeId: 'tutorial_brave',
         title: '📺 Archinime SIN Publicidad',
-        img: 'https://img.youtube.com/vi/nCw6bVwFBvo/hqdefault.jpg',
-        seasonCover: 'https://img.youtube.com/vi/nCw6bVwFBvo/hqdefault.jpg',
+        img: 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/ads.avif',
+        seasonCover: 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/brave.avif',
         blockName: 'Guía rápida',
         epTitle: 'Mira el tutorial',
         date: Date.now(),
         seen: false,
         isFinal: false,
         // Al hacer clic en "VER AHORA" se abrirá este enlace
-        url: 'https://www.youtube.com/watch?v=nCw6bVwFBvo' 
+        url: 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/tutorial.mp4' 
         // O si prefieres que se abra en un iframe dentro de tu página, puedes usar:
         // url: 'video-tutorial.html' (y crear esa página con el video incrustado)
       };
