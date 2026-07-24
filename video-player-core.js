@@ -1,6 +1,8 @@
-// video-player-core.js - Versión simplificada y estable
-// Para Doodstream: usa iframe con URL original /e/
-// Para otros: usa video directo o iframe según extensión
+// video-player-core.js - Versión con catálogo local + Firestore
+// MEJORADO: Descarga única (bloqueo de botón), barra de progreso única
+// SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
+// NUEVO: Conversión de enlaces DoomStream (/e/ -> /d/), ocultar logo en DoomStream, sin alert en fallos de descarga
+// NUEVO: Banner para recomendar Brave y modal con video tutorial (solo si no es Brave)
 
 class VideoPlayer {
   constructor() {
@@ -17,6 +19,7 @@ class VideoPlayer {
     this.currentEpisodeData = null;
     this.authReady = false;
     this.pendingMarks = [];
+    this.currentPartIndex = 0;
     this.activeOption = 'latino';
     this.currentVideoElement = null;
     this.isDownloading = false;
@@ -30,6 +33,9 @@ class VideoPlayer {
     this.waitForCatalogAndLoad();
     this.setupAuthUI();
     this.setupAuthMigration();
+
+    // NUEVO: Detectar Brave y mostrar banner si no lo es
+    this.checkBraveAndShowBanner();
 
     window.videoPlayerMethods = {
       toggleStickerPanel: () => this.toggleStickerPanel(),
@@ -49,15 +55,19 @@ class VideoPlayer {
   // ---------- DETECCIÓN DE DOOMSTREAM ----------
   isDoomStreamUrl(url) {
     if (!url) return false;
+    // Detecta dominios comunes de DoomStream y la ruta /e/
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ---------- CONVERSIÓN DE ENLACES (para descarga) ----------
+  // ---------- CONVERSIÓN DE ENLACES ----------
   generateDirectLink(url) {
     if (!url) return "#";
+    
+    // --- NUEVO: convertir DoomStream /e/ -> /d/ ---
     if (this.isDoomStreamUrl(url)) {
       return url.replace(/\/e\//, '/d/');
     }
+
     if (url.includes("drive.google.com")) {
       const match = url.match(/\/d\/(.+?)\//);
       if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
@@ -81,10 +91,11 @@ class VideoPlayer {
     return url;
   }
 
-  // ---------- CONTROL DEL LOGO ----------
+  // ---------- CONTROL DEL LOGO (ARCHINIME HD) ----------
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
+    // Ocultar si es DoomStream, mostrar en cualquier otro caso
     if (this.isDoomStreamUrl(url)) {
       logo.style.display = 'none';
     } else {
@@ -92,8 +103,8 @@ class VideoPlayer {
     }
   }
 
-  // ---------- REPRODUCIR EPISODIO (VERSIÓN SIMPLIFICADA) ----------
-  async playPart(partIndex, urlsArray) {
+  // ---------- REPRODUCIR EPISODIO ----------
+  playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
     if (!url) return;
@@ -101,87 +112,43 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     
-    const isDood = this.isDoomStreamUrl(url);
-    
-    if (isDood) {
-      // --- DOODSTREAM: USAR IFRAME CON URL ORIGINAL /e/ ---
-      console.log('🎬 Cargando Doodstream en iframe:', url);
+    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
+    if (isVideoFile && !url.includes('drive.google.com')) {
+      const video = document.createElement('video');
+      video.src = url;
+      video.controls = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      container.appendChild(video);
+      this.currentVideoElement = video;
+      
+      // --- Actualizar logo (para videos directos no es DoomStream) ---
+      this.updateLogoBlocker(url);
+
+      const onEnded = () => {
+        if (partIndex + 1 < urlsArray.length) {
+          this.playPart(partIndex + 1, urlsArray);
+        } else {
+          console.log('Episodio completado');
+        }
+      };
+      video.addEventListener('ended', onEnded, { once: true });
+    } else {
       const iframe = document.createElement('iframe');
-      iframe.src = url; // URL original
-      iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+      iframe.src = url;
+      iframe.allow = 'autoplay; fullscreen';
       iframe.allowFullscreen = true;
       iframe.style.width = '100%';
       iframe.style.height = '100%';
-      iframe.style.border = 'none';
-      iframe.style.background = '#000';
-      iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       container.appendChild(iframe);
       this.currentVideoElement = null;
+      
+      // --- Actualizar logo según la URL del iframe ---
       this.updateLogoBlocker(url);
-      
-      // Reintentar carga si falla (3 intentos)
-      let attempts = 0;
-      const maxAttempts = 3;
-      const reloadIframe = () => {
-        if (attempts < maxAttempts) {
-          attempts++;
-          console.log(`🔄 Reintentando cargar iframe (${attempts}/${maxAttempts})...`);
-          iframe.src = iframe.src; // recarga
-          setTimeout(reloadIframe, 3000);
-        }
-      };
-      iframe.addEventListener('load', () => {
-        console.log('✅ Iframe Doodstream cargado');
-        // Después de 5 segundos, si no hay contenido, reintentar
-        setTimeout(reloadIframe, 5000);
-      });
-      iframe.addEventListener('error', () => {
-        console.warn('⚠️ Error en iframe, reintentando...');
-        reloadIframe();
-      });
-      // Iniciar primer reintento después de 2 segundos
-      setTimeout(reloadIframe, 2000);
-      
-    } else {
-      // --- OTROS ENLACES (Google Drive, Catbox, etc.) ---
-      const finalUrl = this.generateDirectLink(url);
-      const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(finalUrl);
-      
-      if (isVideoFile) {
-        const video = document.createElement('video');
-        video.src = finalUrl;
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.height = '100%';
-        container.appendChild(video);
-        this.currentVideoElement = video;
-        this.updateLogoBlocker(finalUrl);
-        
-        const onEnded = () => {
-          if (partIndex + 1 < urlsArray.length) {
-            this.playPart(partIndex + 1, urlsArray);
-          } else {
-            console.log('Episodio completado');
-          }
-        };
-        video.addEventListener('ended', onEnded, { once: true });
-      } else {
-        const iframe = document.createElement('iframe');
-        iframe.src = finalUrl;
-        iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
-        iframe.allowFullscreen = true;
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.style.background = '#000';
-        container.appendChild(iframe);
-        this.currentVideoElement = null;
-        this.updateLogoBlocker(finalUrl);
-      }
     }
   }
 
-  // ========== DESCARGA (sin cambios) ==========
+  // ========== DESCARGA (sin alert, directa para DoomStream) ==========
   async forceDownload(url, suggestedFilename = 'video.mp4') {
     this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
@@ -220,6 +187,7 @@ class VideoPlayer {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.warn(error);
+      // --- SIN ALERT: solo abrir la URL en nueva pestaña ---
       window.open(url, '_blank');
     } finally {
       // La barra se oculta en handleDownloadClick
@@ -272,6 +240,7 @@ class VideoPlayer {
       for (let i = 0; i < urlsToDownload.length; i++) {
         const url = urlsToDownload[i];
         
+        // --- NUEVO: si es DoomStream, abrir directamente sin barra ---
         if (this.isDoomStreamUrl(url)) {
           window.open(url, '_blank');
           continue;
@@ -486,6 +455,83 @@ class VideoPlayer {
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
+
+    // NUEVO: Vincular eventos del banner y modal
+    const openBtn = document.getElementById('openTutorialBtn');
+    const closeBtns = document.querySelectorAll('#closeTutorialBtn, #closeTutorialBtn2');
+    const modal = document.getElementById('tutorialModal');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => this.openTutorialModal());
+    }
+    closeBtns.forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', () => this.closeTutorialModal());
+      }
+    });
+    // Cerrar modal al hacer clic fuera del contenido (en el overlay)
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.closeTutorialModal();
+        }
+      });
+    }
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeTutorialModal();
+      }
+    });
+  }
+
+  // NUEVO: Detectar Brave y mostrar/ocultar banner
+  async checkBraveAndShowBanner() {
+    const banner = document.getElementById('braveBanner');
+    if (!banner) return;
+
+    let isBrave = false;
+    // Detección oficial de Brave
+    if (navigator.brave && typeof navigator.brave.isBrave === 'function') {
+      try {
+        isBrave = await navigator.brave.isBrave();
+      } catch (e) {
+        console.warn('Error detectando Brave:', e);
+      }
+    }
+
+    if (!isBrave) {
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // NUEVO: Abrir modal de tutorial
+  openTutorialModal() {
+    const modal = document.getElementById('tutorialModal');
+    if (!modal) return;
+    modal.classList.add('show');
+    // Reproducir video automáticamente
+    const video = document.getElementById('tutorialVideo');
+    if (video) {
+      video.play().catch(() => {});
+    }
+    // Deshabilitar scroll del body
+    document.body.style.overflow = 'hidden';
+  }
+
+  // NUEVO: Cerrar modal de tutorial
+  closeTutorialModal() {
+    const modal = document.getElementById('tutorialModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    // Pausar video
+    const video = document.getElementById('tutorialVideo');
+    if (video) {
+      video.pause();
+    }
+    // Restaurar scroll
+    document.body.style.overflow = '';
   }
 
   formatEpisodeTitle(season, epNum, episodeData) {
@@ -524,22 +570,14 @@ class VideoPlayer {
       const latinoUrls = this.normalizeUrls(episodeData.link);
       const subUrls = this.normalizeUrls(episodeData.link2);
       
-      // Priorizar Doodstream
-      const isDoodstream = (url) => /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
-      const doodLatino = latinoUrls.filter(isDoodstream);
-      const doodSub = subUrls.filter(isDoodstream);
-      
-      const activeLatino = doodLatino.length > 0 ? doodLatino : latinoUrls;
-      const activeSub = doodSub.length > 0 ? doodSub : subUrls;
-      
       let activeUrls;
       let activeOptionLabel;
       
-      if (activeLatino.length > 0) {
-        activeUrls = activeLatino;
+      if (latinoUrls.length > 0) {
+        activeUrls = latinoUrls;
         activeOptionLabel = 'latino';
-      } else if (activeSub.length > 0) {
-        activeUrls = activeSub;
+      } else if (subUrls.length > 0) {
+        activeUrls = subUrls;
         activeOptionLabel = 'sub';
       } else {
         document.getElementById('epTitle').innerText = 'No hay enlaces disponibles';
@@ -552,11 +590,11 @@ class VideoPlayer {
       
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
-      if (activeLatino.length > 0) {
-        this.createServerButton('Latino', activeLatino, activeOptionLabel === 'latino');
+      if (latinoUrls.length > 0) {
+        this.createServerButton('Latino', latinoUrls, activeOptionLabel === 'latino');
       }
-      if (activeSub.length > 0) {
-        this.createServerButton('Opción 2', activeSub, activeOptionLabel === 'sub');
+      if (subUrls.length > 0) {
+        this.createServerButton('Opción 2', subUrls, activeOptionLabel === 'sub');
       }
       
       this.setupNavigation();
@@ -609,6 +647,7 @@ class VideoPlayer {
     }
   }
 
+  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
