@@ -379,7 +379,7 @@ function syncToggles(applyExclusivity = true) {
 }
 
 const genresList = [
-    "Acción", "Animación", "Artes Marciales", "Aventura", "Cambio de género", "Ciencia ficción", "Cocina", "Comedia", 
+    "Acción", "Animación", "Antihéroe", "Artes Marciales", "Aventura", "Cambio de género", "Ciencia ficción", "Cocina", "Comedia", 
     "Comedia oscura", "Coming-of-age", "Cosplay", "Crimen", "Cyberpunk", "Deducción Social", "Deportivo", 
     "Divulgación Científica", "Drama", "Ecchi", "Espionaje", "Escolar", "Fantasía", 
     "Fantasía oscura", "Familiar", "Gag", "Gore", "Harem", "Hentai", "Histórico", 
