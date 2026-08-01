@@ -35,150 +35,6 @@ let currentUserUid = "";
 let currentSearchMode = 'mine';
 
 // ============================================
-// NUEVA FUNCIÓN: CONVERSIÓN DE MP4UPLOAD A EMBED Y VICEVERSA
-// ============================================
-function convertMp4uploadUrl(url, toEmbed = true) {
-    if (!url || typeof url !== 'string') return url;
-    
-    const mp4uploadRegex = /https?:\/\/(?:www\.)?mp4upload\.com\/(?:embed-)?([a-zA-Z0-9]+)(?:\.html)?/;
-    const match = url.match(mp4uploadRegex);
-    
-    if (!match) return url;
-    
-    const videoId = match[1];
-    
-    if (toEmbed) {
-        return `https://www.mp4upload.com/embed-${videoId}.html`;
-    } else {
-        return `https://www.mp4upload.com/${videoId}`;
-    }
-}
-
-// ============================================
-// NUEVA FUNCIÓN: SMART LINK CONVERT (MEJORADO)
-// ============================================
-function smartLinkConvert(input) {
-    let val = input.value.trim();
-    let changed = false;
-
-    const extractedUrl = extractUrlFromIframe(val);
-    if (extractedUrl) {
-        input.value = extractedUrl;
-        val = extractedUrl;
-        changed = true;
-        showToast("✅ Iframe convertido a enlace directo", false);
-    }
-
-    // --- NUEVO: Convertir mp4upload a embed ---
-    if (val.includes('mp4upload.com')) {
-        const converted = convertMp4uploadUrl(val, true);
-        if (converted !== val) {
-            input.value = converted;
-            changed = true;
-            showToast("✅ Link mp4upload convertido a embed", false);
-        }
-    }
-
-    if (val.includes('http://10.22.7.119:8080')) {
-        input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
-        changed = true;
-        showToast("Link local convertido a Render");
-    }
-    if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
-        input.value = val.replace('&dl=0', '&raw=1');
-        changed = true;
-        showToast("Link Dropbox convertido a &raw=1");
-    }
-    const driveRegex = /(https:\/\/drive\.google\.com\/file\/d\/[^\/]+)\/(?:view|preview)(?:\?.*)?/;
-    if (driveRegex.test(val) && !val.endsWith('/preview')) {
-        const match = val.match(driveRegex);
-        if (match && match[1]) {
-            input.value = match[1] + '/preview';
-            changed = true;
-            showToast("Link Drive convertido a /preview");
-        }
-    }
-    if (/ok\.ru\/video\//i.test(val)) {
-        input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
-        changed = true;
-        showToast("Link ok.ru convertido a /videoembed/");
-    }
-    if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
-        input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
-        changed = true;
-        showToast("Link Odysee convertido a Embed");
-    }
-
-    if(changed) {
-        if(input.id === 'portadaAnime') {
-            checkCoverVisual(input);
-        } else if (input.classList.contains('m-url')) {
-            updateAudioPreview(input);
-        }
-        requestPreviewUpdate();
-    }
-}
-
-// ============================================
-// NUEVA FUNCIÓN: smartLinkConvertPart (para partes)
-// ============================================
-function smartLinkConvertPart(input) {
-    let val = input.value.trim();
-    let changed = false;
-
-    const extractedUrl = extractUrlFromIframe(val);
-    if (extractedUrl) {
-        input.value = extractedUrl;
-        val = extractedUrl;
-        changed = true;
-        showToast("✅ Iframe convertido a enlace directo", false);
-    }
-
-    if (val.includes('mp4upload.com')) {
-        const converted = convertMp4uploadUrl(val, true);
-        if (converted !== val) {
-            input.value = converted;
-            changed = true;
-            showToast("✅ Link mp4upload convertido a embed", false);
-        }
-    }
-
-    if (val.includes('http://10.22.7.119:8080')) {
-        input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
-        changed = true;
-        showToast("Link local convertido a Render");
-    }
-    if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
-        input.value = val.replace('&dl=0', '&raw=1');
-        changed = true;
-        showToast("Link Dropbox convertido a &raw=1");
-    }
-    const driveRegex = /(https:\/\/drive\.google\.com\/file\/d\/[^\/]+)\/(?:view|preview)(?:\?.*)?/;
-    if (driveRegex.test(val) && !val.endsWith('/preview')) {
-        const match = val.match(driveRegex);
-        if (match && match[1]) {
-            input.value = match[1] + '/preview';
-            changed = true;
-            showToast("Link Drive convertido a /preview");
-        }
-    }
-    if (/ok\.ru\/video\//i.test(val)) {
-        input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
-        changed = true;
-        showToast("Link ok.ru convertido a /videoembed/");
-    }
-    if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
-        input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
-        changed = true;
-        showToast("Link Odysee convertido a Embed");
-    }
-
-    if(changed) {
-        requestPreviewUpdate();
-    }
-}
-
-// ============================================
 // AUTENTICACIÓN (GitHub)
 // ============================================
 auth.onAuthStateChanged(async (user) => {
@@ -579,6 +435,58 @@ function extractUrlFromIframe(value) {
     return null;
 }
 
+function smartLinkConvert(input) {
+    let val = input.value.trim();
+    let changed = false;
+
+    const extractedUrl = extractUrlFromIframe(val);
+    if (extractedUrl) {
+        input.value = extractedUrl;
+        val = extractedUrl;
+        changed = true;
+        showToast("✅ Iframe convertido a enlace directo", false);
+    }
+
+    if (val.includes('http://10.22.7.119:8080')) {
+        input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
+        changed = true;
+        showToast("Link local convertido a Render");
+    }
+    if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
+        input.value = val.replace('&dl=0', '&raw=1');
+        changed = true;
+        showToast("Link Dropbox convertido a &raw=1");
+    }
+    const driveRegex = /(https:\/\/drive\.google\.com\/file\/d\/[^\/]+)\/(?:view|preview)(?:\?.*)?/;
+    if (driveRegex.test(val) && !val.endsWith('/preview')) {
+        const match = val.match(driveRegex);
+        if (match && match[1]) {
+            input.value = match[1] + '/preview';
+            changed = true;
+            showToast("Link Drive convertido a /preview");
+        }
+    }
+    if (/ok\.ru\/video\//i.test(val)) {
+        input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
+        changed = true;
+        showToast("Link ok.ru convertido a /videoembed/");
+    }
+    if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
+        input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
+        changed = true;
+        showToast("Link Odysee convertido a Embed");
+    }
+
+    if(changed) {
+        if(input.id === 'portadaAnime') {
+            checkCoverVisual(input);
+        } else if (input.classList.contains('m-url')) {
+            updateAudioPreview(input);
+        }
+        requestPreviewUpdate();
+    }
+}
+
 function checkCoverVisual(input) {
     const img = document.getElementById('mainCoverPreview');
     const display = document.getElementById('dimDisplay');
@@ -752,6 +660,7 @@ function addSeason(data = null) {
 function handleSeasonTypeChange(select) {
     const card = select.closest('.season-card');
     const countInput = card.querySelector('.s-count');
+    // Ya no deshabilitamos el contador para Película
     countInput.disabled = false;
     updateAllBlockNames();
     if(countInput.value) renderChapters(countInput);
@@ -864,7 +773,7 @@ window.addPartToChapter = function(btn, type) {
     div.style.gap = '5px';
     div.style.marginBottom = '5px';
     div.innerHTML = `
-        <input type="text" class="${inputClass}" placeholder="Parte ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvertPart(this)" style="flex:1">
+        <input type="text" class="${inputClass}" placeholder="Parte ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
         <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
     `;
     container.appendChild(div);
@@ -915,17 +824,18 @@ function renderChapters(input, existingEps = []) {
             customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
+        // Para Temporada y Spin-Off el título es automático
         let titleInputDisabled = (type === 'Temporada' || type === 'Spin-Off') ? "disabled" : "";
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
         
         let latPartsHtml = '';
         if(latParts.length === 0) {
-            latPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-lat-part" placeholder="Parte 1 (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvertPart(this)" style="flex:1"></div>`;
+            latPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-lat-part" placeholder="Parte 1 (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
         } else {
             latParts.forEach((part, idx) => {
                 latPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-lat-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvertPart(this)" style="flex:1">
+                    <input type="text" class="c-link-lat-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
                     <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
                 </div>`;
             });
@@ -933,11 +843,11 @@ function renderChapters(input, existingEps = []) {
         
         let subPartsHtml = '';
         if(subParts.length === 0) {
-            subPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-sub-part" placeholder="Parte 1 (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvertPart(this)" style="flex:1"></div>`;
+            subPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-sub-part" placeholder="Parte 1 (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
         } else {
             subParts.forEach((part, idx) => {
                 subPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-sub-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvertPart(this)" style="flex:1">
+                    <input type="text" class="c-link-sub-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
                     <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
                 </div>`;
             });
@@ -948,14 +858,14 @@ function renderChapters(input, existingEps = []) {
             <div style="margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <strong style="color:#00f0ff;">🎬 Latino (múltiples partes)</strong>
-                    <button type="button" class="btn-add-part" onclick="addPartToChapter(this, 'lat')" style="width:auto; padding:4px 12px; background:rgba(0,240,255,0.05); border:1px dashed rgba(0,240,255,0.2); color:var(--neon-blue); border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:600; font-family:'Outfit', sans-serif;">+ Agregar parte</button>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'lat')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
                 </div>
                 <div class="latino-parts-container">${latPartsHtml}</div>
             </div>
             <div style="margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <strong style="color:#ff00cc;">📀 Opción 2 (múltiples partes)</strong>
-                    <button type="button" class="btn-add-part" onclick="addPartToChapter(this, 'sub')" style="width:auto; padding:4px 12px; background:rgba(255,0,204,0.05); border:1px dashed rgba(255,0,204,0.2); color:#ff00cc; border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:600; font-family:'Outfit', sans-serif;">+ Agregar parte</button>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'sub')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
                 </div>
                 <div class="sub-parts-container">${subPartsHtml}</div>
             </div>
@@ -1024,6 +934,7 @@ function updateWebPreview() {
         });
     }
 
+    // Mostrar badge de emisión en vista previa
     const airingToggle = document.getElementById('airingToggle');
     const airingBadge = document.getElementById('webAiringBadge');
     if (airingBadge) {
@@ -1047,6 +958,7 @@ function updateWebPreview() {
                 const div = document.createElement('div');
                 div.className = 'preview-s-item';
                 let label = '';
+                // Para Película, mostramos "Película" aunque tenga varios capítulos internos
                 if (type === 'Pelicula') {
                     label = `Película`;
                 } else if (['Temporada', 'Spin-Off', 'Tráiler'].includes(type)) {
@@ -1225,6 +1137,7 @@ async function loadAnimeForEditing(id) {
             animeData.music.forEach(url => addMusic(url));
         }
         
+        // Cargar estados de toggles
         const toggleFinal = document.getElementById('finalToggle');
         const toggleAiring = document.getElementById('airingToggle');
         if (toggleFinal) {
@@ -1299,6 +1212,7 @@ function generateData() {
     const airingTog = document.getElementById('airingToggle');
     if(airingTog) isAiring = airingTog.checked;
     
+    // Seguridad extra: si ambos están activos, priorizar isFinal y desactivar isAiring
     if (isFinal && isAiring) {
         isAiring = false;
         if (airingTog) airingTog.checked = false;
@@ -1341,19 +1255,12 @@ function generateData() {
             const latParts = [];
             row.querySelectorAll('.c-link-lat-part').forEach(inp => {
                 const val = inp.value.trim();
-                if(val) {
-                    // Convertir mp4upload a embed al guardar
-                    const converted = convertMp4uploadUrl(val, true);
-                    latParts.push(converted);
-                }
+                if(val) latParts.push(val);
             });
             const subParts = [];
             row.querySelectorAll('.c-link-sub-part').forEach(inp => {
                 const val = inp.value.trim();
-                if(val) {
-                    const converted = convertMp4uploadUrl(val, true);
-                    subParts.push(converted);
-                }
+                if(val) subParts.push(val);
             });
             
             let customTitleInput = row.querySelector('.c-title-ov').value.trim();
