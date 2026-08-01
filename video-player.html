@@ -252,13 +252,15 @@
 
     .options {
       display: flex;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
       justify-content: flex-end;
+      flex: 1;
     }
 
     .opt-btn {
-      font-size: 0.8rem;
-      padding: 6px 14px;
+      font-size: 0.7rem;
+      padding: 4px 10px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(0, 0, 0, 0.6);
       color: #ccc;
@@ -267,6 +269,7 @@
       transition: all 0.3s;
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
+      white-space: nowrap;
     }
     .opt-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
     .opt-btn.active {
@@ -364,7 +367,7 @@
 
     /* --- NUEVO: Banner para recomendar Brave --- */
     #braveBanner {
-      display: none; /* Oculto por defecto, se muestra con JS si no es Brave */
+      display: none;
       background: linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(188, 19, 254, 0.08));
       border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: var(--radius);
@@ -787,7 +790,8 @@
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav { justify-content: space-between; }
-      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; }
+      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; flex-wrap: nowrap; }
+      .opt-btn { font-size: 0.65rem; padding: 3px 8px; }
       .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
       #prevBtn { grid-column: 1; grid-row: 1; }
       #nextBtn { grid-column: 2; grid-row: 1; }
