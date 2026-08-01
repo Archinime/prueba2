@@ -212,11 +212,12 @@
       gap: 15px;
     }
 
+    /* ----- BARRA DE NAVEGACIÓN SUPERIOR ----- */
     .top-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 10px;
       background: linear-gradient(to bottom, rgba(140, 82, 255, 0.3), transparent);
       padding: 10px;
@@ -239,6 +240,7 @@
       border: 1px solid rgba(0, 255, 247, 0.3);
       transition: all 0.3s;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
     }
     body.is-mobile .back-btn { backdrop-filter: blur(2px); }
     .back-btn:hover {
@@ -249,12 +251,13 @@
       transform: translateY(-2px);
     }
 
-    /* Contenedor del select */
+    /* Contenedor del select: ocupa el espacio restante y se alinea a la derecha */
     .options {
       display: flex;
       flex: 1 1 auto;
       min-width: 120px;
-      max-width: 100%;
+      max-width: 280px;
+      justify-content: flex-end;
     }
     #serverSelect {
       width: 100%;
@@ -263,7 +266,7 @@
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 8px;
       color: #fff;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-family: 'Poppins', sans-serif;
       cursor: pointer;
       appearance: none;
@@ -273,6 +276,12 @@
       background-position: right 10px center;
       background-size: 16px;
       padding-right: 35px;
+      transition: border-color 0.2s;
+    }
+    #serverSelect:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
     }
     #serverSelect option {
       background: #1a1a1a;
@@ -786,25 +795,26 @@
     .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
     .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
 
-    /* ===== RESPONSIVE MEJORADO PARA MÓVILES ===== */
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
+        flex-wrap: nowrap;
+        gap: 6px;
       }
       .back-btn {
-        align-self: flex-start;
-        font-size: 0.8rem;
-        padding: 6px 14px;
+        font-size: 0.7rem;
+        padding: 5px 10px;
       }
       .options {
-        min-width: 100%;
+        min-width: 100px;
+        max-width: 160px;
       }
       #serverSelect {
-        font-size: 0.85rem;
-        padding: 10px 12px;
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        padding-right: 28px;
+        background-size: 14px;
       }
       .controls {
         grid-template-columns: 1fr 1fr;
@@ -821,6 +831,11 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
       .tutorial-card { max-width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .options { min-width: 80px; max-width: 120px; }
+      #serverSelect { font-size: 0.65rem; padding: 4px 6px; padding-right: 22px; background-size: 12px; }
     }
   </style>
 </head>

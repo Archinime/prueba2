@@ -530,7 +530,7 @@ class VideoPlayer {
     return [];
   }
 
-  // Nueva función para crear el select de opciones
+  // Nueva función para crear el select de opciones (sin número de enlaces)
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
     container.innerHTML = '';
@@ -559,7 +559,7 @@ class VideoPlayer {
     options.forEach((opt, idx) => {
       const option = document.createElement('option');
       option.value = idx;
-      option.textContent = `${opt.label} (${opt.urls.length} enlace${opt.urls.length > 1 ? 's' : ''})`;
+      option.textContent = opt.label; // Solo el nombre, sin enlaces
       if (idx === initialIndex) option.selected = true;
       select.appendChild(option);
     });
@@ -571,7 +571,6 @@ class VideoPlayer {
         this.activeOptionLabel = selected.label;
         this.updateDownloadUrls(selected.urls);
         this.playPart(0, selected.urls);
-        // Marcar opción activa (no necesario con select)
       }
     });
     
