@@ -5,6 +5,7 @@
 // NUEVO: Banner para recomendar Brave y modal con video tutorial (solo si no es Brave)
 // NUEVO: Soporte para 4 opciones de enlaces (latino, op2, op3, op4)
 // NUEVO: Conversión de mp4upload embed a directo para descarga
+// NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 
 class VideoPlayer {
   constructor() {
@@ -529,19 +530,53 @@ class VideoPlayer {
     return [];
   }
 
-  createServerButton(label, urls, isActive) {
+  // Nueva función para crear el select de opciones
+  createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
-    const btn = document.createElement('button');
-    btn.className = 'opt-btn' + (isActive ? ' active' : '');
-    btn.innerText = label;
-    btn.onclick = () => {
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      this.activeOptionLabel = label;
-      this.updateDownloadUrls(urls);
-      this.playPart(0, urls);
-    };
-    container.appendChild(btn);
+    container.innerHTML = '';
+    
+    const select = document.createElement('select');
+    select.id = 'serverSelect';
+    select.style.cssText = `
+      width: 100%;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 16px;
+      padding-right: 35px;
+    `;
+    
+    options.forEach((opt, idx) => {
+      const option = document.createElement('option');
+      option.value = idx;
+      option.textContent = `${opt.label} (${opt.urls.length} enlace${opt.urls.length > 1 ? 's' : ''})`;
+      if (idx === initialIndex) option.selected = true;
+      select.appendChild(option);
+    });
+    
+    select.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.value);
+      const selected = options[idx];
+      if (selected) {
+        this.activeOptionLabel = selected.label;
+        this.updateDownloadUrls(selected.urls);
+        this.playPart(0, selected.urls);
+        // Marcar opción activa (no necesario con select)
+      }
+    });
+    
+    container.appendChild(select);
+    return select;
   }
 
   updateDownloadUrls(urls) {
@@ -796,14 +831,10 @@ class VideoPlayer {
         return;
       }
 
-      const serverContainer = document.getElementById('serverOptions');
-      serverContainer.innerHTML = '';
+      // Crear el select con las opciones
+      this.createServerSelect(options, 0);
 
-      options.forEach((opt, index) => {
-        const isActive = index === 0;
-        this.createServerButton(opt.label, opt.urls, isActive);
-      });
-
+      // Establecer la primera opción como activa
       const firstOption = options[0];
       this.activeOptionLabel = firstOption.label;
       this.updateDownloadUrls(firstOption.urls);
