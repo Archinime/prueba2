@@ -22,7 +22,7 @@ class VideoPlayer {
     this.authReady = false;
     this.pendingMarks = [];
     this.currentPartIndex = 0;
-    this.activeOptionLabel = 'Latino'; // etiqueta de la opción activa
+    this.activeOptionLabel = 'Latino';
     this.currentVideoElement = null;
     this.isDownloading = false;
     
@@ -36,7 +36,6 @@ class VideoPlayer {
     this.setupAuthUI();
     this.setupAuthMigration();
 
-    // NUEVO: Detectar Brave y mostrar banner si no lo es
     this.checkBraveAndShowBanner();
 
     window.videoPlayerMethods = {
@@ -54,24 +53,19 @@ class VideoPlayer {
     window.videoPlayer = window.videoPlayerMethods;
   }
   
-  // ---------- DETECCIÓN DE DOOMSTREAM ----------
   isDoomStreamUrl(url) {
     if (!url) return false;
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ---------- CONVERSIÓN DE ENLACES ----------
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // --- CONVERTIR DOOMSTREAM /e/ -> /d/ ---
     if (this.isDoomStreamUrl(url)) {
       return url.replace(/\/e\//, '/d/');
     }
 
-    // --- CONVERTIR MP4UPLOAD EMBED A DIRECTO ---
     if (url.includes('mp4upload.com/embed-')) {
-      // Extraer el código: embed-xxxxx.html o embed-xxxxx
       const match = url.match(/embed-([^\.]+)(\.html)?/);
       if (match && match[1]) {
         return `https://www.mp4upload.com/${match[1]}`;
@@ -101,7 +95,6 @@ class VideoPlayer {
     return url;
   }
 
-  // ---------- CONTROL DEL LOGO (ARCHINIME HD) ----------
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
@@ -112,7 +105,6 @@ class VideoPlayer {
     }
   }
 
-  // ---------- REPRODUCIR EPISODIO ----------
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -152,7 +144,6 @@ class VideoPlayer {
     }
   }
 
-  // ========== DESCARGA (sin alert, directa para DoomStream) ==========
   async forceDownload(url, suggestedFilename = 'video.mp4') {
     this.showProgressBar();
     const percentSpan = document.getElementById('progressPercent');
@@ -283,7 +274,6 @@ class VideoPlayer {
     }
   }
 
-  // ---------- RESTO DE MÉTODOS ----------
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -576,7 +566,6 @@ class VideoPlayer {
     }
   }
 
-  // ========== BARRA DE PROGRESO PARA DESCARGA ==========
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
@@ -607,7 +596,6 @@ class VideoPlayer {
     const flat = [];
     this.animeData.seasons.sort((a,b) => a.num - b.num).forEach(season => {
       season.eps?.forEach((ep, idx) => {
-        // Verificar si al menos una opción tiene enlaces
         const hasLink = (ep.link && (Array.isArray(ep.link) ? ep.link.length : ep.link)) ||
                         (ep.link2 && (Array.isArray(ep.link2) ? ep.link2.length : ep.link2)) ||
                         (ep.link3 && (Array.isArray(ep.link3) ? ep.link3.length : ep.link3)) ||
@@ -765,7 +753,6 @@ class VideoPlayer {
     this.validateSendButton();
   }
 
-  // ========== CARGA DEL EPISODIO (AHORA CON 4 OPCIONES) ==========
   async loadEpisodeData() {
     try {
       const anime = catalogoArray.find(a => a.id == this.animeId);
@@ -797,7 +784,6 @@ class VideoPlayer {
       const op3Urls = this.normalizeUrls(episodeData.link3);
       const op4Urls = this.normalizeUrls(episodeData.link4);
 
-      // Construir lista de opciones disponibles
       const options = [
         { label: 'Latino', urls: latinoUrls },
         { label: 'Opción 2', urls: subUrls },
@@ -810,17 +796,14 @@ class VideoPlayer {
         return;
       }
 
-      // Limpiar contenedor de opciones
       const serverContainer = document.getElementById('serverOptions');
       serverContainer.innerHTML = '';
 
-      // Crear botones para cada opción
       options.forEach((opt, index) => {
         const isActive = index === 0;
         this.createServerButton(opt.label, opt.urls, isActive);
       });
 
-      // Establecer la primera opción como activa
       const firstOption = options[0];
       this.activeOptionLabel = firstOption.label;
       this.updateDownloadUrls(firstOption.urls);
@@ -835,7 +818,6 @@ class VideoPlayer {
   }
 }
 
-// Inicializar
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => new VideoPlayer());
 } else {

@@ -6,7 +6,6 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
-  <!-- Tema de color dinámico optimizado -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -255,12 +254,13 @@
       flex-wrap: wrap;
       gap: 6px;
       justify-content: flex-end;
-      flex: 1;
+      flex: 1 1 auto;
+      max-width: 100%;
     }
 
     .opt-btn {
-      font-size: 0.7rem;
-      padding: 4px 10px;
+      font-size: 0.75rem;
+      padding: 4px 12px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(0, 0, 0, 0.6);
       color: #ccc;
@@ -365,7 +365,7 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- NUEVO: Banner para recomendar Brave --- */
+    /* --- Banner Brave --- */
     #braveBanner {
       display: none;
       background: linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(188, 19, 254, 0.08));
@@ -429,7 +429,7 @@
       #braveBanner .banner-text { font-size: 0.85rem; }
     }
 
-    /* --- NUEVO: Modal para el video tutorial --- */
+    /* --- Modal tutorial --- */
     #tutorialModal {
       position: fixed;
       top: 0;
@@ -787,12 +787,36 @@
     .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
     .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
 
+    /* ===== RESPONSIVE MEJORADO PARA MÓVILES ===== */
     @media (max-width: 768px) {
       .container { padding: 10px; }
-      .top-nav { justify-content: space-between; }
-      .options { overflow-x: auto; white-space: nowrap; max-width: 60%; flex-wrap: nowrap; }
-      .opt-btn { font-size: 0.65rem; padding: 3px 8px; }
-      .controls { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 10px; }
+      .top-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .back-btn {
+        align-self: flex-start;
+        font-size: 0.8rem;
+        padding: 6px 14px;
+      }
+      .options {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        max-width: 100%;
+        overflow-x: visible;
+      }
+      .opt-btn {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+        white-space: nowrap;
+      }
+      .controls {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 10px;
+      }
       #prevBtn { grid-column: 1; grid-row: 1; }
       #nextBtn { grid-column: 2; grid-row: 1; }
       #downloadBtn { grid-column: 1 / -1; grid-row: 2; width: 100%; }
@@ -803,6 +827,13 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
       .tutorial-card { max-width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .opt-btn {
+        font-size: 0.5rem;
+        padding: 2px 6px;
+      }
     }
   </style>
 </head>
@@ -853,7 +884,6 @@
 
   <h1 id="epTitle">Cargando...</h1>
 
-  <!-- NUEVO: Banner para recomendar Brave (oculto por defecto) -->
   <div id="braveBanner">
     <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/ads.avif" alt="Brave Browser" loading="lazy">
     <span class="banner-text">
@@ -939,7 +969,6 @@
   </div>
 </div>
 
-<!-- NUEVO: Modal para el video tutorial -->
 <div id="tutorialModal">
   <div class="tutorial-card">
     <button class="tutorial-close" id="closeTutorialBtn">&times;</button>
