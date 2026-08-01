@@ -6,6 +6,7 @@
 // NUEVO: Soporte para 4 opciones de enlaces (latino, op2, op3, op4)
 // NUEVO: Conversión de mp4upload embed a directo para descarga
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
+// NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 
 class VideoPlayer {
   constructor() {
@@ -23,7 +24,8 @@ class VideoPlayer {
     this.authReady = false;
     this.pendingMarks = [];
     this.currentPartIndex = 0;
-    this.activeOptionLabel = 'Latino';
+    this.activeOptionLabel = 'Opción 1';
+    this.activeOptionKey = 'link'; // clave del campo en episodeData
     this.currentVideoElement = null;
     this.isDownloading = false;
     
@@ -530,7 +532,32 @@ class VideoPlayer {
     return [];
   }
 
-  // Nueva función para crear el select de opciones (sin número de enlaces)
+  // ===== NUEVA FUNCIÓN: PRIORIZAR Y RENOMBRAR OPCIONES =====
+  prioritizeOptions(options) {
+    // Asignar prioridad según el primer enlace de cada opción
+    const getPriority = (urls) => {
+      if (!urls || urls.length === 0) return 1;
+      const firstUrl = urls[0] || '';
+      if (firstUrl.includes('mp4upload.com')) return 0;   // mayor prioridad
+      if (firstUrl.includes('drive.google.com')) return 2; // menor prioridad
+      return 1; // otros
+    };
+
+    // Ordenar por prioridad (ascendente)
+    options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
+
+    // Renombrar etiquetas y guardar la clave original
+    const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
+    options.forEach((opt, index) => {
+      opt.label = labels[index] || `Opción ${index + 1}`;
+      // Guardar la clave original (link, link2, link3, link4) para usarla después
+      opt.originalKey = opt.key; // asumimos que cada opción tiene un 'key'
+    });
+
+    return options;
+  }
+
+  // Crear el select con las opciones ya ordenadas
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
     container.innerHTML = '';
@@ -559,7 +586,7 @@ class VideoPlayer {
     options.forEach((opt, idx) => {
       const option = document.createElement('option');
       option.value = idx;
-      option.textContent = opt.label; // Solo el nombre, sin enlaces
+      option.textContent = opt.label; // "Opción 1", "Opción 2", ...
       if (idx === initialIndex) option.selected = true;
       select.appendChild(option);
     });
@@ -569,6 +596,7 @@ class VideoPlayer {
       const selected = options[idx];
       if (selected) {
         this.activeOptionLabel = selected.label;
+        this.activeOptionKey = selected.originalKey || 'link'; // usar la clave guardada
         this.updateDownloadUrls(selected.urls);
         this.playPart(0, selected.urls);
       }
@@ -588,16 +616,13 @@ class VideoPlayer {
     return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
   }
 
+  // Obtener las URLs según la clave activa
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
-    switch (this.activeOptionLabel) {
-      case 'Latino': return this.normalizeUrls(episodeData.link);
-      case 'Opción 2': return this.normalizeUrls(episodeData.link2);
-      case 'Opción 3': return this.normalizeUrls(episodeData.link3);
-      case 'Opción 4': return this.normalizeUrls(episodeData.link4);
-      default: return [];
-    }
+    // Usar la clave almacenada (link, link2, link3, link4)
+    const key = this.activeOptionKey || 'link';
+    return this.normalizeUrls(episodeData[key]);
   }
 
   showProgressBar() {
@@ -813,16 +838,12 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
-      const latinoUrls = this.normalizeUrls(episodeData.link);
-      const subUrls = this.normalizeUrls(episodeData.link2);
-      const op3Urls = this.normalizeUrls(episodeData.link3);
-      const op4Urls = this.normalizeUrls(episodeData.link4);
-
-      const options = [
-        { label: 'Latino', urls: latinoUrls },
-        { label: 'Opción 2', urls: subUrls },
-        { label: 'Opción 3', urls: op3Urls },
-        { label: 'Opción 4', urls: op4Urls }
+      // Crear array de opciones con sus claves originales
+      let options = [
+        { label: 'Latino', key: 'link', urls: this.normalizeUrls(episodeData.link) },
+        { label: 'Opción 2', key: 'link2', urls: this.normalizeUrls(episodeData.link2) },
+        { label: 'Opción 3', key: 'link3', urls: this.normalizeUrls(episodeData.link3) },
+        { label: 'Opción 4', key: 'link4', urls: this.normalizeUrls(episodeData.link4) }
       ].filter(opt => opt.urls.length > 0);
 
       if (options.length === 0) {
@@ -830,12 +851,16 @@ class VideoPlayer {
         return;
       }
 
-      // Crear el select con las opciones
+      // Reordenar y renombrar según prioridad
+      options = this.prioritizeOptions(options);
+
+      // Crear el select con las opciones ya ordenadas
       this.createServerSelect(options, 0);
 
       // Establecer la primera opción como activa
       const firstOption = options[0];
       this.activeOptionLabel = firstOption.label;
+      this.activeOptionKey = firstOption.originalKey || 'link';
       this.updateDownloadUrls(firstOption.urls);
       this.playPart(0, firstOption.urls);
       
