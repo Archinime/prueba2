@@ -477,6 +477,19 @@ function smartLinkConvert(input) {
         showToast("Link Odysee convertido a Embed");
     }
 
+    // --- NUEVA CONVERSIÓN PARA MP4UPLOAD ---
+    if (val.includes('mp4upload.com') && !val.includes('embed')) {
+        // Extraer el código después del último '/'
+        const parts = val.split('/');
+        const code = parts[parts.length - 1].split('?')[0]; // eliminar parámetros
+        if (code && code.length > 0) {
+            const newUrl = `https://www.mp4upload.com/embed-${code}.html`;
+            input.value = newUrl;
+            changed = true;
+            showToast("Link mp4upload convertido a embed");
+        }
+    }
+
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
@@ -760,20 +773,45 @@ function escapeHtml(str) {
 }
 
 // ============================================
-// NUEVA FUNCIÓN PARA AGREGAR PARTE A UN CAPÍTULO (MÚLTIPLES PARTES)
+// NUEVA FUNCIÓN PARA AGREGAR PARTE A UN CAPÍTULO (MÚLTIPLES PARTES) - AHORA SOPORTA 4 OPCIONES
 // ============================================
 window.addPartToChapter = function(btn, type) {
     const row = btn.closest('.chapter-row');
-    const container = type === 'lat' ? row.querySelector('.latino-parts-container') : row.querySelector('.sub-parts-container');
+    let container;
+    let inputClass;
+    let placeholderBase;
+    switch(type) {
+        case 'lat':
+            container = row.querySelector('.latino-parts-container');
+            inputClass = 'c-link-lat-part';
+            placeholderBase = 'Parte (Latino)';
+            break;
+        case 'sub':
+            container = row.querySelector('.sub-parts-container');
+            inputClass = 'c-link-sub-part';
+            placeholderBase = 'Parte (Opción 2)';
+            break;
+        case 'op3':
+            container = row.querySelector('.op3-parts-container');
+            inputClass = 'c-link-op3-part';
+            placeholderBase = 'Parte (Opción 3)';
+            break;
+        case 'op4':
+            container = row.querySelector('.op4-parts-container');
+            inputClass = 'c-link-op4-part';
+            placeholderBase = 'Parte (Opción 4)';
+            break;
+        default:
+            return;
+    }
     const partCount = container.children.length + 1;
-    const inputClass = type === 'lat' ? 'c-link-lat-part' : 'c-link-sub-part';
     const div = document.createElement('div');
     div.className = 'part-input-group';
     div.style.display = 'flex';
     div.style.gap = '5px';
     div.style.marginBottom = '5px';
     div.innerHTML = `
-        <input type="text" class="${inputClass}" placeholder="Parte ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
+        <input type="text" class="${inputClass}" placeholder="${placeholderBase} ${partCount}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
         <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
     `;
     container.appendChild(div);
@@ -781,7 +819,7 @@ window.addPartToChapter = function(btn, type) {
 };
 
 // ============================================
-// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES Y TIPOS)
+// FUNCIÓN RENDER CHAPTERS (MODIFICADA PARA MÚLTIPLES PARTES Y TIPOS) - AHORA CON 4 OPCIONES
 // ============================================
 function renderChapters(input, existingEps = []) {
     const card = input.closest('.season-card');
@@ -800,9 +838,15 @@ function renderChapters(input, existingEps = []) {
             row.querySelectorAll('.c-link-lat-part').forEach(inp => latParts.push(inp.value));
             const subParts = [];
             row.querySelectorAll('.c-link-sub-part').forEach(inp => subParts.push(inp.value));
+            const op3Parts = [];
+            row.querySelectorAll('.c-link-op3-part').forEach(inp => op3Parts.push(inp.value));
+            const op4Parts = [];
+            row.querySelectorAll('.c-link-op4-part').forEach(inp => op4Parts.push(inp.value));
             currentData.push({
                 lat: latParts,
                 sub: subParts,
+                op3: op3Parts,
+                op4: op4Parts,
                 title: row.querySelector('.c-title-ov').value
             });
         });
@@ -813,14 +857,18 @@ function renderChapters(input, existingEps = []) {
     for(let i=0; i<count; i++) {
         const row = document.createElement('div');
         row.className = 'chapter-row';
-        let subParts = [], latParts = [], customTitle = '';
+        let latParts = [], subParts = [], op3Parts = [], op4Parts = [], customTitle = '';
         if(existingEps[i]) {
             latParts = Array.isArray(existingEps[i].link) ? existingEps[i].link : (existingEps[i].link ? [existingEps[i].link] : []);
             subParts = Array.isArray(existingEps[i].link2) ? existingEps[i].link2 : (existingEps[i].link2 ? [existingEps[i].link2] : []);
+            op3Parts = Array.isArray(existingEps[i].link3) ? existingEps[i].link3 : (existingEps[i].link3 ? [existingEps[i].link3] : []);
+            op4Parts = Array.isArray(existingEps[i].link4) ? existingEps[i].link4 : (existingEps[i].link4 ? [existingEps[i].link4] : []);
             if(!['Temporada', 'Spin-Off'].includes(type)) customTitle = existingEps[i].title;
         } else if(currentData[i]) {
             latParts = currentData[i].lat || [];
             subParts = currentData[i].sub || [];
+            op3Parts = currentData[i].op3 || [];
+            op4Parts = currentData[i].op4 || [];
             customTitle = currentData[i].title;
         }
         let currentNum = startNum + i;
@@ -829,29 +877,26 @@ function renderChapters(input, existingEps = []) {
         let titlePlaceholder = titleInputDisabled ? `Capítulo ${currentNum}` : "Nombre (ej: El viaje...)";
         if(titleInputDisabled) customTitle = `Capítulo ${currentNum}`;
         
-        let latPartsHtml = '';
-        if(latParts.length === 0) {
-            latPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-lat-part" placeholder="Parte 1 (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
-        } else {
-            latParts.forEach((part, idx) => {
-                latPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-lat-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Latino)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
-                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
-                </div>`;
-            });
+        // Funciones auxiliares para generar HTML de partes
+        function buildPartsHtml(parts, inputClass, placeholderBase) {
+            if(parts.length === 0) {
+                return `<div class="part-input-group"><input type="text" class="${inputClass}" placeholder="${placeholderBase} 1" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
+            } else {
+                let html = '';
+                parts.forEach((part, idx) => {
+                    html += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
+                        <input type="text" class="${inputClass}" value="${escapeHtml(part)}" placeholder="${placeholderBase} ${idx+1}" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
+                        <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
+                    </div>`;
+                });
+                return html;
+            }
         }
-        
-        let subPartsHtml = '';
-        if(subParts.length === 0) {
-            subPartsHtml = `<div class="part-input-group"><input type="text" class="c-link-sub-part" placeholder="Parte 1 (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1"></div>`;
-        } else {
-            subParts.forEach((part, idx) => {
-                subPartsHtml += `<div class="part-input-group" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" class="c-link-sub-part" value="${escapeHtml(part)}" placeholder="Parte ${idx+1} (Sub)" oninput="requestPreviewUpdate()" onblur="smartLinkConvert(this)" style="flex:1">
-                    <button type="button" class="btn-mini-del" onclick="this.parentElement.remove(); requestPreviewUpdate()" style="width:auto; padding:0 10px;">✖</button>
-                </div>`;
-            });
-        }
+
+        let latPartsHtml = buildPartsHtml(latParts, 'c-link-lat-part', 'Parte (Latino)');
+        let subPartsHtml = buildPartsHtml(subParts, 'c-link-sub-part', 'Parte (Opción 2)');
+        let op3PartsHtml = buildPartsHtml(op3Parts, 'c-link-op3-part', 'Parte (Opción 3)');
+        let op4PartsHtml = buildPartsHtml(op4Parts, 'c-link-op4-part', 'Parte (Opción 4)');
         
         row.innerHTML = `
             <div class="chapter-header"><span class="chapter-num">CAPÍTULO ${currentNum}</span></div>
@@ -868,6 +913,20 @@ function renderChapters(input, existingEps = []) {
                     <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'sub')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
                 </div>
                 <div class="sub-parts-container">${subPartsHtml}</div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:#ffaa00;">🔶 Opción 3 (múltiples partes)</strong>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'op3')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
+                </div>
+                <div class="op3-parts-container">${op3PartsHtml}</div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:#00ff9d;">🟢 Opción 4 (múltiples partes)</strong>
+                    <button type="button" class="btn-mini-del" onclick="addPartToChapter(this, 'op4')" style="width:auto; padding:4px 12px;">+ Agregar parte</button>
+                </div>
+                <div class="op4-parts-container">${op4PartsHtml}</div>
             </div>
             <input type="text" class="c-title-ov" value="${escapeHtml(customTitle)}" ${titleInputDisabled} placeholder="${titlePlaceholder}" oninput="requestPreviewUpdate()" style="margin-top:5px; font-size:0.9em; border-color:#333; background:#111;">
         `;
@@ -958,7 +1017,6 @@ function updateWebPreview() {
                 const div = document.createElement('div');
                 div.className = 'preview-s-item';
                 let label = '';
-                // Para Película, mostramos "Película" aunque tenga varios capítulos internos
                 if (type === 'Pelicula') {
                     label = `Película`;
                 } else if (['Temporada', 'Spin-Off', 'Tráiler'].includes(type)) {
@@ -1071,7 +1129,7 @@ function _performFilter() {
     }
 }
 
-// ---- Cargar anime para edición (incluye sincronización de toggles) ----
+// ---- Cargar anime para edición (incluye sincronización de toggles y ahora soporta link3 y link4) ----
 async function loadAnimeForEditing(id) {
     if(!confirm("¿Cargar anime? Se perderán los datos actuales del formulario.")) return;
     closeSearchModal();
@@ -1194,7 +1252,7 @@ function exitEditMode() {
 }
 
 // ============================================
-// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES, TRÁILER, isAiring, ONA)
+// GENERAR DATOS (MODIFICADO PARA MÚLTIPLES PARTES, TRÁILER, isAiring, ONA y ahora link3 y link4)
 // ============================================
 function generateData() {
     const selectedGenres = [];
@@ -1262,6 +1320,16 @@ function generateData() {
                 const val = inp.value.trim();
                 if(val) subParts.push(val);
             });
+            const op3Parts = [];
+            row.querySelectorAll('.c-link-op3-part').forEach(inp => {
+                const val = inp.value.trim();
+                if(val) op3Parts.push(val);
+            });
+            const op4Parts = [];
+            row.querySelectorAll('.c-link-op4-part').forEach(inp => {
+                const val = inp.value.trim();
+                if(val) op4Parts.push(val);
+            });
             
             let customTitleInput = row.querySelector('.c-title-ov').value.trim();
             let playerTitle = "", detailTitle = ""; 
@@ -1288,8 +1356,17 @@ function generateData() {
                 detailTitle = customTitleInput || sName;
                 playerTitle = `${anime.titulo} ${sName}`;
             }
-            if(subParts.length || latParts.length) {
-                eps.push({ num: idx + 1, link: latParts, link2: subParts, title: detailTitle, playerTitle: playerTitle });
+            // Solo agregamos el capítulo si al menos una opción tiene partes
+            if(latParts.length || subParts.length || op3Parts.length || op4Parts.length) {
+                eps.push({ 
+                    num: idx + 1, 
+                    link: latParts, 
+                    link2: subParts, 
+                    link3: op3Parts, 
+                    link4: op4Parts, 
+                    title: detailTitle, 
+                    playerTitle: playerTitle 
+                });
             }
         });
         if(eps.length > 0) {
@@ -1401,7 +1478,13 @@ async function subirAGithHub() {
                 name: t.name,
                 type: t.type,
                 cover: t.cover,
-                eps: t.eps.map(e => ({ title: e.title, link: e.link, link2: e.link2 }))
+                eps: t.eps.map(e => ({ 
+                    title: e.title, 
+                    link: e.link, 
+                    link2: e.link2,
+                    link3: e.link3,
+                    link4: e.link4
+                }))
             }))
         };
         if(nuevoAnime.aliases.length > 0) animeData.aliases = nuevoAnime.aliases;
