@@ -8,9 +8,10 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a cdn49...?download para descarga (evita hotlink_detected)
+// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a cdn49...?download para descarga
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
+// FIX: Descarga de Pixeldrain usando window.open en lugar de fetch (evita el error hotlink_detected)
 
 class VideoPlayer {
   constructor() {
@@ -101,7 +102,7 @@ class VideoPlayer {
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // Primero, si es Pixeldrain, lo convertimos para descarga usando el proxy (evita hotlink_detected)
+    // Primero, si es Pixeldrain, lo convertimos para descarga usando el proxy
     if (url.includes('pixeldrain.com')) {
       return this.convertPixeldrainUrl(url, true);
     }
@@ -316,7 +317,8 @@ class VideoPlayer {
       for (let i = 0; i < urlsToDownload.length; i++) {
         const url = urlsToDownload[i];
         
-        if (this.isDoomStreamUrl(url)) {
+        // ===== NUEVO: Si es DoomStream o Pixeldrain, abrir en nueva pestaña =====
+        if (this.isDoomStreamUrl(url) || url.includes('pixeldrain.eu.cc')) {
           window.open(url, '_blank');
           continue;
         }
