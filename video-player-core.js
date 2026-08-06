@@ -7,7 +7,7 @@
 // NUEVO: Conversión de mp4upload embed a directo para descarga
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
-// FIX: Se usa <source> con referrerpolicy="no-referrer" para evitar bloqueo de hotlinking (igual que en aa.html)
+// FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
 
 class VideoPlayer {
   constructor() {
@@ -109,6 +109,18 @@ class VideoPlayer {
     }
   }
 
+  // ===== NUEVA FUNCIÓN: detecta si una URL debe ser tratada como video =====
+  isVideoUrl(url) {
+    if (!url) return false;
+    // Extensiones comunes
+    if (/\.(mp4|webm|ogg|mov|m3u8)$/i.test(url)) return true;
+    // Dominios conocidos que sirven video sin extensión (PixelDrain, etc.)
+    if (url.includes('pixeldrain.eu.cc') || url.includes('pixeldrain.com')) return true;
+    if (url.includes('catbox.moe') && /\.(mp4|webm|ogg|mov)$/i.test(url)) return true;
+    // Puedes agregar más dominios si los usas
+    return false;
+  }
+
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
     const url = urlsArray[partIndex];
@@ -117,28 +129,27 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     
-    const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
-    if (isVideoFile && !url.includes('drive.google.com')) {
+    // Usamos la nueva función para detectar si es video
+    if (this.isVideoUrl(url) && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
       
-      // 🔥 SOLUCIÓN DEFINITIVA: usar <source> con referrerpolicy="no-referrer"
+      // Crear <source> con referrerpolicy="no-referrer" para evitar bloqueo
       const source = document.createElement('source');
       source.src = url;
-      // Detectamos el tipo MIME según la extensión
+      // Intentar determinar el tipo MIME, por defecto video/mp4
       let type = 'video/mp4';
       if (url.endsWith('.webm')) type = 'video/webm';
       else if (url.endsWith('.ogg')) type = 'video/ogg';
       else if (url.endsWith('.mov')) type = 'video/quicktime';
       else if (url.endsWith('.m3u8')) type = 'application/vnd.apple.mpegurl';
       source.type = type;
-      source.referrerPolicy = 'no-referrer'; // <-- CLAVE: igual que en aa.html
+      source.referrerPolicy = 'no-referrer'; // <--- CLAVE para evitar el bloqueo de hotlinking
       
       video.appendChild(source);
-      // También por si acaso en el video
-      video.referrerPolicy = 'no-referrer';
+      video.referrerPolicy = 'no-referrer'; // por si acaso
       
       container.appendChild(video);
       this.currentVideoElement = video;
@@ -153,6 +164,7 @@ class VideoPlayer {
       };
       video.addEventListener('ended', onEnded, { once: true });
     } else {
+      // Si no es video, usar iframe (para enlaces de streaming como mp4upload, etc.)
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
