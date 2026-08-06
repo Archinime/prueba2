@@ -7,7 +7,7 @@
 // NUEVO: Conversión de mp4upload embed a directo para descarga
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
-// FIX: Añadido referrerpolicy="no-referrer" al video para evitar bloqueo de hotlinking en proxies como pixeldrain
+// FIX: Se usa <source> con referrerpolicy="no-referrer" para evitar bloqueo de hotlinking (igual que en aa.html)
 
 class VideoPlayer {
   constructor() {
@@ -120,15 +120,30 @@ class VideoPlayer {
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
-      video.src = url;
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
-      // ⭐ SOLUCIÓN PARA EVITAR BLOQUEO DE HOTLINKING EN PIXELDRAIN Y PROXIES
+      
+      // 🔥 SOLUCIÓN DEFINITIVA: usar <source> con referrerpolicy="no-referrer"
+      const source = document.createElement('source');
+      source.src = url;
+      // Detectamos el tipo MIME según la extensión
+      let type = 'video/mp4';
+      if (url.endsWith('.webm')) type = 'video/webm';
+      else if (url.endsWith('.ogg')) type = 'video/ogg';
+      else if (url.endsWith('.mov')) type = 'video/quicktime';
+      else if (url.endsWith('.m3u8')) type = 'application/vnd.apple.mpegurl';
+      source.type = type;
+      source.referrerPolicy = 'no-referrer'; // <-- CLAVE: igual que en aa.html
+      
+      video.appendChild(source);
+      // También por si acaso en el video
       video.referrerPolicy = 'no-referrer';
+      
       container.appendChild(video);
       this.currentVideoElement = video;
       this.updateLogoBlocker(url);
+      
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
           this.playPart(partIndex + 1, urlsArray);
