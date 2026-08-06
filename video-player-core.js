@@ -8,7 +8,7 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a api/file/...?download para descarga
+// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a cdn49...?download para descarga (evita hotlink_detected)
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 
@@ -73,7 +73,8 @@ class VideoPlayer {
     if (uMatch) {
       const id = uMatch[1];
       if (forDownload) {
-        return `https://pixeldrain.com/api/file/${id}?download`;
+        // Usamos el mismo proxy para descarga, añadiendo ?download para forzar la descarga
+        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}?download`;
       } else {
         // Para reproducción usamos el proxy cdn49
         return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
@@ -84,9 +85,9 @@ class VideoPlayer {
     if (apiMatch) {
       const id = apiMatch[1];
       if (forDownload) {
-        // Asegurar que tenga ?download
+        // Si ya tiene ?download lo dejamos, sino lo añadimos
         if (!url.includes('?download')) {
-          return `https://pixeldrain.com/api/file/${id}?download`;
+          return `https://cdn49.pixeldrain.eu.cc/api/file/${id}?download`;
         }
         return url;
       } else {
@@ -100,7 +101,7 @@ class VideoPlayer {
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // Primero, si es Pixeldrain, lo convertimos para descarga
+    // Primero, si es Pixeldrain, lo convertimos para descarga usando el proxy (evita hotlink_detected)
     if (url.includes('pixeldrain.com')) {
       return this.convertPixeldrainUrl(url, true);
     }
