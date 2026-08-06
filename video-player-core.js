@@ -7,6 +7,7 @@
 // NUEVO: Conversión de mp4upload embed a directo para descarga
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
+// FIX: Añadido referrerpolicy="no-referrer" al video para evitar bloqueo de hotlinking en proxies como pixeldrain
 
 class VideoPlayer {
   constructor() {
@@ -123,6 +124,8 @@ class VideoPlayer {
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
+      // ⭐ SOLUCIÓN PARA EVITAR BLOQUEO DE HOTLINKING EN PIXELDRAIN Y PROXIES
+      video.referrerPolicy = 'no-referrer';
       container.appendChild(video);
       this.currentVideoElement = video;
       this.updateLogoBlocker(url);
