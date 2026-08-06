@@ -8,6 +8,9 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
+// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a api/file/...?download para descarga
+// MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
+// MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 
 class VideoPlayer {
   constructor() {
@@ -62,9 +65,46 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
+  // Convierte la URL para reproducción (play) y para descarga (download)
+  convertPixeldrainUrl(url, forDownload = false) {
+    if (!url) return url;
+    // Si es pixeldrain.com/u/ID
+    const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
+    if (uMatch) {
+      const id = uMatch[1];
+      if (forDownload) {
+        return `https://pixeldrain.com/api/file/${id}?download`;
+      } else {
+        // Para reproducción usamos el proxy cdn49
+        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
+      }
+    }
+    // Si ya es api/file/... (con o sin ?download)
+    const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
+    if (apiMatch) {
+      const id = apiMatch[1];
+      if (forDownload) {
+        // Asegurar que tenga ?download
+        if (!url.includes('?download')) {
+          return `https://pixeldrain.com/api/file/${id}?download`;
+        }
+        return url;
+      } else {
+        // Para reproducción usamos el proxy
+        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
+      }
+    }
+    return url; // no es pixeldrain
+  }
+
   generateDirectLink(url) {
     if (!url) return "#";
     
+    // Primero, si es Pixeldrain, lo convertimos para descarga
+    if (url.includes('pixeldrain.com')) {
+      return this.convertPixeldrainUrl(url, true);
+    }
+
     if (this.isDoomStreamUrl(url)) {
       return url.replace(/\/e\//, '/d/');
     }
@@ -102,10 +142,13 @@ class VideoPlayer {
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
-    if (this.isDoomStreamUrl(url)) {
-      logo.style.display = 'none';
-    } else {
+    // Mostrar solo en Odysee y Google Drive
+    const isOdysee = url && url.includes('odysee.com');
+    const isGoogleDrive = url && (url.includes('drive.google.com') || url.includes('drive.usercontent.google.com'));
+    if (isOdysee || isGoogleDrive) {
       logo.style.display = 'flex';
+    } else {
+      logo.style.display = 'none';
     }
   }
 
@@ -123,8 +166,13 @@ class VideoPlayer {
 
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
-    const url = urlsArray[partIndex];
+    let url = urlsArray[partIndex];
     if (!url) return;
+    
+    // Si es Pixeldrain, convertimos para reproducción (usando el proxy)
+    if (url.includes('pixeldrain.com')) {
+      url = this.convertPixeldrainUrl(url, false);
+    }
     
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
@@ -562,15 +610,16 @@ class VideoPlayer {
     return [];
   }
 
-  // ===== NUEVA FUNCIÓN: PRIORIZAR Y RENOMBRAR OPCIONES =====
+  // ===== FUNCIÓN DE PRIORIZACIÓN MODIFICADA =====
   prioritizeOptions(options) {
-    // Asignar prioridad según el primer enlace de cada opción
+    // Asignar prioridad:
+    // Pixeldrain: 0 (más alta), Google Drive: 2 (más baja), otros: 1
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 1;
       const firstUrl = urls[0] || '';
-      if (firstUrl.includes('mp4upload.com')) return 0;   // mayor prioridad
-      if (firstUrl.includes('drive.google.com')) return 2; // menor prioridad
-      return 1; // otros
+      if (firstUrl.includes('pixeldrain.com')) return 0;   // Pixeldrain primero
+      if (firstUrl.includes('drive.google.com')) return 2; // Google Drive al final
+      return 1; // otros (mp4upload, doodstream, etc.)
     };
 
     // Ordenar por prioridad (ascendente)
@@ -580,8 +629,7 @@ class VideoPlayer {
     const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
     options.forEach((opt, index) => {
       opt.label = labels[index] || `Opción ${index + 1}`;
-      // Guardar la clave original (link, link2, link3, link4) para usarla después
-      opt.originalKey = opt.key; // asumimos que cada opción tiene un 'key'
+      opt.originalKey = opt.key;
     });
 
     return options;
@@ -626,7 +674,7 @@ class VideoPlayer {
       const selected = options[idx];
       if (selected) {
         this.activeOptionLabel = selected.label;
-        this.activeOptionKey = selected.originalKey || 'link'; // usar la clave guardada
+        this.activeOptionKey = selected.originalKey || 'link';
         this.updateDownloadUrls(selected.urls);
         this.playPart(0, selected.urls);
       }
@@ -650,7 +698,6 @@ class VideoPlayer {
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
-    // Usar la clave almacenada (link, link2, link3, link4)
     const key = this.activeOptionKey || 'link';
     return this.normalizeUrls(episodeData[key]);
   }
@@ -881,7 +928,7 @@ class VideoPlayer {
         return;
       }
 
-      // Reordenar y renombrar según prioridad
+      // Reordenar y renombrar según prioridad (Pixeldrain primero, Google Drive último)
       options = this.prioritizeOptions(options);
 
       // Crear el select con las opciones ya ordenadas
