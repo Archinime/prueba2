@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Video - Proxy PixelDrain</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+            text-align: center;
+        }
+        .video-container {
+            background: black;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        video {
+            width: 100%;
+            max-height: 500px;
+            display: block;
+            border-radius: 5px;
+        }
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            text-align: left;
+        }
+        .link-test {
+            margin-top: 15px;
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .link-test:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 Reproductor de Anime</h1>
+    <p>Este video se carga desde un proxy de PixelDrain.</p>
+
+    <div class="video-container">
+        <!-- MÉTODO 1: Reproductor de video con referrerpolicy="no-referrer" -->
+        <video controls playsinline style="width:100%; max-height:500px; background:#000;">
+            <source src="https://cdn49.pixeldrain.eu.cc/api/file/xFKFgG1w" 
+                    type="video/mp4" 
+                    referrerpolicy="no-referrer">
+            Tu navegador no soporta el elemento de video.
+        </video>
+    </div>
+
+    <div class="note">
+        <strong>🔧 ¿Por qué funciona?</strong>
+        <p>El atributo <code>referrerpolicy="no-referrer"</code> en la etiqueta <code>&lt;source&gt;</code> evita que el navegador envíe la cabecera <code>Referer</code> al servidor proxy. Así, el proxy no sabe que vienes de otra página y no te bloquea.</p>
+        <p>Si aún así no carga, puede que el proxy esté caído o haya cambiado de dominio. Esta solución solo funciona con proxies no oficiales como este.</p>
+    </div>
+
+    <!-- MÉTODO 2: Enlace con noreferrer (alternativa para descarga) -->
+    <a href="https://cdn49.pixeldrain.eu.cc/api/file/xFKFgG1w" 
+       target="_blank" 
+       rel="noreferrer" 
+       class="link-test">
+       📥 Descargar o abrir en nueva pestaña (sin referer)
+    </a>
+
+    <p style="margin-top: 30px; font-size: 0.9em; color: #666;">
+        Archivo: Yor X Loid Español Maplestar.mp4
+    </p>
+</body>
+</html>
