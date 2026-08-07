@@ -8,7 +8,7 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a api/file/...?download para descarga
+// MEJORA: Pixeldrain: conversión a cdn49... para reproducción y descarga (evita hotlink_detected)
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 
@@ -65,34 +65,22 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // Convierte la URL para reproducción (play) y para descarga (download)
+  // ===== FIX: Convierte la URL para reproducción y descarga usando el proxy =====
   convertPixeldrainUrl(url, forDownload = false) {
     if (!url) return url;
     // Si es pixeldrain.com/u/ID
     const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
     if (uMatch) {
       const id = uMatch[1];
-      if (forDownload) {
-        return `https://pixeldrain.com/api/file/${id}?download`;
-      } else {
-        // Para reproducción usamos el proxy cdn49
-        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
-      }
+      // Tanto para reproducción como para descarga usamos el proxy
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     // Si ya es api/file/... (con o sin ?download)
     const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
     if (apiMatch) {
       const id = apiMatch[1];
-      if (forDownload) {
-        // Asegurar que tenga ?download
-        if (!url.includes('?download')) {
-          return `https://pixeldrain.com/api/file/${id}?download`;
-        }
-        return url;
-      } else {
-        // Para reproducción usamos el proxy
-        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
-      }
+      // También usamos el proxy para ambos casos
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     return url; // no es pixeldrain
   }
@@ -100,7 +88,7 @@ class VideoPlayer {
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // Primero, si es Pixeldrain, lo convertimos para descarga
+    // Primero, si es Pixeldrain, lo convertimos (ahora siempre devuelve el proxy)
     if (url.includes('pixeldrain.com')) {
       return this.convertPixeldrainUrl(url, true);
     }
