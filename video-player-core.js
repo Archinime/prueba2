@@ -11,7 +11,7 @@
 // MEJORA: Pixeldrain: conversión a cdn49... para reproducción y a cdn49...?download para descarga
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
-// FIX: Descarga de Pixeldrain usando window.open en lugar de fetch (evita el error hotlink_detected)
+// FIX DEFINITIVO: Descarga de Pixeldrain usando window.open con la URL exacta del proxy (evita hotlink_detected)
 
 class VideoPlayer {
   constructor() {
@@ -96,14 +96,21 @@ class VideoPlayer {
         return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
       }
     }
+    // Si ya es cdn49... lo devolvemos tal cual
+    if (url.includes('cdn49.pixeldrain.eu.cc')) {
+      if (forDownload && !url.includes('?download')) {
+        return url + '?download';
+      }
+      return url;
+    }
     return url; // no es pixeldrain
   }
 
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // Primero, si es Pixeldrain, lo convertimos para descarga usando el proxy
-    if (url.includes('pixeldrain.com')) {
+    // Pixeldrain: siempre convertir a proxy con ?download
+    if (url.includes('pixeldrain.com') || url.includes('pixeldrain.eu.cc')) {
       return this.convertPixeldrainUrl(url, true);
     }
 
@@ -317,8 +324,27 @@ class VideoPlayer {
       for (let i = 0; i < urlsToDownload.length; i++) {
         const url = urlsToDownload[i];
         
-        // ===== NUEVO: Si es DoomStream o Pixeldrain, abrir en nueva pestaña =====
-        if (this.isDoomStreamUrl(url) || url.includes('pixeldrain.eu.cc')) {
+        // ===== SOLUCIÓN DEFINITIVA PARA PIXELDRAIN =====
+        // Si es Pixeldrain (proxy), abrir en nueva pestaña con la URL exacta
+        if (url.includes('pixeldrain.eu.cc') || url.includes('pixeldrain.com')) {
+          // Asegurar que tenga ?download
+          let downloadUrl = url;
+          if (!downloadUrl.includes('?download')) {
+            // Si es cdn49... añadir ?download
+            if (downloadUrl.includes('cdn49.pixeldrain.eu.cc')) {
+              downloadUrl = downloadUrl + '?download';
+            } else {
+              // Si es el original, convertirlo a proxy con ?download
+              downloadUrl = this.convertPixeldrainUrl(downloadUrl, true);
+            }
+          }
+          console.log('Abriendo descarga de Pixeldrain:', downloadUrl);
+          window.open(downloadUrl, '_blank');
+          continue;
+        }
+        
+        // Para DoomStream, abrir en nueva pestaña
+        if (this.isDoomStreamUrl(url)) {
           window.open(url, '_blank');
           continue;
         }
