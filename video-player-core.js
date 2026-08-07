@@ -8,7 +8,7 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: proxy para reproducción (cdn49...), en descarga se usa el enlace original sin conversión
+// MEJORA: Pixeldrain: uso de la API oficial para reproducción (pixeldrain.com/api/file/ID)
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
@@ -66,21 +66,21 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ===== CONVERSIÓN DE PIXELDRAIN SOLO PARA REPRODUCCIÓN (proxy) =====
+  // ===== CONVERSIÓN DE PIXELDRAIN (usa la API oficial) =====
   convertPixeldrainUrl(url, forDownload = false) {
     if (!url) return url;
     // Si es pixeldrain.com/u/ID
     const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
     if (uMatch) {
       const id = uMatch[1];
-      // forDownload ya no se usa para conversión, solo reproducción
-      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
+      // Para reproducción usamos la API oficial
+      return `https://pixeldrain.com/api/file/${id}`;
     }
     // Si ya es api/file/...
     const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
     if (apiMatch) {
       const id = apiMatch[1];
-      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
+      return `https://pixeldrain.com/api/file/${id}`;
     }
     return url; // no es pixeldrain
   }
@@ -88,7 +88,6 @@ class VideoPlayer {
   // Esta función ya no se usa para descarga (solo se mantiene por si acaso)
   generateDirectLink(url) {
     if (!url) return "#";
-    
     // Ya no se convierte para descarga, se devuelve el original
     return url;
   }
@@ -112,9 +111,8 @@ class VideoPlayer {
     // Extensiones comunes
     if (/\.(mp4|webm|ogg|mov|m3u8)$/i.test(url)) return true;
     // Dominios conocidos que sirven video sin extensión (PixelDrain, etc.)
-    if (url.includes('pixeldrain.eu.cc') || url.includes('pixeldrain.com')) return true;
+    if (url.includes('pixeldrain.com') || url.includes('pixeldrain.eu.cc')) return true;
     if (url.includes('catbox.moe') && /\.(mp4|webm|ogg|mov)$/i.test(url)) return true;
-    // Puedes agregar más dominios si los usas
     return false;
   }
 
@@ -123,7 +121,7 @@ class VideoPlayer {
     let url = urlsArray[partIndex];
     if (!url) return;
     
-    // Si es Pixeldrain, convertimos para reproducción (usando el proxy)
+    // Si es Pixeldrain, convertimos para reproducción (usando la API oficial)
     if (url.includes('pixeldrain.com')) {
       url = this.convertPixeldrainUrl(url, false);
     }
@@ -179,7 +177,7 @@ class VideoPlayer {
     }
   }
 
-  // ===== NUEVO: handleDownloadClick simplemente abre los enlaces originales en nueva pestaña =====
+  // ===== handleDownloadClick: abre los enlaces originales en nueva pestaña =====
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
