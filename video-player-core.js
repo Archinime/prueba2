@@ -8,9 +8,10 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: proxy para reproducción, API directa con ?download para descarga (según solicitud)
+// MEJORA: Pixeldrain: proxy para reproducción (cdn49...), en descarga se usa el enlace original sin conversión
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
+// CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
 
 class VideoPlayer {
   constructor() {
@@ -65,78 +66,30 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ===== CONVERSIÓN DE PIXELDRAIN: Proxy para reproducción, API directa para descarga =====
+  // ===== CONVERSIÓN DE PIXELDRAIN SOLO PARA REPRODUCCIÓN (proxy) =====
   convertPixeldrainUrl(url, forDownload = false) {
     if (!url) return url;
     // Si es pixeldrain.com/u/ID
     const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
     if (uMatch) {
       const id = uMatch[1];
-      if (forDownload) {
-        // Descarga: API oficial con ?download
-        return `https://pixeldrain.com/api/file/${id}?download`;
-      } else {
-        // Reproducción: proxy para evitar bloqueos
-        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
-      }
+      // forDownload ya no se usa para conversión, solo reproducción
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     // Si ya es api/file/...
     const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
     if (apiMatch) {
       const id = apiMatch[1];
-      if (forDownload) {
-        // Asegurar que tenga ?download
-        if (!url.includes('?download')) {
-          return `https://pixeldrain.com/api/file/${id}?download`;
-        }
-        return url;
-      } else {
-        // Reproducción: proxy
-        return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
-      }
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     return url; // no es pixeldrain
   }
 
+  // Esta función ya no se usa para descarga (solo se mantiene por si acaso)
   generateDirectLink(url) {
     if (!url) return "#";
     
-    // Pixeldrain -> usa la función específica (con ?download para descarga)
-    if (url.includes('pixeldrain.com')) {
-      return this.convertPixeldrainUrl(url, true);
-    }
-
-    if (this.isDoomStreamUrl(url)) {
-      return url.replace(/\/e\//, '/d/');
-    }
-
-    if (url.includes('mp4upload.com/embed-')) {
-      const match = url.match(/embed-([^\.]+)(\.html)?/);
-      if (match && match[1]) {
-        return `https://www.mp4upload.com/${match[1]}`;
-      }
-    }
-
-    if (url.includes("drive.google.com")) {
-      const match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-      const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-      if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-    }
-    if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
-    if (url.includes("ok.ru/")) {
-      const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-      if (match && match[1]) return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
-    }
-    if (url.includes("odysee.com")) {
-      let claimStr = url.split("/embed/")[1];
-      if (claimStr) {
-        if (claimStr.includes('/')) claimStr = claimStr.split('/').pop();
-        claimStr = claimStr.replace(':', '/');
-        return `https://odysee.com/$/download/${claimStr}`;
-      }
-      return url;
-    }
+    // Ya no se convierte para descarga, se devuelve el original
     return url;
   }
 
@@ -226,51 +179,7 @@ class VideoPlayer {
     }
   }
 
-  async forceDownload(url, suggestedFilename = 'video.mp4') {
-    this.showProgressBar();
-    const percentSpan = document.getElementById('progressPercent');
-    const fillDiv = document.getElementById('progressBarFill');
-
-    try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      let loaded = 0;
-
-      const reader = response.body.getReader();
-      const chunks = [];
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.length;
-        if (total) {
-          const percent = Math.round((loaded / total) * 100);
-          if (percentSpan) percentSpan.innerText = percent;
-          if (fillDiv) fillDiv.style.width = percent + '%';
-        } else {
-          if (percentSpan) percentSpan.innerText = '...';
-        }
-      }
-      const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/mp4' });
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = suggestedFilename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.warn(error);
-      // Fallback: abre el enlace en una nueva pestaña (funciona con la API directa de Pixeldrain)
-      window.open(url, '_blank');
-    } finally {
-      // La barra se oculta en handleDownloadClick
-    }
-  }
-
+  // ===== NUEVO: handleDownloadClick simplemente abre los enlaces originales en nueva pestaña =====
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
@@ -288,7 +197,7 @@ class VideoPlayer {
     if (this.currentPeerTubeUrl) {
       const fallbackUrls = this.getActiveEpisodeUrls();
       if (fallbackUrls.length > 0) {
-        urlsToDownload = fallbackUrls.map(url => this.generateDirectLink(url));
+        urlsToDownload = fallbackUrls; // sin conversión
       } else {
         alert('No hay enlace alternativo para PeerTube.');
         return;
@@ -299,61 +208,12 @@ class VideoPlayer {
       alert('No hay enlace de descarga disponible.');
       return;
     }
-    
-    const epTitleElem = document.getElementById('epTitle');
-    let baseFilename = epTitleElem ? epTitleElem.innerText : 'video';
-    baseFilename = baseFilename.replace(/[^a-z0-9ñáéíóúü \-_]/gi, '').replace(/\s+/g, '_');
 
-    this.isDownloading = true;
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
-      downloadBtn.disabled = true;
-      downloadBtn.style.opacity = '0.6';
-      downloadBtn.style.cursor = 'not-allowed';
-      downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Descargando...';
-    }
-
-    try {
-      for (let i = 0; i < urlsToDownload.length; i++) {
-        const url = urlsToDownload[i];
-        
-        if (this.isDoomStreamUrl(url)) {
-          window.open(url, '_blank');
-          continue;
-        }
-
-        const isCatbox = url.includes('catbox.moe');
-        const isCrossOrigin = !url.startsWith(location.origin);
-        
-        let filename = `${baseFilename}`;
-        if (urlsToDownload.length > 1) {
-          filename = `${baseFilename}_parte${i+1}.mp4`;
-        } else {
-          filename = `${baseFilename}.mp4`;
-        }
-        
-        if (isCatbox || isCrossOrigin) {
-          await this.forceDownload(url, filename);
-        } else {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          link.target = this.isMobile() ? '_blank' : '_self';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          await new Promise(r => setTimeout(r, 500));
-        }
+    // Abrir cada URL en una nueva pestaña
+    for (const url of urlsToDownload) {
+      if (url && url !== '#') {
+        window.open(url, '_blank');
       }
-    } finally {
-      this.isDownloading = false;
-      if (downloadBtn) {
-        downloadBtn.disabled = false;
-        downloadBtn.style.opacity = '1';
-        downloadBtn.style.cursor = 'pointer';
-        downloadBtn.innerHTML = '⬇ Descargar';
-      }
-      this.hideProgressBar();
     }
   }
 
@@ -687,7 +547,8 @@ class VideoPlayer {
   }
 
   updateDownloadUrls(urls) {
-    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
+    // Guardamos las URLs originales sin ninguna conversión
+    this.currentDownloadUrls = urls;
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
 
@@ -704,6 +565,7 @@ class VideoPlayer {
     return this.normalizeUrls(episodeData[key]);
   }
 
+  // Estas funciones ya no se usan para descarga, pero se mantienen por si acaso
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
