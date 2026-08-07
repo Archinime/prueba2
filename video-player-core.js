@@ -325,7 +325,7 @@ class VideoPlayer {
         const url = urlsToDownload[i];
         
         // ===== SOLUCIÓN DEFINITIVA PARA PIXELDRAIN =====
-        // Si es Pixeldrain (proxy), abrir en nueva pestaña con la URL exacta
+        // Si es Pixeldrain (proxy o dominio original), abrir en nueva pestaña
         if (url.includes('pixeldrain.eu.cc') || url.includes('pixeldrain.com')) {
           // Asegurar que tenga ?download
           let downloadUrl = url;
@@ -334,11 +334,11 @@ class VideoPlayer {
             if (downloadUrl.includes('cdn49.pixeldrain.eu.cc')) {
               downloadUrl = downloadUrl + '?download';
             } else {
-              // Si es el original, convertirlo a proxy con ?download
+              // Convertir usando la función (para pixeldrain.com/u/ID)
               downloadUrl = this.convertPixeldrainUrl(downloadUrl, true);
             }
           }
-          console.log('Abriendo descarga de Pixeldrain:', downloadUrl);
+          console.log('Abriendo descarga de Pixeldrain en nueva pestaña:', downloadUrl);
           window.open(downloadUrl, '_blank');
           continue;
         }
