@@ -13,6 +13,7 @@
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
 // NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana
+// FIX: Centrado del botón PLAY mediante position:absolute dentro del player-wrapper
 
 class VideoPlayer {
   constructor() {
@@ -118,17 +119,20 @@ class VideoPlayer {
 
     // ===== NUEVO: Si es Pixeldrain, mostrar botón PLAY centrado =====
     if (originalUrl.includes('pixeldrain.com')) {
-      // Crear contenedor para el botón con flex para centrar
+      // Contenedor con posición absoluta para ocupar todo el player-wrapper
       const wrapper = document.createElement('div');
       wrapper.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 100%;
-        height: 100%;
-        min-height: 400px;
         background: #0b0b0b;
+        z-index: 1;
       `;
 
       // Botón circular rojo con triángulo
