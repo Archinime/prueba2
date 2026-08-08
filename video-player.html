@@ -6,6 +6,7 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
+  <!-- Tema dinámico -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -47,6 +48,7 @@
     })();
   </script>
 
+  <!-- Preconexiones -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -55,14 +57,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+  <!-- Firebase -->
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
+  <!-- Librerías y configuraciones -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <script src="dompurify-config.js"></script>
-
   <script src="state.js"></script>
   <script src="app-core.js"></script>
 
@@ -75,6 +78,7 @@
       --glass-bg: rgba(0, 0, 0, 0.7);
       --glass-border: 1px solid rgba(255, 255, 255, 0.15);
       --radius: 16px;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -114,7 +118,7 @@
     }
     body.is-mobile #overlay { backdrop-filter: blur(2px); }
 
-    /* Pantalla de carga */
+    /* ===== PANTALLA DE CARGA ===== */
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -190,15 +194,23 @@
     }
     .loader-sub { margin-top: 20px; font-size: 0.75rem; color: #aaa; letter-spacing: 1px; display: flex; gap: 12px; justify-content: center; }
     .loader-sub i { color: #bc13fe; }
-    @keyframes floatAnim { 0% { transform: translateY(0px); } 100% { transform: translateY(-12px); } }
+
+    @keyframes floatAnim {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-12px); }
+    }
     @keyframes glitchText {
       0%,100% { opacity: 1; transform: skewX(0deg); }
       94% { opacity: 1; transform: skewX(0deg); }
       96% { opacity: 0.8; transform: skewX(6deg); text-shadow: 2px 0 var(--accent-color), -2px 0 var(--primary-color); }
       98% { opacity: 0.9; transform: skewX(-6deg); text-shadow: -2px 0 var(--accent-color), 2px 0 var(--primary-color); }
     }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
+    /* ===== CONTENEDOR PRINCIPAL ===== */
     .container {
       width: 100%;
       max-width: 1200px;
@@ -212,7 +224,7 @@
       gap: 15px;
     }
 
-    /* ----- BARRA DE NAVEGACIÓN SUPERIOR ----- */
+    /* ===== BARRA DE NAVEGACIÓN ===== */
     .top-nav {
       display: flex;
       justify-content: space-between;
@@ -251,7 +263,6 @@
       transform: translateY(-2px);
     }
 
-    /* Contenedor del select: ocupa el espacio restante y se alinea a la derecha */
     .options {
       display: flex;
       flex: 1 1 auto;
@@ -288,6 +299,7 @@
       color: #fff;
     }
 
+    /* ===== REPRODUCTOR ===== */
     .player-wrapper {
       position: relative;
       padding-bottom: 56.25%;
@@ -298,7 +310,7 @@
       z-index: 50;
       border-radius: var(--radius);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+      box-shadow: var(--shadow);
     }
     .player-wrapper iframe,
     .player-wrapper video {
@@ -373,182 +385,7 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- Banner Brave --- */
-    #braveBanner {
-      display: none;
-      background: linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(188, 19, 254, 0.08));
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      border-radius: var(--radius);
-      padding: 10px 16px;
-      margin: 0 0 15px 0;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      justify-content: center;
-      flex-wrap: wrap;
-      backdrop-filter: blur(4px);
-    }
-    #braveBanner:hover {
-      background: rgba(0, 243, 255, 0.15);
-      border-color: var(--primary-color);
-      box-shadow: 0 0 25px rgba(0, 243, 255, 0.15);
-      transform: scale(1.02);
-    }
-    #braveBanner img {
-      height: 48px;
-      width: 48px;
-      object-fit: contain;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
-    #braveBanner .banner-text {
-      color: #eee;
-      font-weight: 600;
-      font-size: 0.95rem;
-      text-align: center;
-    }
-    #braveBanner .banner-text strong {
-      color: var(--primary-color);
-      font-weight: 800;
-    }
-    #braveBanner .banner-cta {
-      background: var(--primary-color);
-      color: #000;
-      font-weight: 800;
-      padding: 6px 20px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-      transition: 0.2s;
-      border: none;
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-    }
-    #braveBanner .banner-cta:hover {
-      background: #fff;
-      box-shadow: 0 0 20px var(--primary-color);
-      transform: translateY(-2px);
-    }
-    @media (max-width: 768px) {
-      #braveBanner { flex-direction: column; gap: 10px; padding: 12px; }
-      #braveBanner img { height: 40px; width: 40px; }
-      #braveBanner .banner-text { font-size: 0.85rem; }
-    }
-
-    /* --- Modal tutorial --- */
-    #tutorialModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 99999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
-      padding: 20px;
-    }
-    #tutorialModal.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .tutorial-card {
-      background: #0a0a0f;
-      border: 1px solid var(--primary-color);
-      border-radius: 24px;
-      max-width: 800px;
-      width: 100%;
-      max-height: 90vh;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-      transform: scale(0.95) translateY(20px);
-      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-      position: relative;
-    }
-    #tutorialModal.show .tutorial-card {
-      transform: scale(1) translateY(0);
-    }
-    .tutorial-close {
-      position: absolute;
-      top: 12px;
-      right: 16px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      color: #fff;
-      font-size: 1.4rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      transition: 0.3s;
-      backdrop-filter: blur(4px);
-    }
-    .tutorial-close:hover {
-      background: var(--accent-color);
-      border-color: var(--accent-color);
-      transform: rotate(90deg);
-      box-shadow: 0 0 20px var(--accent-color);
-    }
-    .tutorial-video-wrapper {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      background: #000;
-    }
-    .tutorial-video-wrapper video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-    .tutorial-info {
-      padding: 20px 24px 24px;
-      text-align: center;
-    }
-    .tutorial-info h3 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--primary-color);
-      font-size: 1.2rem;
-      margin-bottom: 6px;
-    }
-    .tutorial-info p {
-      color: #aaa;
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-    }
-    .tutorial-info .btn-primary {
-      background: var(--primary-color);
-      color: #000;
-      border: none;
-      padding: 10px 28px;
-      border-radius: 30px;
-      font-weight: 800;
-      font-family: 'Poppins', sans-serif;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.9rem;
-    }
-    .tutorial-info .btn-primary:hover {
-      background: #fff;
-      box-shadow: 0 0 25px var(--primary-color);
-      transform: translateY(-2px);
-    }
-
+    /* ===== BOTONES DE CONTROL ===== */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -604,6 +441,7 @@
 
     .btn-hidden { visibility: hidden; pointer-events: none; }
 
+    /* ===== COMENTARIOS ===== */
     .comentarios-section {
       margin-top: 40px;
       padding: 30px;
@@ -752,47 +590,284 @@
     }
     .empty-comments { text-align: center; padding: 50px 20px; color: #aaa; font-style: italic; font-size: 1.1rem; }
 
-    .sticker-panel-full { display: none; background: #0a0a0f; border: 1px solid var(--primary-color); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+    /* ===== STICKERS ===== */
+    .sticker-panel-full {
+      display: none;
+      background: #0a0a0f;
+      border: 1px solid var(--primary-color);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
     .sticker-panel-full.active { display: block; }
-    .sticker-tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.05); background: #000; }
-    .sticker-tab { flex: 1; padding: 15px 10px; background: none; border: none; color: #aaa; cursor: pointer; font-weight: 600; transition: 0.3s; }
-    .sticker-tab.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background: rgba(0, 243, 255, 0.05); }
-    .sticker-tab-content { display: none; padding: 25px; max-height: 400px; overflow-y: auto; }
+    .sticker-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: #000;
+    }
+    .sticker-tab {
+      flex: 1;
+      padding: 15px 10px;
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .sticker-tab.active {
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      background: rgba(0, 243, 255, 0.05);
+    }
+    .sticker-tab-content {
+      display: none;
+      padding: 25px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
     .sticker-tab-content.active { display: block; }
-    .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .stickers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
     @media (max-width: 768px) { .stickers-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
-    .sticker-item { position: relative; background: rgba(0, 0, 0, 0.6); border-radius: 12px; padding: 10px; cursor: pointer; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); }
-    .sticker-item:hover { background: rgba(0, 243, 255, 0.15); transform: scale(1.05); border-color: var(--primary-color); }
-    .sticker-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; }
-    .sticker-delete-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 26px; height: 26px; font-size: 12px; cursor: pointer; box-shadow: 0 0 10px rgba(255, 0, 85, 0.5); }
+    .sticker-item {
+      position: relative;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .sticker-item:hover {
+      background: rgba(0, 243, 255, 0.15);
+      transform: scale(1.05);
+      border-color: var(--primary-color);
+    }
+    .sticker-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+    }
+    .sticker-delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ff0055;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+    }
 
-    .add-sticker-container { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; background: rgba(0, 0, 0, 0.5); border-radius: var(--radius); border: 2px dashed rgba(0, 255, 247, 0.4); transition: border-color 0.3s, background 0.3s; }
-    .add-sticker-container.drag-over { border-color: var(--primary-color); background: rgba(0, 255, 247, 0.1); box-shadow: 0 0 25px rgba(0, 255, 247, 0.3); }
-    .upload-sticker-label { background: rgba(0, 255, 247, 0.1); border: 2px solid var(--primary-color); color: #00fff7; padding: 12px 30px; border-radius: 30px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; transition: 0.3s; }
-    .upload-sticker-label:hover { background: var(--primary-color); color: #000; box-shadow: 0 0 20px rgba(0, 255, 247, 0.5); transform: translateY(-3px); }
+    .add-sticker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: var(--radius);
+      border: 2px dashed rgba(0, 255, 247, 0.4);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .add-sticker-container.drag-over {
+      border-color: var(--primary-color);
+      background: rgba(0, 255, 247, 0.1);
+      box-shadow: 0 0 25px rgba(0, 255, 247, 0.3);
+    }
+    .upload-sticker-label {
+      background: rgba(0, 255, 247, 0.1);
+      border: 2px solid var(--primary-color);
+      color: #00fff7;
+      padding: 12px 30px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.3s;
+    }
+    .upload-sticker-label:hover {
+      background: var(--primary-color);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
+      transform: translateY(-3px);
+    }
 
-    .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(6px); z-index: 10001; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
+    /* ===== MODAL DE AUTENTICACIÓN ===== */
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(6px);
+      z-index: 10001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+      padding: 20px;
+    }
     body.is-mobile .auth-modal { backdrop-filter: blur(3px); }
     .auth-modal.show { opacity: 1; pointer-events: auto; }
-    .auth-card { background: #0a0a0f; border: 1px solid #bc13fe; border-radius: 20px; width: 100%; max-width: 400px; padding: 35px; position: relative; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9); }
-    .auth-close { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: #888; transition: 0.2s; }
+    .auth-card {
+      background: #0a0a0f;
+      border: 1px solid #bc13fe;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 35px;
+      position: relative;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9);
+    }
+    .auth-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #888;
+      transition: 0.2s;
+    }
     .auth-close:hover { color: var(--accent-color); transform: rotate(90deg); }
-    .auth-tabs { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .auth-tab { padding: 10px 0; cursor: pointer; font-weight: 800; color: #aaa; border-bottom: 2px solid transparent; transition: 0.3s; }
-    .auth-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-    .auth-form { display: flex; flex-direction: column; gap: 15px; }
-    .auth-form input { background: #101016; border: 1px solid #2a2b35; padding: 16px; border-radius: 10px; color: white; font-family: 'Poppins'; }
-    .auth-form button { background: var(--primary-color); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.2s; font-family: 'Poppins'; letter-spacing: 1px; }
-    .auth-form button:hover { background: #fff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); transform: translateY(-2px); }
+    .auth-tabs {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .auth-tab {
+      padding: 10px 0;
+      cursor: pointer;
+      font-weight: 800;
+      color: #aaa;
+      border-bottom: 2px solid transparent;
+      transition: 0.3s;
+    }
+    .auth-tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .auth-form input {
+      background: #101016;
+      border: 1px solid #2a2b35;
+      padding: 16px;
+      border-radius: 10px;
+      color: white;
+      font-family: 'Poppins';
+    }
+    .auth-form button {
+      background: var(--primary-color);
+      color: #000;
+      border: none;
+      padding: 16px;
+      border-radius: 10px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: 'Poppins';
+      letter-spacing: 1px;
+    }
+    .auth-form button:hover {
+      background: #fff;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+      transform: translateY(-2px);
+    }
     .auth-providers { margin-top: 20px; }
-    .provider-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; color: white; font-weight: 600; transition: 0.2s; }
-    .provider-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary-color); }
-    .auth-error { color: #ff4757; font-size: 0.9rem; margin-top: 15px; text-align: center; font-weight: 600; }
+    .provider-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      color: white;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .provider-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary-color);
+    }
+    .auth-error {
+      color: #ff4757;
+      font-size: 0.9rem;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
 
-    .comentario-sticker-preview { margin: 12px 0; padding: 8px; background: rgba(0, 0, 0, 0.4); border-radius: var(--radius); border: 1px solid rgba(0, 243, 255, 0.3); display: flex; align-items: center; gap: 12px; max-width: 100%; overflow: hidden; }
-    .preview-sticker-wrapper { position: relative; display: inline-block; max-width: 80px; max-height: 80px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 1px solid var(--primary-color); }
-    .preview-sticker-wrapper img, .preview-sticker-wrapper video { width: auto; height: auto; max-width: 80px; max-height: 80px; object-fit: contain; display: block; margin: 0 auto; }
-    .remove-sticker-btn { position: absolute; top: -8px; right: -8px; background: #ff0055; border: none; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(255,0,85,0.6); transition: transform 0.2s; }
+    /* ===== PREVIEW DE STICKER EN COMENTARIO ===== */
+    .comentario-sticker-preview {
+      margin: 12px 0;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: var(--radius);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .preview-sticker-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 80px;
+      max-height: 80px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--primary-color);
+    }
+    .preview-sticker-wrapper img,
+    .preview-sticker-wrapper video {
+      width: auto;
+      height: auto;
+      max-width: 80px;
+      max-height: 80px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    .remove-sticker-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ff0055;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(255,0,85,0.6);
+      transition: transform 0.2s;
+    }
     .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
 
     /* ===== RESPONSIVE ===== */
@@ -829,8 +904,8 @@
       .comentario-form-container { padding: 18px; }
       .sticker-btn { padding: 12px; }
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
-      .preview-sticker-wrapper img, .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
-      .tutorial-card { max-width: 100%; }
+      .preview-sticker-wrapper img,
+      .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
     }
 
     @media (max-width: 480px) {
@@ -841,6 +916,7 @@
 </head>
 <body>
 
+<!-- PANTALLA DE CARGA -->
 <div id="loadingScreen">
   <div class="loader-content">
     <div class="gif-wrapper">
@@ -860,12 +936,16 @@
   </div>
 </div>
 
+<!-- VIDEO DE FONDO -->
 <video id="bg-video" autoplay muted loop playsinline poster="galaxia-morado1.avif">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
 <div id="overlay"></div>
 
+<!-- CONTENEDOR PRINCIPAL -->
 <div class="container">
+
+  <!-- BARRA DE NAVEGACIÓN -->
   <div class="top-nav">
     <a href="#" id="backLink" class="back-btn">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -874,6 +954,7 @@
     <div class="options" id="serverOptions"></div>
   </div>
 
+  <!-- REPRODUCTOR -->
   <div class="player-wrapper" id="playerContainer">
     <div class="logo-blocker">
       <div class="blocker-content">
@@ -886,20 +967,14 @@
 
   <h1 id="epTitle">Cargando...</h1>
 
-  <div id="braveBanner">
-    <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/ads.avif" alt="Brave Browser" loading="lazy">
-    <span class="banner-text">
-      📺 <strong>¿Anuncios molestos?</strong> Mira este tutorial para ver sin interrupciones
-    </span>
-    <button class="banner-cta" id="openTutorialBtn">▶ Ver Tutorial</button>
-  </div>
-
+  <!-- CONTROLES -->
   <div class="controls">
     <a id="prevBtn" class="btn nav-btn btn-hidden">⏮ Ant.</a>
     <button id="downloadBtn" class="btn">⬇ Descargar</button>
     <a id="nextBtn" class="btn nav-btn btn-hidden">Sig. ⏭</a>
   </div>
 
+  <!-- SECCIÓN DE COMENTARIOS -->
   <div class="comentarios-section">
     <div class="comentarios-header">
       <i class="fas fa-comments"></i>
@@ -971,23 +1046,7 @@
   </div>
 </div>
 
-<div id="tutorialModal">
-  <div class="tutorial-card">
-    <button class="tutorial-close" id="closeTutorialBtn">&times;</button>
-    <div class="tutorial-video-wrapper">
-      <video id="tutorialVideo" controls playsinline>
-        <source src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/tutorial.mp4" type="video/mp4">
-        Tu navegador no soporta la reproducción de video.
-      </video>
-    </div>
-    <div class="tutorial-info">
-      <h3>📺 Ver sin anuncios</h3>
-      <p>Descubre cómo instalar Brave y la PWA de Archinime para una experiencia sin interrupciones.</p>
-      <button class="btn-primary" id="closeTutorialBtn2">Cerrar</button>
-    </div>
-  </div>
-</div>
-
+<!-- MODAL DE AUTENTICACIÓN -->
 <div id="authModal" class="auth-modal">
   <div class="auth-card">
     <div class="auth-close" onclick="window.videoPlayer?.closeAuthModal()">&times;</div>
@@ -1015,6 +1074,7 @@
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <script src="catalogo.js"></script>
 <script defer src="stickers-system.js"></script>
 <script defer src="reacciones.js"></script>
@@ -1023,7 +1083,7 @@
 <script src="gifs.js"></script>
 
 <script>
-  // Drag & Drop stickers
+  // Drag & Drop para stickers
   (function() {
     const dropZone = document.getElementById('dragDropZone');
     const fileInput = document.getElementById('stickerFileInput');
@@ -1062,7 +1122,7 @@
     };
   })();
 
-  // GIF aleatorio
+  // GIF aleatorio para la carga
   if (typeof listaDeGifs !== 'undefined' && listaDeGifs.length > 0) {
     const gifElegido = listaDeGifs[Math.floor(Math.random() * listaDeGifs.length)];
     document.getElementById('personaje-gif').src = gifElegido;
@@ -1128,5 +1188,6 @@
     setTimeout(() => { updateProgress(100); finishLoading(); }, 800);
   });
 </script>
+
 </body>
 </html>
