@@ -13,6 +13,7 @@
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar abre enlaces directos de DoodStream, mp4upload y Google Drive, y original para Pixeldrain
 // NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana (centrado)
+// FIX: Extracción correcta del código para mp4upload (sin /embed- ni /d-)
 
 class VideoPlayer {
   constructor() {
@@ -87,14 +88,18 @@ class VideoPlayer {
   getDirectDownloadUrl(url) {
     if (!url) return url;
 
-    // 1. DoodStream / playmogo
+    // 1. DoodStream / playmogo / doomstream
     if (/(playmogo\.com|doomstream\.com)\/e\//i.test(url)) {
       return url.replace(/\/e\//, '/d/');
     }
 
-    // 2. mp4upload
-    if (/mp4upload\.com\/embed-/i.test(url)) {
-      return url.replace(/\/embed-/, '/d-');
+    // 2. mp4upload: extraer el código y construir el enlace directo
+    if (url.includes('mp4upload.com')) {
+      const match = url.match(/mp4upload\.com\/(?:embed-|d-)([^\/]+?)(?:\.html)?$/i);
+      if (match) {
+        return `https://www.mp4upload.com/${match[1]}`;
+      }
+      // Si no se pudo extraer, devolver la original
     }
 
     // 3. Google Drive
@@ -103,7 +108,6 @@ class VideoPlayer {
       if (match) {
         return `https://drive.google.com/uc?export=download&id=${match[1]}`;
       }
-      // Si no encuentra el ID, devolver la original (por si acaso)
     }
 
     // Para Pixeldrain y otros, devolver la URL original
