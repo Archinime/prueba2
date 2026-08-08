@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reproductor de Video</title>
+    <style>
+        /* Reset y fondo */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1a1a2e, #0f0f1a);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+
+        /* Tarjeta principal */
+        .player-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 28px 28px 32px;
+            max-width: 880px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            transition: transform 0.3s ease;
+        }
+
+        .player-card:hover {
+            transform: scale(1.005);
+        }
+
+        /* Encabezado */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 0 6px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-weight: 500;
+            font-size: 1.3rem;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 span {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #aab;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        /* Contenedor del video */
+        .video-wrapper {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #0b0b14;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        .video-wrapper video {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            background: #0b0b14;
+            border-radius: 20px;
+            transition: filter 0.2s;
+        }
+
+        /* Controles personalizados (envoltorio) */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 10px 4px 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Botones circulares */
+        .ctrl-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            color: #ddd;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s, transform 0.15s, color 0.2s;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.92);
+        }
+
+        .ctrl-btn.play-btn {
+            background: rgba(99, 102, 241, 0.25);
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .ctrl-btn.play-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            color: #fff;
+        }
+
+        /* Barra de progreso */
+        .progress-container {
+            flex: 2;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            position: relative;
+            cursor: pointer;
+            transition: height 0.15s;
+        }
+
+        .progress-bar:hover {
+            height: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #818cf8, #6366f1);
+            border-radius: 6px;
+            transition: width 0.05s linear;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .time-display {
+            color: #b0b0c8;
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.3px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Volumen */
+        .volume-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-wrap input[type="range"] {
+            width: 70px;
+            height: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .volume-wrap input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a5b4fc;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+            transition: 0.15s;
+        }
+
+        .volume-wrap input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .volume-wrap input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a5b4fc;
+            cursor: pointer;
+            border: none;
+        }
+
+        .volume-icon {
+            color: #b0b0c8;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .volume-icon:hover {
+            color: #fff;
+        }
+
+        /* Pie de página sutil */
+        .footer-note {
+            margin-top: 14px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .player-card {
+                padding: 16px;
+                border-radius: 24px;
+            }
+            .controls {
+                gap: 8px;
+                padding: 12px 4px 2px 4px;
+            }
+            .ctrl-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
+            }
+            .progress-container {
+                min-width: 80px;
+            }
+            .time-display {
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+            .volume-wrap input[type="range"] {
+                width: 50px;
+            }
+            .header h1 {
+                font-size: 1rem;
+            }
+            .badge {
+                font-size: 0.6rem;
+                padding: 4px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .controls-left,
+            .controls-right {
+                justify-content: center;
+            }
+            .progress-container {
+                order: -1;
+                width: 100%;
+            }
+            .time-display {
+                min-width: 60px;
+            }
+            .volume-wrap input[type="range"] {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-card">
+        <!-- Encabezado -->
+        <div class="header">
+            <h1>
+                🎬 Video
+                <span>MP4</span>
+            </h1>
+            <div class="badge">✦ Pixeldrain</div>
+        </div>
+
+        <!-- Reproductor -->
+        <div class="video-wrapper">
+            <video id="videoPlayer" preload="metadata" playsinline>
+                <source src="https://pixeldrain.com/api/file/mmLKakp8" type="video/mp4" />
+                Tu navegador no soporta la reproducción de video.
+            </video>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <div class="controls-left">
+                <!-- Play / Pause -->
+                <button class="ctrl-btn play-btn" id="playBtn" aria-label="Reproducir / Pausar">
+                    ▶
+                </button>
+                <!-- Volumen -->
+                <div class="volume-wrap">
+                    <span class="volume-icon" id="volumeIcon" aria-label="Silenciar / Activar sonido">🔊</span>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" />
+                </div>
+            </div>
+
+            <!-- Progreso -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+            </div>
+
+            <div class="controls-right">
+                <!-- Pantalla completa -->
+                <button class="ctrl-btn" id="fullscreenBtn" aria-label="Pantalla completa">
+                    ⛶
+                </button>
+            </div>
+        </div>
+
+        <div class="footer-note">✦  Yor X Loid 2 · Español  ✦</div>
+    </div>
+
+    <script>
+        (function() {
+            const video = document.getElementById('videoPlayer');
+            const playBtn = document.getElementById('playBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeIcon = document.getElementById('volumeIcon');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+            // --- Formato de tiempo ---
+            function formatTime(seconds) {
+                if (isNaN(seconds) || seconds < 0) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // --- Actualizar barra y tiempo ---
+            function updateProgress() {
+                if (!video.duration) return;
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFill.style.width = percent + '%';
+                timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+            }
+
+            // --- Play / Pause ---
+            function togglePlay() {
+                if (video.paused) {
+                    video.play().catch(() => {});
+                } else {
+                    video.pause();
+                }
+            }
+
+            function updatePlayButton() {
+                if (video.paused) {
+                    playBtn.textContent = '▶';
+                    playBtn.setAttribute('aria-label', 'Reproducir');
+                } else {
+                    playBtn.textContent = '⏸';
+                    playBtn.setAttribute('aria-label', 'Pausar');
+                }
+            }
+
+            // --- Eventos del video ---
+            video.addEventListener('loadedmetadata', () => {
+                timeDisplay.textContent = `0:00 / ${formatTime(video.duration)}`;
+                // Asegurar que el volumen del slider coincida
+                volumeSlider.value = video.volume;
+                updateVolumeIcon();
+            });
+
+            video.addEventListener('timeupdate', updateProgress);
+            video.addEventListener('play', updatePlayButton);
+            video.addEventListener('pause', updatePlayButton);
+            video.addEventListener('ended', () => {
+                updatePlayButton();
+                progressFill.style.width = '0%';
+                timeDisplay.textContent = `0:00 / ${formatTime(video.duration)}`;
+            });
+
+            // --- Botón Play ---
+            playBtn.addEventListener('click', togglePlay);
+
+            // --- Click en la barra de progreso ---
+            progressBar.addEventListener('click', (e) => {
+                if (!video.duration) return;
+                const rect = progressBar.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const clamped = Math.min(Math.max(x, 0), 1);
+                video.currentTime = clamped * video.duration;
+            });
+
+            // --- Volumen ---
+            volumeSlider.addEventListener('input', () => {
+                const val = parseFloat(volumeSlider.value);
+                video.volume = val;
+                video.muted = (val === 0);
+                updateVolumeIcon();
+            });
+
+            volumeIcon.addEventListener('click', () => {
+                if (video.muted) {
+                    video.muted = false;
+                    volumeSlider.value = video.volume || 0.5;
+                } else {
+                    video.muted = true;
+                    volumeSlider.value = 0;
+                }
+                updateVolumeIcon();
+            });
+
+            function updateVolumeIcon() {
+                const vol = video.volume;
+                const muted = video.muted;
+                if (muted || vol === 0) {
+                    volumeIcon.textContent = '🔇';
+                } else if (vol < 0.5) {
+                    volumeIcon.textContent = '🔉';
+                } else {
+                    volumeIcon.textContent = '🔊';
+                }
+            }
+
+            // --- Pantalla completa ---
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    const el = document.querySelector('.player-card');
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen().catch(() => {});
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                }
+            });
+
+            // --- Teclado: espacio para play/pause ---
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            });
+
+            // --- Inicializar ---
+            updatePlayButton();
+            // Si el video ya tiene duración (caché), actualizar
+            if (video.readyState >= 1) {
+                timeDisplay.textContent = `0:00 / ${formatTime(video.duration)}`;
+            }
+        })();
+    </script>
+
+</body>
+</html>
