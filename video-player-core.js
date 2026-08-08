@@ -9,6 +9,7 @@
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
 // MEJORA: Pixeldrain: uso de CDN alternativo (cdn49.pixeldrain.eu.cc) para reproducción
+// MEJORA: Pre-carga (prefetch) de videos Pixeldrain usando fetch para forzar la caché del navegador.
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
@@ -124,6 +125,22 @@ class VideoPlayer {
     // Si es Pixeldrain, convertimos a CDN para reproducción
     if (url.includes('pixeldrain.com')) {
       url = this.convertPixeldrainUrl(url, false);
+    }
+    
+    // ===== NUEVO: Pre-cargar el video en caché para evitar bloqueo CORS =====
+    // Si es un enlace del CDN de Pixeldrain, hacemos un fetch en modo 'no-cors'
+    // para forzar al navegador a guardarlo en la caché. Así, cuando el <video>
+    // lo solicite, lo servirá desde la caché sin hacer una petición de red.
+    if (url.includes('cdn49.pixeldrain.eu.cc')) {
+      // El 'no-cors' evita que JS lea la respuesta, pero el navegador igual
+      // descarga el archivo y lo guarda en caché si los headers lo permiten.
+      fetch(url, { 
+        mode: 'no-cors',
+        cache: 'force-cache' // Prioriza la caché para futuras lecturas
+      }).catch(() => {
+        // Si falla, no hacemos nada, el video igual intentará cargar después.
+        console.warn('Pre-carga de Pixeldrain falló (pero no afecta la reproducción)');
+      });
     }
     
     const container = document.getElementById('mediaContainer');
