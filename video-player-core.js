@@ -8,9 +8,7 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: uso de CDN alternativo (cdn49.pixeldrain.eu.cc) para reproducción
-// MEJORA: Pre-carga (prefetch) de videos Pixeldrain usando <link rel="preload">
-// MEJORA: Fallback a la API oficial de Pixeldrain si el CDN falla
+// MEJORA: Pixeldrain: proxy para reproducción (cdn49...), en descarga se usa el enlace original sin conversión
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
@@ -68,35 +66,37 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ===== CONVERSIÓN DE PIXELDRAIN =====
+  // ===== CONVERSIÓN DE PIXELDRAIN SOLO PARA REPRODUCCIÓN (proxy) =====
   convertPixeldrainUrl(url, forDownload = false) {
     if (!url) return url;
+    // Si es pixeldrain.com/u/ID
     const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
-    let id = null;
     if (uMatch) {
-      id = uMatch[1];
-    } else {
-      const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
-      if (apiMatch) id = apiMatch[1];
+      const id = uMatch[1];
+      // forDownload ya no se usa para conversión, solo reproducción
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
-    if (!id) return url;
-
-    // OPCIÓN 1: CDN alternativo (puede tener problemas de hotlinking)
-    return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
-    
-    // OPCIÓN 2: API oficial (más confiable, soporta CORS)
-    // return `https://pixeldrain.com/api/file/${id}`;
+    // Si ya es api/file/...
+    const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
+    if (apiMatch) {
+      const id = apiMatch[1];
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
+    }
+    return url; // no es pixeldrain
   }
 
   // Esta función ya no se usa para descarga (solo se mantiene por si acaso)
   generateDirectLink(url) {
     if (!url) return "#";
+    
+    // Ya no se convierte para descarga, se devuelve el original
     return url;
   }
 
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
+    // Mostrar solo en Odysee y Google Drive
     const isOdysee = url && url.includes('odysee.com');
     const isGoogleDrive = url && (url.includes('drive.google.com') || url.includes('drive.usercontent.google.com'));
     if (isOdysee || isGoogleDrive) {
@@ -106,26 +106,16 @@ class VideoPlayer {
     }
   }
 
+  // ===== NUEVA FUNCIÓN: detecta si una URL debe ser tratada como video =====
   isVideoUrl(url) {
     if (!url) return false;
+    // Extensiones comunes
     if (/\.(mp4|webm|ogg|mov|m3u8)$/i.test(url)) return true;
-    if (url.includes('pixeldrain.com') || url.includes('pixeldrain.eu.cc')) return true;
+    // Dominios conocidos que sirven video sin extensión (PixelDrain, etc.)
+    if (url.includes('pixeldrain.eu.cc') || url.includes('pixeldrain.com')) return true;
     if (url.includes('catbox.moe') && /\.(mp4|webm|ogg|mov)$/i.test(url)) return true;
+    // Puedes agregar más dominios si los usas
     return false;
-  }
-
-  // Pre-carga del video usando <link rel="preload">
-  preloadVideo(url) {
-    if (!url) return;
-    // Evitar duplicados
-    const existing = document.querySelector(`link[rel="preload"][href="${url}"]`);
-    if (existing) return;
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'video';
-    link.href = url;
-    link.referrerPolicy = 'no-referrer';
-    document.head.appendChild(link);
   }
 
   playPart(partIndex, urlsArray) {
@@ -133,53 +123,39 @@ class VideoPlayer {
     let url = urlsArray[partIndex];
     if (!url) return;
     
-    // Si es Pixeldrain, convertimos
+    // Si es Pixeldrain, convertimos para reproducción (usando el proxy)
     if (url.includes('pixeldrain.com')) {
       url = this.convertPixeldrainUrl(url, false);
-    }
-    
-    // Pre-cargar el video (solo para CDN o API)
-    if (url.includes('pixeldrain') || url.includes('cdn49.pixeldrain.eu.cc')) {
-      this.preloadVideo(url);
     }
     
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
     
+    // Usamos la nueva función para detectar si es video
     if (this.isVideoUrl(url) && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
-      video.preload = 'auto';
-      video.referrerPolicy = 'no-referrer';
       
+      // Crear <source> con referrerpolicy="no-referrer" para evitar bloqueo
       const source = document.createElement('source');
       source.src = url;
+      // Intentar determinar el tipo MIME, por defecto video/mp4
       let type = 'video/mp4';
       if (url.endsWith('.webm')) type = 'video/webm';
       else if (url.endsWith('.ogg')) type = 'video/ogg';
       else if (url.endsWith('.mov')) type = 'video/quicktime';
       else if (url.endsWith('.m3u8')) type = 'application/vnd.apple.mpegurl';
       source.type = type;
-      source.referrerPolicy = 'no-referrer';
+      source.referrerPolicy = 'no-referrer'; // <--- CLAVE para evitar el bloqueo de hotlinking
       
       video.appendChild(source);
+      video.referrerPolicy = 'no-referrer'; // por si acaso
+      
       container.appendChild(video);
       this.currentVideoElement = video;
       this.updateLogoBlocker(url);
-      
-      // Manejar errores de carga
-      video.addEventListener('error', (e) => {
-        console.warn('Error al cargar el video:', e);
-        // Si falla, intentar con la API oficial como fallback
-        if (url.includes('cdn49.pixeldrain.eu.cc')) {
-          const fallbackUrl = url.replace('cdn49.pixeldrain.eu.cc/api/file', 'pixeldrain.com/api/file');
-          console.log('Intentando con API oficial:', fallbackUrl);
-          source.src = fallbackUrl;
-          video.load();
-        }
-      });
       
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
@@ -190,6 +166,7 @@ class VideoPlayer {
       };
       video.addEventListener('ended', onEnded, { once: true });
     } else {
+      // Si no es video, usar iframe (para enlaces de streaming como mp4upload, etc.)
       const iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.allow = 'autoplay; fullscreen';
@@ -202,7 +179,7 @@ class VideoPlayer {
     }
   }
 
-  // ===== handleDownloadClick: abre los enlaces originales en nueva pestaña =====
+  // ===== NUEVO: handleDownloadClick simplemente abre los enlaces originales en nueva pestaña =====
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
@@ -497,6 +474,8 @@ class VideoPlayer {
 
   // ===== FUNCIÓN DE PRIORIZACIÓN MODIFICADA =====
   prioritizeOptions(options) {
+    // Asignar prioridad:
+    // Pixeldrain: 0 (más alta), Google Drive: 2 (más baja), otros: 1
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 1;
       const firstUrl = urls[0] || '';
@@ -505,8 +484,10 @@ class VideoPlayer {
       return 1; // otros (mp4upload, doodstream, etc.)
     };
 
+    // Ordenar por prioridad (ascendente)
     options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
 
+    // Renombrar etiquetas y guardar la clave original
     const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
     options.forEach((opt, index) => {
       opt.label = labels[index] || `Opción ${index + 1}`;
@@ -545,7 +526,7 @@ class VideoPlayer {
     options.forEach((opt, idx) => {
       const option = document.createElement('option');
       option.value = idx;
-      option.textContent = opt.label;
+      option.textContent = opt.label; // "Opción 1", "Opción 2", ...
       if (idx === initialIndex) option.selected = true;
       select.appendChild(option);
     });
@@ -566,6 +547,7 @@ class VideoPlayer {
   }
 
   updateDownloadUrls(urls) {
+    // Guardamos las URLs originales sin ninguna conversión
     this.currentDownloadUrls = urls;
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
@@ -575,6 +557,7 @@ class VideoPlayer {
     return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
   }
 
+  // Obtener las URLs según la clave activa
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
@@ -582,6 +565,7 @@ class VideoPlayer {
     return this.normalizeUrls(episodeData[key]);
   }
 
+  // Estas funciones ya no se usan para descarga, pero se mantienen por si acaso
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
@@ -795,6 +779,7 @@ class VideoPlayer {
       document.title = `Ver ${formattedTitle} - Archinime`;
       document.getElementById('epTitle').innerText = formattedTitle;
       
+      // Crear array de opciones con sus claves originales
       let options = [
         { label: 'Latino', key: 'link', urls: this.normalizeUrls(episodeData.link) },
         { label: 'Opción 2', key: 'link2', urls: this.normalizeUrls(episodeData.link2) },
@@ -807,9 +792,13 @@ class VideoPlayer {
         return;
       }
 
+      // Reordenar y renombrar según prioridad (Pixeldrain primero, Google Drive último)
       options = this.prioritizeOptions(options);
+
+      // Crear el select con las opciones ya ordenadas
       this.createServerSelect(options, 0);
 
+      // Establecer la primera opción como activa
       const firstOption = options[0];
       this.activeOptionLabel = firstOption.label;
       this.activeOptionKey = firstOption.originalKey || 'link';
