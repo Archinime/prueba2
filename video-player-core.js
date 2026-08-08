@@ -11,9 +11,8 @@
 // MEJORA: Pixeldrain: proxy para reproducción (cdn49...), en descarga se usa el enlace original sin conversión
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
-// CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
-// NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana
-// FIX: Centrado del botón PLAY mediante position:absolute dentro del player-wrapper
+// CAMBIO: El botón Descargar abre enlaces directos de DoodStream y mp4upload, y original para Pixeldrain
+// NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana (centrado)
 
 class VideoPlayer {
   constructor() {
@@ -32,7 +31,7 @@ class VideoPlayer {
     this.pendingMarks = [];
     this.currentPartIndex = 0;
     this.activeOptionLabel = 'Opción 1';
-    this.activeOptionKey = 'link'; // clave del campo en episodeData
+    this.activeOptionKey = 'link';
     this.currentVideoElement = null;
     this.isDownloading = false;
     
@@ -84,6 +83,34 @@ class VideoPlayer {
     return url;
   }
 
+  // ===== CONVERSIÓN PARA DESCARGA DIRECTA =====
+  convertDoodStreamUrl(url) {
+    if (!url) return url;
+    // Reemplazar /e/ por /d/ para obtener enlace directo
+    return url.replace(/\/e\//, '/d/');
+  }
+
+  convertMp4UploadUrl(url) {
+    if (!url) return url;
+    // Reemplazar /embed- por /d- para obtener enlace directo
+    return url.replace(/\/embed-/, '/d-');
+  }
+
+  // Aplica conversiones solo para descarga
+  getDirectDownloadUrl(url) {
+    if (!url) return url;
+    // Si es DoodStream
+    if (/(playmogo\.com|doomstream\.com)\/e\//i.test(url)) {
+      return this.convertDoodStreamUrl(url);
+    }
+    // Si es mp4upload
+    if (/mp4upload\.com\/embed-/i.test(url)) {
+      return this.convertMp4UploadUrl(url);
+    }
+    // Para Pixeldrain y otros, se devuelve el original
+    return url;
+  }
+
   generateDirectLink(url) {
     if (!url) return "#";
     return url;
@@ -117,9 +144,8 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
 
-    // ===== NUEVO: Si es Pixeldrain, mostrar botón PLAY centrado =====
+    // ===== PIXELDRAIN: botón PLAY centrado =====
     if (originalUrl.includes('pixeldrain.com')) {
-      // Contenedor con posición absoluta para ocupar todo el player-wrapper
       const wrapper = document.createElement('div');
       wrapper.style.cssText = `
         position: absolute;
@@ -135,7 +161,6 @@ class VideoPlayer {
         z-index: 1;
       `;
 
-      // Botón circular rojo con triángulo
       const btn = document.createElement('button');
       btn.style.cssText = `
         display: flex;
@@ -164,7 +189,6 @@ class VideoPlayer {
         window.open(originalUrl, '_blank');
       });
 
-      // Texto debajo
       const label = document.createElement('p');
       label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin-top:1.5rem;';
       label.innerHTML = 'Haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para ver el video';
@@ -175,10 +199,10 @@ class VideoPlayer {
 
       this.currentVideoElement = null;
       this.updateLogoBlocker(originalUrl);
-      return; // Salir, no seguir con el resto
+      return;
     }
 
-    // ===== REPRODUCCIÓN NORMAL PARA OTRAS URLS =====
+    // ===== REPRODUCCIÓN NORMAL =====
     if (this.isVideoUrl(originalUrl) && !originalUrl.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.controls = true;
@@ -223,6 +247,7 @@ class VideoPlayer {
     }
   }
 
+  // ===== BOTÓN DESCARGAR CON CONVERSIÓN DIRECTA =====
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
@@ -252,9 +277,11 @@ class VideoPlayer {
       return;
     }
 
+    // Convertir cada URL a su versión directa (DoodStream y mp4upload)
     for (const url of urlsToDownload) {
       if (url && url !== '#') {
-        window.open(url, '_blank');
+        const directUrl = this.getDirectDownloadUrl(url);
+        window.open(directUrl, '_blank');
       }
     }
   }
