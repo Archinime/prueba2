@@ -12,6 +12,7 @@
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
+// NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana
 
 class VideoPlayer {
   constructor() {
@@ -120,42 +121,79 @@ class VideoPlayer {
 
   playPart(partIndex, urlsArray) {
     if (!urlsArray || partIndex >= urlsArray.length) return;
-    let url = urlsArray[partIndex];
-    if (!url) return;
-    
-    // Si es Pixeldrain, convertimos para reproducción (usando el proxy)
-    if (url.includes('pixeldrain.com')) {
-      url = this.convertPixeldrainUrl(url, false);
-    }
+    let originalUrl = urlsArray[partIndex];
+    if (!originalUrl) return;
     
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
-    
-    // Usamos la nueva función para detectar si es video
-    if (this.isVideoUrl(url) && !url.includes('drive.google.com')) {
+
+    // ===== NUEVO: Si es Pixeldrain, mostrar botón PLAY =====
+    if (originalUrl.includes('pixeldrain.com')) {
+      // Crear contenedor para el botón
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; background:#0b0b0b;';
+
+      // Botón circular rojo con triángulo
+      const btn = document.createElement('button');
+      btn.style.cssText = `
+        display:flex; justify-content:center; align-items:center;
+        width:120px; height:120px; border-radius:50%; background:#e50914;
+        border:none; cursor:pointer; box-shadow:0 0 30px rgba(229,9,20,0.6);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      `;
+      btn.innerHTML = `<span style="width:0; height:0; border-left:45px solid white; border-top:28px solid transparent; border-bottom:28px solid transparent; margin-left:12px;"></span>`;
+
+      // Hover y click
+      btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'scale(1.08)';
+        btn.style.boxShadow = '0 0 50px rgba(229,9,20,0.9)';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'scale(1)';
+        btn.style.boxShadow = '0 0 30px rgba(229,9,20,0.6)';
+      });
+      btn.addEventListener('click', () => {
+        window.open(originalUrl, '_blank');
+      });
+
+      // Texto debajo
+      const label = document.createElement('p');
+      label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin-top:1.5rem;';
+      label.innerHTML = 'Haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para ver el video';
+
+      wrapper.appendChild(btn);
+      wrapper.appendChild(label);
+      container.appendChild(wrapper);
+
+      this.currentVideoElement = null;
+      this.updateLogoBlocker(originalUrl);
+      return; // Salir, no seguir con el resto
+    }
+
+    // ===== REPRODUCCIÓN NORMAL PARA OTRAS URLS =====
+    // Si es Pixeldrain pero ya fue convertido (ej. cdn49...), tratarlo como video
+    if (this.isVideoUrl(originalUrl) && !originalUrl.includes('drive.google.com')) {
       const video = document.createElement('video');
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100%';
       
-      // Crear <source> con referrerpolicy="no-referrer" para evitar bloqueo
       const source = document.createElement('source');
-      source.src = url;
-      // Intentar determinar el tipo MIME, por defecto video/mp4
+      source.src = originalUrl; // ya puede ser la URL convertida o directa
       let type = 'video/mp4';
-      if (url.endsWith('.webm')) type = 'video/webm';
-      else if (url.endsWith('.ogg')) type = 'video/ogg';
-      else if (url.endsWith('.mov')) type = 'video/quicktime';
-      else if (url.endsWith('.m3u8')) type = 'application/vnd.apple.mpegurl';
+      if (originalUrl.endsWith('.webm')) type = 'video/webm';
+      else if (originalUrl.endsWith('.ogg')) type = 'video/ogg';
+      else if (originalUrl.endsWith('.mov')) type = 'video/quicktime';
+      else if (originalUrl.endsWith('.m3u8')) type = 'application/vnd.apple.mpegurl';
       source.type = type;
-      source.referrerPolicy = 'no-referrer'; // <--- CLAVE para evitar el bloqueo de hotlinking
+      source.referrerPolicy = 'no-referrer';
       
       video.appendChild(source);
-      video.referrerPolicy = 'no-referrer'; // por si acaso
+      video.referrerPolicy = 'no-referrer';
       
       container.appendChild(video);
       this.currentVideoElement = video;
-      this.updateLogoBlocker(url);
+      this.updateLogoBlocker(originalUrl);
       
       const onEnded = () => {
         if (partIndex + 1 < urlsArray.length) {
@@ -168,18 +206,18 @@ class VideoPlayer {
     } else {
       // Si no es video, usar iframe (para enlaces de streaming como mp4upload, etc.)
       const iframe = document.createElement('iframe');
-      iframe.src = url;
+      iframe.src = originalUrl;
       iframe.allow = 'autoplay; fullscreen';
       iframe.allowFullscreen = true;
       iframe.style.width = '100%';
       iframe.style.height = '100%';
       container.appendChild(iframe);
       this.currentVideoElement = null;
-      this.updateLogoBlocker(url);
+      this.updateLogoBlocker(originalUrl);
     }
   }
 
-  // ===== NUEVO: handleDownloadClick simplemente abre los enlaces originales en nueva pestaña =====
+  // ===== handleDownloadClick simplemente abre los enlaces originales en nueva pestaña =====
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
@@ -474,8 +512,6 @@ class VideoPlayer {
 
   // ===== FUNCIÓN DE PRIORIZACIÓN MODIFICADA =====
   prioritizeOptions(options) {
-    // Asignar prioridad:
-    // Pixeldrain: 0 (más alta), Google Drive: 2 (más baja), otros: 1
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 1;
       const firstUrl = urls[0] || '';
@@ -484,10 +520,8 @@ class VideoPlayer {
       return 1; // otros (mp4upload, doodstream, etc.)
     };
 
-    // Ordenar por prioridad (ascendente)
     options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
 
-    // Renombrar etiquetas y guardar la clave original
     const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
     options.forEach((opt, index) => {
       opt.label = labels[index] || `Opción ${index + 1}`;
@@ -547,7 +581,6 @@ class VideoPlayer {
   }
 
   updateDownloadUrls(urls) {
-    // Guardamos las URLs originales sin ninguna conversión
     this.currentDownloadUrls = urls;
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
@@ -557,7 +590,6 @@ class VideoPlayer {
     return /^(https?:\/\/)?([a-z0-9-]+\.)*peertube\.\w+\//i.test(url);
   }
 
-  // Obtener las URLs según la clave activa
   getActiveEpisodeUrls() {
     const episodeData = this.currentEpisodeData;
     if (!episodeData) return [];
@@ -565,7 +597,6 @@ class VideoPlayer {
     return this.normalizeUrls(episodeData[key]);
   }
 
-  // Estas funciones ya no se usan para descarga, pero se mantienen por si acaso
   showProgressBar() {
     if (document.getElementById('customDownloadProgress')) return;
     const div = document.createElement('div');
