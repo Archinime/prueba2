@@ -11,7 +11,7 @@
 // MEJORA: Pixeldrain: proxy para reproducción (cdn49...), en descarga se usa el enlace original sin conversión
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
-// CAMBIO: El botón Descargar abre enlaces directos de DoodStream y mp4upload, y original para Pixeldrain
+// CAMBIO: El botón Descargar abre enlaces directos de DoodStream, mp4upload y Google Drive, y original para Pixeldrain
 // NUEVO: Para enlaces de Pixeldrain se muestra un botón PLAY que abre el enlace en nueva ventana (centrado)
 
 class VideoPlayer {
@@ -84,36 +84,35 @@ class VideoPlayer {
   }
 
   // ===== CONVERSIÓN PARA DESCARGA DIRECTA =====
-  convertDoodStreamUrl(url) {
-    if (!url) return url;
-    // Reemplazar /e/ por /d/ para obtener enlace directo
-    return url.replace(/\/e\//, '/d/');
-  }
-
-  convertMp4UploadUrl(url) {
-    if (!url) return url;
-    // Reemplazar /embed- por /d- para obtener enlace directo
-    return url.replace(/\/embed-/, '/d-');
-  }
-
-  // Aplica conversiones solo para descarga
   getDirectDownloadUrl(url) {
     if (!url) return url;
-    // Si es DoodStream
+
+    // 1. DoodStream / playmogo
     if (/(playmogo\.com|doomstream\.com)\/e\//i.test(url)) {
-      return this.convertDoodStreamUrl(url);
+      return url.replace(/\/e\//, '/d/');
     }
-    // Si es mp4upload
+
+    // 2. mp4upload
     if (/mp4upload\.com\/embed-/i.test(url)) {
-      return this.convertMp4UploadUrl(url);
+      return url.replace(/\/embed-/, '/d-');
     }
-    // Para Pixeldrain y otros, se devuelve el original
+
+    // 3. Google Drive
+    if (url.includes('drive.google.com') && (url.includes('/preview') || url.includes('/file/d/'))) {
+      const match = url.match(/\/file\/d\/([^\/]+)/);
+      if (match) {
+        return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+      }
+      // Si no encuentra el ID, devolver la original (por si acaso)
+    }
+
+    // Para Pixeldrain y otros, devolver la URL original
     return url;
   }
 
+  // Mantenemos generateDirectLink por compatibilidad (puede ser usado en otros lados)
   generateDirectLink(url) {
-    if (!url) return "#";
-    return url;
+    return this.getDirectDownloadUrl(url);
   }
 
   updateLogoBlocker(url) {
@@ -277,7 +276,7 @@ class VideoPlayer {
       return;
     }
 
-    // Convertir cada URL a su versión directa (DoodStream y mp4upload)
+    // Convertir cada URL a su versión directa
     for (const url of urlsToDownload) {
       if (url && url !== '#') {
         const directUrl = this.getDirectDownloadUrl(url);
