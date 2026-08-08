@@ -8,7 +8,7 @@
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
 // NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
 // FIX: Detección de URLs de PixelDrain como video, con referrerpolicy="no-referrer"
-// MEJORA: Pixeldrain: uso de la API oficial para reproducción (pixeldrain.com/api/file/ID)
+// MEJORA: Pixeldrain: uso de CDN alternativo (cdn49.pixeldrain.eu.cc) para reproducción
 // MEJORA: Prioridad de opciones: Pixeldrain -> Otros -> Google Drive
 // MEJORA: Logo ARCHINIME HD solo se muestra en Odysee y Google Drive
 // CAMBIO: El botón Descargar ahora abre el enlace original en una nueva pestaña (sin conversión)
@@ -66,21 +66,21 @@ class VideoPlayer {
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
   }
 
-  // ===== CONVERSIÓN DE PIXELDRAIN (usa la API oficial) =====
+  // ===== CONVERSIÓN DE PIXELDRAIN A CDN =====
   convertPixeldrainUrl(url, forDownload = false) {
     if (!url) return url;
     // Si es pixeldrain.com/u/ID
     const uMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_\-]+)/);
     if (uMatch) {
       const id = uMatch[1];
-      // Para reproducción usamos la API oficial
-      return `https://pixeldrain.com/api/file/${id}`;
+      // Ahora usamos el CDN alternativo
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     // Si ya es api/file/...
     const apiMatch = url.match(/pixeldrain\.com\/api\/file\/([a-zA-Z0-9_\-]+)/);
     if (apiMatch) {
       const id = apiMatch[1];
-      return `https://pixeldrain.com/api/file/${id}`;
+      return `https://cdn49.pixeldrain.eu.cc/api/file/${id}`;
     }
     return url; // no es pixeldrain
   }
@@ -121,7 +121,7 @@ class VideoPlayer {
     let url = urlsArray[partIndex];
     if (!url) return;
     
-    // Si es Pixeldrain, convertimos para reproducción (usando la API oficial)
+    // Si es Pixeldrain, convertimos a CDN para reproducción
     if (url.includes('pixeldrain.com')) {
       url = this.convertPixeldrainUrl(url, false);
     }
