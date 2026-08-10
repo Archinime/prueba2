@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conversor PixelDrain + Pestaña en blanco</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f0c29);
+            padding: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            padding: 2.5rem 2.2rem;
+            max-width: 540px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 215, 0, 0.15);
+        }
+
+        /* Cabecera */
+        .header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-top: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 12px;
+        }
+
+        .header p strong {
+            color: #ffd200;
+            font-weight: 500;
+        }
+
+        /* Pasos visuales */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 1.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 60px;
+            padding: 8px 16px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #888;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .step-item .num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ccc;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .step-item.active .num {
+            background: #ffd200;
+            color: #1a1a2e;
+        }
+
+        .step-item.active {
+            color: #fff;
+        }
+
+        /* Campos */
+        .field-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #ddd;
+            margin-bottom: 6px;
+        }
+
+        .field-group label span {
+            color: #ffd200;
+            margin-left: 4px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 60px;
+            border: none;
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.25s;
+            border: 1px solid transparent;
+        }
+
+        input[type="text"]:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #ffd200;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+        }
+
+        input[type="text"]::placeholder {
+            color: #777;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            display: none;
+            padding-left: 6px;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        /* Botones principales */
+        .btn-convertir {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #6a9eff, #4a7eef);
+            color: #fff;
+            cursor: pointer;
+            transition: 0.25s;
+            box-shadow: 0 8px 20px rgba(74, 126, 239, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-convertir:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(74, 126, 239, 0.5);
+        }
+
+        .btn-convertir:active {
+            transform: scale(0.97);
+        }
+
+        /* Caja del proxy */
+        .proxy-box {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            display: none;
+            transition: 0.3s;
+        }
+
+        .proxy-box.show {
+            display: block;
+            animation: fadeSlide 0.4s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .proxy-box .label {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .proxy-box .label .badge {
+            background: #ffd200;
+            color: #1a1a2e;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 30px;
+            text-transform: uppercase;
+        }
+
+        .proxy-box .url {
+            color: #7aaaff;
+            font-size: 0.95rem;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.2px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .proxy-box .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .proxy-box .actions .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .proxy-box .actions .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .proxy-box .actions .btn-copy {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .proxy-box .actions .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Botones de apertura */
+        .open-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .open-group .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 12px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .open-group .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-proxy {
+            background: linear-gradient(135deg, #2a9d44, #1e7e34);
+            color: #fff;
+        }
+
+        .btn-proxy:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(30, 126, 52, 0.4);
+        }
+
+        .btn-blank {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+        }
+
+        .btn-blank:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(247, 151, 30, 0.4);
+        }
+
+        .btn-blank:active,
+        .btn-proxy:active {
+            transform: scale(0.96);
+        }
+
+        /* Info extra */
+        .footer {
+            margin-top: 1.8rem;
+            font-size: 0.8rem;
+            color: #777;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .footer strong {
+            color: #ffd200;
+        }
+
+        .footer .hint {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.08);
+            padding: 4px 14px;
+            border-radius: 30px;
+            color: #ffd200;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card {
+                padding: 1.8rem 1.2rem;
+            }
+            .steps {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px 12px;
+                padding: 10px;
+                border-radius: 30px;
+            }
+            .step-item {
+                font-size: 0.7rem;
+            }
+            .open-group {
+                flex-direction: column;
+            }
+            .open-group .btn {
+                min-width: unset;
+            }
+            .proxy-box .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+
+        <!-- Cabecera -->
+        <div class="header">
+            <h1>🔗 PixelDrain → Proxy</h1>
+            <p>Convierte tu enlace y <strong>ábrelo como quieras</strong></p>
+        </div>
+
+        <!-- Pasos visuales -->
+        <div class="steps">
+            <span class="step-item active"><span class="num">1</span> Pegar</span>
+            <span class="step-item"><span class="num">2</span> Convertir</span>
+            <span class="step-item"><span class="num">3</span> Copiar / Abrir</span>
+        </div>
+
+        <!-- Campo de entrada -->
+        <div class="field-group">
+            <label for="urlInput">📎 Enlace de PixelDrain <span>•</span></label>
+            <input type="text" id="urlInput" placeholder="https://pixeldrain.com/u/ID" value="https://pixeldrain.com/u/pHFVjfWY" />
+            <div id="urlError" class="error-msg">⚠️ Introduce un enlace válido (ej: https://pixeldrain.com/u/...)</div>
+        </div>
+
+        <!-- Botón convertir -->
+        <button class="btn-convertir" id="convertBtn">🔄 Convertir a proxy</button>
+
+        <!-- Caja del proxy (oculta al inicio) -->
+        <div class="proxy-box" id="proxyBox">
+            <div class="label">
+                <span>📋 Enlace proxy generado</span>
+                <span class="badge">listo</span>
+            </div>
+            <div class="url" id="proxyUrl">https://cdn49.pixeldrain.eu.cc/api/file/xxxxx</div>
+            <div class="actions">
+                <button class="btn btn-copy" id="copyBtn">📋 Copiar enlace</button>
+            </div>
+        </div>
+
+        <!-- Botones de apertura -->
+        <div class="open-group">
+            <button class="btn btn-proxy" id="openProxyTab">🌐 Abrir proxy</button>
+            <button class="btn btn-blank" id="openBlankTab">📄 Pestaña en blanco</button>
+        </div>
+
+        <!-- Footer con instrucciones -->
+        <div class="footer">
+            <div><strong>🌐 Abrir proxy</strong> → abre el enlace convertido directamente.</div>
+            <div><strong>📄 Pestaña en blanco</strong> → abre una pestaña vacía para que pegues el enlace manualmente.</div>
+            <span class="hint">✨ Si el proxy falla, copia el enlace y pégalo tú mismo</span>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            // Elementos
+            const urlInput = document.getElementById('urlInput');
+            const convertBtn = document.getElementById('convertBtn');
+            const proxyBox = document.getElementById('proxyBox');
+            const proxyUrlDiv = document.getElementById('proxyUrl');
+            const copyBtn = document.getElementById('copyBtn');
+            const openProxyTab = document.getElementById('openProxyTab');
+            const openBlankTab = document.getElementById('openBlankTab');
+            const urlError = document.getElementById('urlError');
+
+            // Lista de proxies (puedes añadir más)
+            const PROXY_DOMAINS = [
+                'cdn49.pixeldrain.eu.cc',
+                'cdn33.pixeldrain.eu.cc',
+                'cdn.pixeldrain.eu.cc'
+            ];
+
+            let currentProxyUrl = '';
+
+            // ---- Utilidades ----
+            function extractFileId(url) {
+                const match = url.match(/pixeldrain\.com\/(?:u|l|d)\/([a-zA-Z0-9]+)/);
+                if (match) return match[1];
+                if (/^[a-zA-Z0-9]{8,}$/.test(url.trim())) return url.trim();
+                return null;
+            }
+
+            function buildProxyUrl(domain, fileId) {
+                return `https://${domain}/api/file/${fileId}`;
+            }
+
+            function showError(msg) {
+                urlError.textContent = msg || '⚠️ Introduce un enlace válido de PixelDrain';
+                urlError.classList.add('show');
+            }
+
+            function hideError() {
+                urlError.classList.remove('show');
+            }
+
+            // ---- Convertir ----
+            function convertir() {
+                hideError();
+                const raw = urlInput.value.trim();
+                if (!raw) {
+                    showError('✏️ Escribe o pega un enlace de PixelDrain.');
+                    return;
+                }
+                const fileId = extractFileId(raw);
+                if (!fileId) {
+                    showError('❌ No se encontró un ID. Ejemplo: https://pixeldrain.com/u/pHFVjfWY');
+                    return;
+                }
+
+                // Primer proxy de la lista
+                const domain = PROXY_DOMAINS[0];
+                currentProxyUrl = buildProxyUrl(domain, fileId);
+
+                // Mostrar en la caja
+                proxyUrlDiv.textContent = currentProxyUrl;
+                proxyBox.classList.add('show');
+
+                // Actualizar el foco (opcional)
+            }
+
+            // ---- Abrir proxy en nueva pestaña (sin referer) ----
+            function abrirProxy() {
+                if (!currentProxyUrl) {
+                    alert('⚠️ Primero convierte un enlace con "Convertir a proxy".');
+                    return;
+                }
+                const win = window.open(currentProxyUrl, '_blank', 'noopener,noreferrer');
+                if (!win) {
+                    alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
+                } else {
+                    win.focus();
+                }
+            }
+
+            // ---- Abrir pestaña en blanco (about:blank) ----
+            function abrirPestanaBlanca() {
+                try {
+                    const win = window.open('about:blank', '_blank');
+                    if (!win) {
+                        alert('⚠️ No se pudo abrir la pestaña en blanco.');
+                        return;
+                    }
+                    // Escribir un pequeño mensaje de ayuda en la pestaña en blanco
+                    win.document.write(`
+                        <html>
+                        <head>
+                            <title>Pestaña en blanco</title>
+                            <style>
+                                body {
+                                    background: #0b0b0b;
+                                    color: #fff;
+                                    font-family: system-ui, sans-serif;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100vh;
+                                    margin: 0;
+                                    text-align: center;
+                                    padding: 1rem;
+                                }
+                                .box {
+                                    background: #1a1a1a;
+                                    padding: 2.5rem 2rem;
+                                    border-radius: 30px;
+                                    border: 1px solid #333;
+                                    max-width: 450px;
+                                }
+                                .box h2 { color: #f7971e; margin-bottom: 0.5rem; }
+                                .box p { color: #aaa; line-height: 1.6; }
+                                .box .url { color: #6a9eff; word-break: break-all; background: #111; padding: 12px; border-radius: 16px; font-family: monospace; margin: 12px 0; border: 1px dashed #444; }
+                                .box .hint { color: #888; font-size: 0.85rem; }
+                                .box .hint strong { color: #ffd200; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="box">
+                                <h2>📋 Pega el enlace proxy</h2>
+                                <p>Copialo desde la página anterior y pégalo aquí.</p>
+                                <div class="url">${currentProxyUrl || '🔹 Aún no has generado un proxy'}</div>
+                                <p class="hint">💡 Si ya lo copiaste, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    win.document.close();
+                    win.focus();
+                } catch (e) {
+                    alert('❌ Error: ' + e.message);
+                }
+            }
+
+            // ---- Copiar al portapapeles ----
+            function copiarEnlace() {
+                if (!currentProxyUrl) {
+                    alert('⚠️ Primero convierte un enlace.');
+                    return;
+                }
+                navigator.clipboard.writeText(currentProxyUrl)
+                    .then(() => {
+                        alert('📋 Enlace copiado al portapapeles.');
+                    })
+                    .catch(() => {
+                        // Fallback manual
+                        const range = document.createRange();
+                        range.selectNode(proxyUrlDiv);
+                        window.getSelection().removeAllRanges();
+                        window.getSelection().addRange(range);
+                        document.execCommand('copy');
+                        alert('📋 Enlace copiado (método manual).');
+                    });
+            }
+
+            // ---- Eventos ----
+            convertBtn.addEventListener('click', convertir);
+            copyBtn.addEventListener('click', copiarEnlace);
+            openProxyTab.addEventListener('click', abrirProxy);
+            openBlankTab.addEventListener('click', abrirPestanaBlanca);
+
+            urlInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    convertir();
+                }
+            });
+
+            urlInput.addEventListener('blur', () => {
+                const raw = urlInput.value.trim();
+                if (raw && !extractFileId(raw)) {
+                    showError('⚠️ Formato incorrecto. Usa https://pixeldrain.com/u/...');
+                } else {
+                    hideError();
+                }
+            });
+
+            urlInput.addEventListener('input', hideError);
+
+            // Opcional: si hay un valor al cargar, convertir automáticamente
+            // setTimeout(convertir, 300);
+        })();
+    </script>
+</body>
+</html>
