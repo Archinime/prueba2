@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Conversor PixelDrain + Pestaña en blanco</title>
+    <title>PixelDrain → Proxy • Móvil</title>
     <style>
-        /* ===== RESET Y BASE ===== */
+        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -13,23 +13,25 @@
         }
 
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f0c29);
             padding: 16px;
-            /* para móviles, padding más pequeño */
+            /* para móviles */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
+        /* ===== TARJETA PRINCIPAL ===== */
         .card {
             background: rgba(255, 255, 255, 0.06);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-radius: 32px;
-            padding: 24px 20px;
-            max-width: 540px;
+            border-radius: 36px;
+            padding: 28px 20px 32px;
+            max-width: 500px;
             width: 100%;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
@@ -39,65 +41,64 @@
         /* ===== CABECERA ===== */
         .header {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             font-weight: 700;
             background: linear-gradient(135deg, #f7971e, #ffd200);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: -0.5px;
-            line-height: 1.2;
         }
 
         .header p {
             color: #aaa;
-            font-size: 0.9rem;
+            font-size: 1rem;
             margin-top: 4px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .header p strong {
             color: #ffd200;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         /* ===== PASOS VISUALES ===== */
         .steps {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             gap: 4px;
-            margin-bottom: 1.5rem;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.25);
             border-radius: 60px;
-            padding: 6px 12px;
-            flex-wrap: nowrap;
+            padding: 10px 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
         }
 
         .step-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             color: #888;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            white-space: nowrap;
+            padding: 4px 6px;
         }
 
         .step-item .num {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.08);
             color: #ccc;
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             font-weight: 700;
             flex-shrink: 0;
         }
@@ -113,13 +114,13 @@
 
         /* ===== CAMPOS ===== */
         .field-group {
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
         }
 
         .field-group label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
+            font-size: 1rem;
+            font-weight: 600;
             color: #ddd;
             margin-bottom: 6px;
         }
@@ -131,12 +132,12 @@
 
         input[type="text"] {
             width: 100%;
-            padding: 14px 18px;
+            padding: 16px 20px;
             border-radius: 60px;
             border: none;
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            font-size: 1rem;
+            font-size: 1.05rem;
             outline: none;
             transition: 0.25s;
             border: 1px solid transparent;
@@ -145,19 +146,20 @@
         }
 
         input[type="text"]:focus {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.14);
             border-color: #ffd200;
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.12);
         }
 
         input[type="text"]::placeholder {
             color: #777;
+            font-size: 0.95rem;
         }
 
         .error-msg {
             color: #ff6b6b;
-            font-size: 0.8rem;
-            margin-top: 6px;
+            font-size: 0.85rem;
+            margin-top: 8px;
             display: none;
             padding-left: 6px;
         }
@@ -169,11 +171,11 @@
         /* ===== BOTÓN CONVERTIR ===== */
         .btn-convertir {
             width: 100%;
-            padding: 16px 12px;
+            padding: 16px;
             border: none;
             border-radius: 60px;
-            font-size: 1.05rem;
-            font-weight: 600;
+            font-size: 1.15rem;
+            font-weight: 700;
             background: linear-gradient(135deg, #6a9eff, #4a7eef);
             color: #fff;
             cursor: pointer;
@@ -182,8 +184,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 1.2rem;
+            gap: 12px;
+            margin-bottom: 16px;
+            min-height: 60px;
             touch-action: manipulation;
         }
 
@@ -199,10 +202,10 @@
         /* ===== CAJA DEL PROXY ===== */
         .proxy-box {
             background: rgba(0, 0, 0, 0.35);
-            border-radius: 20px;
-            padding: 16px 16px;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-radius: 24px;
+            padding: 18px 18px 16px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255, 215, 0, 0.12);
             display: none;
             transition: 0.3s;
         }
@@ -215,7 +218,7 @@
         @keyframes fadeSlide {
             from {
                 opacity: 0;
-                transform: translateY(-8px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
@@ -224,32 +227,33 @@
         }
 
         .proxy-box .label {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: #aaa;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .proxy-box .label .badge {
             background: #ffd200;
             color: #1a1a2e;
-            font-size: 0.6rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            padding: 2px 10px;
+            padding: 2px 14px;
             border-radius: 30px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .proxy-box .url {
             color: #7aaaff;
-            font-size: 0.9rem;
+            font-size: 1rem;
             word-break: break-all;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px 14px;
-            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 14px 16px;
+            border-radius: 20px;
             font-family: 'Courier New', monospace;
             letter-spacing: 0.2px;
             margin-bottom: 14px;
@@ -259,27 +263,28 @@
 
         .proxy-box .actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .proxy-box .actions .btn {
             flex: 1;
-            min-width: 100px;
-            padding: 12px 12px;
+            min-width: 120px;
+            padding: 14px 12px;
             border: none;
             border-radius: 40px;
-            font-size: 0.9rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             background: rgba(255, 255, 255, 0.06);
             color: #ddd;
             border: 1px solid rgba(255, 255, 255, 0.06);
+            min-height: 54px;
             touch-action: manipulation;
         }
 
@@ -301,26 +306,27 @@
         /* ===== BOTONES DE APERTURA ===== */
         .open-group {
             display: flex;
-            gap: 12px;
+            gap: 14px;
             flex-wrap: wrap;
-            margin-top: 4px;
+            margin-top: 6px;
         }
 
         .open-group .btn {
             flex: 1;
-            min-width: 130px;
+            min-width: 140px;
             padding: 16px 12px;
             border: none;
             border-radius: 60px;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.05rem;
+            font-weight: 700;
             cursor: pointer;
             transition: 0.25s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            min-height: 60px;
             touch-action: manipulation;
         }
 
@@ -348,15 +354,15 @@
             box-shadow: 0 12px 28px rgba(247, 151, 30, 0.4);
         }
 
-        /* ===== FOOTER ===== */
+        /* ===== PIE DE PÁGINA ===== */
         .footer {
-            margin-top: 1.8rem;
-            font-size: 0.8rem;
+            margin-top: 22px;
+            font-size: 0.9rem;
             color: #777;
             text-align: center;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 1.2rem;
-            line-height: 1.6;
+            padding-top: 16px;
+            line-height: 1.7;
         }
 
         .footer strong {
@@ -366,137 +372,107 @@
         .footer .hint {
             display: inline-block;
             background: rgba(255, 215, 0, 0.08);
-            padding: 4px 14px;
-            border-radius: 30px;
+            padding: 6px 18px;
+            border-radius: 40px;
             color: #ffd200;
-            font-weight: 500;
+            font-weight: 600;
             margin-top: 6px;
+            font-size: 0.85rem;
         }
 
-        /* ===== RESPONSIVE (MÓVIL) ===== */
+        /* ===== RESPONSIVE PARA MÓVILES ===== */
         @media (max-width: 480px) {
             .card {
-                padding: 18px 14px;
+                padding: 20px 16px 24px;
                 border-radius: 28px;
             }
 
             .header h1 {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
             }
 
             .header p {
-                font-size: 0.8rem;
+                font-size: 0.9rem;
             }
 
             .steps {
-                padding: 4px 10px;
+                padding: 8px 10px;
                 gap: 2px;
                 border-radius: 40px;
             }
 
             .step-item {
-                font-size: 0.6rem;
-                gap: 2px;
+                font-size: 0.7rem;
+                gap: 4px;
             }
 
             .step-item .num {
-                width: 18px;
-                height: 18px;
-                font-size: 0.55rem;
+                width: 22px;
+                height: 22px;
+                font-size: 0.6rem;
             }
 
             input[type="text"] {
-                padding: 14px 16px;
+                padding: 14px 18px;
                 font-size: 0.95rem;
             }
 
             .btn-convertir {
+                padding: 14px;
                 font-size: 1rem;
-                padding: 14px 12px;
+                min-height: 54px;
+            }
+
+            .proxy-box {
+                padding: 14px 14px 12px;
             }
 
             .proxy-box .url {
-                font-size: 0.8rem;
-                padding: 8px 12px;
+                font-size: 0.85rem;
+                padding: 12px 14px;
             }
 
             .proxy-box .actions .btn {
-                padding: 10px 10px;
-                font-size: 0.85rem;
-                min-width: 80px;
+                min-height: 48px;
+                font-size: 0.9rem;
+                padding: 10px 12px;
+                min-width: 90px;
+            }
+
+            .open-group .btn {
+                padding: 14px 12px;
+                font-size: 0.95rem;
+                min-height: 54px;
+                min-width: 110px;
+            }
+
+            .footer {
+                font-size: 0.8rem;
+                padding-top: 14px;
+            }
+
+            .footer .hint {
+                font-size: 0.75rem;
+                padding: 4px 14px;
+            }
+
+            /* Ajuste para la pestaña en blanco en móviles (se aplica desde el script) */
+        }
+
+        @media (max-width: 380px) {
+            .steps {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px 14px;
             }
 
             .open-group {
                 flex-direction: column;
-                gap: 10px;
             }
 
             .open-group .btn {
                 min-width: unset;
-                padding: 14px 12px;
-                font-size: 0.95rem;
-            }
-
-            .footer {
-                font-size: 0.7rem;
-                margin-top: 1.2rem;
-                padding-top: 1rem;
-            }
-
-            .footer .hint {
-                font-size: 0.7rem;
-                padding: 3px 12px;
-            }
-        }
-
-        /* Para pantallas muy pequeñas (menos de 360px) */
-        @media (max-width: 360px) {
-            .card {
-                padding: 14px 10px;
-            }
-
-            .header h1 {
-                font-size: 1.3rem;
-            }
-
-            .step-item {
-                font-size: 0.5rem;
-            }
-
-            .step-item .num {
-                width: 16px;
-                height: 16px;
-                font-size: 0.5rem;
-            }
-
-            input[type="text"] {
-                padding: 12px 14px;
-                font-size: 0.9rem;
-            }
-
-            .btn-convertir {
-                font-size: 0.9rem;
-                padding: 12px 10px;
-            }
-
-            .proxy-box .url {
-                font-size: 0.75rem;
-            }
-        }
-
-        /* Para tablets y pantallas medianas */
-        @media (min-width: 481px) and (max-width: 768px) {
-            .card {
-                padding: 28px 24px;
-            }
-
-            .header h1 {
-                font-size: 1.7rem;
-            }
-
-            .open-group .btn {
-                min-width: 160px;
-                padding: 16px 14px;
+                width: 100%;
             }
         }
     </style>
@@ -505,30 +481,30 @@
 
     <div class="card">
 
-        <!-- Cabecera -->
+        <!-- CABECERA -->
         <div class="header">
             <h1>🔗 PixelDrain → Proxy</h1>
             <p>Convierte tu enlace y <strong>ábrelo como quieras</strong></p>
         </div>
 
-        <!-- Pasos visuales -->
+        <!-- PASOS -->
         <div class="steps">
             <span class="step-item active"><span class="num">1</span> Pegar</span>
             <span class="step-item"><span class="num">2</span> Convertir</span>
             <span class="step-item"><span class="num">3</span> Copiar / Abrir</span>
         </div>
 
-        <!-- Campo de entrada -->
+        <!-- CAMPO -->
         <div class="field-group">
             <label for="urlInput">📎 Enlace de PixelDrain <span>•</span></label>
             <input type="text" id="urlInput" placeholder="https://pixeldrain.com/u/ID" value="https://pixeldrain.com/u/pHFVjfWY" />
             <div id="urlError" class="error-msg">⚠️ Introduce un enlace válido (ej: https://pixeldrain.com/u/...)</div>
         </div>
 
-        <!-- Botón convertir -->
+        <!-- CONVERTIR -->
         <button class="btn-convertir" id="convertBtn">🔄 Convertir a proxy</button>
 
-        <!-- Caja del proxy (oculta al inicio) -->
+        <!-- PROXY GENERADO -->
         <div class="proxy-box" id="proxyBox">
             <div class="label">
                 <span>📋 Enlace proxy generado</span>
@@ -540,13 +516,13 @@
             </div>
         </div>
 
-        <!-- Botones de apertura -->
+        <!-- ABRIR -->
         <div class="open-group">
             <button class="btn btn-proxy" id="openProxyTab">🌐 Abrir proxy</button>
             <button class="btn btn-blank" id="openBlankTab">📄 Pestaña en blanco</button>
         </div>
 
-        <!-- Footer con instrucciones -->
+        <!-- FOOTER -->
         <div class="footer">
             <div><strong>🌐 Abrir proxy</strong> → abre el enlace convertido directamente.</div>
             <div><strong>📄 Pestaña en blanco</strong> → abre una pestaña vacía para que pegues el enlace manualmente.</div>
@@ -557,7 +533,7 @@
 
     <script>
         (function() {
-            // Elementos
+            // ===== ELEMENTOS =====
             const urlInput = document.getElementById('urlInput');
             const convertBtn = document.getElementById('convertBtn');
             const proxyBox = document.getElementById('proxyBox');
@@ -567,7 +543,7 @@
             const openBlankTab = document.getElementById('openBlankTab');
             const urlError = document.getElementById('urlError');
 
-            // Lista de proxies (puedes añadir más)
+            // ===== PROXIES DISPONIBLES =====
             const PROXY_DOMAINS = [
                 'cdn49.pixeldrain.eu.cc',
                 'cdn33.pixeldrain.eu.cc',
@@ -576,7 +552,7 @@
 
             let currentProxyUrl = '';
 
-            // ---- Utilidades ----
+            // ===== UTILIDADES =====
             function extractFileId(url) {
                 const match = url.match(/pixeldrain\.com\/(?:u|l|d)\/([a-zA-Z0-9]+)/);
                 if (match) return match[1];
@@ -597,7 +573,7 @@
                 urlError.classList.remove('show');
             }
 
-            // ---- Convertir ----
+            // ===== CONVERTIR =====
             function convertir() {
                 hideError();
                 const raw = urlInput.value.trim();
@@ -611,16 +587,13 @@
                     return;
                 }
 
-                // Primer proxy de la lista
                 const domain = PROXY_DOMAINS[0];
                 currentProxyUrl = buildProxyUrl(domain, fileId);
-
-                // Mostrar en la caja
                 proxyUrlDiv.textContent = currentProxyUrl;
                 proxyBox.classList.add('show');
             }
 
-            // ---- Abrir proxy en nueva pestaña (sin referer) ----
+            // ===== ABRIR PROXY (sin referer) =====
             function abrirProxy() {
                 if (!currentProxyUrl) {
                     alert('⚠️ Primero convierte un enlace con "Convertir a proxy".');
@@ -634,7 +607,7 @@
                 }
             }
 
-            // ---- Abrir pestaña en blanco (about:blank) ----
+            // ===== ABRIR PESTAÑA EN BLANCO (con diseño responsive) =====
             function abrirPestanaBlanca() {
                 try {
                     const win = window.open('about:blank', '_blank');
@@ -642,44 +615,126 @@
                         alert('⚠️ No se pudo abrir la pestaña en blanco.');
                         return;
                     }
-                    // Escribir un pequeño mensaje de ayuda en la pestaña en blanco
+
+                    // HTML con diseño optimizado para móviles
                     win.document.write(`
-                        <html>
+                        <!DOCTYPE html>
+                        <html lang="es">
                         <head>
+                            <meta charset="UTF-8" />
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
                             <title>Pestaña en blanco</title>
                             <style>
+                                * { margin: 0; padding: 0; box-sizing: border-box; }
                                 body {
                                     background: #0b0b0b;
                                     color: #fff;
-                                    font-family: system-ui, sans-serif;
+                                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    height: 100vh;
+                                    min-height: 100vh;
                                     margin: 0;
-                                    text-align: center;
-                                    padding: 1rem;
+                                    padding: 20px;
+                                    background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f0c29);
                                 }
                                 .box {
-                                    background: #1a1a1a;
-                                    padding: 2.5rem 2rem;
-                                    border-radius: 30px;
-                                    border: 1px solid #333;
-                                    max-width: 450px;
+                                    background: rgba(255,255,255,0.06);
+                                    backdrop-filter: blur(12px);
+                                    -webkit-backdrop-filter: blur(12px);
+                                    padding: 32px 24px 28px;
+                                    border-radius: 36px;
+                                    max-width: 480px;
+                                    width: 100%;
+                                    border: 1px solid rgba(255,255,255,0.08);
+                                    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+                                    text-align: center;
                                 }
-                                .box h2 { color: #f7971e; margin-bottom: 0.5rem; }
-                                .box p { color: #aaa; line-height: 1.6; }
-                                .box .url { color: #6a9eff; word-break: break-all; background: #111; padding: 12px; border-radius: 16px; font-family: monospace; margin: 12px 0; border: 1px dashed #444; }
-                                .box .hint { color: #888; font-size: 0.85rem; }
-                                .box .hint strong { color: #ffd200; }
+                                .box h2 {
+                                    font-size: 1.8rem;
+                                    font-weight: 700;
+                                    background: linear-gradient(135deg, #f7971e, #ffd200);
+                                    -webkit-background-clip: text;
+                                    -webkit-text-fill-color: transparent;
+                                    background-clip: text;
+                                    margin-bottom: 12px;
+                                }
+                                .box p {
+                                    color: #ccc;
+                                    font-size: 1.05rem;
+                                    line-height: 1.6;
+                                    margin-bottom: 16px;
+                                }
+                                .box .url {
+                                    color: #7aaaff;
+                                    font-size: 1rem;
+                                    word-break: break-all;
+                                    background: rgba(0,0,0,0.3);
+                                    padding: 16px 18px;
+                                    border-radius: 20px;
+                                    font-family: 'Courier New', monospace;
+                                    border: 1px solid rgba(255,215,0,0.08);
+                                    margin-bottom: 18px;
+                                    line-height: 1.5;
+                                }
+                                .box .hint {
+                                    color: #888;
+                                    font-size: 0.95rem;
+                                    line-height: 1.6;
+                                    background: rgba(255,215,0,0.06);
+                                    padding: 12px 16px;
+                                    border-radius: 30px;
+                                    border: 1px solid rgba(255,215,0,0.06);
+                                }
+                                .box .hint strong {
+                                    color: #ffd200;
+                                    font-weight: 600;
+                                }
+                                .box .emoji-big {
+                                    font-size: 2.8rem;
+                                    display: block;
+                                    margin-bottom: 6px;
+                                }
+                                @media (max-width: 480px) {
+                                    .box {
+                                        padding: 24px 16px 20px;
+                                        border-radius: 28px;
+                                    }
+                                    .box h2 {
+                                        font-size: 1.5rem;
+                                    }
+                                    .box p {
+                                        font-size: 0.95rem;
+                                    }
+                                    .box .url {
+                                        font-size: 0.85rem;
+                                        padding: 14px 14px;
+                                    }
+                                    .box .hint {
+                                        font-size: 0.85rem;
+                                        padding: 10px 14px;
+                                    }
+                                    .box .emoji-big {
+                                        font-size: 2.2rem;
+                                    }
+                                }
+                                @media (max-width: 380px) {
+                                    .box h2 { font-size: 1.3rem; }
+                                    .box p { font-size: 0.9rem; }
+                                    .box .url { font-size: 0.75rem; }
+                                    .box .hint { font-size: 0.8rem; }
+                                }
                             </style>
                         </head>
                         <body>
                             <div class="box">
-                                <h2>📋 Pega el enlace proxy</h2>
+                                <span class="emoji-big">📋</span>
+                                <h2>Pega el enlace proxy</h2>
                                 <p>Copialo desde la página anterior y pégalo aquí.</p>
                                 <div class="url">${currentProxyUrl || '🔹 Aún no has generado un proxy'}</div>
-                                <p class="hint">💡 Si ya lo copiaste, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
+                                <div class="hint">
+                                    💡 Si ya lo copiaste, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
+                                </div>
                             </div>
                         </body>
                         </html>
@@ -691,7 +746,7 @@
                 }
             }
 
-            // ---- Copiar al portapapeles ----
+            // ===== COPIAR =====
             function copiarEnlace() {
                 if (!currentProxyUrl) {
                     alert('⚠️ Primero convierte un enlace.');
@@ -702,7 +757,7 @@
                         alert('📋 Enlace copiado al portapapeles.');
                     })
                     .catch(() => {
-                        // Fallback manual
+                        // fallback manual
                         const range = document.createRange();
                         range.selectNode(proxyUrlDiv);
                         window.getSelection().removeAllRanges();
@@ -712,7 +767,7 @@
                     });
             }
 
-            // ---- Eventos ----
+            // ===== EVENTOS =====
             convertBtn.addEventListener('click', convertir);
             copyBtn.addEventListener('click', copiarEnlace);
             openProxyTab.addEventListener('click', abrirProxy);
@@ -736,8 +791,8 @@
 
             urlInput.addEventListener('input', hideError);
 
-            // (Opcional) Si quieres que convierta automáticamente al cargar
-            // setTimeout(convertir, 300);
+            // Opcional: auto-convertir al cargar (comentado)
+            // setTimeout(convertir, 400);
         })();
     </script>
 </body>
