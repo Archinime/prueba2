@@ -280,7 +280,7 @@ class VideoPlayer {
       return;
     }
 
-    // Convertir cada URL a su versión directa
+    // Convertir cada URL a su versión directa y abrir en nueva ventana
     for (const url of urlsToDownload) {
       if (url && url !== '#') {
         const directUrl = this.getDirectDownloadUrl(url);
