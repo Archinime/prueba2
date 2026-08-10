@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Conversor PixelDrain + Pestaña en blanco</title>
     <style>
         * {
@@ -462,16 +462,9 @@
             const openBlankTab = document.getElementById('openBlankTab');
             const urlError = document.getElementById('urlError');
 
-            // Lista de proxies (puedes añadir más)
-            const PROXY_DOMAINS = [
-                'cdn49.pixeldrain.eu.cc',
-                'cdn33.pixeldrain.eu.cc',
-                'cdn.pixeldrain.eu.cc'
-            ];
-
+            const PROXY_DOMAINS = ['cdn49.pixeldrain.eu.cc', 'cdn33.pixeldrain.eu.cc', 'cdn.pixeldrain.eu.cc'];
             let currentProxyUrl = '';
 
-            // ---- Utilidades ----
             function extractFileId(url) {
                 const match = url.match(/pixeldrain\.com\/(?:u|l|d)\/([a-zA-Z0-9]+)/);
                 if (match) return match[1];
@@ -492,7 +485,6 @@
                 urlError.classList.remove('show');
             }
 
-            // ---- Convertir ----
             function convertir() {
                 hideError();
                 const raw = urlInput.value.trim();
@@ -505,22 +497,18 @@
                     showError('❌ No se encontró un ID. Ejemplo: https://pixeldrain.com/u/pHFVjfWY');
                     return;
                 }
-
-                // Primer proxy de la lista
                 const domain = PROXY_DOMAINS[0];
                 currentProxyUrl = buildProxyUrl(domain, fileId);
-
-                // Mostrar en la caja
                 proxyUrlDiv.textContent = currentProxyUrl;
                 proxyBox.classList.add('show');
             }
 
-            // ---- Abrir proxy en nueva pestaña (sin referer) ----
             function abrirProxy() {
                 if (!currentProxyUrl) {
                     alert('⚠️ Primero convierte un enlace con "Convertir a proxy".');
                     return;
                 }
+                // Abrir en nueva pestaña (sin referer)
                 const win = window.open(currentProxyUrl, '_blank', 'noopener,noreferrer');
                 if (!win) {
                     alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
@@ -529,48 +517,48 @@
                 }
             }
 
-            // ---- Abrir pestaña en blanco (about:blank) ----
             function abrirPestanaBlanca() {
                 try {
+                    // Abrir una nueva pestaña sin especificar tamaño (para que sea fullscreen en móviles)
                     const win = window.open('about:blank', '_blank');
                     if (!win) {
                         alert('⚠️ No se pudo abrir la pestaña en blanco.');
                         return;
                     }
 
-                    // Inyectamos un diseño optimizado para móviles: sin márgenes grandes, fuentes grandes, ocupa toda la pantalla
+                    // Inyectar contenido con diseño optimizado para móviles
                     win.document.write(`
                         <!DOCTYPE html>
                         <html lang="es">
                         <head>
                             <meta charset="UTF-8" />
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
                             <title>Pestaña en blanco</title>
                             <style>
                                 * { margin:0; padding:0; box-sizing:border-box; }
                                 body {
                                     background: #0b0b0b;
                                     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+                                    min-height: 100vh;
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    min-height: 100vh;
-                                    padding: 1rem;
+                                    padding: 1.5rem;
                                     margin: 0;
                                 }
                                 .container {
                                     background: rgba(255,255,255,0.05);
-                                    backdrop-filter: blur(8px);
-                                    -webkit-backdrop-filter: blur(8px);
-                                    border-radius: 32px;
-                                    padding: 2rem 1.5rem;
-                                    width: 100%;
+                                    backdrop-filter: blur(10px);
+                                    -webkit-backdrop-filter: blur(10px);
+                                    border-radius: 50px;
+                                    padding: 2.5rem 2rem;
                                     max-width: 600px;
+                                    width: 100%;
                                     border: 1px solid rgba(255,255,255,0.08);
-                                    box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+                                    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
                                     text-align: center;
                                 }
-                                h2 {
+                                h1 {
                                     font-size: 2.2rem;
                                     font-weight: 600;
                                     background: linear-gradient(135deg, #f7971e, #ffd200);
@@ -586,8 +574,8 @@
                                 }
                                 .url-box {
                                     background: rgba(0,0,0,0.3);
-                                    border-radius: 20px;
-                                    padding: 1.2rem 1rem;
+                                    border-radius: 24px;
+                                    padding: 1.2rem;
                                     border: 1px dashed rgba(255,215,0,0.2);
                                     margin: 1.5rem 0;
                                     word-break: break-all;
@@ -599,69 +587,54 @@
                                 }
                                 .url-box .url {
                                     color: #7aaaff;
-                                    font-size: 1.4rem;
+                                    font-size: 1.5rem;
                                     font-family: 'Courier New', monospace;
                                     line-height: 1.6;
-                                    word-break: break-all;
+                                    font-weight: 500;
                                 }
                                 .hint {
-                                    color: #888;
-                                    font-size: 1.1rem;
-                                    line-height: 1.6;
-                                    margin-top: 1rem;
+                                    color: #aaa;
+                                    font-size: 1.2rem;
+                                    line-height: 1.7;
+                                    margin: 1rem 0;
                                 }
                                 .hint strong {
                                     color: #ffd200;
                                 }
-                                .btn-help {
+                                .btn-close {
                                     display: inline-block;
-                                    margin-top: 1.5rem;
-                                    padding: 0.8rem 2rem;
+                                    margin-top: 1.2rem;
+                                    padding: 0.9rem 2.5rem;
                                     background: rgba(255,255,255,0.08);
                                     color: #ddd;
                                     border: 1px solid rgba(255,255,255,0.1);
                                     border-radius: 60px;
-                                    font-size: 1.1rem;
-                                    text-decoration: none;
+                                    font-size: 1.2rem;
+                                    font-weight: 600;
                                     cursor: pointer;
                                     transition: 0.2s;
+                                    text-decoration: none;
                                 }
-                                .btn-help:hover {
+                                .btn-close:hover {
                                     background: rgba(255,255,255,0.15);
                                 }
-                                .btn-help:active {
+                                .btn-close:active {
                                     transform: scale(0.96);
                                 }
                                 @media (max-width: 480px) {
-                                    body {
-                                        padding: 0.5rem;
-                                    }
-                                    .container {
-                                        padding: 1.8rem 1rem;
-                                        border-radius: 24px;
-                                    }
-                                    h2 {
-                                        font-size: 1.8rem;
-                                    }
-                                    .sub {
-                                        font-size: 1.1rem;
-                                    }
-                                    .url-box .url {
-                                        font-size: 1.2rem;
-                                    }
-                                    .hint {
-                                        font-size: 1rem;
-                                    }
-                                    .btn-help {
-                                        font-size: 1rem;
-                                        padding: 0.7rem 1.5rem;
-                                    }
+                                    body { padding: 1rem; }
+                                    .container { padding: 2rem 1.2rem; border-radius: 40px; }
+                                    h1 { font-size: 1.8rem; }
+                                    .sub { font-size: 1.1rem; }
+                                    .url-box .url { font-size: 1.2rem; }
+                                    .hint { font-size: 1rem; }
+                                    .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
                                 }
                             </style>
                         </head>
                         <body>
                             <div class="container">
-                                <h2>📋 Pestaña en blanco</h2>
+                                <h1>📋 Pestaña en blanco</h1>
                                 <p class="sub">Pega aquí el enlace proxy</p>
 
                                 <div class="url-box">
@@ -672,7 +645,7 @@
                                 <p class="hint">
                                     💡 Si ya copiaste el enlace, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
                                 </p>
-                                <button class="btn-help" onclick="window.close()">✖ Cerrar esta pestaña</button>
+                                <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
                             </div>
                         </body>
                         </html>
@@ -684,18 +657,14 @@
                 }
             }
 
-            // ---- Copiar al portapapeles ----
             function copiarEnlace() {
                 if (!currentProxyUrl) {
                     alert('⚠️ Primero convierte un enlace.');
                     return;
                 }
                 navigator.clipboard.writeText(currentProxyUrl)
-                    .then(() => {
-                        alert('📋 Enlace copiado al portapapeles.');
-                    })
+                    .then(() => alert('📋 Enlace copiado al portapapeles.'))
                     .catch(() => {
-                        // Fallback manual
                         const range = document.createRange();
                         range.selectNode(proxyUrlDiv);
                         window.getSelection().removeAllRanges();
@@ -705,17 +674,14 @@
                     });
             }
 
-            // ---- Eventos ----
+            // Eventos
             convertBtn.addEventListener('click', convertir);
             copyBtn.addEventListener('click', copiarEnlace);
             openProxyTab.addEventListener('click', abrirProxy);
             openBlankTab.addEventListener('click', abrirPestanaBlanca);
 
             urlInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    convertir();
-                }
+                if (e.key === 'Enter') { e.preventDefault(); convertir(); }
             });
 
             urlInput.addEventListener('blur', () => {
@@ -728,9 +694,6 @@
             });
 
             urlInput.addEventListener('input', hideError);
-
-            // Opcional: convertir al cargar si hay valor
-            // setTimeout(convertir, 300);
         })();
     </script>
 </body>
