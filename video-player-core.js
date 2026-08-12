@@ -15,7 +15,9 @@
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 // MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
 // MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy
-// CAMBIADO: El logo-blocker (ARCHINIME HD) solo aparece en enlaces de Google Drive y Odysee
+// MEJORADO: En PixelDrain solo se muestra el botón de copiar; al copiar, aparece el botón de abrir pestaña en blanco
+// MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
+// MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
 
 class VideoPlayer {
   constructor() {
@@ -146,12 +148,13 @@ class VideoPlayer {
   }
   // --- Fin nuevas funciones ---
 
-  // Actualiza el logo-blocker: solo visible para Google Drive y Odysee
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
-    // Mostrar solo si el enlace contiene 'drive.google.com' o 'odysee.com'
-    if (url && (url.includes('drive.google.com') || url.includes('odysee.com'))) {
+    // Mostrar logo solo en Google Drive y Odysee
+    const isDrive = url && url.includes('drive.google.com');
+    const isOdysee = url && url.includes('odysee.com');
+    if (isDrive || isOdysee) {
       logo.style.display = 'flex';
     } else {
       logo.style.display = 'none';
@@ -220,7 +223,7 @@ class VideoPlayer {
       font-size: 1.2rem;
       cursor: pointer;
       z-index: 20;
-      display: none; /* oculto por defecto, se muestra al ocultar el modal */
+      display: none;
       align-items: center;
       justify-content: center;
       transition: 0.2s;
@@ -260,7 +263,7 @@ class VideoPlayer {
       transition: opacity 0.3s ease;
     `;
 
-    // Botón de cierre (X) que oculta el modal y muestra el botón flotante
+    // Botón de cierre (X)
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = `
@@ -282,7 +285,6 @@ class VideoPlayer {
       e.stopPropagation();
       modal.style.display = 'none';
       toggleBtn.style.display = 'flex';
-      // Desmutear el video al cerrar el modal (opcional)
       video.muted = false;
     });
 
@@ -392,11 +394,13 @@ class VideoPlayer {
     urlDisplay.textContent = proxyUrl;
     urlDisplay.setAttribute('data-proxy', proxyUrl);
 
-    // Botones de acción
+    // ---- BOTONES DE ACCIÓN (solo copiar al inicio) ----
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; justify-content:center;';
 
+    // Botón de copiar (visible inicialmente)
     const copyBtn = document.createElement('button');
+    copyBtn.id = 'pixelDrainCopyBtn';
     copyBtn.textContent = '📋 Copiar enlace proxy';
     copyBtn.style.cssText = `
       padding: 8px 16px;
@@ -420,18 +424,28 @@ class VideoPlayer {
         return;
       }
       navigator.clipboard.writeText(proxy)
-        .then(() => alert('📋 Enlace proxy copiado al portapapeles.'))
+        .then(() => {
+          alert('📋 Enlace proxy copiado al portapapeles.');
+          // Ocultar botón copiar y mostrar el de abrir pestaña
+          copyBtn.style.display = 'none';
+          blankBtn.style.display = 'inline-flex';
+        })
         .catch(() => {
+          // Fallback
           const range = document.createRange();
           range.selectNode(urlDisplay);
           window.getSelection().removeAllRanges();
           window.getSelection().addRange(range);
           document.execCommand('copy');
           alert('📋 Enlace copiado (método manual).');
+          copyBtn.style.display = 'none';
+          blankBtn.style.display = 'inline-flex';
         });
     });
 
+    // Botón de abrir pestaña en blanco (oculto inicialmente)
     const blankBtn = document.createElement('button');
+    blankBtn.id = 'pixelDrainBlankBtn';
     blankBtn.textContent = '📄 Abrir en pestaña en blanco';
     blankBtn.style.cssText = `
       padding: 8px 16px;
@@ -444,6 +458,7 @@ class VideoPlayer {
       background: rgba(255,215,0,0.15);
       color: #ffd200;
       border: 1px solid rgba(255,215,0,0.3);
+      display: none;
     `;
     blankBtn.addEventListener('mouseenter', () => { blankBtn.style.background = 'rgba(255,215,0,0.25)'; });
     blankBtn.addEventListener('mouseleave', () => { blankBtn.style.background = 'rgba(255,215,0,0.15)'; });
@@ -460,6 +475,7 @@ class VideoPlayer {
           alert('⚠️ No se pudo abrir la pestaña en blanco.');
           return;
         }
+        // Contenido: solo imagen y mensaje, sin mostrar la URL
         win.document.write(`
           <!DOCTYPE html>
           <html lang="es">
@@ -505,25 +521,16 @@ class VideoPlayer {
                 font-size: 1.3rem;
                 margin-bottom: 1.5rem;
               }
-              .url-box {
-                background: rgba(0,0,0,0.3);
-                border-radius: 24px;
-                padding: 1.2rem;
-                border: 1px dashed rgba(255,215,0,0.2);
+              .image-container {
                 margin: 1.5rem 0;
-                word-break: break-all;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid rgba(255,255,255,0.1);
               }
-              .url-box .label {
-                color: #aaa;
-                font-size: 1rem;
-                margin-bottom: 0.5rem;
-              }
-              .url-box .url {
-                color: #7aaaff;
-                font-size: 1.5rem;
-                font-family: 'Courier New', monospace;
-                line-height: 1.6;
-                font-weight: 500;
+              .image-container img {
+                width: 100%;
+                height: auto;
+                display: block;
               }
               .hint {
                 color: #aaa;
@@ -559,7 +566,6 @@ class VideoPlayer {
                 .container { padding: 2rem 1.2rem; border-radius: 40px; }
                 h1 { font-size: 1.8rem; }
                 .sub { font-size: 1.1rem; }
-                .url-box .url { font-size: 1.2rem; }
                 .hint { font-size: 1rem; }
                 .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
               }
@@ -568,13 +574,12 @@ class VideoPlayer {
           <body>
             <div class="container">
               <h1>📋 Pestaña en blanco</h1>
-              <p class="sub">Pega el enlace en la barra de direcciones</p>
-              <div class="url-box">
-                <div class="label">🔗 Enlace proxy</div>
-                <div class="url">${proxy}</div>
+              <p class="sub">Pega el enlace que copiaste arriba en el buscador</p>
+              <div class="image-container">
+                <img src="aqui.png" alt="Ejemplo de dónde pegar el enlace" />
               </div>
               <p class="hint">
-                💡 Copia el enlace de arriba, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
+                💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
               </p>
               <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
             </div>
