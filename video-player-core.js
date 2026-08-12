@@ -10,6 +10,8 @@
 // REACTIVADO: Botón PLAY para Pixeldrain (abre en nueva ventana)
 // FIX: Link de descarga de Google Drive con formato drive.usercontent.google.com
 // NUEVO: Para enlaces de PixelDrain, muestra el enlace proxy y botones para copiar y abrir en pestaña en blanco
+// NUEVO: Al hacer clic en PLAY, abre automáticamente el proxy en otra pestaña (sin referer)
+// NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
 
 class VideoPlayer {
   constructor() {
@@ -153,6 +155,7 @@ class VideoPlayer {
   // Crea la interfaz para PixelDrain con proxy y botones
   createPixelDrainUI(url) {
     const container = document.createElement('div');
+    container.id = 'pixelDrainModal'; // para poder cerrarlo
     container.style.cssText = `
       position: absolute;
       top: 0;
@@ -168,6 +171,56 @@ class VideoPlayer {
       padding: 1rem;
       box-sizing: border-box;
     `;
+
+    // Botón de cierre (X)
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-size: 1.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+      z-index: 10;
+      font-weight: 300;
+    `;
+    closeBtn.addEventListener('mouseenter', () => { closeBtn.style.color = '#fff'; });
+    closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#aaa'; });
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Ocultar el modal y mostrar mensaje de que el video se reproduce en otra pestaña
+      container.style.display = 'none';
+      const mediaContainer = document.getElementById('mediaContainer');
+      // Mostrar un mensaje informativo
+      const msg = document.createElement('div');
+      msg.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b0b0b;
+        color: #ccc;
+        font-size: 1.2rem;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        padding: 1rem;
+        box-sizing: border-box;
+      `;
+      msg.innerHTML = `🎬 El video se está reproduciendo en la otra pestaña.<br><span style="font-size:0.9rem; color:#888;">Puedes cerrar esta pestaña si lo deseas.</span>`;
+      // Asegurarse de que no haya otros mensajes duplicados
+      const existingMsg = mediaContainer.querySelector('.pixel-close-msg');
+      if (existingMsg) existingMsg.remove();
+      msg.className = 'pixel-close-msg';
+      mediaContainer.appendChild(msg);
+    });
 
     // Botón PLAY
     const btn = document.createElement('button');
@@ -195,15 +248,8 @@ class VideoPlayer {
       btn.style.transform = 'scale(1)';
       btn.style.boxShadow = '0 0 30px rgba(229,9,20,0.6)';
     });
-    btn.addEventListener('click', () => {
-      window.open(url, '_blank');
-    });
 
-    const label = document.createElement('p');
-    label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin:1.5rem 0 0.8rem 0; text-align:center;';
-    label.innerHTML = 'Haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para ver el video';
-
-    // --- Sección proxy ---
+    // Obtener el proxy
     const id = this.extractPixelDrainId(url);
     let proxyUrl = '';
     if (id) {
@@ -212,6 +258,27 @@ class VideoPlayer {
       proxyUrl = '⚠️ No se pudo extraer el ID del enlace';
     }
 
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!proxyUrl || proxyUrl.startsWith('⚠️')) {
+        alert('No se pudo generar el enlace proxy.');
+        return;
+      }
+      // Abrir el proxy en nueva pestaña sin referer
+      const win = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
+      if (!win) {
+        alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
+      } else {
+        // Opcional: enfocar la nueva pestaña
+        win.focus();
+      }
+    });
+
+    const label = document.createElement('p');
+    label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin:1.5rem 0 0.8rem 0; text-align:center;';
+    label.innerHTML = 'Haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para abrir el video (proxy)';
+
+    // --- Sección proxy (modal informativo) ---
     const proxyBox = document.createElement('div');
     proxyBox.style.cssText = `
       margin-top: 1rem;
@@ -454,6 +521,7 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
+    container.appendChild(closeBtn); // botón X
     container.appendChild(btn);
     container.appendChild(label);
     container.appendChild(proxyBox);
