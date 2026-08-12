@@ -18,6 +18,8 @@
 // MEJORADO: En PixelDrain solo se muestra el botón de copiar; al copiar, aparece el botón de abrir pestaña en blanco
 // MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
 // MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
+// MEJORADO: Cambio de dominio proxy a cdn44.pixeldrain.eu.cc
+// MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
 
 class VideoPlayer {
   constructor() {
@@ -143,7 +145,7 @@ class VideoPlayer {
   }
 
   buildPixelDrainProxy(fileId) {
-    const domain = 'cdn49.pixeldrain.eu.cc'; // puedes usar otros dominios si falla
+    const domain = 'cdn44.pixeldrain.eu.cc'; // Cambiado a cdn44
     return `https://${domain}/api/file/${fileId}`;
   }
   // --- Fin nuevas funciones ---
@@ -188,7 +190,7 @@ class VideoPlayer {
     // ----- REPRODUCTOR DE VIDEO (proxy) -----
     const video = document.createElement('video');
     video.src = proxyUrl;
-    video.muted = true;
+    // Sin muted para que el sonido se reproduzca automáticamente (si el navegador lo permite)
     video.autoplay = true;
     video.controls = true;
     video.playsInline = true;
@@ -285,75 +287,6 @@ class VideoPlayer {
       e.stopPropagation();
       modal.style.display = 'none';
       toggleBtn.style.display = 'flex';
-      video.muted = false;
-    });
-
-    // Botón PLAY (abre en nueva pestaña como respaldo)
-    const playBtn = document.createElement('button');
-    playBtn.style.cssText = `
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: #e50914;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      flex-shrink: 0;
-      margin-bottom: 0.8rem;
-    `;
-    playBtn.innerHTML = `<span style="width:0; height:0; border-left:40px solid white; border-top:25px solid transparent; border-bottom:25px solid transparent; margin-left:10px;"></span>`;
-    playBtn.addEventListener('mouseenter', () => {
-      playBtn.style.transform = 'scale(1.08)';
-      playBtn.style.boxShadow = '0 0 50px rgba(229,9,20,0.9)';
-    });
-    playBtn.addEventListener('mouseleave', () => {
-      playBtn.style.transform = 'scale(1)';
-      playBtn.style.boxShadow = '0 0 30px rgba(229,9,20,0.6)';
-    });
-    playBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!proxyUrl || proxyUrl.startsWith('⚠️')) {
-        alert('No se pudo generar el enlace proxy.');
-        return;
-      }
-      const win = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
-      if (!win) {
-        alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
-      } else {
-        win.focus();
-      }
-    });
-
-    const label = document.createElement('p');
-    label.style.cssText = 'color:#cccccc; font-size:1rem; letter-spacing:0.5px; font-weight:300; margin:0 0 0.5rem 0; text-align:center;';
-    label.innerHTML = 'Si el video no se reproduce, haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para abrirlo en otra pestaña';
-
-    // Botón para activar sonido
-    const soundBtn = document.createElement('button');
-    soundBtn.textContent = '🔊 Activar sonido';
-    soundBtn.style.cssText = `
-      padding: 8px 18px;
-      border: none;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
-      margin-bottom: 0.8rem;
-    `;
-    soundBtn.addEventListener('mouseenter', () => { soundBtn.style.background = 'rgba(255,255,255,0.2)'; });
-    soundBtn.addEventListener('mouseleave', () => { soundBtn.style.background = 'rgba(255,255,255,0.1)'; });
-    soundBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      video.muted = false;
-      soundBtn.style.display = 'none';
     });
 
     // --- Sección proxy (información) ---
@@ -600,11 +533,8 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // Ensamblar modal
+    // Ensamblar modal (sin botón PLAY ni texto)
     modal.appendChild(closeBtn);
-    modal.appendChild(playBtn);
-    modal.appendChild(label);
-    modal.appendChild(soundBtn);
     modal.appendChild(proxyBox);
 
     container.appendChild(modal);
