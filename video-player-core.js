@@ -15,6 +15,7 @@
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 // MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
 // MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy
+// CAMBIADO: El logo-blocker (ARCHINIME HD) solo aparece en enlaces de Google Drive y Odysee
 
 class VideoPlayer {
   constructor() {
@@ -145,13 +146,15 @@ class VideoPlayer {
   }
   // --- Fin nuevas funciones ---
 
+  // Actualiza el logo-blocker: solo visible para Google Drive y Odysee
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
-    if (this.isDoomStreamUrl(url)) {
-      logo.style.display = 'none';
-    } else {
+    // Mostrar solo si el enlace contiene 'drive.google.com' o 'odysee.com'
+    if (url && (url.includes('drive.google.com') || url.includes('odysee.com'))) {
       logo.style.display = 'flex';
+    } else {
+      logo.style.display = 'none';
     }
   }
 
