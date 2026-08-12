@@ -14,6 +14,7 @@
 // NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 // MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
+// MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy
 
 class VideoPlayer {
   constructor() {
@@ -154,7 +155,7 @@ class VideoPlayer {
     }
   }
 
-  // Crea la interfaz para PixelDrain con reproducción automática y modal mejorado
+  // Crea la interfaz para PixelDrain con reproducción automática y panel colapsable
   createPixelDrainUI(url) {
     const container = document.createElement('div');
     container.id = 'pixelDrainContainer';
@@ -181,18 +182,17 @@ class VideoPlayer {
     // ----- REPRODUCTOR DE VIDEO (proxy) -----
     const video = document.createElement('video');
     video.src = proxyUrl;
-    video.muted = true;          // Necesario para autoplay en la mayoría de navegadores
+    video.muted = true;
     video.autoplay = true;
     video.controls = true;
-    video.playsInline = true;    // Para móviles
-    video.referrerPolicy = 'no-referrer'; // Sin referer
+    video.playsInline = true;
+    video.referrerPolicy = 'no-referrer';
     video.style.cssText = `
       width: 100%;
       height: 100%;
       object-fit: contain;
       background: #000;
     `;
-    // Si el autoplay falla, el usuario puede iniciar manualmente
     video.addEventListener('error', (e) => {
       console.warn('Error al cargar el proxy:', e);
     });
@@ -200,7 +200,42 @@ class VideoPlayer {
     container.appendChild(video);
     this.currentVideoElement = video;
 
-    // ----- MODAL (superpuesto) -----
+    // ----- BOTÓN FLOTANTE (para reabrir el panel) -----
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'pixelDrainToggle';
+    toggleBtn.textContent = '⚙️';
+    toggleBtn.style.cssText = `
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 20;
+      display: none; /* oculto por defecto, se muestra al ocultar el modal */
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+    `;
+    toggleBtn.addEventListener('mouseenter', () => {
+      toggleBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    toggleBtn.addEventListener('mouseleave', () => {
+      toggleBtn.style.background = 'rgba(0,0,0,0.7)';
+    });
+    toggleBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      toggleBtn.style.display = 'none';
+    });
+    container.appendChild(toggleBtn);
+
+    // ----- MODAL (panel colapsable) -----
     const modal = document.createElement('div');
     modal.id = 'pixelDrainModal';
     modal.style.cssText = `
@@ -222,7 +257,7 @@ class VideoPlayer {
       transition: opacity 0.3s ease;
     `;
 
-    // Botón de cierre (X)
+    // Botón de cierre (X) que oculta el modal y muestra el botón flotante
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = `
@@ -242,8 +277,8 @@ class VideoPlayer {
     closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#aaa'; });
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Ocultar completamente el modal
       modal.style.display = 'none';
+      toggleBtn.style.display = 'flex';
       // Desmutear el video al cerrar el modal (opcional)
       video.muted = false;
     });
@@ -280,7 +315,6 @@ class VideoPlayer {
         alert('No se pudo generar el enlace proxy.');
         return;
       }
-      // Abrir en nueva pestaña sin referer (respaldo)
       const win = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
       if (!win) {
         alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
@@ -314,7 +348,6 @@ class VideoPlayer {
     soundBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       video.muted = false;
-      // Opcional: ocultar el botón una vez activado
       soundBtn.style.display = 'none';
     });
 
@@ -559,7 +592,7 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // Ensamblar modal: X, botón PLAY, label, soundBtn, proxyBox
+    // Ensamblar modal
     modal.appendChild(closeBtn);
     modal.appendChild(playBtn);
     modal.appendChild(label);
@@ -579,7 +612,7 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
 
-    // ----- PIXELDRAIN: interfaz con reproducción automática y modal mejorado -----
+    // ----- PIXELDRAIN: interfaz con reproducción automática y panel colapsable -----
     if (url.includes('pixeldrain.com')) {
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
