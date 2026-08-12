@@ -13,6 +13,7 @@
 // NUEVO: Al hacer clic en PLAY, abre automáticamente el proxy en otra pestaña (sin referer)
 // NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
+// MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
 
 class VideoPlayer {
   constructor() {
@@ -153,7 +154,7 @@ class VideoPlayer {
     }
   }
 
-  // Crea la interfaz para PixelDrain con reproducción automática y modal
+  // Crea la interfaz para PixelDrain con reproducción automática y modal mejorado
   createPixelDrainUI(url) {
     const container = document.createElement('div');
     container.id = 'pixelDrainContainer';
@@ -194,10 +195,10 @@ class VideoPlayer {
     // Si el autoplay falla, el usuario puede iniciar manualmente
     video.addEventListener('error', (e) => {
       console.warn('Error al cargar el proxy:', e);
-      // Mostrar un mensaje en el modal
     });
 
     container.appendChild(video);
+    this.currentVideoElement = video;
 
     // ----- MODAL (superpuesto) -----
     const modal = document.createElement('div');
@@ -212,7 +213,7 @@ class VideoPlayer {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(11, 11, 11, 0.9);
+      background: rgba(11, 11, 11, 0.92);
       backdrop-filter: blur(4px);
       z-index: 10;
       padding: 1rem;
@@ -241,10 +242,10 @@ class VideoPlayer {
     closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#aaa'; });
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Ocultar el modal (no eliminar)
-      modal.style.opacity = '0';
-      modal.style.pointerEvents = 'none';
-      // El video sigue reproduciéndose
+      // Ocultar completamente el modal
+      modal.style.display = 'none';
+      // Desmutear el video al cerrar el modal (opcional)
+      video.muted = false;
     });
 
     // Botón PLAY (abre en nueva pestaña como respaldo)
@@ -253,8 +254,8 @@ class VideoPlayer {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       background: #e50914;
       border: none;
@@ -262,9 +263,9 @@ class VideoPlayer {
       box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       flex-shrink: 0;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem;
     `;
-    playBtn.innerHTML = `<span style="width:0; height:0; border-left:45px solid white; border-top:28px solid transparent; border-bottom:28px solid transparent; margin-left:12px;"></span>`;
+    playBtn.innerHTML = `<span style="width:0; height:0; border-left:40px solid white; border-top:25px solid transparent; border-bottom:25px solid transparent; margin-left:10px;"></span>`;
     playBtn.addEventListener('mouseenter', () => {
       playBtn.style.transform = 'scale(1.08)';
       playBtn.style.boxShadow = '0 0 50px rgba(229,9,20,0.9)';
@@ -289,8 +290,33 @@ class VideoPlayer {
     });
 
     const label = document.createElement('p');
-    label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin:0 0 0.8rem 0; text-align:center;';
+    label.style.cssText = 'color:#cccccc; font-size:1rem; letter-spacing:0.5px; font-weight:300; margin:0 0 0.5rem 0; text-align:center;';
     label.innerHTML = 'Si el video no se reproduce, haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para abrirlo en otra pestaña';
+
+    // Botón para activar sonido
+    const soundBtn = document.createElement('button');
+    soundBtn.textContent = '🔊 Activar sonido';
+    soundBtn.style.cssText = `
+      padding: 8px 18px;
+      border: none;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 0.8rem;
+    `;
+    soundBtn.addEventListener('mouseenter', () => { soundBtn.style.background = 'rgba(255,255,255,0.2)'; });
+    soundBtn.addEventListener('mouseleave', () => { soundBtn.style.background = 'rgba(255,255,255,0.1)'; });
+    soundBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      video.muted = false;
+      // Opcional: ocultar el botón una vez activado
+      soundBtn.style.display = 'none';
+    });
 
     // --- Sección proxy (información) ---
     const proxyBox = document.createElement('div');
@@ -533,20 +559,14 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // Ensamblar modal
+    // Ensamblar modal: X, botón PLAY, label, soundBtn, proxyBox
     modal.appendChild(closeBtn);
     modal.appendChild(playBtn);
     modal.appendChild(label);
+    modal.appendChild(soundBtn);
     modal.appendChild(proxyBox);
 
     container.appendChild(modal);
-
-    // Si el video se reproduce correctamente, podemos ocultar el modal automáticamente después de unos segundos?
-    // Pero mejor dejamos que el usuario lo cierre con la X.
-
-    // Guardar referencia al video y al modal para posible uso
-    container.videoElement = video;
-    container.modalElement = modal;
 
     return container;
   }
@@ -559,11 +579,11 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
 
-    // ----- PIXELDRAIN: interfaz con reproducción automática y modal -----
+    // ----- PIXELDRAIN: interfaz con reproducción automática y modal mejorado -----
     if (url.includes('pixeldrain.com')) {
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
-      this.currentVideoElement = ui.videoElement || null;
+      this.currentVideoElement = ui.querySelector('video') || null;
       this.updateLogoBlocker(url);
       return;
     }
