@@ -12,6 +12,7 @@
 // NUEVO: Para enlaces de PixelDrain, muestra el enlace proxy y botones para copiar y abrir en pestaña en blanco
 // NUEVO: Al hacer clic en PLAY, abre automáticamente el proxy en otra pestaña (sin referer)
 // NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
+// MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 
 class VideoPlayer {
   constructor() {
@@ -152,11 +153,56 @@ class VideoPlayer {
     }
   }
 
-  // Crea la interfaz para PixelDrain con proxy y botones
+  // Crea la interfaz para PixelDrain con reproducción automática y modal
   createPixelDrainUI(url) {
     const container = document.createElement('div');
-    container.id = 'pixelDrainModal'; // para poder cerrarlo
+    container.id = 'pixelDrainContainer';
     container.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      z-index: 1;
+    `;
+
+    // Obtener el proxy
+    const id = this.extractPixelDrainId(url);
+    let proxyUrl = '';
+    if (id) {
+      proxyUrl = this.buildPixelDrainProxy(id);
+    } else {
+      proxyUrl = '⚠️ No se pudo extraer el ID del enlace';
+    }
+
+    // ----- REPRODUCTOR DE VIDEO (proxy) -----
+    const video = document.createElement('video');
+    video.src = proxyUrl;
+    video.muted = true;          // Necesario para autoplay en la mayoría de navegadores
+    video.autoplay = true;
+    video.controls = true;
+    video.playsInline = true;    // Para móviles
+    video.referrerPolicy = 'no-referrer'; // Sin referer
+    video.style.cssText = `
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    `;
+    // Si el autoplay falla, el usuario puede iniciar manualmente
+    video.addEventListener('error', (e) => {
+      console.warn('Error al cargar el proxy:', e);
+      // Mostrar un mensaje en el modal
+    });
+
+    container.appendChild(video);
+
+    // ----- MODAL (superpuesto) -----
+    const modal = document.createElement('div');
+    modal.id = 'pixelDrainModal';
+    modal.style.cssText = `
       position: absolute;
       top: 0;
       left: 0;
@@ -166,10 +212,13 @@ class VideoPlayer {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #0b0b0b;
-      z-index: 1;
+      background: rgba(11, 11, 11, 0.9);
+      backdrop-filter: blur(4px);
+      z-index: 10;
       padding: 1rem;
       box-sizing: border-box;
+      pointer-events: auto;
+      transition: opacity 0.3s ease;
     `;
 
     // Botón de cierre (X)
@@ -177,54 +226,30 @@ class VideoPlayer {
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = `
       position: absolute;
-      top: 12px;
-      right: 16px;
+      top: 16px;
+      right: 20px;
       background: transparent;
       border: none;
       color: #aaa;
-      font-size: 1.8rem;
+      font-size: 2rem;
       cursor: pointer;
       transition: 0.2s;
-      z-index: 10;
+      z-index: 20;
       font-weight: 300;
     `;
     closeBtn.addEventListener('mouseenter', () => { closeBtn.style.color = '#fff'; });
     closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#aaa'; });
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Ocultar el modal y mostrar mensaje de que el video se reproduce en otra pestaña
-      container.style.display = 'none';
-      const mediaContainer = document.getElementById('mediaContainer');
-      // Mostrar un mensaje informativo
-      const msg = document.createElement('div');
-      msg.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #0b0b0b;
-        color: #ccc;
-        font-size: 1.2rem;
-        font-family: 'Poppins', sans-serif;
-        text-align: center;
-        padding: 1rem;
-        box-sizing: border-box;
-      `;
-      msg.innerHTML = `🎬 El video se está reproduciendo en la otra pestaña.<br><span style="font-size:0.9rem; color:#888;">Puedes cerrar esta pestaña si lo deseas.</span>`;
-      // Asegurarse de que no haya otros mensajes duplicados
-      const existingMsg = mediaContainer.querySelector('.pixel-close-msg');
-      if (existingMsg) existingMsg.remove();
-      msg.className = 'pixel-close-msg';
-      mediaContainer.appendChild(msg);
+      // Ocultar el modal (no eliminar)
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+      // El video sigue reproduciéndose
     });
 
-    // Botón PLAY
-    const btn = document.createElement('button');
-    btn.style.cssText = `
+    // Botón PLAY (abre en nueva pestaña como respaldo)
+    const playBtn = document.createElement('button');
+    playBtn.style.cssText = `
       display: flex;
       justify-content: center;
       align-items: center;
@@ -237,51 +262,40 @@ class VideoPlayer {
       box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       flex-shrink: 0;
+      margin-bottom: 1rem;
     `;
-    btn.innerHTML = `<span style="width:0; height:0; border-left:45px solid white; border-top:28px solid transparent; border-bottom:28px solid transparent; margin-left:12px;"></span>`;
-
-    btn.addEventListener('mouseenter', () => {
-      btn.style.transform = 'scale(1.08)';
-      btn.style.boxShadow = '0 0 50px rgba(229,9,20,0.9)';
+    playBtn.innerHTML = `<span style="width:0; height:0; border-left:45px solid white; border-top:28px solid transparent; border-bottom:28px solid transparent; margin-left:12px;"></span>`;
+    playBtn.addEventListener('mouseenter', () => {
+      playBtn.style.transform = 'scale(1.08)';
+      playBtn.style.boxShadow = '0 0 50px rgba(229,9,20,0.9)';
     });
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = 'scale(1)';
-      btn.style.boxShadow = '0 0 30px rgba(229,9,20,0.6)';
+    playBtn.addEventListener('mouseleave', () => {
+      playBtn.style.transform = 'scale(1)';
+      playBtn.style.boxShadow = '0 0 30px rgba(229,9,20,0.6)';
     });
-
-    // Obtener el proxy
-    const id = this.extractPixelDrainId(url);
-    let proxyUrl = '';
-    if (id) {
-      proxyUrl = this.buildPixelDrainProxy(id);
-    } else {
-      proxyUrl = '⚠️ No se pudo extraer el ID del enlace';
-    }
-
-    btn.addEventListener('click', (e) => {
+    playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!proxyUrl || proxyUrl.startsWith('⚠️')) {
         alert('No se pudo generar el enlace proxy.');
         return;
       }
-      // Abrir el proxy en nueva pestaña sin referer
+      // Abrir en nueva pestaña sin referer (respaldo)
       const win = window.open(proxyUrl, '_blank', 'noopener,noreferrer');
       if (!win) {
         alert('⚠️ No se pudo abrir la pestaña. Revisa tu navegador.');
       } else {
-        // Opcional: enfocar la nueva pestaña
         win.focus();
       }
     });
 
     const label = document.createElement('p');
-    label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin:1.5rem 0 0.8rem 0; text-align:center;';
-    label.innerHTML = 'Haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para abrir el video (proxy)';
+    label.style.cssText = 'color:#cccccc; font-size:1.2rem; letter-spacing:1px; font-weight:300; margin:0 0 0.8rem 0; text-align:center;';
+    label.innerHTML = 'Si el video no se reproduce, haz clic en <strong style="color:#ffffff; font-weight:500;">PLAY</strong> para abrirlo en otra pestaña';
 
-    // --- Sección proxy (modal informativo) ---
+    // --- Sección proxy (información) ---
     const proxyBox = document.createElement('div');
     proxyBox.style.cssText = `
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       background: rgba(255,255,255,0.05);
       border-radius: 16px;
       padding: 0.8rem 1.2rem;
@@ -346,7 +360,6 @@ class VideoPlayer {
       navigator.clipboard.writeText(proxy)
         .then(() => alert('📋 Enlace proxy copiado al portapapeles.'))
         .catch(() => {
-          // Fallback
           const range = document.createRange();
           range.selectNode(urlDisplay);
           window.getSelection().removeAllRanges();
@@ -379,7 +392,6 @@ class VideoPlayer {
         alert('No hay un enlace proxy para abrir.');
         return;
       }
-      // Abrir pestaña en blanco con el enlace proxy listo
       try {
         const win = window.open('about:blank', '_blank');
         if (!win) {
@@ -521,10 +533,20 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    container.appendChild(closeBtn); // botón X
-    container.appendChild(btn);
-    container.appendChild(label);
-    container.appendChild(proxyBox);
+    // Ensamblar modal
+    modal.appendChild(closeBtn);
+    modal.appendChild(playBtn);
+    modal.appendChild(label);
+    modal.appendChild(proxyBox);
+
+    container.appendChild(modal);
+
+    // Si el video se reproduce correctamente, podemos ocultar el modal automáticamente después de unos segundos?
+    // Pero mejor dejamos que el usuario lo cierre con la X.
+
+    // Guardar referencia al video y al modal para posible uso
+    container.videoElement = video;
+    container.modalElement = modal;
 
     return container;
   }
@@ -537,11 +559,11 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
 
-    // ----- PIXELDRAIN: interfaz mejorada con proxy y botones -----
+    // ----- PIXELDRAIN: interfaz con reproducción automática y modal -----
     if (url.includes('pixeldrain.com')) {
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
-      this.currentVideoElement = null;
+      this.currentVideoElement = ui.videoElement || null;
       this.updateLogoBlocker(url);
       return;
     }
