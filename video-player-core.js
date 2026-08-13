@@ -14,17 +14,19 @@
 // NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 // MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
-// MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy
+// MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy (ELIMINADO)
 // MEJORADO: En PixelDrain solo se muestra el botón de copiar; al copiar, aparece el botón de abrir pestaña en blanco
 // MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
 // MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
-// MEJORADO: Cambio de dominio proxy a lista de dominios con fallback automático
+// MEJORADO: Cambio de dominio proxy a lista de dominios con fallback automático (primero cdn33)
 // MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas (eliminados botones de reintento)
 // MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
 // MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones (visible en móviles)
 // MEJORADO: El modal se cierra automáticamente cuando el video se carga correctamente
 // MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
 // MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
+// MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura)
+// NUEVO: Botón "Generar otro enlace" para probar diferentes dominios proxy
 
 class VideoPlayer {
   constructor() {
@@ -46,13 +48,15 @@ class VideoPlayer {
     this.activeOptionKey = 'link';
     this.currentVideoElement = null;
     this.isDownloading = false;
-    this.pixelDrainDomains = ['cdn44.pixeldrain.eu.cc', 'cdn49.pixeldrain.eu.cc', 'cdn33.pixeldrain.eu.cc', 'cdn.pixeldrain.eu.cc'];
+    // Cambio de orden: cdn33 primero
+    this.pixelDrainDomains = ['cdn33.pixeldrain.eu.cc', 'cdn44.pixeldrain.eu.cc', 'cdn49.pixeldrain.eu.cc', 'cdn.pixeldrain.eu.cc'];
     this.currentDomainIndex = 0;
-    this.blankTabOpened = false; // Flag para detectar si se abrió la pestaña en blanco
-    this.pixelDrainFileId = null; // Guardamos el fileId para recargar
-    this.pixelDrainVideo = null; // Referencia al video
+    this.blankTabOpened = false;
+    this.pixelDrainFileId = null;
+    this.pixelDrainVideo = null;
     this.pixelDrainStatusDiv = null;
     this.pixelDrainUrlDisplay = null;
+    this.pixelDrainModal = null;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -84,7 +88,6 @@ class VideoPlayer {
     window.addEventListener('focus', () => {
       if (this.blankTabOpened) {
         this.blankTabOpened = false;
-        // Recargar el video de PixelDrain si existe
         if (this.pixelDrainFileId && this.pixelDrainVideo) {
           console.log('🔄 Recargando video de PixelDrain al volver de la pestaña en blanco');
           this.tryNextProxy(this.pixelDrainVideo, this.pixelDrainUrlDisplay, this.pixelDrainStatusDiv, this.pixelDrainFileId);
@@ -182,7 +185,6 @@ class VideoPlayer {
   updateLogoBlocker(url) {
     const logo = document.querySelector('.logo-blocker');
     if (!logo) return;
-    // Mostrar logo solo en Google Drive y Odysee
     const isDrive = url && url.includes('drive.google.com');
     const isOdysee = url && url.includes('odysee.com');
     if (isDrive || isOdysee) {
@@ -192,7 +194,7 @@ class VideoPlayer {
     }
   }
 
-  // Crea la interfaz para PixelDrain con reproducción automática y panel colapsable
+  // Crea la interfaz para PixelDrain
   createPixelDrainUI(url) {
     const container = document.createElement('div');
     container.id = 'pixelDrainContainer';
@@ -216,12 +218,11 @@ class VideoPlayer {
       return container;
     }
 
-    // Guardar fileId para recarga
     this.pixelDrainFileId = fileId;
 
     // ----- REPRODUCTOR DE VIDEO (proxy) -----
     const video = document.createElement('video');
-    video.muted = false; // Con sonido
+    video.muted = false;
     video.autoplay = true;
     video.controls = true;
     video.playsInline = true;
@@ -236,42 +237,7 @@ class VideoPlayer {
     this.currentVideoElement = video;
     this.pixelDrainVideo = video;
 
-    // ----- BOTÓN FLOTANTE (para reabrir el panel) -----
-    const toggleBtn = document.createElement('button');
-    toggleBtn.id = 'pixelDrainToggle';
-    toggleBtn.textContent = '⚙️';
-    toggleBtn.style.cssText = `
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
-      font-size: 1.2rem;
-      cursor: pointer;
-      z-index: 20;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: 0.2s;
-      backdrop-filter: blur(4px);
-    `;
-    toggleBtn.addEventListener('mouseenter', () => {
-      toggleBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    toggleBtn.addEventListener('mouseleave', () => {
-      toggleBtn.style.background = 'rgba(0,0,0,0.7)';
-    });
-    toggleBtn.addEventListener('click', () => {
-      modal.style.display = 'flex';
-      toggleBtn.style.display = 'none';
-    });
-    container.appendChild(toggleBtn);
-
-    // ----- MODAL (panel colapsable) -----
+    // ----- MODAL (panel colapsable) - SIN BOTÓN DE TUERCA -----
     const modal = document.createElement('div');
     modal.id = 'pixelDrainModal';
     modal.style.cssText = `
@@ -292,6 +258,7 @@ class VideoPlayer {
       pointer-events: auto;
       transition: opacity 0.3s ease;
     `;
+    this.pixelDrainModal = modal;
 
     // Botón de cierre (X)
     const closeBtn = document.createElement('button');
@@ -314,10 +281,10 @@ class VideoPlayer {
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       modal.style.display = 'none';
-      toggleBtn.style.display = 'flex';
+      // No hay botón de tuerca para reabrir
     });
 
-    // --- Sección proxy (información) ---
+    // --- Sección proxy ---
     const proxyBox = document.createElement('div');
     proxyBox.style.cssText = `
       margin-top: 0.5rem;
@@ -359,7 +326,7 @@ class VideoPlayer {
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; justify-content:center;';
 
-    // Botón de copiar (visible inicialmente)
+    // Botón de copiar
     const copyBtn = document.createElement('button');
     copyBtn.id = 'pixelDrainCopyBtn';
     copyBtn.textContent = '📋 Copiar enlace proxy';
@@ -402,7 +369,7 @@ class VideoPlayer {
         });
     });
 
-    // Botón de abrir pestaña en blanco (oculto inicialmente) - Texto cambiado a "Abrir"
+    // Botón "Abrir" (pestaña en blanco)
     const blankBtn = document.createElement('button');
     blankBtn.id = 'pixelDrainBlankBtn';
     blankBtn.textContent = '📄 Abrir';
@@ -428,9 +395,7 @@ class VideoPlayer {
         alert('No hay un enlace proxy para abrir.');
         return;
       }
-      // Marcar que se abrió la pestaña en blanco
       this.blankTabOpened = true;
-      
       try {
         const win = window.open('about:blank', '_blank');
         if (!win) {
@@ -579,9 +544,36 @@ class VideoPlayer {
     actions.appendChild(copyBtn);
     actions.appendChild(blankBtn);
 
+    // ---- Botón "Generar otro enlace" ----
+    const generateBtn = document.createElement('button');
+    generateBtn.textContent = '🔄 Generar otro enlace';
+    generateBtn.style.cssText = `
+      padding: 8px 16px;
+      border: none;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(100,200,255,0.15);
+      color: #7aaaff;
+      border: 1px solid rgba(100,200,255,0.3);
+      margin-top: 6px;
+      width: 100%;
+    `;
+    generateBtn.addEventListener('mouseenter', () => { generateBtn.style.background = 'rgba(100,200,255,0.3)'; });
+    generateBtn.addEventListener('mouseleave', () => { generateBtn.style.background = 'rgba(100,200,255,0.15)'; });
+    generateBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!this.pixelDrainFileId) return;
+      // Usar el siguiente dominio
+      this.tryNextProxy(this.pixelDrainVideo, this.pixelDrainUrlDisplay, this.pixelDrainStatusDiv, this.pixelDrainFileId);
+    });
+
     proxyBox.appendChild(proxyLabel);
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
+    proxyBox.appendChild(generateBtn);
 
     // ---- ÁREA DE MENSAJE DE ESTADO ----
     const statusDiv = document.createElement('div');
@@ -597,36 +589,33 @@ class VideoPlayer {
     statusDiv.textContent = '⏳ Cargando video...';
     this.pixelDrainStatusDiv = statusDiv;
 
-    // Ensamblar modal
     modal.appendChild(closeBtn);
     modal.appendChild(proxyBox);
     modal.appendChild(statusDiv);
 
     container.appendChild(modal);
 
-    // ---- INICIALIZAR PRIMER PROXY ----
-    this.tryNextProxy(video, urlDisplay, statusDiv, fileId, modal, toggleBtn);
+    // Iniciar con el primer proxy
+    this.tryNextProxy(video, urlDisplay, statusDiv, fileId);
 
     return container;
   }
 
   // Intenta cargar el video con el siguiente dominio proxy
-  tryNextProxy(video, urlDisplay, statusDiv, fileId, modal, toggleBtn) {
+  tryNextProxy(video, urlDisplay, statusDiv, fileId) {
     const domain = this.getNextProxyDomain();
     const proxyUrl = this.buildPixelDrainProxy(fileId, domain);
     
-    // Actualizar display
     urlDisplay.textContent = proxyUrl;
     urlDisplay.setAttribute('data-proxy', proxyUrl);
     statusDiv.textContent = `⏳ Intentando con ${domain}...`;
     statusDiv.style.color = '#ffd200';
     
-    // Limpiar eventos anteriores
+    // Reemplazar video
     const newVideo = video.cloneNode(true);
     video.parentNode.replaceChild(newVideo, video);
     const newVideoRef = newVideo;
     
-    // Configurar el nuevo video
     newVideoRef.src = proxyUrl;
     newVideoRef.muted = false;
     newVideoRef.autoplay = true;
@@ -640,44 +629,37 @@ class VideoPlayer {
       background: #000;
     `;
     
-    // Evento: cuando el video se carga correctamente
     const onCanPlay = () => {
       statusDiv.textContent = '✅ Video cargado correctamente';
       statusDiv.style.color = '#4caf50';
-      // Intentar reproducir
       newVideoRef.play().catch(() => {});
-      
-      // Cerrar el modal automáticamente si existe
-      if (modal && toggleBtn) {
+      // Cerrar modal automáticamente
+      if (this.pixelDrainModal) {
         setTimeout(() => {
-          modal.style.display = 'none';
-          toggleBtn.style.display = 'flex';
-        }, 800); // Pequeño retraso para ver el mensaje
+          this.pixelDrainModal.style.display = 'none';
+        }, 800);
       }
     };
     
     const onError = () => {
-      statusDiv.textContent = `❌ Error con ${domain}. Puedes probar a copiar el enlace y pegarlo manualmente.`;
+      statusDiv.textContent = `❌ Error con ${domain}. Prueba con "Generar otro enlace".`;
       statusDiv.style.color = '#ff6b6b';
     };
     
     newVideoRef.addEventListener('canplay', onCanPlay);
     newVideoRef.addEventListener('error', onError);
     
-    // Timeout: si no carga en 15 seg, mostrar error
     const timeoutId = setTimeout(() => {
       if (!newVideoRef.currentTime) {
-        statusDiv.textContent = `⏱️ Tiempo de espera agotado con ${domain}. Puedes copiar el enlace y pegarlo manualmente.`;
+        statusDiv.textContent = `⏱️ Tiempo agotado con ${domain}. Usa "Generar otro enlace".`;
         statusDiv.style.color = '#ff6b6b';
       }
     }, 15000);
     
-    // Limpiar timeout si carga
     newVideoRef.addEventListener('canplay', () => {
       clearTimeout(timeoutId);
     }, { once: true });
     
-    // Actualizar referencias
     this.currentVideoElement = newVideoRef;
     this.pixelDrainVideo = newVideoRef;
   }
@@ -690,17 +672,14 @@ class VideoPlayer {
     const container = document.getElementById('mediaContainer');
     container.innerHTML = '';
 
-    // ----- PIXELDRAIN: interfaz con reproducción automática y panel colapsable -----
     if (url.includes('pixeldrain.com')) {
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
-      // Guardar referencia al modal y toggleBtn para cerrar automáticamente
       this.currentVideoElement = ui.querySelector('video') || null;
       this.updateLogoBlocker(url);
       return;
     }
 
-    // ----- REPRODUCCIÓN NORMAL -----
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
       const video = document.createElement('video');
