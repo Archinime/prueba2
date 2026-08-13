@@ -26,10 +26,10 @@
 // MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
 // MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
 // MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura)
-// NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar, Abrir y Cargar (▶)
-// MEJORADO: Al hacer clic en "Cargar" en cualquier opción, el video se actualiza y se reproduce en la página
+// NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar y Abrir (sin Cargar)
 // MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
 // MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
+// MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
 
 class VideoPlayer {
   constructor() {
@@ -53,6 +53,7 @@ class VideoPlayer {
     this.isDownloading = false;
     // Dominios para mostrar
     this.proxyDomains = ['cdn12', 'cdn33', 'cdn44'];
+    this.retryDomainIndex = 0; // Índice para reintentos automáticos
     this.blankTabOpened = false;
     this.pixelDrainFileId = null;
     this.pixelDrainVideo = null;
@@ -160,7 +161,7 @@ class VideoPlayer {
     }
   }
 
-  // Carga una URL en el video y maneja eventos
+  // Carga una URL en el video y maneja eventos con reintento automático
   loadProxyUrl(proxyUrl) {
     if (!this.pixelDrainVideo || !proxyUrl) return;
     const video = this.pixelDrainVideo;
@@ -180,6 +181,7 @@ class VideoPlayer {
     this.pixelDrainVideo = newVideo;
     this.currentVideoElement = newVideo;
     
+    // Limpiar eventos anteriores para evitar duplicados
     const onCanPlay = () => {
       if (this.pixelDrainStatusDiv) {
         this.pixelDrainStatusDiv.textContent = '✅ Video cargado correctamente';
@@ -189,24 +191,56 @@ class VideoPlayer {
         setTimeout(() => { this.pixelDrainModal.style.display = 'none'; }, 800);
       }
       newVideo.removeEventListener('canplay', onCanPlay);
+      newVideo.removeEventListener('error', onError);
+      clearTimeout(timeoutId);
     };
     const onError = () => {
       if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '❌ Error al cargar. Prueba otra opción.';
+        this.pixelDrainStatusDiv.textContent = '❌ Error al cargar. Reintentando...';
         this.pixelDrainStatusDiv.style.color = '#ff6b6b';
       }
+      newVideo.removeEventListener('canplay', onCanPlay);
       newVideo.removeEventListener('error', onError);
+      clearTimeout(timeoutId);
+      // Reintentar con el siguiente dominio
+      this.retryWithNextDomain();
     };
     newVideo.addEventListener('canplay', onCanPlay);
     newVideo.addEventListener('error', onError);
     
+    // Timeout: si no carga en 12 seg, reintentar
     const timeoutId = setTimeout(() => {
-      if (!newVideo.currentTime && this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '⏱️ Tiempo agotado. Prueba otra opción.';
+      if (!newVideo.currentTime) {
+        if (this.pixelDrainStatusDiv) {
+          this.pixelDrainStatusDiv.textContent = '⏱️ Tiempo agotado. Reintentando...';
+          this.pixelDrainStatusDiv.style.color = '#ff6b6b';
+        }
+        newVideo.removeEventListener('canplay', onCanPlay);
+        newVideo.removeEventListener('error', onError);
+        this.retryWithNextDomain();
+      }
+    }, 12000);
+    newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
+  }
+
+  // Reintenta con el siguiente dominio automáticamente
+  retryWithNextDomain() {
+    if (!this.pixelDrainFileId) return;
+    // Avanzar al siguiente dominio
+    this.retryDomainIndex = (this.retryDomainIndex + 1) % this.proxyDomains.length;
+    const domain = this.proxyDomains[this.retryDomainIndex];
+    const proxyUrl = this.buildPixelDrainProxy(this.pixelDrainFileId, domain);
+    // Verificar si ya hemos probado todos los dominios (cuidado con ciclos)
+    // Para evitar bucles infinitos, si llevamos más de 3 reintentos seguidos, mostramos error final
+    if (this.retryCount > this.proxyDomains.length * 2) {
+      if (this.pixelDrainStatusDiv) {
+        this.pixelDrainStatusDiv.textContent = '❌ No se pudo cargar con ningún servidor. Prueba copiando el enlace.';
         this.pixelDrainStatusDiv.style.color = '#ff6b6b';
       }
-    }, 15000);
-    newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
+      return;
+    }
+    this.retryCount = (this.retryCount || 0) + 1;
+    this.loadProxyUrl(proxyUrl);
   }
 
   createPixelDrainUI(url) {
@@ -233,6 +267,8 @@ class VideoPlayer {
     }
 
     this.pixelDrainFileId = fileId;
+    this.retryDomainIndex = 0; // Reiniciar índice para cada nuevo episodio
+    this.retryCount = 0;
 
     const video = document.createElement('video');
     video.muted = false;
@@ -338,6 +374,7 @@ class VideoPlayer {
       const btnGroup = document.createElement('div');
       btnGroup.style.cssText = 'display:flex; gap:5px; flex:1; justify-content:flex-end; flex-wrap:wrap;';
 
+      // Botón Copiar
       const copyBtn = document.createElement('button');
       copyBtn.textContent = '📋 Copiar';
       copyBtn.style.cssText = `
@@ -355,6 +392,7 @@ class VideoPlayer {
       copyBtn.addEventListener('mouseenter', () => { copyBtn.style.background = 'rgba(255,255,255,0.15)'; });
       copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
 
+      // Botón Abrir (oculto inicialmente)
       const openBtn = document.createElement('button');
       openBtn.textContent = '📄 Abrir';
       openBtn.style.cssText = `
@@ -373,23 +411,7 @@ class VideoPlayer {
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
 
-      const loadBtn = document.createElement('button');
-      loadBtn.textContent = '▶ Cargar';
-      loadBtn.style.cssText = `
-        padding: 4px 10px;
-        border: none;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-        background: rgba(0,255,100,0.15);
-        color: #4caf50;
-        border: 1px solid rgba(0,255,100,0.3);
-      `;
-      loadBtn.addEventListener('mouseenter', () => { loadBtn.style.background = 'rgba(0,255,100,0.25)'; });
-      loadBtn.addEventListener('mouseleave', () => { loadBtn.style.background = 'rgba(0,255,100,0.15)'; });
-
+      // Evento copiar: reemplazar botón
       copyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
@@ -401,6 +423,7 @@ class VideoPlayer {
             openBtn.style.display = 'inline-block';
           })
           .catch(() => {
+            // Fallback manual
             const range = document.createRange();
             const tempDiv = document.createElement('div');
             tempDiv.textContent = proxy;
@@ -418,6 +441,7 @@ class VideoPlayer {
           });
       });
 
+      // Evento abrir pestaña en blanco
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
@@ -486,14 +510,8 @@ class VideoPlayer {
         }
       });
 
-      loadBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.loadProxyUrl(proxyUrl);
-      });
-
       btnGroup.appendChild(copyBtn);
       btnGroup.appendChild(openBtn);
-      btnGroup.appendChild(loadBtn);
       optionDiv.appendChild(nameSpan);
       optionDiv.appendChild(btnGroup);
       optionsContainer.appendChild(optionDiv);
@@ -519,7 +537,7 @@ class VideoPlayer {
 
     container.appendChild(modal);
 
-    // Cargar automáticamente con cdn12
+    // Iniciar carga con el primer dominio (cdn12)
     const firstProxy = domainUrls[0];
     this.loadProxyUrl(firstProxy);
 
