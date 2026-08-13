@@ -30,6 +30,8 @@
 // MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
 // MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
 // MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
+// MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (hasta 10 intentos)
+// MEJORADO: Mensaje de estado para reinicio de ciclo
 
 class VideoPlayer {
   constructor() {
@@ -54,6 +56,8 @@ class VideoPlayer {
     // Dominios para mostrar
     this.proxyDomains = ['cdn12', 'cdn33', 'cdn44'];
     this.retryDomainIndex = 0; // Índice para reintentos automáticos
+    this.totalRetryCount = 0; // Contador total de reintentos (para evitar bucles infinitos)
+    this.maxTotalRetries = 10; // Máximo de intentos totales
     this.blankTabOpened = false;
     this.pixelDrainFileId = null;
     this.pixelDrainVideo = null;
@@ -190,6 +194,8 @@ class VideoPlayer {
       if (this.pixelDrainModal) {
         setTimeout(() => { this.pixelDrainModal.style.display = 'none'; }, 800);
       }
+      // Resetear contadores al cargar exitosamente
+      this.totalRetryCount = 0;
       newVideo.removeEventListener('canplay', onCanPlay);
       newVideo.removeEventListener('error', onError);
       clearTimeout(timeoutId);
@@ -226,20 +232,35 @@ class VideoPlayer {
   // Reintenta con el siguiente dominio automáticamente
   retryWithNextDomain() {
     if (!this.pixelDrainFileId) return;
-    // Avanzar al siguiente dominio
-    this.retryDomainIndex = (this.retryDomainIndex + 1) % this.proxyDomains.length;
-    const domain = this.proxyDomains[this.retryDomainIndex];
-    const proxyUrl = this.buildPixelDrainProxy(this.pixelDrainFileId, domain);
-    // Verificar si ya hemos probado todos los dominios (cuidado con ciclos)
-    // Para evitar bucles infinitos, si llevamos más de 3 reintentos seguidos, mostramos error final
-    if (this.retryCount > this.proxyDomains.length * 2) {
+    
+    // Si se superó el máximo de reintentos, mostrar error final
+    if (this.totalRetryCount >= this.maxTotalRetries) {
       if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '❌ No se pudo cargar con ningún servidor. Prueba copiando el enlace.';
+        this.pixelDrainStatusDiv.textContent = '❌ No se pudo cargar después de varios intentos. Prueba copiando el enlace.';
         this.pixelDrainStatusDiv.style.color = '#ff6b6b';
       }
       return;
     }
-    this.retryCount = (this.retryCount || 0) + 1;
+    
+    // Avanzar al siguiente dominio
+    this.retryDomainIndex = (this.retryDomainIndex + 1) % this.proxyDomains.length;
+    const domain = this.proxyDomains[this.retryDomainIndex];
+    const proxyUrl = this.buildPixelDrainProxy(this.pixelDrainFileId, domain);
+    this.totalRetryCount++;
+    
+    // Si estamos empezando un nuevo ciclo, mostrar mensaje
+    if (this.retryDomainIndex === 0) {
+      if (this.pixelDrainStatusDiv) {
+        this.pixelDrainStatusDiv.textContent = `🔄 Reiniciando ciclo (intento ${this.totalRetryCount}/${this.maxTotalRetries})...`;
+        this.pixelDrainStatusDiv.style.color = '#ffd200';
+      }
+    } else {
+      if (this.pixelDrainStatusDiv) {
+        this.pixelDrainStatusDiv.textContent = `🔄 Probando ${domain} (intento ${this.totalRetryCount}/${this.maxTotalRetries})...`;
+        this.pixelDrainStatusDiv.style.color = '#ffd200';
+      }
+    }
+    
     this.loadProxyUrl(proxyUrl);
   }
 
@@ -268,7 +289,7 @@ class VideoPlayer {
 
     this.pixelDrainFileId = fileId;
     this.retryDomainIndex = 0; // Reiniciar índice para cada nuevo episodio
-    this.retryCount = 0;
+    this.totalRetryCount = 0; // Reiniciar contador global
 
     const video = document.createElement('video');
     video.muted = false;
