@@ -19,9 +19,9 @@
 // MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
 // MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
 // MEJORADO: Cambio de dominio proxy a lista de dominios con fallback automático
-// MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas
+// MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas (eliminados botones de reintento)
 // MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
-// MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones
+// MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones (visible en móviles)
 
 class VideoPlayer {
   constructor() {
@@ -409,7 +409,6 @@ class VideoPlayer {
           alert('⚠️ No se pudo abrir la pestaña en blanco.');
           return;
         }
-        // Contenido: imagen más pequeña y flecha
         win.document.write(`
           <!DOCTYPE html>
           <html lang="es">
@@ -457,14 +456,15 @@ class VideoPlayer {
               }
               .sub .arrow {
                 display: inline-block;
-                font-size: 2rem;
+                font-size: 2.5rem;
                 margin-left: 4px;
                 color: #ffd200;
                 animation: bounceUp 1.5s infinite ease-in-out;
+                line-height: 1;
               }
               @keyframes bounceUp {
                 0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
+                50% { transform: translateY(-10px); }
               }
               .image-container {
                 margin: 1.2rem auto;
@@ -514,6 +514,7 @@ class VideoPlayer {
                 .container { padding: 2rem 1.2rem; border-radius: 40px; }
                 h1 { font-size: 1.8rem; }
                 .sub { font-size: 1.1rem; }
+                .sub .arrow { font-size: 2rem; }
                 .image-container { max-width: 90%; }
                 .hint { font-size: 1rem; }
                 .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
@@ -552,7 +553,7 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // ---- ÁREA DE MENSAJE DE ERROR / CARGA ----
+    // ---- ÁREA DE MENSAJE DE ESTADO (sin botones de reintento) ----
     const statusDiv = document.createElement('div');
     statusDiv.id = 'pixelDrainStatus';
     statusDiv.style.cssText = `
@@ -565,76 +566,21 @@ class VideoPlayer {
     `;
     statusDiv.textContent = '⏳ Cargando video...';
 
-    // ---- BOTÓN DE REINTENTO (oculto inicialmente) ----
-    const retryBtn = document.createElement('button');
-    retryBtn.id = 'pixelDrainRetryBtn';
-    retryBtn.textContent = '🔄 Reintentar con otro servidor';
-    retryBtn.style.cssText = `
-      padding: 8px 18px;
-      border: none;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      background: rgba(255,215,0,0.2);
-      color: #ffd200;
-      border: 1px solid rgba(255,215,0,0.3);
-      margin-top: 0.5rem;
-      display: none;
-    `;
-    retryBtn.addEventListener('mouseenter', () => { retryBtn.style.background = 'rgba(255,215,0,0.35)'; });
-    retryBtn.addEventListener('mouseleave', () => { retryBtn.style.background = 'rgba(255,215,0,0.2)'; });
-    retryBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId);
-    });
-
-    // ---- BOTÓN ABRIR ENLACE ORIGINAL (último recurso) ----
-    const openOriginalBtn = document.createElement('button');
-    openOriginalBtn.textContent = '🌐 Abrir enlace original';
-    openOriginalBtn.style.cssText = `
-      padding: 8px 18px;
-      border: none;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      background: rgba(100,100,255,0.2);
-      color: #7aaaff;
-      border: 1px solid rgba(100,100,255,0.3);
-      margin-top: 0.5rem;
-      display: none;
-    `;
-    openOriginalBtn.addEventListener('mouseenter', () => { openOriginalBtn.style.background = 'rgba(100,100,255,0.35)'; });
-    openOriginalBtn.addEventListener('mouseleave', () => { openOriginalBtn.style.background = 'rgba(100,100,255,0.2)'; });
-    openOriginalBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.open(url, '_blank');
-    });
-
-    const errorActions = document.createElement('div');
-    errorActions.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:0.5rem;';
-    errorActions.appendChild(retryBtn);
-    errorActions.appendChild(openOriginalBtn);
-
     // Ensamblar modal
     modal.appendChild(closeBtn);
     modal.appendChild(proxyBox);
     modal.appendChild(statusDiv);
-    modal.appendChild(errorActions);
 
     container.appendChild(modal);
 
     // ---- INICIALIZAR PRIMER PROXY ----
-    this.tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId);
+    this.tryNextProxy(video, urlDisplay, statusDiv, fileId);
 
     return container;
   }
 
   // Intenta cargar el video con el siguiente dominio proxy
-  tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId) {
+  tryNextProxy(video, urlDisplay, statusDiv, fileId) {
     const domain = this.getNextProxyDomain();
     const proxyUrl = this.buildPixelDrainProxy(fileId, domain);
     
@@ -643,7 +589,6 @@ class VideoPlayer {
     urlDisplay.setAttribute('data-proxy', proxyUrl);
     statusDiv.textContent = `⏳ Intentando con ${domain}...`;
     statusDiv.style.color = '#ffd200';
-    retryBtn.style.display = 'none';
     
     // Limpiar eventos anteriores
     const newVideo = video.cloneNode(true);
@@ -668,18 +613,13 @@ class VideoPlayer {
     const onCanPlay = () => {
       statusDiv.textContent = '✅ Video cargado correctamente';
       statusDiv.style.color = '#4caf50';
-      retryBtn.style.display = 'none';
       // Intentar reproducir
       newVideoRef.play().catch(() => {});
     };
     
     const onError = () => {
-      statusDiv.textContent = `❌ Error con ${domain}. Intentando otro...`;
+      statusDiv.textContent = `❌ Error con ${domain}. Puedes probar a copiar el enlace y pegarlo manualmente.`;
       statusDiv.style.color = '#ff6b6b';
-      retryBtn.style.display = 'inline-flex';
-      // Mostrar botón de abrir original también
-      const openOriginalBtn = retryBtn.parentElement.querySelector('button:last-child');
-      if (openOriginalBtn) openOriginalBtn.style.display = 'inline-flex';
     };
     
     newVideoRef.addEventListener('canplay', onCanPlay);
@@ -688,11 +628,8 @@ class VideoPlayer {
     // Timeout: si no carga en 10 seg, mostrar error
     const timeoutId = setTimeout(() => {
       if (!newVideoRef.currentTime) {
-        statusDiv.textContent = `⏱️ Tiempo de espera agotado con ${domain}.`;
+        statusDiv.textContent = `⏱️ Tiempo de espera agotado con ${domain}. Puedes copiar el enlace y pegarlo manualmente.`;
         statusDiv.style.color = '#ff6b6b';
-        retryBtn.style.display = 'inline-flex';
-        const openOriginalBtn = retryBtn.parentElement.querySelector('button:last-child');
-        if (openOriginalBtn) openOriginalBtn.style.display = 'inline-flex';
       }
     }, 15000);
     
