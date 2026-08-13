@@ -30,8 +30,8 @@
 // MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
 // MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
 // MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
-// MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (hasta 10 intentos)
-// MEJORADO: Mensaje de estado para reinicio de ciclo
+// MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (sin límite de intentos)
+// MEJORADO: Mensaje de estado para reinicio de ciclo y reintentos en bucle
 
 class VideoPlayer {
   constructor() {
@@ -56,8 +56,7 @@ class VideoPlayer {
     // Dominios para mostrar
     this.proxyDomains = ['cdn12', 'cdn33', 'cdn44'];
     this.retryDomainIndex = 0; // Índice para reintentos automáticos
-    this.totalRetryCount = 0; // Contador total de reintentos (para evitar bucles infinitos)
-    this.maxTotalRetries = 10; // Máximo de intentos totales
+    this.totalRetryCount = 0; // Contador total de reintentos (solo para mostrar)
     this.blankTabOpened = false;
     this.pixelDrainFileId = null;
     this.pixelDrainVideo = null;
@@ -65,6 +64,7 @@ class VideoPlayer {
     this.pixelDrainModal = null;
     this.lastOpenedProxyUrl = null;
     this.lastLoadedProxyUrl = null;
+    this.isRetrying = false; // Para evitar múltiples reintentos simultáneos
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -196,6 +196,7 @@ class VideoPlayer {
       }
       // Resetear contadores al cargar exitosamente
       this.totalRetryCount = 0;
+      this.isRetrying = false;
       newVideo.removeEventListener('canplay', onCanPlay);
       newVideo.removeEventListener('error', onError);
       clearTimeout(timeoutId);
@@ -229,18 +230,11 @@ class VideoPlayer {
     newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
   }
 
-  // Reintenta con el siguiente dominio automáticamente
+  // Reintenta con el siguiente dominio automáticamente (sin límite)
   retryWithNextDomain() {
     if (!this.pixelDrainFileId) return;
-    
-    // Si se superó el máximo de reintentos, mostrar error final
-    if (this.totalRetryCount >= this.maxTotalRetries) {
-      if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '❌ No se pudo cargar después de varios intentos. Prueba copiando el enlace.';
-        this.pixelDrainStatusDiv.style.color = '#ff6b6b';
-      }
-      return;
-    }
+    if (this.isRetrying) return; // Evita múltiples reintentos simultáneos
+    this.isRetrying = true;
     
     // Avanzar al siguiente dominio
     this.retryDomainIndex = (this.retryDomainIndex + 1) % this.proxyDomains.length;
@@ -251,17 +245,21 @@ class VideoPlayer {
     // Si estamos empezando un nuevo ciclo, mostrar mensaje
     if (this.retryDomainIndex === 0) {
       if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = `🔄 Reiniciando ciclo (intento ${this.totalRetryCount}/${this.maxTotalRetries})...`;
+        this.pixelDrainStatusDiv.textContent = `🔄 Reiniciando ciclo (intento ${this.totalRetryCount})...`;
         this.pixelDrainStatusDiv.style.color = '#ffd200';
       }
     } else {
       if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = `🔄 Probando ${domain} (intento ${this.totalRetryCount}/${this.maxTotalRetries})...`;
+        this.pixelDrainStatusDiv.textContent = `🔄 Probando ${domain} (intento ${this.totalRetryCount})...`;
         this.pixelDrainStatusDiv.style.color = '#ffd200';
       }
     }
     
-    this.loadProxyUrl(proxyUrl);
+    // Esperar un poco antes de cargar para no saturar
+    setTimeout(() => {
+      this.isRetrying = false;
+      this.loadProxyUrl(proxyUrl);
+    }, 3000);
   }
 
   createPixelDrainUI(url) {
@@ -289,7 +287,8 @@ class VideoPlayer {
 
     this.pixelDrainFileId = fileId;
     this.retryDomainIndex = 0; // Reiniciar índice para cada nuevo episodio
-    this.totalRetryCount = 0; // Reiniciar contador global
+    this.totalRetryCount = 0;
+    this.isRetrying = false;
 
     const video = document.createElement('video');
     video.muted = false;
