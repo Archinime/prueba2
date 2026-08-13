@@ -22,6 +22,9 @@
 // MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas (eliminados botones de reintento)
 // MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
 // MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones (visible en móviles)
+// MEJORADO: El modal se cierra automáticamente cuando el video se carga correctamente
+// MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
+// MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
 
 class VideoPlayer {
   constructor() {
@@ -45,6 +48,11 @@ class VideoPlayer {
     this.isDownloading = false;
     this.pixelDrainDomains = ['cdn44.pixeldrain.eu.cc', 'cdn49.pixeldrain.eu.cc', 'cdn33.pixeldrain.eu.cc', 'cdn.pixeldrain.eu.cc'];
     this.currentDomainIndex = 0;
+    this.blankTabOpened = false; // Flag para detectar si se abrió la pestaña en blanco
+    this.pixelDrainFileId = null; // Guardamos el fileId para recargar
+    this.pixelDrainVideo = null; // Referencia al video
+    this.pixelDrainStatusDiv = null;
+    this.pixelDrainUrlDisplay = null;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -71,6 +79,18 @@ class VideoPlayer {
       switchStickerTab: (tab) => this.switchStickerTab(tab)
     };
     window.videoPlayer = window.videoPlayerMethods;
+    
+    // Listener para recargar video al volver a la pestaña
+    window.addEventListener('focus', () => {
+      if (this.blankTabOpened) {
+        this.blankTabOpened = false;
+        // Recargar el video de PixelDrain si existe
+        if (this.pixelDrainFileId && this.pixelDrainVideo) {
+          console.log('🔄 Recargando video de PixelDrain al volver de la pestaña en blanco');
+          this.tryNextProxy(this.pixelDrainVideo, this.pixelDrainUrlDisplay, this.pixelDrainStatusDiv, this.pixelDrainFileId);
+        }
+      }
+    });
   }
   
   isDoomStreamUrl(url) {
@@ -196,6 +216,9 @@ class VideoPlayer {
       return container;
     }
 
+    // Guardar fileId para recarga
+    this.pixelDrainFileId = fileId;
+
     // ----- REPRODUCTOR DE VIDEO (proxy) -----
     const video = document.createElement('video');
     video.muted = false; // Con sonido
@@ -211,6 +234,7 @@ class VideoPlayer {
     `;
     container.appendChild(video);
     this.currentVideoElement = video;
+    this.pixelDrainVideo = video;
 
     // ----- BOTÓN FLOTANTE (para reabrir el panel) -----
     const toggleBtn = document.createElement('button');
@@ -329,6 +353,7 @@ class VideoPlayer {
       user-select: text;
     `;
     urlDisplay.setAttribute('data-fileid', fileId);
+    this.pixelDrainUrlDisplay = urlDisplay;
 
     // ---- BOTONES DE ACCIÓN ----
     const actions = document.createElement('div');
@@ -377,10 +402,10 @@ class VideoPlayer {
         });
     });
 
-    // Botón de abrir pestaña en blanco (oculto inicialmente)
+    // Botón de abrir pestaña en blanco (oculto inicialmente) - Texto cambiado a "Abrir"
     const blankBtn = document.createElement('button');
     blankBtn.id = 'pixelDrainBlankBtn';
-    blankBtn.textContent = '📄 Abrir en pestaña en blanco';
+    blankBtn.textContent = '📄 Abrir';
     blankBtn.style.cssText = `
       padding: 8px 16px;
       border: none;
@@ -403,10 +428,14 @@ class VideoPlayer {
         alert('No hay un enlace proxy para abrir.');
         return;
       }
+      // Marcar que se abrió la pestaña en blanco
+      this.blankTabOpened = true;
+      
       try {
         const win = window.open('about:blank', '_blank');
         if (!win) {
           alert('⚠️ No se pudo abrir la pestaña en blanco.');
+          this.blankTabOpened = false;
           return;
         }
         win.document.write(`
@@ -543,6 +572,7 @@ class VideoPlayer {
         win.focus();
       } catch (err) {
         alert('❌ Error al abrir la pestaña: ' + err.message);
+        this.blankTabOpened = false;
       }
     });
 
@@ -553,7 +583,7 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // ---- ÁREA DE MENSAJE DE ESTADO (sin botones de reintento) ----
+    // ---- ÁREA DE MENSAJE DE ESTADO ----
     const statusDiv = document.createElement('div');
     statusDiv.id = 'pixelDrainStatus';
     statusDiv.style.cssText = `
@@ -565,6 +595,7 @@ class VideoPlayer {
       font-weight: 400;
     `;
     statusDiv.textContent = '⏳ Cargando video...';
+    this.pixelDrainStatusDiv = statusDiv;
 
     // Ensamblar modal
     modal.appendChild(closeBtn);
@@ -574,13 +605,13 @@ class VideoPlayer {
     container.appendChild(modal);
 
     // ---- INICIALIZAR PRIMER PROXY ----
-    this.tryNextProxy(video, urlDisplay, statusDiv, fileId);
+    this.tryNextProxy(video, urlDisplay, statusDiv, fileId, modal, toggleBtn);
 
     return container;
   }
 
   // Intenta cargar el video con el siguiente dominio proxy
-  tryNextProxy(video, urlDisplay, statusDiv, fileId) {
+  tryNextProxy(video, urlDisplay, statusDiv, fileId, modal, toggleBtn) {
     const domain = this.getNextProxyDomain();
     const proxyUrl = this.buildPixelDrainProxy(fileId, domain);
     
@@ -609,12 +640,20 @@ class VideoPlayer {
       background: #000;
     `;
     
-    // Eventos
+    // Evento: cuando el video se carga correctamente
     const onCanPlay = () => {
       statusDiv.textContent = '✅ Video cargado correctamente';
       statusDiv.style.color = '#4caf50';
       // Intentar reproducir
       newVideoRef.play().catch(() => {});
+      
+      // Cerrar el modal automáticamente si existe
+      if (modal && toggleBtn) {
+        setTimeout(() => {
+          modal.style.display = 'none';
+          toggleBtn.style.display = 'flex';
+        }, 800); // Pequeño retraso para ver el mensaje
+      }
     };
     
     const onError = () => {
@@ -625,7 +664,7 @@ class VideoPlayer {
     newVideoRef.addEventListener('canplay', onCanPlay);
     newVideoRef.addEventListener('error', onError);
     
-    // Timeout: si no carga en 10 seg, mostrar error
+    // Timeout: si no carga en 15 seg, mostrar error
     const timeoutId = setTimeout(() => {
       if (!newVideoRef.currentTime) {
         statusDiv.textContent = `⏱️ Tiempo de espera agotado con ${domain}. Puedes copiar el enlace y pegarlo manualmente.`;
@@ -638,8 +677,9 @@ class VideoPlayer {
       clearTimeout(timeoutId);
     }, { once: true });
     
-    // Actualizar referencia
+    // Actualizar referencias
     this.currentVideoElement = newVideoRef;
+    this.pixelDrainVideo = newVideoRef;
   }
 
   playPart(partIndex, urlsArray) {
@@ -654,6 +694,7 @@ class VideoPlayer {
     if (url.includes('pixeldrain.com')) {
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
+      // Guardar referencia al modal y toggleBtn para cerrar automáticamente
       this.currentVideoElement = ui.querySelector('video') || null;
       this.updateLogoBlocker(url);
       return;
