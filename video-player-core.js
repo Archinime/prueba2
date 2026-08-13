@@ -18,8 +18,10 @@
 // MEJORADO: En PixelDrain solo se muestra el botón de copiar; al copiar, aparece el botón de abrir pestaña en blanco
 // MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
 // MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
-// MEJORADO: Cambio de dominio proxy a cdn44.pixeldrain.eu.cc
+// MEJORADO: Cambio de dominio proxy a lista de dominios con fallback automático
+// MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas
 // MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
+// MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones
 
 class VideoPlayer {
   constructor() {
@@ -41,6 +43,8 @@ class VideoPlayer {
     this.activeOptionKey = 'link';
     this.currentVideoElement = null;
     this.isDownloading = false;
+    this.pixelDrainDomains = ['cdn44.pixeldrain.eu.cc', 'cdn49.pixeldrain.eu.cc', 'cdn33.pixeldrain.eu.cc', 'cdn.pixeldrain.eu.cc'];
+    this.currentDomainIndex = 0;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -144,9 +148,14 @@ class VideoPlayer {
     return null;
   }
 
-  buildPixelDrainProxy(fileId) {
-    const domain = 'cdn44.pixeldrain.eu.cc'; // Cambiado a cdn44
+  buildPixelDrainProxy(fileId, domain) {
     return `https://${domain}/api/file/${fileId}`;
+  }
+
+  getNextProxyDomain() {
+    const domain = this.pixelDrainDomains[this.currentDomainIndex % this.pixelDrainDomains.length];
+    this.currentDomainIndex++;
+    return domain;
   }
   // --- Fin nuevas funciones ---
 
@@ -178,19 +187,18 @@ class VideoPlayer {
       z-index: 1;
     `;
 
-    // Obtener el proxy
-    const id = this.extractPixelDrainId(url);
-    let proxyUrl = '';
-    if (id) {
-      proxyUrl = this.buildPixelDrainProxy(id);
-    } else {
-      proxyUrl = '⚠️ No se pudo extraer el ID del enlace';
+    const fileId = this.extractPixelDrainId(url);
+    if (!fileId) {
+      const errorMsg = document.createElement('div');
+      errorMsg.style.cssText = 'color:#fff; display:flex; align-items:center; justify-content:center; height:100%; font-size:1.2rem;';
+      errorMsg.textContent = '⚠️ No se pudo extraer el ID del enlace de PixelDrain.';
+      container.appendChild(errorMsg);
+      return container;
     }
 
     // ----- REPRODUCTOR DE VIDEO (proxy) -----
     const video = document.createElement('video');
-    video.src = proxyUrl;
-    // Sin muted para que el sonido se reproduzca automáticamente (si el navegador lo permite)
+    video.muted = false; // Con sonido
     video.autoplay = true;
     video.controls = true;
     video.playsInline = true;
@@ -201,10 +209,6 @@ class VideoPlayer {
       object-fit: contain;
       background: #000;
     `;
-    video.addEventListener('error', (e) => {
-      console.warn('Error al cargar el proxy:', e);
-    });
-
     container.appendChild(video);
     this.currentVideoElement = video;
 
@@ -324,10 +328,9 @@ class VideoPlayer {
       cursor: text;
       user-select: text;
     `;
-    urlDisplay.textContent = proxyUrl;
-    urlDisplay.setAttribute('data-proxy', proxyUrl);
+    urlDisplay.setAttribute('data-fileid', fileId);
 
-    // ---- BOTONES DE ACCIÓN (solo copiar al inicio) ----
+    // ---- BOTONES DE ACCIÓN ----
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; justify-content:center;';
 
@@ -351,20 +354,18 @@ class VideoPlayer {
     copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const proxy = urlDisplay.getAttribute('data-proxy');
-      if (!proxy || proxy.startsWith('⚠️')) {
+      const currentProxy = urlDisplay.textContent;
+      if (!currentProxy || currentProxy.startsWith('⚠️')) {
         alert('No hay un enlace proxy válido para copiar.');
         return;
       }
-      navigator.clipboard.writeText(proxy)
+      navigator.clipboard.writeText(currentProxy)
         .then(() => {
           alert('📋 Enlace proxy copiado al portapapeles.');
-          // Ocultar botón copiar y mostrar el de abrir pestaña
           copyBtn.style.display = 'none';
           blankBtn.style.display = 'inline-flex';
         })
         .catch(() => {
-          // Fallback
           const range = document.createRange();
           range.selectNode(urlDisplay);
           window.getSelection().removeAllRanges();
@@ -397,7 +398,7 @@ class VideoPlayer {
     blankBtn.addEventListener('mouseleave', () => { blankBtn.style.background = 'rgba(255,215,0,0.15)'; });
     blankBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const proxy = urlDisplay.getAttribute('data-proxy');
+      const proxy = urlDisplay.textContent;
       if (!proxy || proxy.startsWith('⚠️')) {
         alert('No hay un enlace proxy para abrir.');
         return;
@@ -408,7 +409,7 @@ class VideoPlayer {
           alert('⚠️ No se pudo abrir la pestaña en blanco.');
           return;
         }
-        // Contenido: solo imagen y mensaje, sin mostrar la URL
+        // Contenido: imagen más pequeña y flecha
         win.document.write(`
           <!DOCTYPE html>
           <html lang="es">
@@ -452,13 +453,27 @@ class VideoPlayer {
               .sub {
                 color: #ccc;
                 font-size: 1.3rem;
-                margin-bottom: 1.5rem;
+                margin-bottom: 0.5rem;
+              }
+              .sub .arrow {
+                display: inline-block;
+                font-size: 2rem;
+                margin-left: 4px;
+                color: #ffd200;
+                animation: bounceUp 1.5s infinite ease-in-out;
+              }
+              @keyframes bounceUp {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
               }
               .image-container {
-                margin: 1.5rem 0;
+                margin: 1.2rem auto;
                 border-radius: 16px;
                 overflow: hidden;
                 border: 1px solid rgba(255,255,255,0.1);
+                max-width: 70%;
+                display: flex;
+                justify-content: center;
               }
               .image-container img {
                 width: 100%;
@@ -499,6 +514,7 @@ class VideoPlayer {
                 .container { padding: 2rem 1.2rem; border-radius: 40px; }
                 h1 { font-size: 1.8rem; }
                 .sub { font-size: 1.1rem; }
+                .image-container { max-width: 90%; }
                 .hint { font-size: 1rem; }
                 .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
               }
@@ -507,9 +523,12 @@ class VideoPlayer {
           <body>
             <div class="container">
               <h1>📋 Pestaña en blanco</h1>
-              <p class="sub">Pega el enlace que copiaste arriba en el buscador</p>
+              <p class="sub">
+                Pega el enlace en la barra de direcciones (arriba)
+                <span class="arrow">↑</span>
+              </p>
               <div class="image-container">
-                <img src="aqui.png" alt="Ejemplo de dónde pegar el enlace" />
+                <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
               </div>
               <p class="hint">
                 💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
@@ -533,13 +552,157 @@ class VideoPlayer {
     proxyBox.appendChild(urlDisplay);
     proxyBox.appendChild(actions);
 
-    // Ensamblar modal (sin botón PLAY ni texto)
+    // ---- ÁREA DE MENSAJE DE ERROR / CARGA ----
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'pixelDrainStatus';
+    statusDiv.style.cssText = `
+      margin-top: 0.8rem;
+      color: #ffd200;
+      font-size: 0.9rem;
+      text-align: center;
+      min-height: 30px;
+      font-weight: 400;
+    `;
+    statusDiv.textContent = '⏳ Cargando video...';
+
+    // ---- BOTÓN DE REINTENTO (oculto inicialmente) ----
+    const retryBtn = document.createElement('button');
+    retryBtn.id = 'pixelDrainRetryBtn';
+    retryBtn.textContent = '🔄 Reintentar con otro servidor';
+    retryBtn.style.cssText = `
+      padding: 8px 18px;
+      border: none;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(255,215,0,0.2);
+      color: #ffd200;
+      border: 1px solid rgba(255,215,0,0.3);
+      margin-top: 0.5rem;
+      display: none;
+    `;
+    retryBtn.addEventListener('mouseenter', () => { retryBtn.style.background = 'rgba(255,215,0,0.35)'; });
+    retryBtn.addEventListener('mouseleave', () => { retryBtn.style.background = 'rgba(255,215,0,0.2)'; });
+    retryBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId);
+    });
+
+    // ---- BOTÓN ABRIR ENLACE ORIGINAL (último recurso) ----
+    const openOriginalBtn = document.createElement('button');
+    openOriginalBtn.textContent = '🌐 Abrir enlace original';
+    openOriginalBtn.style.cssText = `
+      padding: 8px 18px;
+      border: none;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      background: rgba(100,100,255,0.2);
+      color: #7aaaff;
+      border: 1px solid rgba(100,100,255,0.3);
+      margin-top: 0.5rem;
+      display: none;
+    `;
+    openOriginalBtn.addEventListener('mouseenter', () => { openOriginalBtn.style.background = 'rgba(100,100,255,0.35)'; });
+    openOriginalBtn.addEventListener('mouseleave', () => { openOriginalBtn.style.background = 'rgba(100,100,255,0.2)'; });
+    openOriginalBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open(url, '_blank');
+    });
+
+    const errorActions = document.createElement('div');
+    errorActions.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:0.5rem;';
+    errorActions.appendChild(retryBtn);
+    errorActions.appendChild(openOriginalBtn);
+
+    // Ensamblar modal
     modal.appendChild(closeBtn);
     modal.appendChild(proxyBox);
+    modal.appendChild(statusDiv);
+    modal.appendChild(errorActions);
 
     container.appendChild(modal);
 
+    // ---- INICIALIZAR PRIMER PROXY ----
+    this.tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId);
+
     return container;
+  }
+
+  // Intenta cargar el video con el siguiente dominio proxy
+  tryNextProxy(video, urlDisplay, statusDiv, retryBtn, copyBtn, blankBtn, fileId) {
+    const domain = this.getNextProxyDomain();
+    const proxyUrl = this.buildPixelDrainProxy(fileId, domain);
+    
+    // Actualizar display
+    urlDisplay.textContent = proxyUrl;
+    urlDisplay.setAttribute('data-proxy', proxyUrl);
+    statusDiv.textContent = `⏳ Intentando con ${domain}...`;
+    statusDiv.style.color = '#ffd200';
+    retryBtn.style.display = 'none';
+    
+    // Limpiar eventos anteriores
+    const newVideo = video.cloneNode(true);
+    video.parentNode.replaceChild(newVideo, video);
+    const newVideoRef = newVideo;
+    
+    // Configurar el nuevo video
+    newVideoRef.src = proxyUrl;
+    newVideoRef.muted = false;
+    newVideoRef.autoplay = true;
+    newVideoRef.controls = true;
+    newVideoRef.playsInline = true;
+    newVideoRef.referrerPolicy = 'no-referrer';
+    newVideoRef.style.cssText = `
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    `;
+    
+    // Eventos
+    const onCanPlay = () => {
+      statusDiv.textContent = '✅ Video cargado correctamente';
+      statusDiv.style.color = '#4caf50';
+      retryBtn.style.display = 'none';
+      // Intentar reproducir
+      newVideoRef.play().catch(() => {});
+    };
+    
+    const onError = () => {
+      statusDiv.textContent = `❌ Error con ${domain}. Intentando otro...`;
+      statusDiv.style.color = '#ff6b6b';
+      retryBtn.style.display = 'inline-flex';
+      // Mostrar botón de abrir original también
+      const openOriginalBtn = retryBtn.parentElement.querySelector('button:last-child');
+      if (openOriginalBtn) openOriginalBtn.style.display = 'inline-flex';
+    };
+    
+    newVideoRef.addEventListener('canplay', onCanPlay);
+    newVideoRef.addEventListener('error', onError);
+    
+    // Timeout: si no carga en 10 seg, mostrar error
+    const timeoutId = setTimeout(() => {
+      if (!newVideoRef.currentTime) {
+        statusDiv.textContent = `⏱️ Tiempo de espera agotado con ${domain}.`;
+        statusDiv.style.color = '#ff6b6b';
+        retryBtn.style.display = 'inline-flex';
+        const openOriginalBtn = retryBtn.parentElement.querySelector('button:last-child');
+        if (openOriginalBtn) openOriginalBtn.style.display = 'inline-flex';
+      }
+    }, 15000);
+    
+    // Limpiar timeout si carga
+    newVideoRef.addEventListener('canplay', () => {
+      clearTimeout(timeoutId);
+    }, { once: true });
+    
+    // Actualizar referencia
+    this.currentVideoElement = newVideoRef;
   }
 
   playPart(partIndex, urlsArray) {
