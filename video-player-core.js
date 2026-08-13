@@ -26,8 +26,8 @@
 // MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
 // MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
 // MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura)
-// NUEVO: Botón "Generar otro enlace" para probar diferentes dominios proxy (REEMPLAZADO)
-// NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar y Abrir
+// NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar, Abrir y Cargar (▶)
+// MEJORADO: Al hacer clic en "Cargar" en cualquier opción, el video se actualiza y se reproduce en la página
 
 class VideoPlayer {
   constructor() {
@@ -56,8 +56,8 @@ class VideoPlayer {
     this.pixelDrainVideo = null;
     this.pixelDrainStatusDiv = null;
     this.pixelDrainModal = null;
-    // Guardamos el enlace que se usó para abrir la pestaña en blanco
     this.lastOpenedProxyUrl = null;
+    this.lastLoadedProxyUrl = null; // Última URL cargada en el video
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -85,14 +85,12 @@ class VideoPlayer {
     };
     window.videoPlayer = window.videoPlayerMethods;
     
-    // Listener para recargar video al volver a la pestaña
     window.addEventListener('focus', () => {
       if (this.blankTabOpened) {
         this.blankTabOpened = false;
-        if (this.pixelDrainFileId && this.pixelDrainVideo && this.lastOpenedProxyUrl) {
-          console.log('🔄 Recargando video de PixelDrain al volver de la pestaña en blanco');
-          // Recargar con la URL que se usó para abrir la pestaña
-          this.reloadVideoWithUrl(this.lastOpenedProxyUrl);
+        if (this.pixelDrainFileId && this.pixelDrainVideo && this.lastLoadedProxyUrl) {
+          console.log('🔄 Recargando video al volver de la pestaña en blanco');
+          this.loadProxyUrl(this.lastLoadedProxyUrl);
         }
       }
     });
@@ -105,45 +103,25 @@ class VideoPlayer {
 
   generateDirectLink(url) {
     if (!url) return "#";
-    
-    if (this.isDoomStreamUrl(url)) {
-      return url.replace(/\/e\//, '/d/');
-    }
-
+    if (this.isDoomStreamUrl(url)) return url.replace(/\/e\//, '/d/');
     if (url.includes('mp4upload.com/embed-')) {
       const match = url.match(/embed-([^\.]+)(\.html)?/);
-      if (match && match[1]) {
-        return `https://www.mp4upload.com/${match[1]}`;
-      }
+      if (match && match[1]) return `https://www.mp4upload.com/${match[1]}`;
     }
-
     if (url.includes("drive.google.com")) {
       if (url.includes('drive.usercontent.google.com/download')) return url;
       const match = url.match(/\/d\/(.+?)\//);
-      if (match && match[1]) {
-        return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
-      }
+      if (match && match[1]) return `https://drive.usercontent.google.com/download?id=${match[1]}&export=download&authuser=0`;
       const altMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-      if (altMatch && altMatch[1]) {
-        return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
-      }
+      if (altMatch && altMatch[1]) return `https://drive.usercontent.google.com/download?id=${altMatch[1]}&export=download&authuser=0`;
       const ucMatch = url.match(/uc\?export=download&id=([a-zA-Z0-9_-]+)/);
-      if (ucMatch && ucMatch[1]) {
-        return `https://drive.usercontent.google.com/download?id=${ucMatch[1]}&export=download&authuser=0`;
-      }
+      if (ucMatch && ucMatch[1]) return `https://drive.usercontent.google.com/download?id=${ucMatch[1]}&export=download&authuser=0`;
     }
-
-    if (url.includes("dropbox.com") && url.includes("dl=0")) {
-      return url.replace('dl=0', 'dl=1');
-    }
-
+    if (url.includes("dropbox.com") && url.includes("dl=0")) return url.replace('dl=0', 'dl=1');
     if (url.includes("ok.ru/")) {
       const match = url.match(/ok\.ru\/video(?:embed)?\/(\d+)/);
-      if (match && match[1]) {
-        return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
-      }
+      if (match && match[1]) return `https://anydownloader.com/en/#url=https://ok.ru/video/${match[1]}`;
     }
-
     if (url.includes("odysee.com")) {
       let claimStr = url.split("/embed/")[1];
       if (claimStr) {
@@ -153,7 +131,6 @@ class VideoPlayer {
       }
       return url;
     }
-
     return url;
   }
 
@@ -166,7 +143,7 @@ class VideoPlayer {
   }
 
   buildPixelDrainProxy(fileId, domain) {
-    return `https://${domain}/api/file/${fileId}`;
+    return `https://${domain}.pixeldrain.eu.cc/api/file/${fileId}`;
   }
 
   updateLogoBlocker(url) {
@@ -181,19 +158,29 @@ class VideoPlayer {
     }
   }
 
-  // Recarga el video con una URL específica (para la recarga al volver)
-  reloadVideoWithUrl(proxyUrl) {
+  // Carga una URL en el video y maneja eventos
+  loadProxyUrl(proxyUrl) {
     if (!this.pixelDrainVideo || !proxyUrl) return;
     const video = this.pixelDrainVideo;
+    this.lastLoadedProxyUrl = proxyUrl;
+    
+    // Actualizar estado
+    if (this.pixelDrainStatusDiv) {
+      this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
+      this.pixelDrainStatusDiv.style.color = '#ffd200';
+    }
+    
     video.src = proxyUrl;
     video.load();
     video.play().catch(() => {});
-    // Actualizar estado
-    if (this.pixelDrainStatusDiv) {
-      this.pixelDrainStatusDiv.textContent = '⏳ Recargando video...';
-      this.pixelDrainStatusDiv.style.color = '#ffd200';
-    }
-    // Cuando cargue, cerrar modal y mostrar éxito
+    
+    // Remover eventos anteriores para evitar duplicados
+    const newVideo = video.cloneNode(true);
+    video.parentNode.replaceChild(newVideo, video);
+    this.pixelDrainVideo = newVideo;
+    this.currentVideoElement = newVideo;
+    
+    // Configurar eventos
     const onCanPlay = () => {
       if (this.pixelDrainStatusDiv) {
         this.pixelDrainStatusDiv.textContent = '✅ Video cargado correctamente';
@@ -202,20 +189,28 @@ class VideoPlayer {
       if (this.pixelDrainModal) {
         setTimeout(() => { this.pixelDrainModal.style.display = 'none'; }, 800);
       }
-      video.removeEventListener('canplay', onCanPlay);
+      newVideo.removeEventListener('canplay', onCanPlay);
     };
-    video.addEventListener('canplay', onCanPlay);
+    const onError = () => {
+      if (this.pixelDrainStatusDiv) {
+        this.pixelDrainStatusDiv.textContent = '❌ Error al cargar. Prueba otra opción.';
+        this.pixelDrainStatusDiv.style.color = '#ff6b6b';
+      }
+      newVideo.removeEventListener('error', onError);
+    };
+    newVideo.addEventListener('canplay', onCanPlay);
+    newVideo.addEventListener('error', onError);
     
-    // Timeout por si falla
-    setTimeout(() => {
-      if (!video.currentTime && this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '⏱️ No se pudo recargar. Usa las opciones.';
+    // Timeout
+    const timeoutId = setTimeout(() => {
+      if (!newVideo.currentTime && this.pixelDrainStatusDiv) {
+        this.pixelDrainStatusDiv.textContent = '⏱️ Tiempo agotado. Prueba otra opción.';
         this.pixelDrainStatusDiv.style.color = '#ff6b6b';
       }
     }, 15000);
+    newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
   }
 
-  // Crea la interfaz para PixelDrain con 3 opciones de enlaces
   createPixelDrainUI(url) {
     const container = document.createElement('div');
     container.id = 'pixelDrainContainer';
@@ -241,7 +236,6 @@ class VideoPlayer {
 
     this.pixelDrainFileId = fileId;
 
-    // ----- REPRODUCTOR DE VIDEO (cargará el primer enlace por defecto) -----
     const video = document.createElement('video');
     video.muted = false;
     video.autoplay = true;
@@ -258,7 +252,6 @@ class VideoPlayer {
     this.currentVideoElement = video;
     this.pixelDrainVideo = video;
 
-    // ----- MODAL (panel colapsable) -----
     const modal = document.createElement('div');
     modal.id = 'pixelDrainModal';
     modal.style.cssText = `
@@ -282,7 +275,6 @@ class VideoPlayer {
     `;
     this.pixelDrainModal = modal;
 
-    // Botón de cierre (X)
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = `
@@ -305,12 +297,10 @@ class VideoPlayer {
       modal.style.display = 'none';
     });
 
-    // --- Título ---
     const title = document.createElement('p');
     title.style.cssText = 'color:#ccc; font-size:1.1rem; margin-bottom:0.5rem; text-align:center;';
     title.textContent = '🔗 Selecciona un enlace proxy:';
 
-    // --- Contenedor de opciones ---
     const optionsContainer = document.createElement('div');
     optionsContainer.style.cssText = `
       width: 100%;
@@ -321,9 +311,8 @@ class VideoPlayer {
       margin: 0.5rem 0;
     `;
 
-    // Generar las 3 opciones
-    const domains = ['cdn12', 'cdn33', 'cdn44'];
-    const domainUrls = domains.map(d => `https://${d}.pixeldrain.eu.cc/api/file/${fileId}`);
+    const shortNames = ['cdn12', 'cdn33', 'cdn44'];
+    const domainUrls = shortNames.map(d => `https://${d}.pixeldrain.eu.cc/api/file/${fileId}`);
 
     domainUrls.forEach((proxyUrl, index) => {
       const optionDiv = document.createElement('div');
@@ -349,16 +338,16 @@ class VideoPlayer {
       urlDisplay.setAttribute('data-proxy', proxyUrl);
 
       const actions = document.createElement('div');
-      actions.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap;';
+      actions.style.cssText = 'display:flex; gap:6px; flex-wrap:wrap;';
 
-      // Botón copiar
+      // Botón Copiar
       const copyBtn = document.createElement('button');
       copyBtn.textContent = '📋 Copiar';
       copyBtn.style.cssText = `
-        padding: 6px 14px;
+        padding: 5px 12px;
         border: none;
         border-radius: 30px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
@@ -366,7 +355,7 @@ class VideoPlayer {
         color: #fff;
         border: 1px solid rgba(255,255,255,0.1);
         flex: 1;
-        min-width: 80px;
+        min-width: 60px;
       `;
       copyBtn.addEventListener('mouseenter', () => { copyBtn.style.background = 'rgba(255,255,255,0.15)'; });
       copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
@@ -390,10 +379,10 @@ class VideoPlayer {
       const openBtn = document.createElement('button');
       openBtn.textContent = '📄 Abrir';
       openBtn.style.cssText = `
-        padding: 6px 14px;
+        padding: 5px 12px;
         border: none;
         border-radius: 30px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
@@ -401,17 +390,14 @@ class VideoPlayer {
         color: #ffd200;
         border: 1px solid rgba(255,215,0,0.3);
         flex: 1;
-        min-width: 80px;
+        min-width: 60px;
       `;
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = urlDisplay.getAttribute('data-proxy');
-        if (!proxy) {
-          alert('No hay enlace.');
-          return;
-        }
+        if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
         this.blankTabOpened = true;
         try {
@@ -430,97 +416,19 @@ class VideoPlayer {
               <title>Pestaña en blanco - Proxy</title>
               <style>
                 * { margin:0; padding:0; box-sizing:border-box; }
-                body {
-                  background: #0b0b0b;
-                  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-                  min-height: 100vh;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  padding: 1.5rem;
-                  margin: 0;
-                }
-                .container {
-                  background: rgba(255,255,255,0.05);
-                  backdrop-filter: blur(10px);
-                  -webkit-backdrop-filter: blur(10px);
-                  border-radius: 50px;
-                  padding: 2.5rem 2rem;
-                  max-width: 600px;
-                  width: 100%;
-                  border: 1px solid rgba(255,255,255,0.08);
-                  box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-                  text-align: center;
-                }
-                h1 {
-                  font-size: 2.2rem;
-                  font-weight: 600;
-                  background: linear-gradient(135deg, #f7971e, #ffd200);
-                  -webkit-background-clip: text;
-                  -webkit-text-fill-color: transparent;
-                  background-clip: text;
-                  margin-bottom: 0.5rem;
-                }
-                .sub {
-                  color: #ccc;
-                  font-size: 1.3rem;
-                  margin-bottom: 0.5rem;
-                }
-                .sub .arrow {
-                  display: inline-block;
-                  font-size: 2.5rem;
-                  margin-left: 4px;
-                  color: #ffd200;
-                  animation: bounceUp 1.5s infinite ease-in-out;
-                  line-height: 1;
-                }
-                @keyframes bounceUp {
-                  0%, 100% { transform: translateY(0); }
-                  50% { transform: translateY(-10px); }
-                }
-                .image-container {
-                  margin: 1.2rem auto;
-                  border-radius: 16px;
-                  overflow: hidden;
-                  border: 1px solid rgba(255,255,255,0.1);
-                  max-width: 70%;
-                  display: flex;
-                  justify-content: center;
-                }
-                .image-container img {
-                  width: 100%;
-                  height: auto;
-                  display: block;
-                }
-                .hint {
-                  color: #aaa;
-                  font-size: 1.2rem;
-                  line-height: 1.7;
-                  margin: 1rem 0;
-                }
-                .hint strong {
-                  color: #ffd200;
-                }
-                .btn-close {
-                  display: inline-block;
-                  margin-top: 1.2rem;
-                  padding: 0.9rem 2.5rem;
-                  background: rgba(255,255,255,0.08);
-                  color: #ddd;
-                  border: 1px solid rgba(255,255,255,0.1);
-                  border-radius: 60px;
-                  font-size: 1.2rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: 0.2s;
-                  text-decoration: none;
-                }
-                .btn-close:hover {
-                  background: rgba(255,255,255,0.15);
-                }
-                .btn-close:active {
-                  transform: scale(0.96);
-                }
+                body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
+                .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
+                h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+                .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
+                .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
+                @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
+                .image-container img { width: 100%; height: auto; display: block; }
+                .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
+                .hint strong { color: #ffd200; }
+                .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
+                .btn-close:hover { background: rgba(255,255,255,0.15); }
+                .btn-close:active { transform: scale(0.96); }
                 @media (max-width: 480px) {
                   body { padding: 1rem; }
                   .container { padding: 2rem 1.2rem; border-radius: 40px; }
@@ -536,16 +444,11 @@ class VideoPlayer {
             <body>
               <div class="container">
                 <h1>📋 Pestaña en blanco</h1>
-                <p class="sub">
-                  Pega el enlace en la barra de direcciones (arriba)
-                  <span class="arrow">↑</span>
-                </p>
+                <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
                 <div class="image-container">
                   <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
                 </div>
-                <p class="hint">
-                  💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.
-                </p>
+                <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
                 <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
               </div>
             </body>
@@ -559,15 +462,41 @@ class VideoPlayer {
         }
       });
 
+      // Botón Cargar (▶)
+      const loadBtn = document.createElement('button');
+      loadBtn.textContent = '▶ Cargar';
+      loadBtn.style.cssText = `
+        padding: 5px 12px;
+        border: none;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        background: rgba(0,255,100,0.15);
+        color: #4caf50;
+        border: 1px solid rgba(0,255,100,0.3);
+        flex: 1;
+        min-width: 60px;
+      `;
+      loadBtn.addEventListener('mouseenter', () => { loadBtn.style.background = 'rgba(0,255,100,0.25)'; });
+      loadBtn.addEventListener('mouseleave', () => { loadBtn.style.background = 'rgba(0,255,100,0.15)'; });
+      loadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const proxy = urlDisplay.getAttribute('data-proxy');
+        if (!proxy) return;
+        this.loadProxyUrl(proxy);
+      });
+
       actions.appendChild(copyBtn);
       actions.appendChild(openBtn);
+      actions.appendChild(loadBtn);
 
       optionDiv.appendChild(urlDisplay);
       optionDiv.appendChild(actions);
       optionsContainer.appendChild(optionDiv);
     });
 
-    // --- Área de estado ---
     const statusDiv = document.createElement('div');
     statusDiv.id = 'pixelDrainStatus';
     statusDiv.style.cssText = `
@@ -581,7 +510,6 @@ class VideoPlayer {
     statusDiv.textContent = '⏳ Cargando video con cdn12...';
     this.pixelDrainStatusDiv = statusDiv;
 
-    // Ensamblar modal
     modal.appendChild(closeBtn);
     modal.appendChild(title);
     modal.appendChild(optionsContainer);
@@ -589,35 +517,9 @@ class VideoPlayer {
 
     container.appendChild(modal);
 
-    // ---- INICIALIZAR VIDEO CON EL PRIMER ENLACE (cdn12) ----
+    // Cargar automáticamente el primer enlace (cdn12)
     const firstProxy = domainUrls[0];
-    video.src = firstProxy;
-    video.load();
-    video.play().catch(() => {});
-
-    // Eventos del video
-    const onCanPlay = () => {
-      statusDiv.textContent = '✅ Video cargado correctamente (cdn12)';
-      statusDiv.style.color = '#4caf50';
-      if (modal) {
-        setTimeout(() => { modal.style.display = 'none'; }, 800);
-      }
-    };
-    const onError = () => {
-      statusDiv.textContent = '❌ Error con cdn12. Prueba otra opción.';
-      statusDiv.style.color = '#ff6b6b';
-    };
-    video.addEventListener('canplay', onCanPlay);
-    video.addEventListener('error', onError);
-
-    // Timeout
-    const timeoutId = setTimeout(() => {
-      if (!video.currentTime) {
-        statusDiv.textContent = '⏱️ Tiempo agotado con cdn12. Prueba otra opción.';
-        statusDiv.style.color = '#ff6b6b';
-      }
-    }, 15000);
-    video.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
+    this.loadProxyUrl(firstProxy);
 
     return container;
   }
