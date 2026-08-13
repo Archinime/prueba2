@@ -28,6 +28,8 @@
 // MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura)
 // NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar, Abrir y Cargar (▶)
 // MEJORADO: Al hacer clic en "Cargar" en cualquier opción, el video se actualiza y se reproduce en la página
+// MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
+// MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
 
 class VideoPlayer {
   constructor() {
@@ -50,14 +52,14 @@ class VideoPlayer {
     this.currentVideoElement = null;
     this.isDownloading = false;
     // Dominios para mostrar
-    this.proxyDomains = ['cdn12.pixeldrain.eu.cc', 'cdn33.pixeldrain.eu.cc', 'cdn44.pixeldrain.eu.cc'];
+    this.proxyDomains = ['cdn12', 'cdn33', 'cdn44'];
     this.blankTabOpened = false;
     this.pixelDrainFileId = null;
     this.pixelDrainVideo = null;
     this.pixelDrainStatusDiv = null;
     this.pixelDrainModal = null;
     this.lastOpenedProxyUrl = null;
-    this.lastLoadedProxyUrl = null; // Última URL cargada en el video
+    this.lastLoadedProxyUrl = null;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -164,7 +166,6 @@ class VideoPlayer {
     const video = this.pixelDrainVideo;
     this.lastLoadedProxyUrl = proxyUrl;
     
-    // Actualizar estado
     if (this.pixelDrainStatusDiv) {
       this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
       this.pixelDrainStatusDiv.style.color = '#ffd200';
@@ -174,13 +175,11 @@ class VideoPlayer {
     video.load();
     video.play().catch(() => {});
     
-    // Remover eventos anteriores para evitar duplicados
     const newVideo = video.cloneNode(true);
     video.parentNode.replaceChild(newVideo, video);
     this.pixelDrainVideo = newVideo;
     this.currentVideoElement = newVideo;
     
-    // Configurar eventos
     const onCanPlay = () => {
       if (this.pixelDrainStatusDiv) {
         this.pixelDrainStatusDiv.textContent = '✅ Video cargado correctamente';
@@ -201,7 +200,6 @@ class VideoPlayer {
     newVideo.addEventListener('canplay', onCanPlay);
     newVideo.addEventListener('error', onError);
     
-    // Timeout
     const timeoutId = setTimeout(() => {
       if (!newVideo.currentTime && this.pixelDrainStatusDiv) {
         this.pixelDrainStatusDiv.textContent = '⏱️ Tiempo agotado. Prueba otra opción.';
@@ -279,12 +277,12 @@ class VideoPlayer {
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = `
       position: absolute;
-      top: 16px;
-      right: 20px;
+      top: 10px;
+      right: 14px;
       background: transparent;
       border: none;
       color: #aaa;
-      font-size: 2rem;
+      font-size: 1.8rem;
       cursor: pointer;
       transition: 0.2s;
       z-index: 20;
@@ -298,8 +296,8 @@ class VideoPlayer {
     });
 
     const title = document.createElement('p');
-    title.style.cssText = 'color:#ccc; font-size:1.1rem; margin-bottom:0.5rem; text-align:center;';
-    title.textContent = '🔗 Selecciona un enlace proxy:';
+    title.style.cssText = 'color:#ccc; font-size:1rem; margin-bottom:0.5rem; text-align:center;';
+    title.textContent = '🔗 Elige un servidor:';
 
     const optionsContainer = document.createElement('div');
     optionsContainer.style.cssText = `
@@ -307,8 +305,8 @@ class VideoPlayer {
       max-width: 90%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin: 0.5rem 0;
+      gap: 10px;
+      margin: 0.3rem 0;
     `;
 
     const shortNames = ['cdn12', 'cdn33', 'cdn44'];
@@ -318,85 +316,111 @@ class VideoPlayer {
       const optionDiv = document.createElement('div');
       optionDiv.style.cssText = `
         background: rgba(255,255,255,0.04);
-        border-radius: 12px;
-        padding: 10px 14px;
-        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
       `;
 
-      const urlDisplay = document.createElement('div');
-      urlDisplay.style.cssText = `
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = shortNames[index];
+      nameSpan.style.cssText = `
         color: #7aaaff;
-        font-size: 0.8rem;
-        word-break: break-all;
-        font-family: 'Courier New', monospace;
-        margin-bottom: 8px;
-        padding: 4px 8px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        min-width: 50px;
+        font-family: monospace;
       `;
-      urlDisplay.textContent = proxyUrl;
-      urlDisplay.setAttribute('data-proxy', proxyUrl);
 
-      const actions = document.createElement('div');
-      actions.style.cssText = 'display:flex; gap:6px; flex-wrap:wrap;';
+      const btnGroup = document.createElement('div');
+      btnGroup.style.cssText = 'display:flex; gap:5px; flex:1; justify-content:flex-end; flex-wrap:wrap;';
 
-      // Botón Copiar
       const copyBtn = document.createElement('button');
       copyBtn.textContent = '📋 Copiar';
       copyBtn.style.cssText = `
-        padding: 5px 12px;
+        padding: 4px 10px;
         border: none;
-        border-radius: 30px;
-        font-size: 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
         background: rgba(255,255,255,0.08);
         color: #fff;
         border: 1px solid rgba(255,255,255,0.1);
-        flex: 1;
-        min-width: 60px;
       `;
       copyBtn.addEventListener('mouseenter', () => { copyBtn.style.background = 'rgba(255,255,255,0.15)'; });
       copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
-      copyBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const proxy = urlDisplay.getAttribute('data-proxy');
-        if (!proxy) return;
-        navigator.clipboard.writeText(proxy)
-          .then(() => alert('📋 Enlace copiado al portapapeles.'))
-          .catch(() => {
-            const range = document.createRange();
-            range.selectNode(urlDisplay);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            alert('📋 Enlace copiado (método manual).');
-          });
-      });
 
-      // Botón Abrir (pestaña en blanco)
       const openBtn = document.createElement('button');
       openBtn.textContent = '📄 Abrir';
       openBtn.style.cssText = `
-        padding: 5px 12px;
+        padding: 4px 10px;
         border: none;
-        border-radius: 30px;
-        font-size: 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
         background: rgba(255,215,0,0.15);
         color: #ffd200;
         border: 1px solid rgba(255,215,0,0.3);
-        flex: 1;
-        min-width: 60px;
+        display: none;
       `;
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
+
+      const loadBtn = document.createElement('button');
+      loadBtn.textContent = '▶ Cargar';
+      loadBtn.style.cssText = `
+        padding: 4px 10px;
+        border: none;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        background: rgba(0,255,100,0.15);
+        color: #4caf50;
+        border: 1px solid rgba(0,255,100,0.3);
+      `;
+      loadBtn.addEventListener('mouseenter', () => { loadBtn.style.background = 'rgba(0,255,100,0.25)'; });
+      loadBtn.addEventListener('mouseleave', () => { loadBtn.style.background = 'rgba(0,255,100,0.15)'; });
+
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const proxy = proxyUrl;
+        if (!proxy) return;
+        navigator.clipboard.writeText(proxy)
+          .then(() => {
+            alert('📋 Enlace copiado al portapapeles.');
+            copyBtn.style.display = 'none';
+            openBtn.style.display = 'inline-block';
+          })
+          .catch(() => {
+            const range = document.createRange();
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = proxy;
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.opacity = '0';
+            document.body.appendChild(tempDiv);
+            range.selectNode(tempDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            document.body.removeChild(tempDiv);
+            alert('📋 Enlace copiado (método manual).');
+            copyBtn.style.display = 'none';
+            openBtn.style.display = 'inline-block';
+          });
+      });
+
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const proxy = urlDisplay.getAttribute('data-proxy');
+        const proxy = proxyUrl;
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
         this.blankTabOpened = true;
@@ -462,38 +486,16 @@ class VideoPlayer {
         }
       });
 
-      // Botón Cargar (▶)
-      const loadBtn = document.createElement('button');
-      loadBtn.textContent = '▶ Cargar';
-      loadBtn.style.cssText = `
-        padding: 5px 12px;
-        border: none;
-        border-radius: 30px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-        background: rgba(0,255,100,0.15);
-        color: #4caf50;
-        border: 1px solid rgba(0,255,100,0.3);
-        flex: 1;
-        min-width: 60px;
-      `;
-      loadBtn.addEventListener('mouseenter', () => { loadBtn.style.background = 'rgba(0,255,100,0.25)'; });
-      loadBtn.addEventListener('mouseleave', () => { loadBtn.style.background = 'rgba(0,255,100,0.15)'; });
       loadBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const proxy = urlDisplay.getAttribute('data-proxy');
-        if (!proxy) return;
-        this.loadProxyUrl(proxy);
+        this.loadProxyUrl(proxyUrl);
       });
 
-      actions.appendChild(copyBtn);
-      actions.appendChild(openBtn);
-      actions.appendChild(loadBtn);
-
-      optionDiv.appendChild(urlDisplay);
-      optionDiv.appendChild(actions);
+      btnGroup.appendChild(copyBtn);
+      btnGroup.appendChild(openBtn);
+      btnGroup.appendChild(loadBtn);
+      optionDiv.appendChild(nameSpan);
+      optionDiv.appendChild(btnGroup);
       optionsContainer.appendChild(optionDiv);
     });
 
@@ -502,9 +504,9 @@ class VideoPlayer {
     statusDiv.style.cssText = `
       margin-top: 0.5rem;
       color: #ffd200;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       text-align: center;
-      min-height: 30px;
+      min-height: 25px;
       font-weight: 400;
     `;
     statusDiv.textContent = '⏳ Cargando video con cdn12...';
@@ -517,7 +519,7 @@ class VideoPlayer {
 
     container.appendChild(modal);
 
-    // Cargar automáticamente el primer enlace (cdn12)
+    // Cargar automáticamente con cdn12
     const firstProxy = domainUrls[0];
     this.loadProxyUrl(firstProxy);
 
