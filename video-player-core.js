@@ -31,7 +31,7 @@
 // MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
 // MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
 // MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (sin límite de intentos)
-// MEJORADO: Mensaje de estado para reinicio de ciclo y reintentos en bucle
+// MEJORADO: Mensaje de estado de reintentos oculto (solo se muestra "Cargando..." o éxito/error final)
 
 class VideoPlayer {
   constructor() {
@@ -171,7 +171,8 @@ class VideoPlayer {
     const video = this.pixelDrainVideo;
     this.lastLoadedProxyUrl = proxyUrl;
     
-    if (this.pixelDrainStatusDiv) {
+    // Solo mostramos "Cargando..." si no hay un mensaje de éxito o error final
+    if (this.pixelDrainStatusDiv && !this.pixelDrainStatusDiv.textContent.includes('✅') && !this.pixelDrainStatusDiv.textContent.includes('❌')) {
       this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
       this.pixelDrainStatusDiv.style.color = '#ffd200';
     }
@@ -202,10 +203,7 @@ class VideoPlayer {
       clearTimeout(timeoutId);
     };
     const onError = () => {
-      if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = '❌ Error al cargar. Reintentando...';
-        this.pixelDrainStatusDiv.style.color = '#ff6b6b';
-      }
+      // No mostramos mensaje de error aquí, solo reintentamos en silencio
       newVideo.removeEventListener('canplay', onCanPlay);
       newVideo.removeEventListener('error', onError);
       clearTimeout(timeoutId);
@@ -218,10 +216,6 @@ class VideoPlayer {
     // Timeout: si no carga en 12 seg, reintentar
     const timeoutId = setTimeout(() => {
       if (!newVideo.currentTime) {
-        if (this.pixelDrainStatusDiv) {
-          this.pixelDrainStatusDiv.textContent = '⏱️ Tiempo agotado. Reintentando...';
-          this.pixelDrainStatusDiv.style.color = '#ff6b6b';
-        }
         newVideo.removeEventListener('canplay', onCanPlay);
         newVideo.removeEventListener('error', onError);
         this.retryWithNextDomain();
@@ -230,10 +224,10 @@ class VideoPlayer {
     newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
   }
 
-  // Reintenta con el siguiente dominio automáticamente (sin límite)
+  // Reintenta con el siguiente dominio automáticamente (sin límite, en silencio)
   retryWithNextDomain() {
     if (!this.pixelDrainFileId) return;
-    if (this.isRetrying) return; // Evita múltiples reintentos simultáneos
+    if (this.isRetrying) return;
     this.isRetrying = true;
     
     // Avanzar al siguiente dominio
@@ -242,17 +236,11 @@ class VideoPlayer {
     const proxyUrl = this.buildPixelDrainProxy(this.pixelDrainFileId, domain);
     this.totalRetryCount++;
     
-    // Si estamos empezando un nuevo ciclo, mostrar mensaje
-    if (this.retryDomainIndex === 0) {
-      if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = `🔄 Reiniciando ciclo (intento ${this.totalRetryCount})...`;
-        this.pixelDrainStatusDiv.style.color = '#ffd200';
-      }
-    } else {
-      if (this.pixelDrainStatusDiv) {
-        this.pixelDrainStatusDiv.textContent = `🔄 Probando ${domain} (intento ${this.totalRetryCount})...`;
-        this.pixelDrainStatusDiv.style.color = '#ffd200';
-      }
+    // No mostramos mensaje de reintento, solo mantenemos "Cargando..." o el mensaje actual
+    // Si el modal está visible y no hay mensaje de éxito/error, mostramos "Cargando..."
+    if (this.pixelDrainStatusDiv && !this.pixelDrainStatusDiv.textContent.includes('✅') && !this.pixelDrainStatusDiv.textContent.includes('❌')) {
+      this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
+      this.pixelDrainStatusDiv.style.color = '#ffd200';
     }
     
     // Esperar un poco antes de cargar para no saturar
@@ -286,7 +274,7 @@ class VideoPlayer {
     }
 
     this.pixelDrainFileId = fileId;
-    this.retryDomainIndex = 0; // Reiniciar índice para cada nuevo episodio
+    this.retryDomainIndex = 0;
     this.totalRetryCount = 0;
     this.isRetrying = false;
 
@@ -547,7 +535,7 @@ class VideoPlayer {
       min-height: 25px;
       font-weight: 400;
     `;
-    statusDiv.textContent = '⏳ Cargando video con cdn12...';
+    statusDiv.textContent = '⏳ Cargando...';
     this.pixelDrainStatusDiv = statusDiv;
 
     modal.appendChild(closeBtn);
