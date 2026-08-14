@@ -6,12 +6,12 @@
 // NUEVO: Soporte para 4 opciones de enlaces (latino, op2, op3, op4)
 // NUEVO: Conversión de mp4upload embed a directo para descarga
 // NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
-// NUEVO: Reordenamiento automático: mp4upload -> Opción 1, Google Drive -> Opción 4
+// NUEVO: Reordenamiento automático: PixelDrain -> Opción 1, Google Drive -> Opción 4
 // REACTIVADO: Botón PLAY para Pixeldrain (abre en nueva ventana)
 // FIX: Link de descarga de Google Drive con formato drive.usercontent.google.com
 // NUEVO: Para enlaces de PixelDrain, muestra el enlace proxy y botones para copiar y abrir en pestaña en blanco
 // NUEVO: Al hacer clic en PLAY, abre automáticamente el proxy en otra pestaña (sin referer)
-// NUEVO: Añadida 'X' para cerrar el modal de PixelDrain
+// NUEVO: Añadida 'X' para cerrar el modal de PixelDrain (ELIMINADA)
 // MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
 // MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
 // MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy (ELIMINADO)
@@ -25,13 +25,16 @@
 // MEJORADO: El modal se cierra automáticamente cuando el video se carga correctamente
 // MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
 // MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
-// MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura)
+// MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura) -> AHORA SIN X
 // NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar y Abrir (sin Cargar)
 // MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
 // MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
 // MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
 // MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (sin límite de intentos)
 // MEJORADO: Mensaje de estado de reintentos oculto (solo se muestra "Cargando..." o éxito/error final)
+// MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
+// MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
+// MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
 
 class VideoPlayer {
   constructor() {
@@ -53,10 +56,9 @@ class VideoPlayer {
     this.activeOptionKey = 'link';
     this.currentVideoElement = null;
     this.isDownloading = false;
-    // Dominios para mostrar
     this.proxyDomains = ['cdn12', 'cdn33', 'cdn44'];
-    this.retryDomainIndex = 0; // Índice para reintentos automáticos
-    this.totalRetryCount = 0; // Contador total de reintentos (solo para mostrar)
+    this.retryDomainIndex = 0;
+    this.totalRetryCount = 0;
     this.blankTabOpened = false;
     this.pixelDrainFileId = null;
     this.pixelDrainVideo = null;
@@ -64,7 +66,8 @@ class VideoPlayer {
     this.pixelDrainModal = null;
     this.lastOpenedProxyUrl = null;
     this.lastLoadedProxyUrl = null;
-    this.isRetrying = false; // Para evitar múltiples reintentos simultáneos
+    this.isRetrying = false;
+    this.isPixelDrain = false;
     
     window.comentariosAnimeId = this.animeId;
     window.comentariosSeason = this.season;
@@ -165,13 +168,28 @@ class VideoPlayer {
     }
   }
 
-  // Carga una URL en el video y maneja eventos con reintento automático
+  // Bloquear/desbloquear botón de descarga según si es PixelDrain
+  updateDownloadButtonState(isPixelDrain) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (!downloadBtn) return;
+    if (isPixelDrain) {
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = '0.5';
+      downloadBtn.style.cursor = 'not-allowed';
+      downloadBtn.title = 'Descarga no disponible para enlaces de PixelDrain';
+    } else {
+      downloadBtn.disabled = false;
+      downloadBtn.style.opacity = '1';
+      downloadBtn.style.cursor = 'pointer';
+      downloadBtn.title = '';
+    }
+  }
+
   loadProxyUrl(proxyUrl) {
     if (!this.pixelDrainVideo || !proxyUrl) return;
     const video = this.pixelDrainVideo;
     this.lastLoadedProxyUrl = proxyUrl;
     
-    // Solo mostramos "Cargando..." si no hay un mensaje de éxito o error final
     if (this.pixelDrainStatusDiv && !this.pixelDrainStatusDiv.textContent.includes('✅') && !this.pixelDrainStatusDiv.textContent.includes('❌')) {
       this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
       this.pixelDrainStatusDiv.style.color = '#ffd200';
@@ -186,7 +204,6 @@ class VideoPlayer {
     this.pixelDrainVideo = newVideo;
     this.currentVideoElement = newVideo;
     
-    // Limpiar eventos anteriores para evitar duplicados
     const onCanPlay = () => {
       if (this.pixelDrainStatusDiv) {
         this.pixelDrainStatusDiv.textContent = '✅ Video cargado correctamente';
@@ -195,7 +212,6 @@ class VideoPlayer {
       if (this.pixelDrainModal) {
         setTimeout(() => { this.pixelDrainModal.style.display = 'none'; }, 800);
       }
-      // Resetear contadores al cargar exitosamente
       this.totalRetryCount = 0;
       this.isRetrying = false;
       newVideo.removeEventListener('canplay', onCanPlay);
@@ -203,17 +219,14 @@ class VideoPlayer {
       clearTimeout(timeoutId);
     };
     const onError = () => {
-      // No mostramos mensaje de error aquí, solo reintentamos en silencio
       newVideo.removeEventListener('canplay', onCanPlay);
       newVideo.removeEventListener('error', onError);
       clearTimeout(timeoutId);
-      // Reintentar con el siguiente dominio
       this.retryWithNextDomain();
     };
     newVideo.addEventListener('canplay', onCanPlay);
     newVideo.addEventListener('error', onError);
     
-    // Timeout: si no carga en 12 seg, reintentar
     const timeoutId = setTimeout(() => {
       if (!newVideo.currentTime) {
         newVideo.removeEventListener('canplay', onCanPlay);
@@ -224,26 +237,21 @@ class VideoPlayer {
     newVideo.addEventListener('canplay', () => { clearTimeout(timeoutId); }, { once: true });
   }
 
-  // Reintenta con el siguiente dominio automáticamente (sin límite, en silencio)
   retryWithNextDomain() {
     if (!this.pixelDrainFileId) return;
     if (this.isRetrying) return;
     this.isRetrying = true;
     
-    // Avanzar al siguiente dominio
     this.retryDomainIndex = (this.retryDomainIndex + 1) % this.proxyDomains.length;
     const domain = this.proxyDomains[this.retryDomainIndex];
     const proxyUrl = this.buildPixelDrainProxy(this.pixelDrainFileId, domain);
     this.totalRetryCount++;
     
-    // No mostramos mensaje de reintento, solo mantenemos "Cargando..." o el mensaje actual
-    // Si el modal está visible y no hay mensaje de éxito/error, mostramos "Cargando..."
     if (this.pixelDrainStatusDiv && !this.pixelDrainStatusDiv.textContent.includes('✅') && !this.pixelDrainStatusDiv.textContent.includes('❌')) {
       this.pixelDrainStatusDiv.textContent = '⏳ Cargando...';
       this.pixelDrainStatusDiv.style.color = '#ffd200';
     }
     
-    // Esperar un poco antes de cargar para no saturar
     setTimeout(() => {
       this.isRetrying = false;
       this.loadProxyUrl(proxyUrl);
@@ -309,48 +317,28 @@ class VideoPlayer {
       background: rgba(11, 11, 11, 0.92);
       backdrop-filter: blur(4px);
       z-index: 10;
-      padding: 1rem;
+      padding: 0.5rem 0.8rem;
       box-sizing: border-box;
       pointer-events: auto;
       transition: opacity 0.3s ease;
-      overflow-y: auto;
+      overflow: hidden;
     `;
     this.pixelDrainModal = modal;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
-    closeBtn.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 14px;
-      background: transparent;
-      border: none;
-      color: #aaa;
-      font-size: 1.8rem;
-      cursor: pointer;
-      transition: 0.2s;
-      z-index: 20;
-      font-weight: 300;
-    `;
-    closeBtn.addEventListener('mouseenter', () => { closeBtn.style.color = '#fff'; });
-    closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#aaa'; });
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      modal.style.display = 'none';
-    });
+    // Eliminado el botón de cierre (X)
 
     const title = document.createElement('p');
-    title.style.cssText = 'color:#ccc; font-size:1rem; margin-bottom:0.5rem; text-align:center;';
+    title.style.cssText = 'color:#ccc; font-size:0.85rem; margin-bottom:0.3rem; text-align:center;';
     title.textContent = '🔗 Elige un servidor:';
 
     const optionsContainer = document.createElement('div');
     optionsContainer.style.cssText = `
       width: 100%;
-      max-width: 90%;
+      max-width: 95%;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin: 0.3rem 0;
+      gap: 6px;
+      margin: 0.2rem 0;
     `;
 
     const shortNames = ['cdn12', 'cdn33', 'cdn44'];
@@ -360,12 +348,12 @@ class VideoPlayer {
       const optionDiv = document.createElement('div');
       optionDiv.style.cssText = `
         background: rgba(255,255,255,0.04);
-        border-radius: 10px;
-        padding: 6px 10px;
+        border-radius: 8px;
+        padding: 4px 8px;
         border: 1px solid rgba(255,255,255,0.06);
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
       `;
 
@@ -374,22 +362,21 @@ class VideoPlayer {
       nameSpan.style.cssText = `
         color: #7aaaff;
         font-weight: 600;
-        font-size: 0.85rem;
-        min-width: 50px;
+        font-size: 0.7rem;
+        min-width: 40px;
         font-family: monospace;
       `;
 
       const btnGroup = document.createElement('div');
-      btnGroup.style.cssText = 'display:flex; gap:5px; flex:1; justify-content:flex-end; flex-wrap:wrap;';
+      btnGroup.style.cssText = 'display:flex; gap:4px; flex:1; justify-content:flex-end; flex-wrap:wrap;';
 
-      // Botón Copiar
       const copyBtn = document.createElement('button');
       copyBtn.textContent = '📋 Copiar';
       copyBtn.style.cssText = `
-        padding: 4px 10px;
+        padding: 3px 8px;
         border: none;
-        border-radius: 20px;
-        font-size: 0.7rem;
+        border-radius: 16px;
+        font-size: 0.6rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
@@ -400,14 +387,13 @@ class VideoPlayer {
       copyBtn.addEventListener('mouseenter', () => { copyBtn.style.background = 'rgba(255,255,255,0.15)'; });
       copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
 
-      // Botón Abrir (oculto inicialmente)
       const openBtn = document.createElement('button');
       openBtn.textContent = '📄 Abrir';
       openBtn.style.cssText = `
-        padding: 4px 10px;
+        padding: 3px 8px;
         border: none;
-        border-radius: 20px;
-        font-size: 0.7rem;
+        border-radius: 16px;
+        font-size: 0.6rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
@@ -419,7 +405,6 @@ class VideoPlayer {
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
 
-      // Evento copiar: reemplazar botón
       copyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
@@ -431,7 +416,6 @@ class VideoPlayer {
             openBtn.style.display = 'inline-block';
           })
           .catch(() => {
-            // Fallback manual
             const range = document.createRange();
             const tempDiv = document.createElement('div');
             tempDiv.textContent = proxy;
@@ -449,7 +433,6 @@ class VideoPlayer {
           });
       });
 
-      // Evento abrir pestaña en blanco
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
@@ -528,28 +511,57 @@ class VideoPlayer {
     const statusDiv = document.createElement('div');
     statusDiv.id = 'pixelDrainStatus';
     statusDiv.style.cssText = `
-      margin-top: 0.5rem;
+      margin-top: 0.2rem;
       color: #ffd200;
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       text-align: center;
-      min-height: 25px;
+      min-height: 20px;
       font-weight: 400;
     `;
     statusDiv.textContent = '⏳ Cargando...';
     this.pixelDrainStatusDiv = statusDiv;
 
-    modal.appendChild(closeBtn);
     modal.appendChild(title);
     modal.appendChild(optionsContainer);
     modal.appendChild(statusDiv);
 
     container.appendChild(modal);
 
-    // Iniciar carga con el primer dominio (cdn12)
     const firstProxy = domainUrls[0];
     this.loadProxyUrl(firstProxy);
 
     return container;
+  }
+
+  // Prioriza opciones: PixelDrain primero, Google Drive al final
+  prioritizeOptions(options) {
+    const getPriority = (urls) => {
+      if (!urls || urls.length === 0) return 3;
+      const firstUrl = urls[0] || '';
+      if (firstUrl.includes('pixeldrain.com')) return 0; // PixelDrain -> Opción 1
+      if (firstUrl.includes('mp4upload.com')) return 1; // mp4upload -> Opción 2
+      if (firstUrl.includes('drive.google.com')) return 3; // Google Drive -> Opción 4
+      return 2; // otros -> Opción 3
+    };
+
+    options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
+
+    const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
+    options.forEach((opt, index) => {
+      opt.label = labels[index] || `Opción ${index + 1}`;
+      opt.originalKey = opt.key;
+    });
+
+    return options;
+  }
+
+  updateDownloadUrls(urls) {
+    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
+    this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
+    // Detectar si es PixelDrain para bloquear descarga
+    const isPixelDrain = urls.some(u => u && u.includes('pixeldrain.com'));
+    this.isPixelDrain = isPixelDrain;
+    this.updateDownloadButtonState(isPixelDrain);
   }
 
   playPart(partIndex, urlsArray) {
@@ -561,12 +573,17 @@ class VideoPlayer {
     container.innerHTML = '';
 
     if (url.includes('pixeldrain.com')) {
+      this.isPixelDrain = true;
+      this.updateDownloadButtonState(true);
       const ui = this.createPixelDrainUI(url);
       container.appendChild(ui);
       this.currentVideoElement = ui.querySelector('video') || null;
       this.updateLogoBlocker(url);
       return;
     }
+
+    this.isPixelDrain = false;
+    this.updateDownloadButtonState(false);
 
     const isVideoFile = /\.(mp4|webm|ogg|mov|m3u8)$/i.test(url);
     if (isVideoFile && !url.includes('drive.google.com')) {
@@ -646,6 +663,12 @@ class VideoPlayer {
   async handleDownloadClick() {
     if (this.isDownloading) {
       console.log('Descarga en curso, espera a que termine');
+      return;
+    }
+
+    // Bloquear si es PixelDrain
+    if (this.isPixelDrain) {
+      alert('La descarga no está disponible para enlaces de PixelDrain.');
       return;
     }
 
@@ -729,6 +752,12 @@ class VideoPlayer {
     }
   }
 
+  // Resto de métodos sin cambios (waitForCatalogAndLoad, initFirebase, etc.)
+  // Se mantienen idénticos a la versión anterior, solo se añaden los nuevos métodos.
+  // Por brevedad, se incluye el resto del código que no ha cambiado.
+  // ...
+
+  // Los siguientes métodos se mantienen sin cambios:
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -984,25 +1013,8 @@ class VideoPlayer {
     return [];
   }
 
-  prioritizeOptions(options) {
-    const getPriority = (urls) => {
-      if (!urls || urls.length === 0) return 1;
-      const firstUrl = urls[0] || '';
-      if (firstUrl.includes('mp4upload.com')) return 0;
-      if (firstUrl.includes('drive.google.com')) return 2;
-      return 1;
-    };
-
-    options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
-
-    const labels = ['Opción 1', 'Opción 2', 'Opción 3', 'Opción 4'];
-    options.forEach((opt, index) => {
-      opt.label = labels[index] || `Opción ${index + 1}`;
-      opt.originalKey = opt.key;
-    });
-
-    return options;
-  }
+  // Este método se reemplaza por el nuevo prioritizeOptions
+  // pero lo mantenemos por compatibilidad y lo sobreescribimos arriba
 
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
@@ -1050,11 +1062,6 @@ class VideoPlayer {
     
     container.appendChild(select);
     return select;
-  }
-
-  updateDownloadUrls(urls) {
-    this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
-    this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
   }
 
   isPeerTubeUrl(url) {
