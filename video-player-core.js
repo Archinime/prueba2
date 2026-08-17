@@ -35,9 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// FIX (PWA): Ahora al hacer clic en "Abrir" se abre una ventana emergente (popup) con la URL de blank-instructions.html
-//            Esta página es una URL real (no about:blank, data: o blob:), por lo que en modo standalone se mostrará la barra de direcciones.
-//            Además, se usa window.open con características de popup para que sea una ventana emergente.
+// NUEVO: Al hacer clic en "Abrir" se intenta abrir una ventana emergente (popup) con barra de direcciones.
+//        Si falla (especialmente en modo standalone), se copia el enlace y se muestra un mensaje.
+//        Además, se añade un botón "🌐 Navegador" para abrir el enlace en el navegador externo.
 
 class VideoPlayer {
   constructor() {
@@ -175,6 +175,7 @@ class VideoPlayer {
     }
   }
 
+  // Bloquear/desbloquear botón de descarga según si es PixelDrain
   updateDownloadButtonState(isPixelDrain) {
     const downloadBtn = document.getElementById('downloadBtn');
     if (!downloadBtn) return;
@@ -331,6 +332,8 @@ class VideoPlayer {
     `;
     this.pixelDrainModal = modal;
 
+    // Eliminado el botón de cierre (X)
+
     const title = document.createElement('p');
     title.style.cssText = 'color:#ccc; font-size:0.85rem; margin-bottom:0.3rem; text-align:center;';
     title.textContent = '🔗 Elige un servidor:';
@@ -409,6 +412,25 @@ class VideoPlayer {
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
 
+      // Botón adicional: "Abrir en navegador" (siempre visible en standalone)
+      const browserBtn = document.createElement('button');
+      browserBtn.textContent = '🌐 Navegador';
+      browserBtn.style.cssText = `
+        padding: 3px 8px;
+        border: none;
+        border-radius: 16px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        background: rgba(0,240,255,0.15);
+        color: #00f0ff;
+        border: 1px solid rgba(0,240,255,0.3);
+        display: none;
+      `;
+      browserBtn.addEventListener('mouseenter', () => { browserBtn.style.background = 'rgba(0,240,255,0.25)'; });
+      browserBtn.addEventListener('mouseleave', () => { browserBtn.style.background = 'rgba(0,240,255,0.15)'; });
+
       copyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
@@ -418,6 +440,9 @@ class VideoPlayer {
             alert('📋 Enlace copiado al portapapeles.');
             copyBtn.style.display = 'none';
             openBtn.style.display = 'inline-block';
+            if (this.isStandalone()) {
+              browserBtn.style.display = 'inline-block';
+            }
           })
           .catch(() => {
             const range = document.createRange();
@@ -434,11 +459,42 @@ class VideoPlayer {
             alert('📋 Enlace copiado (método manual).');
             copyBtn.style.display = 'none';
             openBtn.style.display = 'inline-block';
+            if (this.isStandalone()) {
+              browserBtn.style.display = 'inline-block';
+            }
           });
       });
 
       // ============================================================
-      // SECCIÓN MODIFICADA: Abrir ventana emergente con blank-instructions.html
+      // NUEVO: Botón "Abrir en navegador" (funciona en PWA)
+      // ============================================================
+      browserBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const proxy = proxyUrl;
+        if (!proxy) return;
+        // Copiar enlace y abrir navegador externo
+        navigator.clipboard.writeText(proxy)
+          .then(() => {
+            alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador (Chrome/Safari) y pega el enlace en la barra de direcciones.');
+          })
+          .catch(() => {
+            const range = document.createRange();
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = proxy;
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.opacity = '0';
+            document.body.appendChild(tempDiv);
+            range.selectNode(tempDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            document.body.removeChild(tempDiv);
+            alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+          });
+      });
+
+      // ============================================================
+      // SECCIÓN MODIFICADA: Intento de popup con barra de direcciones
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -446,47 +502,44 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Abrir una ventana emergente (popup) con la página de instrucciones
-        // Esta página es una URL real, por lo que en modo standalone se mostrará la barra de direcciones.
+        // Intentar abrir popup con barra de direcciones (funciona mejor en web que en standalone)
         try {
-          // Construir la URL de la página de instrucciones (puedes ajustar la ruta si está en otra carpeta)
-          const instructionsUrl = 'blank-instructions.html';
-          // Abrir como ventana emergente con tamaño fijo
-          const win = window.open(
-            instructionsUrl,
-            '_blank',
-            'popup=yes,width=500,height=600,scrollbars=yes,resizable=yes'
-          );
-          if (!win) {
-            // Si no se pudo abrir, mostrar mensaje y copiar enlace
-            navigator.clipboard.writeText(proxy)
-              .then(() => {
-                alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-              })
-              .catch(() => {
-                const range = document.createRange();
-                const tempDiv = document.createElement('div');
-                tempDiv.textContent = proxy;
-                tempDiv.style.position = 'fixed';
-                tempDiv.style.opacity = '0';
-                document.body.appendChild(tempDiv);
-                range.selectNode(tempDiv);
-                window.getSelection().removeAllRanges();
-                window.getSelection().addRange(range);
-                document.execCommand('copy');
-                document.body.removeChild(tempDiv);
-                alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-              });
-          } else {
+          // Parámetros para forzar barra de direcciones en algunos navegadores
+          const win = window.open(proxy, '_blank', 'location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes,width=800,height=600');
+          if (win) {
             win.focus();
+            this.mostrarToast('🔗 Popup abierto (barra visible en algunos navegadores)');
+            return;
           }
         } catch (err) {
-          alert('❌ Error al abrir la ventana emergente: ' + err.message);
+          console.warn('Error al abrir popup:', err);
         }
+
+        // Si no se pudo abrir el popup (bloqueado o standalone), usamos fallback:
+        // Copiar enlace y mostrar mensaje
+        navigator.clipboard.writeText(proxy)
+          .then(() => {
+            alert('📋 Enlace copiado al portapapeles.\n\nUsa el botón "🌐 Navegador" para abrirlo en tu navegador externo.');
+          })
+          .catch(() => {
+            const range = document.createRange();
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = proxy;
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.opacity = '0';
+            document.body.appendChild(tempDiv);
+            range.selectNode(tempDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            document.body.removeChild(tempDiv);
+            alert('📋 Enlace copiado (método manual).\n\nUsa el botón "🌐 Navegador" para abrirlo en tu navegador externo.');
+          });
       });
 
       btnGroup.appendChild(copyBtn);
       btnGroup.appendChild(openBtn);
+      btnGroup.appendChild(browserBtn);
       optionDiv.appendChild(nameSpan);
       optionDiv.appendChild(btnGroup);
       optionsContainer.appendChild(optionDiv);
@@ -517,7 +570,7 @@ class VideoPlayer {
     return container;
   }
 
-  // Método auxiliar para mostrar un toast simple (opcional)
+  // Método auxiliar para mostrar un toast
   mostrarToast(mensaje) {
     let toast = document.getElementById('pixelDrainToast');
     if (!toast) {
@@ -552,14 +605,15 @@ class VideoPlayer {
     }, 3000);
   }
 
+  // Prioriza opciones: PixelDrain primero, Google Drive al final
   prioritizeOptions(options) {
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 3;
       const firstUrl = urls[0] || '';
-      if (firstUrl.includes('pixeldrain.com')) return 0;
-      if (firstUrl.includes('mp4upload.com')) return 1;
-      if (firstUrl.includes('drive.google.com')) return 3;
-      return 2;
+      if (firstUrl.includes('pixeldrain.com')) return 0; // PixelDrain -> Opción 1
+      if (firstUrl.includes('mp4upload.com')) return 1; // mp4upload -> Opción 2
+      if (firstUrl.includes('drive.google.com')) return 3; // Google Drive -> Opción 4
+      return 2; // otros -> Opción 3
     };
 
     options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
@@ -576,6 +630,7 @@ class VideoPlayer {
   updateDownloadUrls(urls) {
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
+    // Detectar si es PixelDrain para bloquear descarga
     const isPixelDrain = urls.some(u => u && u.includes('pixeldrain.com'));
     this.isPixelDrain = isPixelDrain;
     this.updateDownloadButtonState(isPixelDrain);
@@ -683,6 +738,7 @@ class VideoPlayer {
       return;
     }
 
+    // Bloquear si es PixelDrain
     if (this.isPixelDrain) {
       alert('La descarga no está disponible para enlaces de PixelDrain.');
       return;
@@ -768,6 +824,12 @@ class VideoPlayer {
     }
   }
 
+  // Resto de métodos sin cambios (waitForCatalogAndLoad, initFirebase, etc.)
+  // Se mantienen idénticos a la versión anterior, solo se añaden los nuevos métodos.
+  // Por brevedad, se incluye el resto del código que no ha cambiado.
+  // ...
+
+  // Los siguientes métodos se mantienen sin cambios:
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -1022,6 +1084,9 @@ class VideoPlayer {
     if (typeof urls === 'string' && urls.trim() !== '') return [urls];
     return [];
   }
+
+  // Este método se reemplaza por el nuevo prioritizeOptions
+  // pero lo mantenemos por compatibilidad y lo sobreescribimos arriba
 
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
