@@ -35,7 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// FIX (PWA): Se reemplaza URL data: por Blob URL para garantizar que la pestaña muestre el contenido y la barra de direcciones.
+// FIX (PWA): En modo standalone, en lugar de abrir una pestaña con instrucciones (que no muestra la barra de direcciones),
+//            se abre directamente el enlace del proxy en una nueva pestaña. Esto garantiza que la barra de direcciones sea visible.
+//            El botón "Copiar" sigue disponible para que el usuario copie el enlace manualmente si lo desea.
 
 class VideoPlayer {
   constructor() {
@@ -436,7 +438,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // SECCIÓN MODIFICADA: Uso de Blob URL para garantizar contenido visible
+      // SECCIÓN MODIFICADA: Comportamiento para PWA (standalone)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -444,7 +446,44 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Construir el HTML de instrucciones (idéntico al que funcionaba)
+        // Si la app está instalada (standalone), abrimos directamente el enlace del proxy
+        if (this.isStandalone()) {
+          try {
+            const win = window.open(proxy, '_blank');
+            if (win) {
+              win.focus();
+              // Mostrar un mensaje breve en la app (usamos un toast simple)
+              this.mostrarToast('🔗 Enlace abierto en nueva pestaña');
+            } else {
+              // Fallback: copiar enlace y mostrar mensaje
+              navigator.clipboard.writeText(proxy)
+                .then(() => {
+                  alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+                })
+                .catch(() => {
+                  const range = document.createRange();
+                  const tempDiv = document.createElement('div');
+                  tempDiv.textContent = proxy;
+                  tempDiv.style.position = 'fixed';
+                  tempDiv.style.opacity = '0';
+                  document.body.appendChild(tempDiv);
+                  range.selectNode(tempDiv);
+                  window.getSelection().removeAllRanges();
+                  window.getSelection().addRange(range);
+                  document.execCommand('copy');
+                  document.body.removeChild(tempDiv);
+                  alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+                });
+            }
+          } catch (err) {
+            alert('❌ Error al abrir la pestaña: ' + err.message);
+          }
+          return;
+        }
+
+        // === Comportamiento normal (navegador web, no standalone) ===
+        // Aquí mantenemos la pestaña con instrucciones (about:blank)
+        this.blankTabOpened = true;
         const htmlContent = `
           <!DOCTYPE html>
           <html lang="es">
@@ -492,55 +531,6 @@ class VideoPlayer {
           </body>
           </html>
         `;
-
-        // Función para abrir la pestaña usando Blob URL (funciona en PWA y web)
-        const abrirConBlob = (html) => {
-          try {
-            const blob = new Blob([html], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            const win = window.open(blobUrl, '_blank');
-            if (win) {
-              win.focus();
-              // Opcional: liberar la URL después de un tiempo si la pestaña se cierra
-              setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-              return true;
-            }
-            return false;
-          } catch (err) {
-            console.warn('Error con Blob URL:', err);
-            return false;
-          }
-        };
-
-        // Si estamos en standalone, usamos Blob URL (que muestra barra de direcciones)
-        if (this.isStandalone()) {
-          const ok = abrirConBlob(htmlContent);
-          if (!ok) {
-            // Fallback: copiar enlace y mostrar mensaje
-            navigator.clipboard.writeText(proxy)
-              .then(() => {
-                alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador (Chrome/Safari) y pega el enlace en la barra de direcciones.');
-              })
-              .catch(() => {
-                const range = document.createRange();
-                const tempDiv = document.createElement('div');
-                tempDiv.textContent = proxy;
-                tempDiv.style.position = 'fixed';
-                tempDiv.style.opacity = '0';
-                document.body.appendChild(tempDiv);
-                range.selectNode(tempDiv);
-                window.getSelection().removeAllRanges();
-                window.getSelection().addRange(range);
-                document.execCommand('copy');
-                document.body.removeChild(tempDiv);
-                alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-              });
-          }
-          return;
-        }
-
-        // === Comportamiento normal (navegador web) ===
-        this.blankTabOpened = true;
         try {
           const win = window.open('about:blank', '_blank');
           if (!win) {
@@ -587,6 +577,41 @@ class VideoPlayer {
     this.loadProxyUrl(firstProxy);
 
     return container;
+  }
+
+  // Método auxiliar para mostrar un toast simple
+  mostrarToast(mensaje) {
+    let toast = document.getElementById('pixelDrainToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'pixelDrainToast';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.85);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 99999;
+        border: 1px solid rgba(255,215,0,0.3);
+        box-shadow: 0 0 20px rgba(0,0,0,0.7);
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        backdrop-filter: blur(8px);
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.style.opacity = '1';
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 3000);
   }
 
   prioritizeOptions(options) {
