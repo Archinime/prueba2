@@ -35,9 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// FIX (PWA): En modo standalone, en lugar de abrir una pestaña con instrucciones (que no muestra la barra de direcciones),
-//            se abre directamente el enlace del proxy en una nueva pestaña. Esto garantiza que la barra de direcciones sea visible.
-//            El botón "Copiar" sigue disponible para que el usuario copie el enlace manualmente si lo desea.
+// FIX (PWA): Ahora al hacer clic en "Abrir" se abre una ventana emergente (popup) con la URL de blank-instructions.html
+//            Esta página es una URL real (no about:blank, data: o blob:), por lo que en modo standalone se mostrará la barra de direcciones.
+//            Además, se usa window.open con características de popup para que sea una ventana emergente.
 
 class VideoPlayer {
   constructor() {
@@ -438,7 +438,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // SECCIÓN MODIFICADA: Comportamiento para PWA (standalone)
+      // SECCIÓN MODIFICADA: Abrir ventana emergente con blank-instructions.html
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -446,104 +446,42 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Si la app está instalada (standalone), abrimos directamente el enlace del proxy
-        if (this.isStandalone()) {
-          try {
-            const win = window.open(proxy, '_blank');
-            if (win) {
-              win.focus();
-              // Mostrar un mensaje breve en la app (usamos un toast simple)
-              this.mostrarToast('🔗 Enlace abierto en nueva pestaña');
-            } else {
-              // Fallback: copiar enlace y mostrar mensaje
-              navigator.clipboard.writeText(proxy)
-                .then(() => {
-                  alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-                })
-                .catch(() => {
-                  const range = document.createRange();
-                  const tempDiv = document.createElement('div');
-                  tempDiv.textContent = proxy;
-                  tempDiv.style.position = 'fixed';
-                  tempDiv.style.opacity = '0';
-                  document.body.appendChild(tempDiv);
-                  range.selectNode(tempDiv);
-                  window.getSelection().removeAllRanges();
-                  window.getSelection().addRange(range);
-                  document.execCommand('copy');
-                  document.body.removeChild(tempDiv);
-                  alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-                });
-            }
-          } catch (err) {
-            alert('❌ Error al abrir la pestaña: ' + err.message);
-          }
-          return;
-        }
-
-        // === Comportamiento normal (navegador web, no standalone) ===
-        // Aquí mantenemos la pestaña con instrucciones (about:blank)
-        this.blankTabOpened = true;
-        const htmlContent = `
-          <!DOCTYPE html>
-          <html lang="es">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-            <title>Pestaña en blanco - Proxy</title>
-            <style>
-              * { margin:0; padding:0; box-sizing:border-box; }
-              body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
-              .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
-              h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
-              .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
-              .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
-              @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-              .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
-              .image-container img { width: 100%; height: auto; display: block; }
-              .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
-              .hint strong { color: #ffd200; }
-              .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
-              .btn-close:hover { background: rgba(255,255,255,0.15); }
-              .btn-close:active { transform: scale(0.96); }
-              @media (max-width: 480px) {
-                body { padding: 1rem; }
-                .container { padding: 2rem 1.2rem; border-radius: 40px; }
-                h1 { font-size: 1.8rem; }
-                .sub { font-size: 1.1rem; }
-                .sub .arrow { font-size: 2rem; }
-                .image-container { max-width: 90%; }
-                .hint { font-size: 1rem; }
-                .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h1>📋 Pestaña en blanco</h1>
-              <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
-              <div class="image-container">
-                <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
-              </div>
-              <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
-              <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
-            </div>
-          </body>
-          </html>
-        `;
+        // Abrir una ventana emergente (popup) con la página de instrucciones
+        // Esta página es una URL real, por lo que en modo standalone se mostrará la barra de direcciones.
         try {
-          const win = window.open('about:blank', '_blank');
+          // Construir la URL de la página de instrucciones (puedes ajustar la ruta si está en otra carpeta)
+          const instructionsUrl = 'blank-instructions.html';
+          // Abrir como ventana emergente con tamaño fijo
+          const win = window.open(
+            instructionsUrl,
+            '_blank',
+            'popup=yes,width=500,height=600,scrollbars=yes,resizable=yes'
+          );
           if (!win) {
-            alert('⚠️ No se pudo abrir la pestaña en blanco.');
-            this.blankTabOpened = false;
-            return;
+            // Si no se pudo abrir, mostrar mensaje y copiar enlace
+            navigator.clipboard.writeText(proxy)
+              .then(() => {
+                alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+              })
+              .catch(() => {
+                const range = document.createRange();
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = proxy;
+                tempDiv.style.position = 'fixed';
+                tempDiv.style.opacity = '0';
+                document.body.appendChild(tempDiv);
+                range.selectNode(tempDiv);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                document.body.removeChild(tempDiv);
+                alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+              });
+          } else {
+            win.focus();
           }
-          win.document.write(htmlContent);
-          win.document.close();
-          win.focus();
         } catch (err) {
-          alert('❌ Error al abrir la pestaña: ' + err.message);
-          this.blankTabOpened = false;
+          alert('❌ Error al abrir la ventana emergente: ' + err.message);
         }
       });
 
@@ -579,7 +517,7 @@ class VideoPlayer {
     return container;
   }
 
-  // Método auxiliar para mostrar un toast simple
+  // Método auxiliar para mostrar un toast simple (opcional)
   mostrarToast(mensaje) {
     let toast = document.getElementById('pixelDrainToast');
     if (!toast) {
