@@ -35,8 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// FIX (PWA): El botón "Abrir" ahora abre directamente la URL del proxy en una nueva pestaña,
-//            eliminando la pestaña en blanco con instrucciones que no mostraba la barra de direcciones en modo standalone.
+// FIX (PWA): Se detecta el modo standalone. En navegador web se abre about:blank con instrucciones.
+//           En PWA instalada, se copia automáticamente el enlace del proxy al portapapeles y se muestra un mensaje
+//           indicando que se abra el navegador externo para pegar el enlace (ya que la barra de direcciones no es visible en standalone).
 
 class VideoPlayer {
   constructor() {
@@ -108,6 +109,11 @@ class VideoPlayer {
     });
   }
   
+  // Detectar si la app está instalada (modo standalone)
+  isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  }
+
   isDoomStreamUrl(url) {
     if (!url) return false;
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
@@ -436,22 +442,113 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // 🔁 SECCIÓN MODIFICADA: Abrir directamente la URL del proxy (FIX PWA)
+      // 🔁 SECCIÓN MODIFICADA: Comportamiento según modo standalone
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
         if (!proxy) return;
-        // Abrir directamente la URL del proxy en una nueva pestaña
-        try {
-          const win = window.open(proxy, '_blank');
-          if (!win) {
-            alert('⚠️ No se pudo abrir la pestaña. Copia el enlace manualmente.');
-          } else {
-            win.focus();
+        this.lastOpenedProxyUrl = proxy;
+
+        // Si la app está instalada (modo standalone), no podemos mostrar barra de direcciones.
+        // Entonces copiamos automáticamente el enlace y mostramos un mensaje para que el usuario
+        // abra su navegador externo y pegue el enlace.
+        if (this.isStandalone()) {
+          // Intentamos copiar automáticamente
+          navigator.clipboard.writeText(proxy)
+            .then(() => {
+              alert('📋 Enlace copiado al portapapeles.\n\nAhora abre tu navegador (Chrome/Safari), pega el enlace en la barra de direcciones y presiona Enter.');
+            })
+            .catch(() => {
+              // Fallback manual
+              const range = document.createRange();
+              const tempDiv = document.createElement('div');
+              tempDiv.textContent = proxy;
+              tempDiv.style.position = 'fixed';
+              tempDiv.style.opacity = '0';
+              document.body.appendChild(tempDiv);
+              range.selectNode(tempDiv);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              document.body.removeChild(tempDiv);
+              alert('📋 Enlace copiado (método manual).\n\nAhora abre tu navegador (Chrome/Safari), pega el enlace en la barra de direcciones y presiona Enter.');
+            });
+          // También abrimos una pestaña en blanco (aunque no tenga barra) para que el usuario tenga un lugar donde pegar
+          try {
+            const win = window.open('about:blank', '_blank');
+            if (win) {
+              win.document.write('<html><head><title>Pestaña en blanco</title></head><body style="background:#0b0b0b;color:#fff;display:flex;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;height:100vh;margin:0;"><div><h1 style="color:#ffd200;">📋 Enlace copiado</h1><p style="font-size:1.2rem;">Pega el enlace en la barra de direcciones de <strong>esta</strong> pestaña (arriba) o abre tu navegador externo.</p><p style="font-size:0.9rem;color:#aaa;">Si no ves la barra, usa el navegador externo.</p></div></body></html>');
+              win.document.close();
+              win.focus();
+            }
+          } catch (err) {
+            console.warn('No se pudo abrir pestaña:', err);
           }
+          return;
+        }
+
+        // === Comportamiento normal (navegador web) ===
+        this.blankTabOpened = true;
+        try {
+          const win = window.open('about:blank', '_blank');
+          if (!win) {
+            alert('⚠️ No se pudo abrir la pestaña en blanco.');
+            this.blankTabOpened = false;
+            return;
+          }
+          win.document.write(`
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+              <title>Pestaña en blanco - Proxy</title>
+              <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
+                .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
+                h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+                .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
+                .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
+                @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
+                .image-container img { width: 100%; height: auto; display: block; }
+                .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
+                .hint strong { color: #ffd200; }
+                .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
+                .btn-close:hover { background: rgba(255,255,255,0.15); }
+                .btn-close:active { transform: scale(0.96); }
+                @media (max-width: 480px) {
+                  body { padding: 1rem; }
+                  .container { padding: 2rem 1.2rem; border-radius: 40px; }
+                  h1 { font-size: 1.8rem; }
+                  .sub { font-size: 1.1rem; }
+                  .sub .arrow { font-size: 2rem; }
+                  .image-container { max-width: 90%; }
+                  .hint { font-size: 1rem; }
+                  .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>📋 Pestaña en blanco</h1>
+                <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
+                <div class="image-container">
+                  <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
+                </div>
+                <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
+                <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
+              </div>
+            </body>
+            </html>
+          `);
+          win.document.close();
+          win.focus();
         } catch (err) {
           alert('❌ Error al abrir la pestaña: ' + err.message);
+          this.blankTabOpened = false;
         }
       });
       // ============================================================
