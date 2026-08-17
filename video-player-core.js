@@ -35,6 +35,7 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
+// FIX (PWA): Reemplazo de about:blank con blob: URL para que funcione en modo standalone
 
 class VideoPlayer {
   constructor() {
@@ -433,73 +434,89 @@ class VideoPlayer {
           });
       });
 
+      // ============================================================
+      // 🔁 SECCIÓN MODIFICADA: PESTAÑA EN BLANCO CON BLOB URL (FIX PWA)
+      // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
         this.blankTabOpened = true;
+
+        // Construir el HTML completo para la pestaña
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <title>Pestaña en blanco - Proxy</title>
+            <style>
+              * { margin:0; padding:0; box-sizing:border-box; }
+              body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
+              .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
+              h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+              .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
+              .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
+              @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+              .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
+              .image-container img { width: 100%; height: auto; display: block; }
+              .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
+              .hint strong { color: #ffd200; }
+              .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
+              .btn-close:hover { background: rgba(255,255,255,0.15); }
+              .btn-close:active { transform: scale(0.96); }
+              @media (max-width: 480px) {
+                body { padding: 1rem; }
+                .container { padding: 2rem 1.2rem; border-radius: 40px; }
+                h1 { font-size: 1.8rem; }
+                .sub { font-size: 1.1rem; }
+                .sub .arrow { font-size: 2rem; }
+                .image-container { max-width: 90%; }
+                .hint { font-size: 1rem; }
+                .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>📋 Pestaña en blanco</h1>
+              <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
+              <div class="image-container">
+                <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
+              </div>
+              <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
+              <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
+            </div>
+          </body>
+          </html>
+        `;
+
+        // Crear un Blob con el HTML y generar una URL de objeto
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
         try {
-          const win = window.open('about:blank', '_blank');
+          const win = window.open(blobUrl, '_blank');
           if (!win) {
             alert('⚠️ No se pudo abrir la pestaña en blanco.');
             this.blankTabOpened = false;
             return;
           }
-          win.document.write(`
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-              <title>Pestaña en blanco - Proxy</title>
-              <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
-                .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
-                h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
-                .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
-                .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
-                @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-                .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
-                .image-container img { width: 100%; height: auto; display: block; }
-                .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
-                .hint strong { color: #ffd200; }
-                .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
-                .btn-close:hover { background: rgba(255,255,255,0.15); }
-                .btn-close:active { transform: scale(0.96); }
-                @media (max-width: 480px) {
-                  body { padding: 1rem; }
-                  .container { padding: 2rem 1.2rem; border-radius: 40px; }
-                  h1 { font-size: 1.8rem; }
-                  .sub { font-size: 1.1rem; }
-                  .sub .arrow { font-size: 2rem; }
-                  .image-container { max-width: 90%; }
-                  .hint { font-size: 1rem; }
-                  .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>📋 Pestaña en blanco</h1>
-                <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
-                <div class="image-container">
-                  <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
-                </div>
-                <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
-                <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
-              </div>
-            </body>
-            </html>
-          `);
-          win.document.close();
+          // Enfocar la nueva pestaña
           win.focus();
+          // (Opcional) Liberar la URL del blob después de un tiempo, pero no es necesario aquí
+          // ya que la pestaña mantiene el blob en memoria mientras esté abierta.
+          // Podríamos revocarla cuando la pestaña se cierre, pero es complicado.
         } catch (err) {
           alert('❌ Error al abrir la pestaña: ' + err.message);
           this.blankTabOpened = false;
         }
       });
+      // ============================================================
+      // FIN DE LA SECCIÓN MODIFICADA
+      // ============================================================
 
       btnGroup.appendChild(copyBtn);
       btnGroup.appendChild(openBtn);
