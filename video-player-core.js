@@ -39,6 +39,7 @@
 //            para que la barra de direcciones sea visible. En navegador web normal, abre ventana emergente con barra.
 //            Se pasa el enlace del proxy como parámetro ?url=... a ejem.html.
 //            Se mantiene el botón "🌐 Navegador" como alternativa.
+// NUEVO: Botón flotante para abrir https://dw-anime.net en nueva pestaña (con detección de standalone).
 
 class VideoPlayer {
   constructor() {
@@ -1022,6 +1023,50 @@ class VideoPlayer {
       });
     }
     
+    // ============================================
+    // NUEVO: Botón flotante para abrir dw-anime.net
+    // ============================================
+    const dwBtn = document.createElement('button');
+    dwBtn.textContent = '🌐 DW-Anime';
+    dwBtn.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      z-index: 100;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(238, 90, 36, 0.4);
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+    dwBtn.addEventListener('mouseenter', () => {
+      dwBtn.style.transform = 'scale(1.05)';
+      dwBtn.style.boxShadow = '0 6px 30px rgba(238, 90, 36, 0.6)';
+    });
+    dwBtn.addEventListener('mouseleave', () => {
+      dwBtn.style.transform = 'scale(1)';
+      dwBtn.style.boxShadow = '0 4px 20px rgba(238, 90, 36, 0.4)';
+    });
+    dwBtn.addEventListener('click', () => {
+      const isStandalone = this.isStandalone();
+      if (isStandalone) {
+        // En PWA: abrir en navegador externo (con barra de direcciones)
+        window.open('https://dw-anime.net', '_blank');
+      } else {
+        window.open('https://dw-anime.net', '_blank');
+      }
+    });
+    document.body.appendChild(dwBtn);
+
     document.querySelectorAll('.sticker-tab').forEach(tab => {
       tab.addEventListener('click', () => this.switchStickerTab(tab.dataset.tab));
     });
