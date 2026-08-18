@@ -35,10 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: Ahora el botón "Abrir" abre la página "ejem.html" (que debe estar en el mismo directorio)
-//            en una ventana emergente con barra de direcciones visible (igual que en el ejemplo de Google).
-//            Se pasa el enlace del proxy como parámetro ?url=... para que la página pueda usarlo si se desea.
-//            Si falla, se copia el enlace y se muestra un mensaje.
+// MODIFICADO: Ahora el botón "Abrir" abre la página "ejem.html" en el navegador externo (modo standalone)
+//            para que la barra de direcciones sea visible. En navegador web normal, abre ventana emergente con barra.
+//            Se pasa el enlace del proxy como parámetro ?url=... a ejem.html.
+//            Se mantiene el botón "🌐 Navegador" como alternativa.
 
 class VideoPlayer {
   constructor() {
@@ -332,8 +332,6 @@ class VideoPlayer {
     `;
     this.pixelDrainModal = modal;
 
-    // Eliminado el botón de cierre (X)
-
     const title = document.createElement('p');
     title.style.cssText = 'color:#ccc; font-size:0.85rem; margin-bottom:0.3rem; text-align:center;';
     title.textContent = '🔗 Elige un servidor:';
@@ -412,7 +410,6 @@ class VideoPlayer {
       openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
       openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
 
-      // Botón adicional: "Abrir en navegador" (siempre visible en standalone)
       const browserBtn = document.createElement('button');
       browserBtn.textContent = '🌐 Navegador';
       browserBtn.style.cssText = `
@@ -465,14 +462,10 @@ class VideoPlayer {
           });
       });
 
-      // ============================================================
-      // NUEVO: Botón "Abrir en navegador" (funciona en PWA)
-      // ============================================================
       browserBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
         if (!proxy) return;
-        // Copiar enlace y abrir navegador externo
         navigator.clipboard.writeText(proxy)
           .then(() => {
             alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador (Chrome/Safari) y pega el enlace en la barra de direcciones.');
@@ -494,7 +487,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - Ahora abre "ejem.html" con el enlace como parámetro
+      // BOTÓN "ABRIR" - Abre ejem.html en navegador externo (standalone)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -502,11 +495,43 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Construir la URL de "ejem.html" con el enlace del proxy como parámetro
-        // Asumimos que ejem.html está en el mismo directorio que esta página
         const ejemUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
 
-        // Intentar abrir ventana emergente con barra de direcciones (igual que Google en ejem.html)
+        if (this.isStandalone()) {
+          // Modo standalone: abrir sin parámetros para usar navegador externo
+          try {
+            const win = window.open(ejemUrl, '_blank');
+            if (win) {
+              win.focus();
+              this.mostrarToast('🔗 Abriendo en navegador externo...');
+              return;
+            }
+          } catch (err) {
+            console.warn('Error al abrir en navegador externo:', err);
+          }
+          // Fallback: copiar enlace y mostrar mensaje
+          navigator.clipboard.writeText(proxy)
+            .then(() => {
+              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+            })
+            .catch(() => {
+              const range = document.createRange();
+              const tempDiv = document.createElement('div');
+              tempDiv.textContent = proxy;
+              tempDiv.style.position = 'fixed';
+              tempDiv.style.opacity = '0';
+              document.body.appendChild(tempDiv);
+              range.selectNode(tempDiv);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              document.body.removeChild(tempDiv);
+              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+            });
+          return;
+        }
+
+        // === Navegador web normal (no standalone) ===
         try {
           const ancho = 800;
           const alto = 600;
@@ -517,22 +542,18 @@ class VideoPlayer {
           const win = window.open(ejemUrl, '_blank', caracteristicas);
           if (win) {
             win.focus();
-            this.mostrarToast('🔗 Abriendo ejem.html...');
+            this.mostrarToast('🔗 Ventana emergente abierta');
             return;
           }
         } catch (err) {
           console.warn('Error al abrir ventana emergente:', err);
         }
 
-        // Si no se pudo abrir (bloqueado), mostrar alerta y copiar enlace
-        alert('⚠️ No se pudo abrir la ventana emergente. Comprueba que los popups estén permitidos.');
-        // Copiar enlace al portapapeles como alternativa
         navigator.clipboard.writeText(proxy)
           .then(() => {
             alert('📋 Enlace copiado al portapapeles. Pégalo manualmente en tu navegador.');
           })
           .catch(() => {
-            // Fallback manual
             const range = document.createRange();
             const tempDiv = document.createElement('div');
             tempDiv.textContent = proxy;
@@ -581,7 +602,6 @@ class VideoPlayer {
     return container;
   }
 
-  // Método auxiliar para mostrar un toast
   mostrarToast(mensaje) {
     let toast = document.getElementById('pixelDrainToast');
     if (!toast) {
@@ -616,15 +636,14 @@ class VideoPlayer {
     }, 3000);
   }
 
-  // Prioriza opciones: PixelDrain primero, Google Drive al final
   prioritizeOptions(options) {
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 3;
       const firstUrl = urls[0] || '';
-      if (firstUrl.includes('pixeldrain.com')) return 0; // PixelDrain -> Opción 1
-      if (firstUrl.includes('mp4upload.com')) return 1; // mp4upload -> Opción 2
-      if (firstUrl.includes('drive.google.com')) return 3; // Google Drive -> Opción 4
-      return 2; // otros -> Opción 3
+      if (firstUrl.includes('pixeldrain.com')) return 0;
+      if (firstUrl.includes('mp4upload.com')) return 1;
+      if (firstUrl.includes('drive.google.com')) return 3;
+      return 2;
     };
 
     options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
@@ -641,7 +660,6 @@ class VideoPlayer {
   updateDownloadUrls(urls) {
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
-    // Detectar si es PixelDrain para bloquear descarga
     const isPixelDrain = urls.some(u => u && u.includes('pixeldrain.com'));
     this.isPixelDrain = isPixelDrain;
     this.updateDownloadButtonState(isPixelDrain);
@@ -749,7 +767,6 @@ class VideoPlayer {
       return;
     }
 
-    // Bloquear si es PixelDrain
     if (this.isPixelDrain) {
       alert('La descarga no está disponible para enlaces de PixelDrain.');
       return;
@@ -835,12 +852,6 @@ class VideoPlayer {
     }
   }
 
-  // Resto de métodos sin cambios (waitForCatalogAndLoad, initFirebase, etc.)
-  // Se mantienen idénticos a la versión anterior, solo se añaden los nuevos métodos.
-  // Por brevedad, se incluye el resto del código que no ha cambiado.
-  // ...
-
-  // Los siguientes métodos se mantienen sin cambios:
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -1095,9 +1106,6 @@ class VideoPlayer {
     if (typeof urls === 'string' && urls.trim() !== '') return [urls];
     return [];
   }
-
-  // Este método se reemplaza por el nuevo prioritizeOptions
-  // pero lo mantenemos por compatibilidad y lo sobreescribimos arriba
 
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
