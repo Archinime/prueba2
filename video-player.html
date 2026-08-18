@@ -1075,7 +1075,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- BOTÓN FLOTANTE DW-ANIME (abre en navegador externo)          -->
+<!-- BOTÓN FLOTANTE DW-ANIME (FORZA APERTURA EXTERNA EN MÓVILES)  -->
 <!-- ============================================================ -->
 <button id="dwAnimeBtn" style="
   position: fixed;
@@ -1097,6 +1097,8 @@
   align-items: center;
   gap: 8px;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  touch-action: manipulation;
 ">
   🌐 DW-Anime
 </button>
@@ -1105,13 +1107,21 @@
     const btn = document.getElementById('dwAnimeBtn');
     if (!btn) return;
 
-    btn.addEventListener('click', function() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
       const url = 'https://dw-anime.net';
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-      // Si está en modo standalone (PWA), forzar apertura en navegador externo
       if (isStandalone) {
-        // Crear un enlace oculto y simular clic (más fiable que window.open)
+        // Estrategia 1: window.open con parámetros para forzar barra y navegador externo
+        let win = window.open(url, '_blank', 'noopener,noreferrer,location=yes,menubar=yes,toolbar=yes');
+        if (win) {
+          win.focus();
+          // Si la ventana se abre, asumimos éxito
+          return;
+        }
+
+        // Estrategia 2: crear enlace oculto y simular clic (más fiable en algunos navegadores)
         const a = document.createElement('a');
         a.href = url;
         a.target = '_blank';
@@ -1120,13 +1130,27 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+
+        // Estrategia 3: si después de 1.5 segundos la página no se ha ocultado (no se abrió), mostrar mensaje
+        setTimeout(() => {
+          // Si la página sigue visible (no se minimizó o cambió de pestaña), no se abrió correctamente
+          if (!document.hidden) {
+            alert('No se pudo abrir automáticamente en tu navegador.\n\nCopia este enlace y pégalo manualmente:\n' + url);
+          }
+        }, 1500);
       } else {
         // En navegador normal, abrir con window.open
         window.open(url, '_blank');
       }
     });
 
-    // Efectos hover (mejoran la experiencia)
+    // Efectos hover/touch
+    btn.addEventListener('touchstart', function() {
+      this.style.transform = 'scale(0.95)';
+    });
+    btn.addEventListener('touchend', function() {
+      this.style.transform = 'scale(1)';
+    });
     btn.addEventListener('mouseenter', function() {
       this.style.transform = 'scale(1.05)';
       this.style.boxShadow = '0 6px 30px rgba(238, 90, 36, 0.6)';
