@@ -35,11 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MEJORADO (PWA): El botón "Abrir" ahora usa esta estrategia (por orden):
-//                  1. navigator.share() (si está disponible) - el usuario elige su navegador.
-//                  2. En Android: googlechrome:// y luego intent:// para forzar Chrome.
-//                  3. window.open (fallback universal).
-//                  4. Copiar enlace al portapapeles (último recurso).
+// MODIFICADO (PWA): El botón "Abrir" ahora usa en Android: window.open('googlechrome://' + url, '_system')
+//                  para forzar la apertura en Chrome (navegador externo). En iOS/escritorio usa window.open(url, '_blank').
+//                  Si falla, copia el enlace al portapapeles.
 
 class VideoPlayer {
   constructor() {
@@ -440,7 +438,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - ESTRATEGIA COMPLETA (share -> chrome:// -> window.open -> copiar)
+      // BOTÓN "ABRIR" - ESTRATEGIA CON googlechrome:// (Android)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -448,78 +446,26 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // ============================================================
-        // 1. navigator.share() - PRIMERA OPCIÓN (si está disponible)
-        // ============================================================
-        if (navigator.share) {
-          navigator.share({
-            title: 'Abrir enlace',
-            text: 'Abre este enlace en tu navegador:',
-            url: proxy
-          })
-          .then(() => {
-            console.log('📤 Enlace compartido exitosamente');
-            this.mostrarToast('✅ Selecciona tu navegador favorito');
-          })
-          .catch((err) => {
-            if (err.name === 'AbortError') {
-              console.log('Compartir cancelado por el usuario');
+        const isAndroid = /android/i.test(navigator.userAgent);
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+        // Si es Android, intentar abrir con googlechrome://
+        if (isAndroid) {
+          try {
+            const chromeUrl = `googlechrome://${proxy.replace(/^https?:\/\//, '')}`;
+            const win = window.open(chromeUrl, '_system');
+            if (win) {
+              win.focus();
+              this.mostrarToast('🌐 Abriendo en Chrome...');
               return;
             }
-            console.warn('Error en navigator.share:', err);
-            // Si falla, continuar con las siguientes estrategias
-            abrirConEstrategias(proxy);
-          });
-          return;
-        }
-
-        // ============================================================
-        // Si navigator.share NO está disponible, usar estrategias alternativas
-        // ============================================================
-        abrirConEstrategias(proxy);
-
-        // Función interna con todas las estrategias
-        function abrirConEstrategias(url) {
-          const isAndroid = /android/i.test(navigator.userAgent);
-          const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-          const isStandalone = this.isStandalone();
-
-          // ============================================================
-          // 2. En Android: googlechrome:// o intent:// (SEGUNDA OPCIÓN)
-          // ============================================================
-          if (isAndroid) {
-            try {
-              // 2a. googlechrome:// (intenta abrir directamente en Chrome)
-              const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
-              const win = window.open(chromeUrl, '_system');
-              if (win) {
-                win.focus();
-                this.mostrarToast('🌐 Abriendo en Chrome...');
-                return;
-              }
-            } catch (err) {
-              console.warn('Error con googlechrome://:', err);
-            }
-
-            try {
-              // 2b. intent:// (más genérico, también funciona con Chrome)
-              const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end;`;
-              const win = window.open(intentUrl, '_system');
-              if (win) {
-                win.focus();
-                this.mostrarToast('🌐 Abriendo en Chrome...');
-                return;
-              }
-            } catch (err) {
-              console.warn('Error con intent://:', err);
-            }
+          } catch (err) {
+            console.warn('Error con googlechrome://:', err);
           }
 
-          // ============================================================
-          // 3. window.open (TERCERA OPCIÓN - fallback universal)
-          // ============================================================
+          // Fallback: window.open normal
           try {
-            const win = window.open(url, '_blank');
+            const win = window.open(proxy, '_blank');
             if (win) {
               win.focus();
               this.mostrarToast('🌐 Abriendo en navegador...');
@@ -528,30 +474,39 @@ class VideoPlayer {
           } catch (err) {
             console.warn('Error con window.open:', err);
           }
-
-          // ============================================================
-          // 4. Copiar enlace al portapapeles (ÚLTIMO RECURSO)
-          // ============================================================
-          navigator.clipboard.writeText(url)
-            .then(() => {
-              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            })
-            .catch(() => {
-              // Fallback manual si clipboard no funciona
-              const range = document.createRange();
-              const tempDiv = document.createElement('div');
-              tempDiv.textContent = url;
-              tempDiv.style.position = 'fixed';
-              tempDiv.style.opacity = '0';
-              document.body.appendChild(tempDiv);
-              range.selectNode(tempDiv);
-              window.getSelection().removeAllRanges();
-              window.getSelection().addRange(range);
-              document.execCommand('copy');
-              document.body.removeChild(tempDiv);
-              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            });
         }
+
+        // Si es iOS o no se pudo abrir en Android, usar window.open normal
+        try {
+          const win = window.open(proxy, '_blank');
+          if (win) {
+            win.focus();
+            this.mostrarToast('🌐 Abriendo en navegador...');
+            return;
+          }
+        } catch (err) {
+          console.warn('Error con window.open:', err);
+        }
+
+        // Último recurso: copiar enlace
+        navigator.clipboard.writeText(proxy)
+          .then(() => {
+            alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+          })
+          .catch(() => {
+            const range = document.createRange();
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = proxy;
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.opacity = '0';
+            document.body.appendChild(tempDiv);
+            range.selectNode(tempDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            document.body.removeChild(tempDiv);
+            alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+          });
       });
 
       btnGroup.appendChild(copyBtn);
