@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador Google - Ventana Emergente</title>
+    <style>
+        body {
+            background: #0b0b0b;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        h1 {
+            color: #fff;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        h1 span {
+            color: #4285F4;
+            font-weight: 600;
+        }
+        h1 span:nth-child(2) { color: #EA4335; }
+        h1 span:nth-child(3) { color: #FBBC05; }
+        h1 span:nth-child(4) { color: #34A853; }
+        .sub {
+            color: #aaa;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 60px;
+            padding: 4px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: #4285F4;
+            box-shadow: 0 0 20px rgba(66,133,244,0.15);
+        }
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 14px 20px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .search-box input::placeholder {
+            color: #666;
+        }
+        .search-box button {
+            background: linear-gradient(135deg, #4285F4, #34A853);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 28px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        .search-box button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(66,133,244,0.3);
+        }
+        .btn-abrir-popup {
+            margin-top: 25px;
+            background: rgba(255,215,0,0.15);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: #ffd200;
+            padding: 12px 30px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-abrir-popup:hover {
+            background: rgba(255,215,0,0.25);
+            transform: translateY(-2px);
+        }
+        .info {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 480px) {
+            .container { padding: 25px 18px; }
+            .search-box { flex-direction: column; background: transparent; border: none; gap: 8px; }
+            .search-box input { background: rgba(255,255,255,0.06); border-radius: 60px; border: 1px solid rgba(255,255,255,0.08); }
+            .search-box button { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </h1>
+        <p class="sub">Busca desde una ventana emergente</p>
+        
+        <form id="searchForm" class="search-box" target="_blank" action="https://www.google.com/search" method="GET">
+            <input type="text" name="q" placeholder="Escribe tu búsqueda..." required>
+            <button type="submit">🔍 Buscar</button>
+        </form>
+
+        <button class="btn-abrir-popup" id="abrirPopupBtn">
+            🪟 Abrir buscador en ventana emergente
+        </button>
+        <p class="info">La ventana emergente tendrá barra de direcciones (si el navegador lo permite)</p>
+    </div>
+
+    <script>
+        document.getElementById('abrirPopupBtn').addEventListener('click', function() {
+            // Abrir una ventana emergente con Google
+            const ancho = 700;
+            const alto = 600;
+            const izquierda = (screen.width - ancho) / 2;
+            const arriba = (screen.height - alto) / 2;
+            
+            // Parámetros para forzar barra de direcciones
+            const caracteristicas = `width=${ancho},height=${alto},left=${izquierda},top=${arriba},location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes`;
+            
+            const ventana = window.open('https://www.google.com', 'googlePopup', caracteristicas);
+            
+            if (!ventana) {
+                alert('⚠️ No se pudo abrir la ventana emergente. Comprueba que los popups estén permitidos.');
+            } else {
+                ventana.focus();
+            }
+        });
+
+        // El formulario ya envía a Google en una nueva pestaña (target="_blank")
+        // También podemos hacer que el formulario se envíe en la ventana emergente
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            // Si queremos que abra en la ventana emergente en lugar de nueva pestaña:
+            // e.preventDefault();
+            // const query = this.querySelector('input[name="q"]').value;
+            // const ventana = window.open('https://www.google.com/search?q=' + encodeURIComponent(query), 'googlePopup', 'location=yes,menubar=yes,toolbar=yes');
+            // if (ventana) ventana.focus();
+        });
+    </script>
+</body>
+</html>
