@@ -3,7 +3,7 @@
   "short_name": "Archinime",
   "description": "Ver anime online en alta calidad.",
   "start_url": "index.html",
-  "display": "minimal-ui",
+  "display": "browser",
   "background_color": "#000000",
   "theme_color": "#8c52ff",
   "icons": [
