@@ -35,10 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MEJORADO: Ahora el botón "Abrir" intenta abrir el enlace del proxy directamente en una ventana emergente
-//            con barra de direcciones (parámetros location=yes, toolbar=yes, etc.). En modo standalone,
-//            se abre en el navegador externo. Si falla, se copia el enlace y se muestra un mensaje.
-//            Se mantiene el botón "🌐 Navegador" como alternativa.
+// MODIFICADO: Ahora el botón "Abrir" abre una ventana emergente con la URL del proxy,
+//            exactamente igual que en el ejemplo de Google (ejem.html),
+//            con barra de direcciones visible y los mismos parámetros.
+//            Si falla, muestra alerta y copia el enlace.
 
 class VideoPlayer {
   constructor() {
@@ -495,7 +495,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - Comportamiento mejorado (como Google)
+      // BOTÓN "ABRIR" - Comportamiento como ejem.html (Google)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -503,60 +503,34 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Si la app está instalada (standalone), intentamos abrir en navegador externo
-        if (this.isStandalone()) {
-          try {
-            // Abrir sin parámetros para que el navegador lo maneje como nueva pestaña
-            const win = window.open(proxy, '_blank');
-            if (win) {
-              win.focus();
-              this.mostrarToast('🔗 Abriendo en navegador externo...');
-              return;
-            }
-          } catch (err) {
-            console.warn('Error al abrir en navegador externo:', err);
-          }
-          // Fallback: copiar enlace y mostrar mensaje
-          navigator.clipboard.writeText(proxy)
-            .then(() => {
-              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-            })
-            .catch(() => {
-              const range = document.createRange();
-              const tempDiv = document.createElement('div');
-              tempDiv.textContent = proxy;
-              tempDiv.style.position = 'fixed';
-              tempDiv.style.opacity = '0';
-              document.body.appendChild(tempDiv);
-              range.selectNode(tempDiv);
-              window.getSelection().removeAllRanges();
-              window.getSelection().addRange(range);
-              document.execCommand('copy');
-              document.body.removeChild(tempDiv);
-              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
-            });
-          return;
-        }
-
-        // === Comportamiento normal (navegador web, no standalone) ===
-        // Intentamos abrir con parámetros para forzar barra de direcciones (como Google)
+        // Intentar abrir ventana emergente con barra de direcciones (igual que Google en ejem.html)
         try {
-          const win = window.open(proxy, '_blank', 'location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes,width=800,height=600');
+          const ancho = 800;
+          const alto = 600;
+          // Calcular posición centrada (opcional)
+          const izquierda = (screen.width - ancho) / 2;
+          const arriba = (screen.height - alto) / 2;
+          const caracteristicas = `width=${ancho},height=${alto},left=${izquierda},top=${arriba},location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes`;
+          
+          const win = window.open(proxy, '_blank', caracteristicas);
           if (win) {
             win.focus();
-            this.mostrarToast('🔗 Ventana emergente abierta con barra de direcciones');
+            this.mostrarToast('🔗 Ventana emergente abierta');
             return;
           }
         } catch (err) {
-          console.warn('Error al abrir popup con barra:', err);
+          console.warn('Error al abrir ventana emergente:', err);
         }
 
-        // Fallback: copiar enlace y mostrar mensaje
+        // Si no se pudo abrir (bloqueado), mostrar alerta y copiar enlace
+        alert('⚠️ No se pudo abrir la ventana emergente. Comprueba que los popups estén permitidos.');
+        // Copiar enlace al portapapeles como alternativa
         navigator.clipboard.writeText(proxy)
           .then(() => {
-            alert('📋 Enlace copiado al portapapeles.\n\nPégalo en la barra de direcciones de una nueva pestaña.');
+            alert('📋 Enlace copiado al portapapeles. Pégalo manualmente en tu navegador.');
           })
           .catch(() => {
+            // Fallback manual
             const range = document.createRange();
             const tempDiv = document.createElement('div');
             tempDiv.textContent = proxy;
@@ -568,7 +542,7 @@ class VideoPlayer {
             window.getSelection().addRange(range);
             document.execCommand('copy');
             document.body.removeChild(tempDiv);
-            alert('📋 Enlace copiado (método manual).\n\nPégalo en la barra de direcciones de una nueva pestaña.');
+            alert('📋 Enlace copiado (método manual). Pégalo manualmente en tu navegador.');
           });
       });
 
