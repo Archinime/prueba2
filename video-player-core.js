@@ -35,10 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: Ahora el botón "Abrir" abre una ventana emergente con la URL del proxy,
-//            exactamente igual que en el ejemplo de Google (ejem.html),
-//            con barra de direcciones visible y los mismos parámetros.
-//            Si falla, muestra alerta y copia el enlace.
+// MODIFICADO: Ahora el botón "Abrir" abre la página "ejem.html" (que debe estar en el mismo directorio)
+//            en una ventana emergente con barra de direcciones visible (igual que en el ejemplo de Google).
+//            Se pasa el enlace del proxy como parámetro ?url=... para que la página pueda usarlo si se desea.
+//            Si falla, se copia el enlace y se muestra un mensaje.
 
 class VideoPlayer {
   constructor() {
@@ -176,7 +176,6 @@ class VideoPlayer {
     }
   }
 
-  // Bloquear/desbloquear botón de descarga según si es PixelDrain
   updateDownloadButtonState(isPixelDrain) {
     const downloadBtn = document.getElementById('downloadBtn');
     if (!downloadBtn) return;
@@ -495,7 +494,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - Comportamiento como ejem.html (Google)
+      // BOTÓN "ABRIR" - Ahora abre "ejem.html" con el enlace como parámetro
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -503,19 +502,22 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
+        // Construir la URL de "ejem.html" con el enlace del proxy como parámetro
+        // Asumimos que ejem.html está en el mismo directorio que esta página
+        const ejemUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
+
         // Intentar abrir ventana emergente con barra de direcciones (igual que Google en ejem.html)
         try {
           const ancho = 800;
           const alto = 600;
-          // Calcular posición centrada (opcional)
           const izquierda = (screen.width - ancho) / 2;
           const arriba = (screen.height - alto) / 2;
           const caracteristicas = `width=${ancho},height=${alto},left=${izquierda},top=${arriba},location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes`;
           
-          const win = window.open(proxy, '_blank', caracteristicas);
+          const win = window.open(ejemUrl, '_blank', caracteristicas);
           if (win) {
             win.focus();
-            this.mostrarToast('🔗 Ventana emergente abierta');
+            this.mostrarToast('🔗 Abriendo ejem.html...');
             return;
           }
         } catch (err) {
