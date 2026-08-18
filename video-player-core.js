@@ -35,8 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// NUEVO: Barra de URL personalizada en la parte superior. Función abrirUrlPersonalizada() integrada en initUI().
-//       En Android intenta googlechrome://, luego window.open, y copia como fallback.
+// MODIFICADO: El botón "Abrir" ahora usa navigator.share() como primera opción.
+//             Si no está disponible, usa window.open (con googlechrome:// en Android como fallback).
+//             Si todo falla, copia el enlace al portapapeles.
 
 class VideoPlayer {
   constructor() {
@@ -108,10 +109,6 @@ class VideoPlayer {
     });
   }
   
-  isStandalone() {
-    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  }
-
   isDoomStreamUrl(url) {
     if (!url) return false;
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
@@ -174,6 +171,7 @@ class VideoPlayer {
     }
   }
 
+  // Bloquear/desbloquear botón de descarga según si es PixelDrain
   updateDownloadButtonState(isPixelDrain) {
     const downloadBtn = document.getElementById('downloadBtn');
     if (!downloadBtn) return;
@@ -330,6 +328,8 @@ class VideoPlayer {
     `;
     this.pixelDrainModal = modal;
 
+    // Eliminado el botón de cierre (X)
+
     const title = document.createElement('p');
     title.style.cssText = 'color:#ccc; font-size:0.85rem; margin-bottom:0.3rem; text-align:center;';
     title.textContent = '🔗 Elige un servidor:';
@@ -436,72 +436,110 @@ class VideoPlayer {
           });
       });
 
+      // ============================================================
+      // NUEVO: BOTÓN "ABRIR" CON navigator.share() + FALLBACKS
+      // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
-        this.blankTabOpened = true;
-        try {
-          const win = window.open('about:blank', '_blank');
-          if (!win) {
-            alert('⚠️ No se pudo abrir la pestaña en blanco.');
-            this.blankTabOpened = false;
-            return;
+
+        // Función de fallback cuando share no está disponible o falla
+        const fallbackOpen = (url) => {
+          const isAndroid = /android/i.test(navigator.userAgent);
+          const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+          // 1. Intentar window.open normal
+          try {
+            const win = window.open(url, '_blank');
+            if (win) {
+              win.focus();
+              this.mostrarToast('🌐 Abriendo en navegador...');
+              return true;
+            }
+          } catch (err) {
+            console.warn('Error en window.open:', err);
           }
-          win.document.write(`
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-              <title>Pestaña en blanco - Proxy</title>
-              <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
-                .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
-                h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
-                .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
-                .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
-                @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-                .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
-                .image-container img { width: 100%; height: auto; display: block; }
-                .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
-                .hint strong { color: #ffd200; }
-                .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
-                .btn-close:hover { background: rgba(255,255,255,0.15); }
-                .btn-close:active { transform: scale(0.96); }
-                @media (max-width: 480px) {
-                  body { padding: 1rem; }
-                  .container { padding: 2rem 1.2rem; border-radius: 40px; }
-                  h1 { font-size: 1.8rem; }
-                  .sub { font-size: 1.1rem; }
-                  .sub .arrow { font-size: 2rem; }
-                  .image-container { max-width: 90%; }
-                  .hint { font-size: 1rem; }
-                  .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>📋 Pestaña en blanco</h1>
-                <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
-                <div class="image-container">
-                  <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
-                </div>
-                <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
-                <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
-              </div>
-            </body>
-            </html>
-          `);
-          win.document.close();
-          win.focus();
-        } catch (err) {
-          alert('❌ Error al abrir la pestaña: ' + err.message);
-          this.blankTabOpened = false;
+
+          // 2. En Android: intentar googlechrome:// e intent://
+          if (isAndroid) {
+            try {
+              const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
+              const win = window.open(chromeUrl, '_system');
+              if (win) {
+                win.focus();
+                this.mostrarToast('🌐 Abriendo en Chrome...');
+                return true;
+              }
+            } catch (err) {
+              console.warn('Error con googlechrome://:', err);
+            }
+
+            try {
+              const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end;`;
+              const win = window.open(intentUrl, '_system');
+              if (win) {
+                win.focus();
+                this.mostrarToast('🌐 Abriendo en Chrome...');
+                return true;
+              }
+            } catch (err) {
+              console.warn('Error con intent://:', err);
+            }
+          }
+
+          // Si todo falla, copiar al portapapeles
+          navigator.clipboard.writeText(url)
+            .then(() => {
+              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+            })
+            .catch(() => {
+              const range = document.createRange();
+              const tempDiv = document.createElement('div');
+              tempDiv.textContent = url;
+              tempDiv.style.position = 'fixed';
+              tempDiv.style.opacity = '0';
+              document.body.appendChild(tempDiv);
+              range.selectNode(tempDiv);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              document.body.removeChild(tempDiv);
+              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+            });
+          return false;
+        };
+
+        // ============================================================
+        // ESTRATEGIA PRINCIPAL: navigator.share()
+        // ============================================================
+        if (navigator.share) {
+          navigator.share({
+            title: 'Abrir enlace',
+            text: 'Abre este enlace en tu navegador:',
+            url: proxy
+          })
+          .then(() => {
+            // El usuario eligió una aplicación
+            console.log('📤 Enlace compartido exitosamente');
+            this.mostrarToast('✅ Selecciona tu navegador favorito');
+          })
+          .catch((err) => {
+            // Si el usuario cancela, no hacemos nada
+            if (err.name === 'AbortError') {
+              console.log('Compartir cancelado por el usuario');
+              return;
+            }
+            // Si hay otro error, intentamos fallback
+            console.warn('Error en navigator.share:', err);
+            fallbackOpen(proxy);
+          });
+          return;
         }
+
+        // Si navigator.share NO está disponible, usar fallback directamente
+        fallbackOpen(proxy);
       });
 
       btnGroup.appendChild(copyBtn);
@@ -536,6 +574,42 @@ class VideoPlayer {
     return container;
   }
 
+  // Método auxiliar para mostrar un toast
+  mostrarToast(mensaje) {
+    let toast = document.getElementById('pixelDrainToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'pixelDrainToast';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.85);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 99999;
+        border: 1px solid rgba(255,215,0,0.3);
+        box-shadow: 0 0 20px rgba(0,0,0,0.7);
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        backdrop-filter: blur(8px);
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.style.opacity = '1';
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 3000);
+  }
+
+  // Prioriza opciones: PixelDrain primero, Google Drive al final
   prioritizeOptions(options) {
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 3;
@@ -899,76 +973,6 @@ class VideoPlayer {
     }
   }
 
-  // ============================================================
-  // NUEVA FUNCIÓN PARA ABRIR URL PERSONALIZADA
-  // ============================================================
-  abrirUrlPersonalizada() {
-    const input = document.getElementById('customUrlInput');
-    if (!input) return;
-    let url = input.value.trim();
-    if (!url) return;
-    // Añadir https:// si no tiene protocolo
-    if (!/^https?:\/\//i.test(url)) {
-      url = 'https://' + url;
-    }
-
-    const isAndroid = /android/i.test(navigator.userAgent);
-
-    // 1. En Android: intentar googlechrome://
-    if (isAndroid) {
-      try {
-        const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
-        const win = window.open(chromeUrl, '_system');
-        if (win) {
-          win.focus();
-          this.mostrarToast('🌐 Abriendo en Chrome...');
-          input.value = '';
-          return;
-        }
-      } catch (err) {
-        console.warn('Error con googlechrome://:', err);
-      }
-    }
-
-    // 2. Fallback: window.open normal
-    try {
-      const win = window.open(url, '_blank');
-      if (win) {
-        win.focus();
-        this.mostrarToast('🌐 Abriendo en navegador...');
-        input.value = '';
-        return;
-      }
-    } catch (err) {
-      console.warn('Error con window.open:', err);
-    }
-
-    // 3. Último recurso: copiar al portapapeles
-    navigator.clipboard.writeText(url)
-      .then(() => {
-        alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-        input.value = '';
-      })
-      .catch(() => {
-        const range = document.createRange();
-        const tempDiv = document.createElement('div');
-        tempDiv.textContent = url;
-        tempDiv.style.position = 'fixed';
-        tempDiv.style.opacity = '0';
-        document.body.appendChild(tempDiv);
-        range.selectNode(tempDiv);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        document.execCommand('copy');
-        document.body.removeChild(tempDiv);
-        alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-        input.value = '';
-      });
-  }
-
-  // ============================================================
-  // MÉTODO initUI() MODIFICADO (se añade la lógica de la URL bar)
-  // ============================================================
   initUI() {
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) backLink.href = `anime-detail.html?id=${this.animeId}`;
@@ -1019,23 +1023,6 @@ class VideoPlayer {
         this.closeTutorialModal();
       }
     });
-
-    // ============================================================
-    // NUEVO: Manejo de la barra de URL
-    // ============================================================
-    const urlInput = document.getElementById('customUrlInput');
-    const goBtn = document.getElementById('customUrlGoBtn');
-    if (urlInput && goBtn) {
-      // Click en el botón
-      goBtn.addEventListener('click', () => this.abrirUrlPersonalizada());
-      // Presionar Enter en el input
-      urlInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          this.abrirUrlPersonalizada();
-        }
-      });
-    }
   }
 
   async checkBraveAndShowBanner() {
