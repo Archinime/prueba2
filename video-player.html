@@ -1074,6 +1074,60 @@
   </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- NUEVO: BOTÓN FLOTANTE DW-ANIME (añadido al final del body)    -->
+<!-- ============================================================ -->
+<button id="dwAnimeBtn" style="
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 100;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(238, 90, 36, 0.4);
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(4px);
+">
+  🌐 DW-Anime
+</button>
+<script>
+  (function() {
+    const btn = document.getElementById('dwAnimeBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const targetUrl = 'https://dw-anime.net';
+      if (isStandalone) {
+        // Abrir ejem.html con la URL como parámetro (funciona en standalone)
+        const displayUrl = 'ejem.html?url=' + encodeURIComponent(targetUrl);
+        window.open(displayUrl, '_blank');
+      } else {
+        window.open(targetUrl, '_blank');
+      }
+    });
+    // Efectos hover (opcional)
+    btn.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.05)';
+      this.style.boxShadow = '0 6px 30px rgba(238, 90, 36, 0.6)';
+    });
+    btn.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+      this.style.boxShadow = '0 4px 20px rgba(238, 90, 36, 0.4)';
+    });
+  })();
+</script>
+<!-- ============================================================ -->
+
 <!-- SCRIPTS -->
 <script src="catalogo.js"></script>
 <script defer src="stickers-system.js"></script>

@@ -1,45 +1,5 @@
-// video-player-core.js - Versión con catálogo local + Firestore
-// MEJORADO: Descarga única (bloqueo de botón), barra de progreso única
-// SOPORTE: Múltiples partes, selección automática de opción, títulos dinámicos
-// NUEVO: Conversión de enlaces DoomStream (/e/ -> /d/), ocultar logo en DoomStream, sin alert en fallos de descarga
-// NUEVO: Banner para recomendar Brave y modal con video tutorial (solo si no es Brave)
-// NUEVO: Soporte para 4 opciones de enlaces (latino, op2, op3, op4)
-// NUEVO: Conversión de mp4upload embed a directo para descarga
-// NUEVO: Menú desplegable (select) para opciones de servidor (mejor para móviles)
-// NUEVO: Reordenamiento automático: PixelDrain -> Opción 1, Google Drive -> Opción 4
-// REACTIVADO: Botón PLAY para Pixeldrain (abre en nueva ventana)
-// FIX: Link de descarga de Google Drive con formato drive.usercontent.google.com
-// NUEVO: Para enlaces de PixelDrain, muestra el enlace proxy y botones para copiar y abrir en pestaña en blanco
-// NUEVO: Al hacer clic en PLAY, abre automáticamente el proxy en otra pestaña (sin referer)
-// NUEVO: Añadida 'X' para cerrar el modal de PixelDrain (ELIMINADA)
-// MEJORADO: Ahora el video de PixelDrain se reproduce automáticamente (muted + autoplay) usando el proxy, sin referer
-// MEJORADO: El modal se oculta completamente con la X, y video tiene controles + botón para activar sonido
-// MEJORADO: Panel colapsable con botón flotante para reabrir la info del proxy (ELIMINADO)
-// MEJORADO: En PixelDrain solo se muestra el botón de copiar; al copiar, aparece el botón de abrir pestaña en blanco
-// MEJORADO: La pestaña en blanco ahora muestra una imagen indicando dónde pegar, sin mostrar el enlace
-// MEJORADO: El logo "ARCHINIME HD" solo aparece en Google Drive y Odysee
-// MEJORADO: Cambio de dominio proxy a lista de dominios con fallback automático (primero cdn33)
-// MEJORADO: Manejo de errores del proxy con reintentos y opciones alternativas (eliminados botones de reintento)
-// MEJORADO: Eliminado botón PLAY y textos asociados, sonido automático
-// MEJORADO: Pestaña en blanco: nueva imagen, más pequeña y con flecha indicando barra de direcciones (visible en móviles)
-// MEJORADO: El modal se cierra automáticamente cuando el video se carga correctamente
-// MEJORADO: Botón "Abrir en pestaña en blanco" renombrado a "Abrir"
-// MEJORADO: Al cerrar la pestaña en blanco, el video de PixelDrain se recarga automáticamente
-// MEJORADO: Eliminado botón de tuerca, solo se cierra con X (sin reapertura) -> AHORA SIN X
-// NUEVO: Ahora se muestran 3 opciones de enlaces (cdn12, cdn33, cdn44) cada uno con Copiar y Abrir (sin Cargar)
-// MEJORADO: En móviles, las opciones son más compactas y solo muestran el nombre del servidor
-// MEJORADO: Botón "Abrir" solo aparece después de copiar (reemplaza al botón Copiar)
-// MEJORADO: Reintento automático al fallar la carga (timeout o error): prueba los 3 servidores en orden
-// MEJORADO: Si fallan todos los servidores, reinicia el ciclo y vuelve a probar (sin límite de intentos)
-// MEJORADO: Mensaje de estado de reintentos oculto (solo se muestra "Cargando..." o éxito/error final)
-// MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
-// MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
-// MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: Ahora el botón "Abrir" abre la página "ejem.html" en el navegador externo (modo standalone)
-//            para que la barra de direcciones sea visible. En navegador web normal, abre ventana emergente con barra.
-//            Se pasa el enlace del proxy como parámetro ?url=... a ejem.html.
-//            Se mantiene el botón "🌐 Navegador" como alternativa.
-// NUEVO: Botón flotante para abrir https://dw-anime.net en nueva pestaña (con detección de standalone).
+// video-player-core.js - Versión completa con todas las funcionalidades
+// (incluye botón DW-Anime que abre ejem.html en standalone)
 
 class VideoPlayer {
   constructor() {
@@ -499,7 +459,6 @@ class VideoPlayer {
         const ejemUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
 
         if (this.isStandalone()) {
-          // Modo standalone: abrir sin parámetros para usar navegador externo
           try {
             const win = window.open(ejemUrl, '_blank');
             if (win) {
@@ -510,7 +469,6 @@ class VideoPlayer {
           } catch (err) {
             console.warn('Error al abrir en navegador externo:', err);
           }
-          // Fallback: copiar enlace y mostrar mensaje
           navigator.clipboard.writeText(proxy)
             .then(() => {
               alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
@@ -1024,7 +982,7 @@ class VideoPlayer {
     }
     
     // ============================================
-    // NUEVO: Botón flotante para abrir dw-anime.net
+    // NUEVO: Botón flotante para abrir DW-Anime
     // ============================================
     const dwBtn = document.createElement('button');
     dwBtn.textContent = '🌐 DW-Anime';
@@ -1058,11 +1016,13 @@ class VideoPlayer {
     });
     dwBtn.addEventListener('click', () => {
       const isStandalone = this.isStandalone();
+      const targetUrl = 'https://dw-anime.net';
       if (isStandalone) {
-        // En PWA: abrir en navegador externo (con barra de direcciones)
-        window.open('https://dw-anime.net', '_blank');
+        // Abrir ejem.html con la URL como parámetro (funciona en standalone)
+        const displayUrl = `ejem.html?url=${encodeURIComponent(targetUrl)}`;
+        window.open(displayUrl, '_blank');
       } else {
-        window.open('https://dw-anime.net', '_blank');
+        window.open(targetUrl, '_blank');
       }
     });
     document.body.appendChild(dwBtn);
