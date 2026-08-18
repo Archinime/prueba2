@@ -6,7 +6,7 @@
   <title>Reproductor - Archinime</title>
   <link rel="icon" href="Logo_Archinime.png" type="image/png">
 
-  <!-- Tema dinámico (igual que antes) -->
+  <!-- Tema dinámico -->
   <script>
     (function() {
       const colors = ["#00f3ff", "#0066ff", "#bc13fe", "#ff0055", "#bc13fe", "#0066ff", "#00f3ff"];
@@ -48,7 +48,7 @@
     })();
   </script>
 
-  <!-- Preconexiones (igual) -->
+  <!-- Preconexiones -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -57,19 +57,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase (igual) -->
+  <!-- Firebase -->
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
+  <!-- Librerías y configuraciones -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <script src="dompurify-config.js"></script>
   <script src="state.js"></script>
   <script src="app-core.js"></script>
 
   <style>
-    /* ===== ESTILOS OPTIMIZADOS (igual que antes) ===== */
+    /* ===== ESTILOS OPTIMIZADOS ===== */
     :root {
       --primary-color: #00fff7;
       --accent-color: #ff0055;
@@ -117,7 +118,7 @@
     }
     body.is-mobile #overlay { backdrop-filter: blur(2px); }
 
-    /* ===== PANTALLA DE CARGA (igual) ===== */
+    /* ===== PANTALLA DE CARGA ===== */
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -223,7 +224,7 @@
       gap: 15px;
     }
 
-    /* ===== BARRA DE NAVEGACIÓN (igual) ===== */
+    /* ===== BARRA DE NAVEGACIÓN ===== */
     .top-nav {
       display: flex;
       justify-content: space-between;
@@ -298,7 +299,7 @@
       color: #fff;
     }
 
-    /* ===== REPRODUCTOR (igual) ===== */
+    /* ===== REPRODUCTOR ===== */
     .player-wrapper {
       position: relative;
       padding-bottom: 56.25%;
@@ -384,7 +385,7 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    /* ===== BOTONES DE CONTROL (igual) ===== */
+    /* ===== BOTONES DE CONTROL ===== */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -440,7 +441,7 @@
 
     .btn-hidden { visibility: hidden; pointer-events: none; }
 
-    /* ===== COMENTARIOS (igual) ===== */
+    /* ===== COMENTARIOS ===== */
     .comentarios-section {
       margin-top: 40px;
       padding: 30px;
@@ -589,7 +590,7 @@
     }
     .empty-comments { text-align: center; padding: 50px 20px; color: #aaa; font-style: italic; font-size: 1.1rem; }
 
-    /* ===== STICKERS (igual) ===== */
+    /* ===== STICKERS ===== */
     .sticker-panel-full {
       display: none;
       background: #0a0a0f;
@@ -701,7 +702,7 @@
       transform: translateY(-3px);
     }
 
-    /* ===== MODAL DE AUTENTICACIÓN (igual) ===== */
+    /* ===== MODAL DE AUTENTICACIÓN ===== */
     .auth-modal {
       position: fixed;
       top: 0;
@@ -816,7 +817,7 @@
       font-weight: 600;
     }
 
-    /* ===== PREVIEW DE STICKER (igual) ===== */
+    /* ===== PREVIEW DE STICKER EN COMENTARIO ===== */
     .comentario-sticker-preview {
       margin: 12px 0;
       padding: 8px;
@@ -869,7 +870,7 @@
     }
     .remove-sticker-btn:hover { transform: scale(1.1); background: #ff3366; }
 
-    /* ===== RESPONSIVE (igual) ===== */
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .container { padding: 10px; }
       .top-nav {
@@ -910,112 +911,6 @@
     @media (max-width: 480px) {
       .options { min-width: 80px; max-width: 120px; }
       #serverSelect { font-size: 0.65rem; padding: 4px 6px; padding-right: 22px; background-size: 12px; }
-    }
-
-    /* ===== NUEVO: MODAL PARA ENLACES EXTERNOS ===== */
-    .external-link-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 99999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      padding: 20px;
-    }
-    .external-link-modal.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .external-link-card {
-      background: #0e0e14;
-      border: 1px solid rgba(0, 255, 247, 0.3);
-      border-radius: 24px;
-      padding: 30px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-      text-align: center;
-    }
-    .external-link-card h3 {
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-      letter-spacing: 1px;
-    }
-    .external-link-card .url-box {
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 16px;
-      word-wrap: break-word;
-      font-size: 0.85rem;
-      color: #aaa;
-      font-family: 'Courier New', monospace;
-      margin-bottom: 20px;
-      max-height: 120px;
-      overflow-y: auto;
-    }
-    .external-link-card .btn-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .external-link-card .btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 12px 20px;
-      border-radius: 60px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-      font-family: 'Poppins', sans-serif;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .external-link-card .btn-primary {
-      background: var(--primary-color);
-      color: #000;
-      box-shadow: 0 0 20px rgba(0, 255, 247, 0.3);
-    }
-    .external-link-card .btn-primary:hover {
-      background: #fff;
-      transform: scale(1.03);
-    }
-    .external-link-card .btn-copy {
-      background: rgba(255, 215, 0, 0.15);
-      color: #ffd200;
-      border: 1px solid rgba(255, 215, 0, 0.3);
-    }
-    .external-link-card .btn-copy:hover {
-      background: rgba(255, 215, 0, 0.25);
-    }
-    .external-link-card .btn-close {
-      background: rgba(255,255,255,0.06);
-      color: #aaa;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .external-link-card .btn-close:hover {
-      background: rgba(255,255,255,0.12);
-    }
-    .external-link-card .info-text {
-      font-size: 0.75rem;
-      color: #666;
-      margin-top: 16px;
     }
   </style>
 </head>
@@ -1179,240 +1074,6 @@
   </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- NUEVO: MODAL PARA ENLACES EXTERNOS (FUERA DE LA APP)        -->
-<!-- ============================================================ -->
-<div id="externalLinkModal" class="external-link-modal">
-  <div class="external-link-card">
-    <h3><i class="fas fa-external-link-alt"></i> Abrir en navegador</h3>
-    <div class="url-box" id="modalLinkUrl">Cargando...</div>
-    <div class="btn-group">
-      <button class="btn btn-primary" id="modalOpenBtn">🌐 Abrir</button>
-      <button class="btn btn-copy" id="modalCopyBtn">📋 Copiar</button>
-      <button class="btn btn-close" id="modalCloseBtn">✖ Cerrar</button>
-    </div>
-    <p class="info-text">💡 Usa "Copiar" y pega el enlace en tu navegador para ver la barra de direcciones.</p>
-  </div>
-</div>
-
-<!-- BOTÓN FLOTANTE DW-ANIME (que ahora abre el modal) -->
-<button id="dwAnimeBtn" style="
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  z-index: 100;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 20px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(238, 90, 36, 0.4);
-  transition: all 0.3s ease;
-  font-family: 'Poppins', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  touch-action: manipulation;
-">
-  🌐 DW-Anime
-</button>
-
-<script>
-  (function() {
-    // ============================================================
-    // SISTEMA DE MODAL PARA ENLACES EXTERNOS
-    // ============================================================
-    const modal = document.getElementById('externalLinkModal');
-    const modalUrl = document.getElementById('modalLinkUrl');
-    const openBtn = document.getElementById('modalOpenBtn');
-    const copyBtn = document.getElementById('modalCopyBtn');
-    const closeBtn = document.getElementById('modalCloseBtn');
-
-    let pendingUrl = '';
-
-    // Función para mostrar el modal con un enlace
-    function showExternalLinkModal(url) {
-      pendingUrl = url;
-      modalUrl.textContent = url;
-      modal.classList.add('show');
-    }
-
-    // Cerrar modal
-    function closeModal() {
-      modal.classList.remove('show');
-    }
-
-    // Abrir enlace usando navegador externo (con intento de window.open)
-    function openLinkExternal(url) {
-      // Intentar con window.open con parámetros
-      const win = window.open(url, '_blank', 'noopener,noreferrer,location=yes,menubar=yes,toolbar=yes');
-      if (win) {
-        win.focus();
-        // Si se abrió, cerramos modal
-        closeModal();
-        return;
-      }
-      // Fallback: crear enlace oculto
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      // Cerramos modal después de intentarlo
-      setTimeout(closeModal, 500);
-    }
-
-    // Copiar enlace al portapapeles
-    function copyLink(url) {
-      navigator.clipboard.writeText(url)
-        .then(() => {
-          alert('✅ Enlace copiado al portapapeles.');
-          closeModal();
-        })
-        .catch(() => {
-          // Fallback manual
-          const range = document.createRange();
-          const tempDiv = document.createElement('div');
-          tempDiv.textContent = url;
-          tempDiv.style.position = 'fixed';
-          tempDiv.style.opacity = '0';
-          document.body.appendChild(tempDiv);
-          range.selectNode(tempDiv);
-          window.getSelection().removeAllRanges();
-          window.getSelection().addRange(range);
-          document.execCommand('copy');
-          document.body.removeChild(tempDiv);
-          alert('✅ Enlace copiado (método manual).');
-          closeModal();
-        });
-    }
-
-    // Event listeners del modal
-    openBtn.addEventListener('click', function() {
-      if (pendingUrl) {
-        // En modo standalone, intentamos abrir externamente
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        if (isStandalone) {
-          openLinkExternal(pendingUrl);
-        } else {
-          // En navegador normal, abrir con window.open normal
-          window.open(pendingUrl, '_blank');
-          closeModal();
-        }
-      }
-    });
-
-    copyBtn.addEventListener('click', function() {
-      if (pendingUrl) copyLink(pendingUrl);
-    });
-
-    closeBtn.addEventListener('click', closeModal);
-
-    // Cerrar modal al hacer clic fuera de la tarjeta
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) closeModal();
-    });
-
-    // Cerrar con Escape
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeModal();
-    });
-
-    // ============================================================
-    // BOTÓN DW-ANIME
-    // ============================================================
-    const dwBtn = document.getElementById('dwAnimeBtn');
-    if (dwBtn) {
-      dwBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const url = 'https://dw-anime.net';
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        if (isStandalone) {
-          // Mostrar modal con el enlace
-          showExternalLinkModal(url);
-        } else {
-          // En navegador normal, abrir directamente
-          window.open(url, '_blank');
-        }
-      });
-
-      // Efectos táctiles
-      dwBtn.addEventListener('touchstart', function() {
-        this.style.transform = 'scale(0.95)';
-      });
-      dwBtn.addEventListener('touchend', function() {
-        this.style.transform = 'scale(1)';
-      });
-      dwBtn.addEventListener('mouseenter', function() {
-        this.style.transform = 'scale(1.05)';
-        this.style.boxShadow = '0 6px 30px rgba(238, 90, 36, 0.6)';
-      });
-      dwBtn.addEventListener('mouseleave', function() {
-        this.style.transform = 'scale(1)';
-        this.style.boxShadow = '0 4px 20px rgba(238, 90, 36, 0.4)';
-      });
-    }
-
-    // ============================================================
-    // INTERCEPTAR TODOS LOS ENLACES EXTERNOS (anuncios, iframes, etc.)
-    // ============================================================
-    // Función para detectar si una URL es externa (no es la misma página)
-    function isExternalUrl(url) {
-      if (!url) return false;
-      // Si es un enlace relativo o empieza con #, no es externo
-      if (url.startsWith('#') || url.startsWith('?')) return false;
-      if (url.startsWith('/')) {
-        // Enlace relativo a la misma página
-        return false;
-      }
-      try {
-        const urlObj = new URL(url, window.location.origin);
-        // Comparar el host con el actual
-        return urlObj.host !== window.location.host;
-      } catch (e) {
-        // Si no se puede parsear, lo consideramos externo
-        return true;
-      }
-    }
-
-    // Interceptar clics en todos los enlaces del documento
-    document.addEventListener('click', function(e) {
-      // Buscar el elemento <a> más cercano
-      const anchor = e.target.closest('a');
-      if (!anchor) return;
-      const href = anchor.getAttribute('href');
-      if (!href) return;
-      // Si es externo y la app está en modo standalone, mostrar modal
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      if (isStandalone && isExternalUrl(href)) {
-        e.preventDefault();
-        e.stopPropagation();
-        showExternalLinkModal(href);
-      }
-      // Si no es standalone, el enlace se abre normalmente (target _blank o _self)
-    }, true); // Usamos capturing para interceptar antes
-
-    // También interceptar clics en iframes? No es fácil, pero los anuncios suelen ser iframes.
-    // Podríamos agregar un listener para mensajes postMessage, pero es complejo.
-    // Para iframes, el usuario puede hacer clic en el enlace dentro del iframe,
-    // pero eso no lo podemos interceptar desde el padre.
-    // Sin embargo, si el iframe tiene enlaces que se abren en _top, podríamos intentar.
-    // Pero eso no es práctico.
-
-    console.log('🚀 Sistema de enlaces externos activado (modal).');
-  })();
-</script>
-
-<!-- ============================================================ -->
-
 <!-- SCRIPTS -->
 <script src="catalogo.js"></script>
 <script defer src="stickers-system.js"></script>
@@ -1422,7 +1083,7 @@
 <script src="gifs.js"></script>
 
 <script>
-  // Drag & Drop para stickers (igual que antes)
+  // Drag & Drop para stickers
   (function() {
     const dropZone = document.getElementById('dragDropZone');
     const fileInput = document.getElementById('stickerFileInput');
