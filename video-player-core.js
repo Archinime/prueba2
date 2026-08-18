@@ -35,9 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: El botón "Abrir" ahora abre YouTube (https://www.youtube.com) en el navegador externo
-//             en lugar de abrir la pestaña con instrucciones. En modo standalone se intenta abrir
-//             la app de YouTube o el navegador. El enlace del proxy se puede copiar manualmente.
+// MODIFICADO: El botón "Abrir" ahora abre Google (https://www.google.com) en el navegador externo
+//             en lugar de YouTube. En modo standalone se intenta abrir la app de Google o el navegador.
+//             El enlace del proxy se puede copiar manualmente.
 
 class VideoPlayer {
   constructor() {
@@ -438,63 +438,64 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - AHORA ABRE YOUTUBE
+      // BOTÓN "ABRIR" - AHORA ABRE GOOGLE
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Ignoramos el proxy, siempre abrimos YouTube
-        const url = 'https://www.youtube.com';
+        // Ignoramos el proxy, siempre abrimos Google
+        const url = 'https://www.google.com';
 
         const isStandalone = this.isStandalone();
 
-        // Si está en modo standalone, intentamos abrir la app de YouTube o navegador externo
+        // Si está en modo standalone, intentamos abrir la app de Google o navegador externo
         if (isStandalone) {
           // Intentar abrir con window.open en _blank (abre en navegador externo)
           try {
             const win = window.open(url, '_blank');
             if (win) {
               win.focus();
-              this.mostrarToast('🎬 Abriendo YouTube...');
+              this.mostrarToast('🌐 Abriendo Google...');
               return;
             }
           } catch (err) {
-            console.warn('Error al abrir YouTube:', err);
+            console.warn('Error al abrir Google:', err);
           }
 
-          // En Android, intentar con intent:// para abrir la app de YouTube
+          // En Android, intentar con intent:// para abrir la app de Google (o Chrome)
           if (/android/i.test(navigator.userAgent)) {
             try {
-              const intentUrl = `intent://www.youtube.com#Intent;package=com.google.android.youtube;scheme=https;end;`;
+              const intentUrl = `intent://www.google.com#Intent;package=com.google.android.googlequicksearchbox;scheme=https;end;`;
               const win = window.open(intentUrl, '_system');
               if (win) {
                 win.focus();
-                this.mostrarToast('🎬 Abriendo YouTube...');
+                this.mostrarToast('🌐 Abriendo Google...');
                 return;
               }
             } catch (err) {
-              console.warn('Error con intent:// YouTube:', err);
+              console.warn('Error con intent:// Google:', err);
             }
           }
 
-          // En iOS, intentar con el esquema de YouTube
+          // En iOS, intentar con el esquema de Google (no es tan común)
+          // También podríamos intentar abrir en Safari directamente
           if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
             try {
-              const iosUrl = `youtube://`;
-              const win = window.open(iosUrl, '_system');
+              // Los enlaces https://www.google.com ya abren en Safari por defecto si no hay app
+              const win = window.open(url, '_blank');
               if (win) {
                 win.focus();
-                this.mostrarToast('🎬 Abriendo YouTube...');
+                this.mostrarToast('🌐 Abriendo Google...');
                 return;
               }
             } catch (err) {
-              console.warn('Error con youtube://:', err);
+              console.warn('Error al abrir Google en iOS:', err);
             }
           }
 
-          // Fallback: copiar el enlace de YouTube
+          // Fallback: copiar el enlace de Google
           navigator.clipboard.writeText(url)
             .then(() => {
-              alert('📋 Enlace de YouTube copiado al portapapeles.\n\nAbre YouTube y pégalo en la barra de direcciones.');
+              alert('📋 Enlace de Google copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
             })
             .catch(() => {
               const range = document.createRange();
@@ -508,7 +509,7 @@ class VideoPlayer {
               window.getSelection().addRange(range);
               document.execCommand('copy');
               document.body.removeChild(tempDiv);
-              alert('📋 Enlace de YouTube copiado (método manual).\n\nAbre YouTube y pégalo en la barra de direcciones.');
+              alert('📋 Enlace de Google copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
             });
           return;
         }
@@ -518,11 +519,11 @@ class VideoPlayer {
           const win = window.open(url, '_blank');
           if (win) {
             win.focus();
-            this.mostrarToast('🎬 Abriendo YouTube...');
+            this.mostrarToast('🌐 Abriendo Google...');
             return;
           }
         } catch (err) {
-          alert('❌ Error al abrir YouTube: ' + err.message);
+          alert('❌ Error al abrir Google: ' + err.message);
         }
         // Si falla, abrir en la misma pestaña
         window.location.href = url;
