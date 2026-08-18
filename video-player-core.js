@@ -35,9 +35,11 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: El botón "Abrir" ahora abre Google (https://www.google.com) en el navegador externo
-//             en lugar de YouTube. En modo standalone se intenta abrir la app de Google o el navegador.
-//             El enlace del proxy se puede copiar manualmente.
+// MEJORADO (PWA): El botón "Abrir" ahora usa navigator.share() como primera opción.
+//                  Esto permite al usuario elegir su navegador favorito desde el selector nativo,
+//                  garantizando que el enlace se abra FUERA de la PWA con barra de direcciones visible.
+//                  Si share no está disponible, se usa window.open como fallback.
+//                  Si falla, se copia el enlace al portapapeles.
 
 class VideoPlayer {
   constructor() {
@@ -438,95 +440,91 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - AHORA ABRE GOOGLE
+      // BOTÓN "ABRIR" - VERSIÓN DEFINITIVA CON navigator.share()
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Ignoramos el proxy, siempre abrimos Google
-        const url = 'https://www.google.com';
+        const proxy = proxyUrl;
+        if (!proxy) return;
+        this.lastOpenedProxyUrl = proxy;
 
-        const isStandalone = this.isStandalone();
-
-        // Si está en modo standalone, intentamos abrir la app de Google o navegador externo
-        if (isStandalone) {
-          // Intentar abrir con window.open en _blank (abre en navegador externo)
-          try {
-            const win = window.open(url, '_blank');
-            if (win) {
-              win.focus();
-              this.mostrarToast('🌐 Abriendo Google...');
-              return;
-            }
-          } catch (err) {
-            console.warn('Error al abrir Google:', err);
-          }
-
-          // En Android, intentar con intent:// para abrir la app de Google (o Chrome)
-          if (/android/i.test(navigator.userAgent)) {
+        // Función interna para fallback (cuando share no está disponible o falla)
+        const abrirFallback = (url) => {
+          const isStandalone = this.isStandalone();
+          
+          // En modo standalone, intentamos window.open normal (a veces abre externo)
+          if (isStandalone) {
             try {
-              const intentUrl = `intent://www.google.com#Intent;package=com.google.android.googlequicksearchbox;scheme=https;end;`;
-              const win = window.open(intentUrl, '_system');
-              if (win) {
-                win.focus();
-                this.mostrarToast('🌐 Abriendo Google...');
-                return;
-              }
-            } catch (err) {
-              console.warn('Error con intent:// Google:', err);
-            }
-          }
-
-          // En iOS, intentar con el esquema de Google (no es tan común)
-          // También podríamos intentar abrir en Safari directamente
-          if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-            try {
-              // Los enlaces https://www.google.com ya abren en Safari por defecto si no hay app
               const win = window.open(url, '_blank');
               if (win) {
                 win.focus();
-                this.mostrarToast('🌐 Abriendo Google...');
+                this.mostrarToast('🌐 Abriendo en navegador...');
                 return;
               }
             } catch (err) {
-              console.warn('Error al abrir Google en iOS:', err);
+              console.warn('Error en fallback window.open:', err);
             }
+            
+            // Último recurso: copiar enlace
+            navigator.clipboard.writeText(url)
+              .then(() => {
+                alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+              })
+              .catch(() => {
+                const range = document.createRange();
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = url;
+                tempDiv.style.position = 'fixed';
+                tempDiv.style.opacity = '0';
+                document.body.appendChild(tempDiv);
+                range.selectNode(tempDiv);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                document.body.removeChild(tempDiv);
+                alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+              });
+            return;
           }
 
-          // Fallback: copiar el enlace de Google
-          navigator.clipboard.writeText(url)
-            .then(() => {
-              alert('📋 Enlace de Google copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            })
-            .catch(() => {
-              const range = document.createRange();
-              const tempDiv = document.createElement('div');
-              tempDiv.textContent = url;
-              tempDiv.style.position = 'fixed';
-              tempDiv.style.opacity = '0';
-              document.body.appendChild(tempDiv);
-              range.selectNode(tempDiv);
-              window.getSelection().removeAllRanges();
-              window.getSelection().addRange(range);
-              document.execCommand('copy');
-              document.body.removeChild(tempDiv);
-              alert('📋 Enlace de Google copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            });
+          // Modo navegador web normal: abrir directamente en nueva pestaña
+          try {
+            const win = window.open(url, '_blank');
+            if (win) win.focus();
+          } catch (err) {
+            alert('❌ Error al abrir el enlace: ' + err.message);
+          }
+        };
+
+        // ============================================================
+        // ESTRATEGIA PRINCIPAL: navigator.share()
+        // ============================================================
+        if (navigator.share) {
+          navigator.share({
+            title: 'Abrir enlace',
+            text: 'Abre este enlace en tu navegador:',
+            url: proxy
+          })
+          .then(() => {
+            // El usuario eligió una aplicación (navegador, etc.)
+            console.log('📤 Enlace compartido exitosamente');
+            this.mostrarToast('✅ Selecciona tu navegador favorito');
+          })
+          .catch((err) => {
+            // Si el usuario cancela el diálogo de compartir, no hacemos nada
+            if (err.name === 'AbortError') {
+              console.log('Compartir cancelado por el usuario');
+              return;
+            }
+            // Si hay otro error, intentamos fallback
+            console.warn('Error en navigator.share:', err);
+            abrirFallback(proxy);
+          });
           return;
         }
 
-        // === Navegador web normal (no standalone) ===
-        try {
-          const win = window.open(url, '_blank');
-          if (win) {
-            win.focus();
-            this.mostrarToast('🌐 Abriendo Google...');
-            return;
-          }
-        } catch (err) {
-          alert('❌ Error al abrir Google: ' + err.message);
-        }
-        // Si falla, abrir en la misma pestaña
-        window.location.href = url;
+        // Si navigator.share NO está disponible, usar fallback directo
+        abrirFallback(proxy);
       });
 
       btnGroup.appendChild(copyBtn);
