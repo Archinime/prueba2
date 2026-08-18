@@ -35,9 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// NUEVO: Al hacer clic en "Abrir" se intenta abrir una ventana emergente (popup) con barra de direcciones.
-//        Si falla (especialmente en modo standalone), se copia el enlace y se muestra un mensaje.
-//        Además, se añade un botón "🌐 Navegador" para abrir el enlace en el navegador externo.
+// MEJORADO: Ahora el botón "Abrir" intenta abrir el enlace del proxy directamente en una ventana emergente
+//            con barra de direcciones (parámetros location=yes, toolbar=yes, etc.). En modo standalone,
+//            se abre en el navegador externo. Si falla, se copia el enlace y se muestra un mensaje.
+//            Se mantiene el botón "🌐 Navegador" como alternativa.
 
 class VideoPlayer {
   constructor() {
@@ -494,7 +495,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // SECCIÓN MODIFICADA: Intento de popup con barra de direcciones
+      // BOTÓN "ABRIR" - Comportamiento mejorado (como Google)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -502,24 +503,58 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Intentar abrir popup con barra de direcciones (funciona mejor en web que en standalone)
+        // Si la app está instalada (standalone), intentamos abrir en navegador externo
+        if (this.isStandalone()) {
+          try {
+            // Abrir sin parámetros para que el navegador lo maneje como nueva pestaña
+            const win = window.open(proxy, '_blank');
+            if (win) {
+              win.focus();
+              this.mostrarToast('🔗 Abriendo en navegador externo...');
+              return;
+            }
+          } catch (err) {
+            console.warn('Error al abrir en navegador externo:', err);
+          }
+          // Fallback: copiar enlace y mostrar mensaje
+          navigator.clipboard.writeText(proxy)
+            .then(() => {
+              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+            })
+            .catch(() => {
+              const range = document.createRange();
+              const tempDiv = document.createElement('div');
+              tempDiv.textContent = proxy;
+              tempDiv.style.position = 'fixed';
+              tempDiv.style.opacity = '0';
+              document.body.appendChild(tempDiv);
+              range.selectNode(tempDiv);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              document.body.removeChild(tempDiv);
+              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+            });
+          return;
+        }
+
+        // === Comportamiento normal (navegador web, no standalone) ===
+        // Intentamos abrir con parámetros para forzar barra de direcciones (como Google)
         try {
-          // Parámetros para forzar barra de direcciones en algunos navegadores
           const win = window.open(proxy, '_blank', 'location=yes,menubar=yes,toolbar=yes,scrollbars=yes,resizable=yes,width=800,height=600');
           if (win) {
             win.focus();
-            this.mostrarToast('🔗 Popup abierto (barra visible en algunos navegadores)');
+            this.mostrarToast('🔗 Ventana emergente abierta con barra de direcciones');
             return;
           }
         } catch (err) {
-          console.warn('Error al abrir popup:', err);
+          console.warn('Error al abrir popup con barra:', err);
         }
 
-        // Si no se pudo abrir el popup (bloqueado o standalone), usamos fallback:
-        // Copiar enlace y mostrar mensaje
+        // Fallback: copiar enlace y mostrar mensaje
         navigator.clipboard.writeText(proxy)
           .then(() => {
-            alert('📋 Enlace copiado al portapapeles.\n\nUsa el botón "🌐 Navegador" para abrirlo en tu navegador externo.');
+            alert('📋 Enlace copiado al portapapeles.\n\nPégalo en la barra de direcciones de una nueva pestaña.');
           })
           .catch(() => {
             const range = document.createRange();
@@ -533,7 +568,7 @@ class VideoPlayer {
             window.getSelection().addRange(range);
             document.execCommand('copy');
             document.body.removeChild(tempDiv);
-            alert('📋 Enlace copiado (método manual).\n\nUsa el botón "🌐 Navegador" para abrirlo en tu navegador externo.');
+            alert('📋 Enlace copiado (método manual).\n\nPégalo en la barra de direcciones de una nueva pestaña.');
           });
       });
 
