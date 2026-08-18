@@ -385,6 +385,57 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
+    /* ===== CAMPO DE URL PERSONALIZADA ===== */
+    .custom-url-container {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+      padding: 0 10px;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 4px 4px 16px;
+      backdrop-filter: blur(4px);
+      max-width: 100%;
+    }
+    body.is-mobile .custom-url-container { backdrop-filter: blur(2px); }
+    .custom-url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.9rem;
+      padding: 10px 0;
+      outline: none;
+      font-family: 'Poppins', sans-serif;
+      min-width: 0;
+    }
+    .custom-url-input::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+    .custom-url-btn {
+      background: linear-gradient(135deg, var(--primary-color), #0066ff);
+      border: none;
+      border-radius: 50px;
+      padding: 8px 20px;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: 'Poppins', sans-serif;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .custom-url-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 255, 247, 0.3);
+    }
+    .custom-url-btn:active {
+      transform: scale(0.95);
+    }
+
     /* ===== BOTONES DE CONTROL ===== */
     .controls {
       display: grid;
@@ -906,11 +957,15 @@
       .preview-sticker-wrapper { max-width: 80px; max-height: 80px; }
       .preview-sticker-wrapper img,
       .preview-sticker-wrapper video { max-width: 80px; max-height: 80px; }
+      .custom-url-container { padding: 2px 2px 2px 12px; }
+      .custom-url-input { font-size: 0.8rem; padding: 8px 0; }
+      .custom-url-btn { font-size: 0.75rem; padding: 6px 14px; }
     }
 
     @media (max-width: 480px) {
       .options { min-width: 80px; max-width: 120px; }
       #serverSelect { font-size: 0.65rem; padding: 4px 6px; padding-right: 22px; background-size: 12px; }
+      .custom-url-btn { font-size: 0.7rem; padding: 5px 12px; }
     }
   </style>
 </head>
@@ -966,6 +1021,14 @@
   </div>
 
   <h1 id="epTitle">Cargando...</h1>
+
+  <!-- ===== CAMPO DE URL PERSONALIZADA ===== -->
+  <div class="custom-url-container">
+    <input type="text" id="customUrlInput" class="custom-url-input" placeholder="Escribe una URL y presiona Enter (ej: youtube.com)" autocomplete="off">
+    <button id="customUrlGoBtn" class="custom-url-btn">
+      <i class="fas fa-arrow-right"></i> Ir
+    </button>
+  </div>
 
   <!-- CONTROLES -->
   <div class="controls">
