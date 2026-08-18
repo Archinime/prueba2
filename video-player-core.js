@@ -35,11 +35,9 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// FIX (PWA): El botón "Abrir" ahora usa múltiples estrategias para forzar apertura externa:
-//            - En Android standalone: usa intent:// para abrir en Chrome.
-//            - En iOS standalone: usa window.open (_blank) que abre Safari.
-//            - Fallback: copia el enlace al portapapeles.
-//            - En navegador web normal: mantiene pestaña con instrucciones.
+// MODIFICADO: El botón "Abrir" ahora abre YouTube (https://www.youtube.com) en el navegador externo
+//             en lugar de abrir la pestaña con instrucciones. En modo standalone se intenta abrir
+//             la app de YouTube o el navegador. El enlace del proxy se puede copiar manualmente.
 
 class VideoPlayer {
   constructor() {
@@ -440,74 +438,68 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - Mejorado para abrir en navegador externo
+      // BOTÓN "ABRIR" - AHORA ABRE YOUTUBE
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const proxy = proxyUrl;
-        if (!proxy) return;
-        this.lastOpenedProxyUrl = proxy;
+        // Ignoramos el proxy, siempre abrimos YouTube
+        const url = 'https://www.youtube.com';
 
         const isStandalone = this.isStandalone();
-        const isAndroid = /android/i.test(navigator.userAgent);
-        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-        // === MODO STANDALONE (PWA INSTALADA) ===
+        // Si está en modo standalone, intentamos abrir la app de YouTube o navegador externo
         if (isStandalone) {
-          // Estrategia 1: Intentar abrir con window.open + _blank (en iOS suele abrir Safari)
+          // Intentar abrir con window.open en _blank (abre en navegador externo)
           try {
-            const win = window.open(proxy, '_blank');
+            const win = window.open(url, '_blank');
             if (win) {
               win.focus();
-              this.mostrarToast('🔗 Abriendo en navegador externo...');
+              this.mostrarToast('🎬 Abriendo YouTube...');
               return;
             }
           } catch (err) {
-            console.warn('Error con window.open:', err);
+            console.warn('Error al abrir YouTube:', err);
           }
 
-          // Estrategia 2 (Android): Intentar con intent:// para forzar Chrome
-          if (isAndroid) {
+          // En Android, intentar con intent:// para abrir la app de YouTube
+          if (/android/i.test(navigator.userAgent)) {
             try {
-              // Construir intent:// URL
-              const cleanUrl = proxy.replace(/^https?:\/\//, '');
-              // Añadir package de Chrome y fallback
-              const intentUrl = `intent://${cleanUrl}#Intent;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(proxy)};end;`;
+              const intentUrl = `intent://www.youtube.com#Intent;package=com.google.android.youtube;scheme=https;end;`;
               const win = window.open(intentUrl, '_system');
               if (win) {
                 win.focus();
-                this.mostrarToast('🔗 Abriendo en Chrome...');
+                this.mostrarToast('🎬 Abriendo YouTube...');
                 return;
               }
             } catch (err) {
-              console.warn('Error con intent://:', err);
+              console.warn('Error con intent:// YouTube:', err);
             }
           }
 
-          // Estrategia 3 (Android): Intentar con el esquema de Google Chrome (googlechrome://)
-          if (isAndroid) {
+          // En iOS, intentar con el esquema de YouTube
+          if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
             try {
-              const chromeUrl = `googlechrome://${proxy.replace(/^https?:\/\//, '')}`;
-              const win = window.open(chromeUrl, '_system');
+              const iosUrl = `youtube://`;
+              const win = window.open(iosUrl, '_system');
               if (win) {
                 win.focus();
-                this.mostrarToast('🔗 Abriendo en Chrome...');
+                this.mostrarToast('🎬 Abriendo YouTube...');
                 return;
               }
             } catch (err) {
-              console.warn('Error con googlechrome://:', err);
+              console.warn('Error con youtube://:', err);
             }
           }
 
-          // Si todo falla, copiar al portapapeles y mostrar mensaje
-          navigator.clipboard.writeText(proxy)
+          // Fallback: copiar el enlace de YouTube
+          navigator.clipboard.writeText(url)
             .then(() => {
-              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador (Chrome/Safari) y pega el enlace en la barra de direcciones.');
+              alert('📋 Enlace de YouTube copiado al portapapeles.\n\nAbre YouTube y pégalo en la barra de direcciones.');
             })
             .catch(() => {
               const range = document.createRange();
               const tempDiv = document.createElement('div');
-              tempDiv.textContent = proxy;
+              tempDiv.textContent = url;
               tempDiv.style.position = 'fixed';
               tempDiv.style.opacity = '0';
               document.body.appendChild(tempDiv);
@@ -516,73 +508,24 @@ class VideoPlayer {
               window.getSelection().addRange(range);
               document.execCommand('copy');
               document.body.removeChild(tempDiv);
-              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pega el enlace en la barra de direcciones.');
+              alert('📋 Enlace de YouTube copiado (método manual).\n\nAbre YouTube y pégalo en la barra de direcciones.');
             });
           return;
         }
 
-        // === NAVEGADOR WEB NORMAL (no standalone) ===
-        this.blankTabOpened = true;
+        // === Navegador web normal (no standalone) ===
         try {
-          const win = window.open('about:blank', '_blank');
-          if (!win) {
-            alert('⚠️ No se pudo abrir la pestaña en blanco.');
-            this.blankTabOpened = false;
+          const win = window.open(url, '_blank');
+          if (win) {
+            win.focus();
+            this.mostrarToast('🎬 Abriendo YouTube...');
             return;
           }
-          win.document.write(`
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-              <title>Pestaña en blanco - Proxy</title>
-              <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { background: #0b0b0b; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; margin: 0; }
-                .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; padding: 2.5rem 2rem; max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.8); text-align: center; }
-                h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
-                .sub { color: #ccc; font-size: 1.3rem; margin-bottom: 0.5rem; }
-                .sub .arrow { display: inline-block; font-size: 2.5rem; margin-left: 4px; color: #ffd200; animation: bounceUp 1.5s infinite ease-in-out; line-height: 1; }
-                @keyframes bounceUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-                .image-container { margin: 1.2rem auto; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 70%; display: flex; justify-content: center; }
-                .image-container img { width: 100%; height: auto; display: block; }
-                .hint { color: #aaa; font-size: 1.2rem; line-height: 1.7; margin: 1rem 0; }
-                .hint strong { color: #ffd200; }
-                .btn-close { display: inline-block; margin-top: 1.2rem; padding: 0.9rem 2.5rem; background: rgba(255,255,255,0.08); color: #ddd; border: 1px solid rgba(255,255,255,0.1); border-radius: 60px; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
-                .btn-close:hover { background: rgba(255,255,255,0.15); }
-                .btn-close:active { transform: scale(0.96); }
-                @media (max-width: 480px) {
-                  body { padding: 1rem; }
-                  .container { padding: 2rem 1.2rem; border-radius: 40px; }
-                  h1 { font-size: 1.8rem; }
-                  .sub { font-size: 1.1rem; }
-                  .sub .arrow { font-size: 2rem; }
-                  .image-container { max-width: 90%; }
-                  .hint { font-size: 1rem; }
-                  .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>📋 Pestaña en blanco</h1>
-                <p class="sub">Pega el enlace en la barra de direcciones (arriba) <span class="arrow">↑</span></p>
-                <div class="image-container">
-                  <img src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif" alt="Ejemplo de dónde pegar el enlace" />
-                </div>
-                <p class="hint">💡 Copia el enlace de la otra pestaña, <strong>pégalo en la barra de direcciones</strong> y presiona Enter.</p>
-                <button class="btn-close" onclick="window.close()">✖ Cerrar esta pestaña</button>
-              </div>
-            </body>
-            </html>
-          `);
-          win.document.close();
-          win.focus();
         } catch (err) {
-          alert('❌ Error al abrir la pestaña: ' + err.message);
-          this.blankTabOpened = false;
+          alert('❌ Error al abrir YouTube: ' + err.message);
         }
+        // Si falla, abrir en la misma pestaña
+        window.location.href = url;
       });
 
       btnGroup.appendChild(copyBtn);
