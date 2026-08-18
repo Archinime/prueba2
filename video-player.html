@@ -1075,7 +1075,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- NUEVO: BOTÓN FLOTANTE DW-ANIME (añadido al final del body)    -->
+<!-- BOTÓN FLOTANTE DW-ANIME (abre en navegador externo)          -->
 <!-- ============================================================ -->
 <button id="dwAnimeBtn" style="
   position: fixed;
@@ -1104,18 +1104,29 @@
   (function() {
     const btn = document.getElementById('dwAnimeBtn');
     if (!btn) return;
+
     btn.addEventListener('click', function() {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      const targetUrl = 'https://dw-anime.net';
+      const url = 'https://dw-anime.net';
+
+      // Si está en modo standalone (PWA), forzar apertura en navegador externo
       if (isStandalone) {
-        // Abrir ejem.html con la URL como parámetro (funciona en standalone)
-        const displayUrl = 'ejem.html?url=' + encodeURIComponent(targetUrl);
-        window.open(displayUrl, '_blank');
+        // Crear un enlace oculto y simular clic (más fiable que window.open)
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } else {
-        window.open(targetUrl, '_blank');
+        // En navegador normal, abrir con window.open
+        window.open(url, '_blank');
       }
     });
-    // Efectos hover (opcional)
+
+    // Efectos hover (mejoran la experiencia)
     btn.addEventListener('mouseenter', function() {
       this.style.transform = 'scale(1.05)';
       this.style.boxShadow = '0 6px 30px rgba(238, 90, 36, 0.6)';
