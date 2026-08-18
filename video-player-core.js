@@ -35,10 +35,8 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// NUEVO: Añadido campo de URL personalizada en la interfaz. El usuario puede escribir
-//        cualquier URL y al hacer clic en "Ir" o presionar Enter se abrirá en el navegador
-//        externo usando la misma estrategia que el botón "Abrir" de PixelDrain (googlechrome:// en Android,
-//        window.open en otros casos).
+// NUEVO: Barra de URL personalizada en la parte superior. Función abrirUrlPersonalizada() integrada en initUI().
+//       En Android intenta googlechrome://, luego window.open, y copia como fallback.
 
 class VideoPlayer {
   constructor() {
@@ -110,6 +108,10 @@ class VideoPlayer {
     });
   }
   
+  isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  }
+
   isDoomStreamUrl(url) {
     if (!url) return false;
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
@@ -172,7 +174,6 @@ class VideoPlayer {
     }
   }
 
-  // Bloquear/desbloquear botón de descarga según si es PixelDrain
   updateDownloadButtonState(isPixelDrain) {
     const downloadBtn = document.getElementById('downloadBtn');
     if (!downloadBtn) return;
@@ -328,8 +329,6 @@ class VideoPlayer {
       overflow: hidden;
     `;
     this.pixelDrainModal = modal;
-
-    // Eliminado el botón de cierre (X)
 
     const title = document.createElement('p');
     title.style.cssText = 'color:#ccc; font-size:0.85rem; margin-bottom:0.3rem; text-align:center;';
@@ -537,15 +536,14 @@ class VideoPlayer {
     return container;
   }
 
-  // Prioriza opciones: PixelDrain primero, Google Drive al final
   prioritizeOptions(options) {
     const getPriority = (urls) => {
       if (!urls || urls.length === 0) return 3;
       const firstUrl = urls[0] || '';
-      if (firstUrl.includes('pixeldrain.com')) return 0; // PixelDrain -> Opción 1
-      if (firstUrl.includes('mp4upload.com')) return 1; // mp4upload -> Opción 2
-      if (firstUrl.includes('drive.google.com')) return 3; // Google Drive -> Opción 4
-      return 2; // otros -> Opción 3
+      if (firstUrl.includes('pixeldrain.com')) return 0;
+      if (firstUrl.includes('mp4upload.com')) return 1;
+      if (firstUrl.includes('drive.google.com')) return 3;
+      return 2;
     };
 
     options.sort((a, b) => getPriority(a.urls) - getPriority(b.urls));
@@ -562,7 +560,6 @@ class VideoPlayer {
   updateDownloadUrls(urls) {
     this.currentDownloadUrls = urls.map(url => this.generateDirectLink(url));
     this.currentPeerTubeUrl = (urls.length > 0 && this.isPeerTubeUrl(urls[0])) ? urls[0] : null;
-    // Detectar si es PixelDrain para bloquear descarga
     const isPixelDrain = urls.some(u => u && u.includes('pixeldrain.com'));
     this.isPixelDrain = isPixelDrain;
     this.updateDownloadButtonState(isPixelDrain);
@@ -670,7 +667,6 @@ class VideoPlayer {
       return;
     }
 
-    // Bloquear si es PixelDrain
     if (this.isPixelDrain) {
       alert('La descarga no está disponible para enlaces de PixelDrain.');
       return;
@@ -756,12 +752,6 @@ class VideoPlayer {
     }
   }
 
-  // Resto de métodos sin cambios (waitForCatalogAndLoad, initFirebase, etc.)
-  // Se mantienen idénticos a la versión anterior, solo se añaden los nuevos métodos.
-  // Por brevedad, se incluye el resto del código que no ha cambiado.
-  // ...
-
-  // Los siguientes métodos se mantienen sin cambios:
   async waitForCatalogAndLoad() {
     if (typeof catalogoArray !== 'undefined') {
       this.loadEpisodeData();
@@ -909,6 +899,76 @@ class VideoPlayer {
     }
   }
 
+  // ============================================================
+  // NUEVA FUNCIÓN PARA ABRIR URL PERSONALIZADA
+  // ============================================================
+  abrirUrlPersonalizada() {
+    const input = document.getElementById('customUrlInput');
+    if (!input) return;
+    let url = input.value.trim();
+    if (!url) return;
+    // Añadir https:// si no tiene protocolo
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+    // 1. En Android: intentar googlechrome://
+    if (isAndroid) {
+      try {
+        const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
+        const win = window.open(chromeUrl, '_system');
+        if (win) {
+          win.focus();
+          this.mostrarToast('🌐 Abriendo en Chrome...');
+          input.value = '';
+          return;
+        }
+      } catch (err) {
+        console.warn('Error con googlechrome://:', err);
+      }
+    }
+
+    // 2. Fallback: window.open normal
+    try {
+      const win = window.open(url, '_blank');
+      if (win) {
+        win.focus();
+        this.mostrarToast('🌐 Abriendo en navegador...');
+        input.value = '';
+        return;
+      }
+    } catch (err) {
+      console.warn('Error con window.open:', err);
+    }
+
+    // 3. Último recurso: copiar al portapapeles
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+        input.value = '';
+      })
+      .catch(() => {
+        const range = document.createRange();
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = url;
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.opacity = '0';
+        document.body.appendChild(tempDiv);
+        range.selectNode(tempDiv);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        document.body.removeChild(tempDiv);
+        alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+        input.value = '';
+      });
+  }
+
+  // ============================================================
+  // MÉTODO initUI() MODIFICADO (se añade la lógica de la URL bar)
+  // ============================================================
   initUI() {
     const backLink = document.getElementById('backLink');
     if (backLink && this.animeId) backLink.href = `anime-detail.html?id=${this.animeId}`;
@@ -961,52 +1021,18 @@ class VideoPlayer {
     });
 
     // ============================================================
-    // NUEVO: Campo de URL personalizada
+    // NUEVO: Manejo de la barra de URL
     // ============================================================
     const urlInput = document.getElementById('customUrlInput');
     const goBtn = document.getElementById('customUrlGoBtn');
-
     if (urlInput && goBtn) {
-      const abrirUrlPersonalizada = () => {
-        let url = urlInput.value.trim();
-        if (!url) return;
-        // Si no tiene protocolo, añadir https://
-        if (!/^https?:\/\//i.test(url)) {
-          url = 'https://' + url;
-        }
-        // Usar la misma lógica que el botón "Abrir" de PixelDrain
-        const isAndroid = /android/i.test(navigator.userAgent);
-        if (isAndroid) {
-          try {
-            const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
-            const win = window.open(chromeUrl, '_system');
-            if (win) {
-              win.focus();
-              this.mostrarToast('🌐 Abriendo en Chrome...');
-              urlInput.value = '';
-              return;
-            }
-          } catch (e) {}
-        }
-        // Fallback: window.open normal
-        try {
-          const win = window.open(url, '_blank');
-          if (win) {
-            win.focus();
-            this.mostrarToast('🌐 Abriendo en navegador...');
-            urlInput.value = '';
-            return;
-          }
-        } catch (e) {
-          alert('❌ No se pudo abrir la URL: ' + e.message);
-        }
-      };
-
-      goBtn.addEventListener('click', abrirUrlPersonalizada);
+      // Click en el botón
+      goBtn.addEventListener('click', () => this.abrirUrlPersonalizada());
+      // Presionar Enter en el input
       urlInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          abrirUrlPersonalizada();
+          this.abrirUrlPersonalizada();
         }
       });
     }
@@ -1067,9 +1093,6 @@ class VideoPlayer {
     if (typeof urls === 'string' && urls.trim() !== '') return [urls];
     return [];
   }
-
-  // Este método se reemplaza por el nuevo prioritizeOptions
-  // pero lo mantenemos por compatibilidad y lo sobreescribimos arriba
 
   createServerSelect(options, initialIndex) {
     const container = document.getElementById('serverOptions');
