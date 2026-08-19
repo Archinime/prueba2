@@ -39,7 +39,7 @@
 //             - En navegador web normal (no standalone): usa window.open con ejem.html (instrucciones).
 //             - En modo standalone (PWA instalada): usa navigator.share() para elegir navegador externo.
 //             - En ambos casos se muestra la página de instrucciones (ejem.html).
-// MODIFICADO: El botón "Abrir" ahora muestra una imagen (google.avif) en lugar de texto, con tamaño aumentado a 1rem.
+// MODIFICADO: El botón "Abrir" ahora muestra una imagen (chrome.avif) en lugar de texto, con tamaño 1rem.
 
 class VideoPlayer {
   constructor() {
@@ -412,9 +412,9 @@ class VideoPlayer {
         display: none;
       `;
       const img = document.createElement('img');
-      img.src = 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/google.avif';
+      // CAMBIO AQUÍ: nueva imagen chrome.avif
+      img.src = 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/chrome.avif';
       img.alt = 'Abrir';
-      // Tamaño aumentado de 0.6rem a 1rem para que se vea mejor
       img.style.cssText = 'height: 1rem; width: auto; vertical-align: middle;';
       openBtn.appendChild(img);
 
