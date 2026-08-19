@@ -35,10 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: El botón "Abrir" ahora comparte la URL de "ejem.html" con el enlace del proxy como parámetro.
-//             Así, al elegir el navegador, se abrirá la página de instrucciones (similar a about:blank).
-//             Si navigator.share no está disponible, se usa window.open con ejem.html.
-//             Si todo falla, se copia el enlace al portapapeles.
+// MODIFICADO: El botón "Abrir" ahora se comporta diferente según el contexto:
+//             - En navegador web normal (no standalone): usa window.open con ejem.html (instrucciones).
+//             - En modo standalone (PWA instalada): usa navigator.share() para elegir navegador externo.
+//             - En ambos casos se muestra la página de instrucciones (ejem.html).
 
 class VideoPlayer {
   constructor() {
@@ -110,6 +110,10 @@ class VideoPlayer {
     });
   }
   
+  isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  }
+
   isDoomStreamUrl(url) {
     if (!url) return false;
     return /(playmogo\.com|doomstream\.com)\/e\//i.test(url);
@@ -438,7 +442,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - COMPARTE ejem.html (instrucciones)
+      // BOTÓN "ABRIR" - Comportamiento diferenciado según contexto
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -446,14 +450,12 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Construir URL de ejem.html con el enlace del proxy como parámetro
+        // Construir URL de instrucciones
         const instruccionesUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
 
-        // Función de fallback cuando share no está disponible o falla
+        // Función de fallback (se usa si el método principal falla)
         const fallbackOpen = (url) => {
-          const isAndroid = /android/i.test(navigator.userAgent);
-
-          // Intentar window.open con la URL de instrucciones
+          // Intentar window.open normal
           try {
             const win = window.open(url, '_blank');
             if (win) {
@@ -462,25 +464,10 @@ class VideoPlayer {
               return true;
             }
           } catch (err) {
-            console.warn('Error en window.open:', err);
+            console.warn('Error en fallback window.open:', err);
           }
 
-          // En Android: intentar googlechrome:// con la URL de instrucciones
-          if (isAndroid) {
-            try {
-              const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
-              const win = window.open(chromeUrl, '_system');
-              if (win) {
-                win.focus();
-                this.mostrarToast('📋 Abriendo instrucciones en Chrome...');
-                return true;
-              }
-            } catch (err) {
-              console.warn('Error con googlechrome://:', err);
-            }
-          }
-
-          // Si todo falla, copiar el enlace del proxy (no la URL de instrucciones)
+          // Si falla, copiar el enlace del proxy
           navigator.clipboard.writeText(proxy)
             .then(() => {
               alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
@@ -503,34 +490,52 @@ class VideoPlayer {
         };
 
         // ============================================================
-        // ESTRATEGIA PRINCIPAL: navigator.share() con ejem.html
+        // ESTRATEGIA PRINCIPAL: Según modo standalone
         // ============================================================
-        if (navigator.share) {
-          navigator.share({
-            title: 'Abrir enlace en tu navegador',
-            text: 'Abre esta página para ver las instrucciones y pegar el enlace.',
-            url: instruccionesUrl
-          })
-          .then(() => {
-            // El usuario eligió una aplicación (navegador, etc.)
-            console.log('📤 Instrucciones compartidas exitosamente');
-            this.mostrarToast('✅ Selecciona tu navegador favorito');
-          })
-          .catch((err) => {
-            // Si el usuario cancela, no hacemos nada
-            if (err.name === 'AbortError') {
-              console.log('Compartir cancelado por el usuario');
-              return;
-            }
-            // Si hay otro error, intentamos fallback con window.open
-            console.warn('Error en navigator.share:', err);
-            fallbackOpen(instruccionesUrl);
-          });
-          return;
-        }
+        const isStandalone = this.isStandalone();
 
-        // Si navigator.share NO está disponible, usar fallback con window.open
-        fallbackOpen(instruccionesUrl);
+        if (isStandalone) {
+          // ========== MODO STANDALONE (PWA instalada) ==========
+          // Usar navigator.share() para elegir navegador externo
+          if (navigator.share) {
+            navigator.share({
+              title: 'Abrir enlace en tu navegador',
+              text: 'Abre esta página para ver las instrucciones y pegar el enlace.',
+              url: instruccionesUrl
+            })
+            .then(() => {
+              console.log('📤 Instrucciones compartidas exitosamente');
+              this.mostrarToast('✅ Selecciona tu navegador favorito');
+            })
+            .catch((err) => {
+              if (err.name === 'AbortError') {
+                console.log('Compartir cancelado por el usuario');
+                return;
+              }
+              console.warn('Error en navigator.share:', err);
+              fallbackOpen(instruccionesUrl);
+            });
+          } else {
+            // Si navigator.share no está disponible en standalone (caso raro)
+            fallbackOpen(instruccionesUrl);
+          }
+        } else {
+          // ========== NAVEGADOR WEB NORMAL (PC o móvil sin instalar) ==========
+          // Usar window.open directamente
+          try {
+            const win = window.open(instruccionesUrl, '_blank');
+            if (win) {
+              win.focus();
+              this.mostrarToast('📋 Abriendo instrucciones...');
+            } else {
+              // Si falla, usar fallback
+              fallbackOpen(instruccionesUrl);
+            }
+          } catch (err) {
+            console.warn('Error en window.open:', err);
+            fallbackOpen(instruccionesUrl);
+          }
+        }
       });
 
       btnGroup.appendChild(copyBtn);
