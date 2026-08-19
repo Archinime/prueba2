@@ -35,9 +35,10 @@
 // MEJORADO: Pixeldrain tiene prioridad (Opción 1), mp4upload (Opción 2), otros (Opción 3), Google Drive (Opción 4)
 // MEJORADO: Botón de descarga bloqueado para enlaces de PixelDrain
 // MEJORADO: Modal más compacto en móviles: reducido padding, gap y font-size
-// MODIFICADO: El botón "Abrir" ahora usa navigator.share() como primera opción.
-//             Si no está disponible, usa window.open (con googlechrome:// en Android como fallback).
-//             Si todo falla, copia el enlace al portapapeles.
+// MODIFICADO: El botón "Abrir" ahora comparte la URL de "ejem.html" con el enlace del proxy como parámetro.
+//             Así, al elegir el navegador, se abrirá la página de instrucciones (similar a about:blank).
+//             Si navigator.share no está disponible, se usa window.open con ejem.html.
+//             Si todo falla, se copia el enlace al portapapeles.
 
 class VideoPlayer {
   constructor() {
@@ -437,7 +438,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // NUEVO: BOTÓN "ABRIR" CON navigator.share() + FALLBACKS
+      // BOTÓN "ABRIR" - COMPARTE ejem.html (instrucciones)
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -445,59 +446,49 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
+        // Construir URL de ejem.html con el enlace del proxy como parámetro
+        const instruccionesUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
+
         // Función de fallback cuando share no está disponible o falla
         const fallbackOpen = (url) => {
           const isAndroid = /android/i.test(navigator.userAgent);
-          const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-          // 1. Intentar window.open normal
+          // Intentar window.open con la URL de instrucciones
           try {
             const win = window.open(url, '_blank');
             if (win) {
               win.focus();
-              this.mostrarToast('🌐 Abriendo en navegador...');
+              this.mostrarToast('📋 Abriendo instrucciones...');
               return true;
             }
           } catch (err) {
             console.warn('Error en window.open:', err);
           }
 
-          // 2. En Android: intentar googlechrome:// e intent://
+          // En Android: intentar googlechrome:// con la URL de instrucciones
           if (isAndroid) {
             try {
               const chromeUrl = `googlechrome://${url.replace(/^https?:\/\//, '')}`;
               const win = window.open(chromeUrl, '_system');
               if (win) {
                 win.focus();
-                this.mostrarToast('🌐 Abriendo en Chrome...');
+                this.mostrarToast('📋 Abriendo instrucciones en Chrome...');
                 return true;
               }
             } catch (err) {
               console.warn('Error con googlechrome://:', err);
             }
-
-            try {
-              const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end;`;
-              const win = window.open(intentUrl, '_system');
-              if (win) {
-                win.focus();
-                this.mostrarToast('🌐 Abriendo en Chrome...');
-                return true;
-              }
-            } catch (err) {
-              console.warn('Error con intent://:', err);
-            }
           }
 
-          // Si todo falla, copiar al portapapeles
-          navigator.clipboard.writeText(url)
+          // Si todo falla, copiar el enlace del proxy (no la URL de instrucciones)
+          navigator.clipboard.writeText(proxy)
             .then(() => {
               alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
             })
             .catch(() => {
               const range = document.createRange();
               const tempDiv = document.createElement('div');
-              tempDiv.textContent = url;
+              tempDiv.textContent = proxy;
               tempDiv.style.position = 'fixed';
               tempDiv.style.opacity = '0';
               document.body.appendChild(tempDiv);
@@ -512,17 +503,17 @@ class VideoPlayer {
         };
 
         // ============================================================
-        // ESTRATEGIA PRINCIPAL: navigator.share()
+        // ESTRATEGIA PRINCIPAL: navigator.share() con ejem.html
         // ============================================================
         if (navigator.share) {
           navigator.share({
-            title: 'Abrir enlace',
-            text: 'Abre este enlace en tu navegador:',
-            url: proxy
+            title: 'Abrir enlace en tu navegador',
+            text: 'Abre esta página para ver las instrucciones y pegar el enlace.',
+            url: instruccionesUrl
           })
           .then(() => {
-            // El usuario eligió una aplicación
-            console.log('📤 Enlace compartido exitosamente');
+            // El usuario eligió una aplicación (navegador, etc.)
+            console.log('📤 Instrucciones compartidas exitosamente');
             this.mostrarToast('✅ Selecciona tu navegador favorito');
           })
           .catch((err) => {
@@ -531,15 +522,15 @@ class VideoPlayer {
               console.log('Compartir cancelado por el usuario');
               return;
             }
-            // Si hay otro error, intentamos fallback
+            // Si hay otro error, intentamos fallback con window.open
             console.warn('Error en navigator.share:', err);
-            fallbackOpen(proxy);
+            fallbackOpen(instruccionesUrl);
           });
           return;
         }
 
-        // Si navigator.share NO está disponible, usar fallback directamente
-        fallbackOpen(proxy);
+        // Si navigator.share NO está disponible, usar fallback con window.open
+        fallbackOpen(instruccionesUrl);
       });
 
       btnGroup.appendChild(copyBtn);
