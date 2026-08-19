@@ -41,6 +41,7 @@
 //             - En ambos casos se muestra la página de instrucciones (ejem.html).
 // MODIFICADO: El botón "Abrir" ahora muestra una imagen (chrome.avif) en lugar de texto, con tamaño 1rem.
 // MODIFICADO: Al abrir ejem.html se pasa returnUrl para volver al reproductor al cerrar.
+// MEJORADO: Ahora se prioriza window.open para poder cerrar la pestaña con window.close().
 
 class VideoPlayer {
   constructor() {
@@ -447,7 +448,7 @@ class VideoPlayer {
       });
 
       // ============================================================
-      // BOTÓN "ABRIR" - Comportamiento diferenciado según contexto
+      // BOTÓN "ABRIR" - Comportamiento mejorado
       // ============================================================
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -459,50 +460,26 @@ class VideoPlayer {
         const returnUrl = location.href;
         const instruccionesUrl = `ejem.html?url=${encodeURIComponent(proxy)}&returnUrl=${encodeURIComponent(returnUrl)}`;
 
-        // Función de fallback (se usa si el método principal falla)
-        const fallbackOpen = (url) => {
-          // Intentar window.open normal
+        // Función para abrir la ventana con window.open (prioridad)
+        const abrirConWindowOpen = () => {
           try {
-            const win = window.open(url, '_blank');
+            const win = window.open(instruccionesUrl, '_blank');
             if (win) {
               win.focus();
               this.mostrarToast('📋 Abriendo instrucciones...');
-              return true;
+              return win; // éxito
             }
           } catch (err) {
-            console.warn('Error en fallback window.open:', err);
+            console.warn('Error en window.open:', err);
           }
-
-          // Si falla, copiar el enlace del proxy
-          navigator.clipboard.writeText(proxy)
-            .then(() => {
-              alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            })
-            .catch(() => {
-              const range = document.createRange();
-              const tempDiv = document.createElement('div');
-              tempDiv.textContent = proxy;
-              tempDiv.style.position = 'fixed';
-              tempDiv.style.opacity = '0';
-              document.body.appendChild(tempDiv);
-              range.selectNode(tempDiv);
-              window.getSelection().removeAllRanges();
-              window.getSelection().addRange(range);
-              document.execCommand('copy');
-              document.body.removeChild(tempDiv);
-              alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
-            });
-          return false;
+          return null;
         };
 
-        // ============================================================
-        // ESTRATEGIA PRINCIPAL: Según modo standalone
-        // ============================================================
-        const isStandalone = this.isStandalone();
+        // Intentar primero con window.open (para poder cerrar con window.close)
+        const ventana = abrirConWindowOpen();
 
-        if (isStandalone) {
-          // ========== MODO STANDALONE (PWA instalada) ==========
-          // Usar navigator.share() para elegir navegador externo
+        if (!ventana) {
+          // Fallback: si no se pudo abrir con window.open, usar navigator.share
           if (navigator.share) {
             navigator.share({
               title: 'Abrir enlace en tu navegador',
@@ -519,27 +496,47 @@ class VideoPlayer {
                 return;
               }
               console.warn('Error en navigator.share:', err);
-              fallbackOpen(instruccionesUrl);
+              // Último recurso: copiar el enlace al portapapeles
+              navigator.clipboard.writeText(proxy)
+                .then(() => {
+                  alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+                })
+                .catch(() => {
+                  // Fallback manual
+                  const range = document.createRange();
+                  const tempDiv = document.createElement('div');
+                  tempDiv.textContent = proxy;
+                  tempDiv.style.position = 'fixed';
+                  tempDiv.style.opacity = '0';
+                  document.body.appendChild(tempDiv);
+                  range.selectNode(tempDiv);
+                  window.getSelection().removeAllRanges();
+                  window.getSelection().addRange(range);
+                  document.execCommand('copy');
+                  document.body.removeChild(tempDiv);
+                  alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+                });
             });
           } else {
-            // Si navigator.share no está disponible en standalone (caso raro)
-            fallbackOpen(instruccionesUrl);
-          }
-        } else {
-          // ========== NAVEGADOR WEB NORMAL (PC o móvil sin instalar) ==========
-          // Usar window.open directamente
-          try {
-            const win = window.open(instruccionesUrl, '_blank');
-            if (win) {
-              win.focus();
-              this.mostrarToast('📋 Abriendo instrucciones...');
-            } else {
-              // Si falla, usar fallback
-              fallbackOpen(instruccionesUrl);
-            }
-          } catch (err) {
-            console.warn('Error en window.open:', err);
-            fallbackOpen(instruccionesUrl);
+            // Si no hay share, copiar el enlace
+            navigator.clipboard.writeText(proxy)
+              .then(() => {
+                alert('📋 Enlace copiado al portapapeles.\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+              })
+              .catch(() => {
+                const range = document.createRange();
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = proxy;
+                tempDiv.style.position = 'fixed';
+                tempDiv.style.opacity = '0';
+                document.body.appendChild(tempDiv);
+                range.selectNode(tempDiv);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                document.body.removeChild(tempDiv);
+                alert('📋 Enlace copiado (método manual).\n\nAbre tu navegador y pégalo en la barra de direcciones.');
+              });
           }
         }
       });

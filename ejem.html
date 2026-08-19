@@ -98,8 +98,6 @@
     .btn-close:active {
       transform: scale(0.96);
     }
-
-    /* ===== SECCIÓN DE URL (solo visible si hay ?url) ===== */
     .url-section {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
@@ -165,14 +163,11 @@
       border-color: #4caf50;
       color: #4caf50;
     }
-
-    /* Mensaje de redirección */
     .redirect-msg {
       margin-top: 1rem;
       font-size: 0.85rem;
       color: #888;
     }
-
     @media (max-width: 480px) {
       body { padding: 1rem; }
       .container { padding: 2rem 1.2rem; border-radius: 40px; }
@@ -208,7 +203,6 @@
       y presiona Enter.
     </p>
 
-    <!-- Sección que se muestra SOLO si hay parámetro ?url -->
     <div class="url-section" id="urlSection">
       <div class="url-box">
         <span class="label">📎 ENLACE RECIBIDO</span>
@@ -231,7 +225,7 @@
     (function() {
       const params = new URLSearchParams(location.search);
       const urlParam = params.get('url');
-      const returnUrl = params.get('returnUrl'); // URL a la que volver
+      const returnUrl = params.get('returnUrl');
 
       const urlSection = document.getElementById('urlSection');
       const urlDisplay = document.getElementById('urlDisplay');
@@ -239,7 +233,7 @@
       const closeBtn = document.getElementById('closeBtn');
       const redirectMsg = document.getElementById('redirectMsg');
 
-      // Si hay URL, mostrarla
+      // Mostrar la URL si existe
       if (urlParam && urlParam.trim() !== '') {
         const decodedUrl = decodeURIComponent(urlParam);
         urlDisplay.textContent = decodedUrl;
@@ -285,23 +279,25 @@
         }
       });
 
-      // Función de cierre
       function cerrar() {
-        if (returnUrl && returnUrl.trim() !== '') {
-          // Mostrar mensaje de redirección
-          redirectMsg.style.display = 'block';
-          closeBtn.disabled = true;
-          closeBtn.textContent = '⏳ Redirigiendo...';
-          // Reemplazar la URL actual por la del reproductor
-          window.location.replace(decodeURIComponent(returnUrl));
-        } else {
-          // Si no hay returnUrl, intentar cerrar la ventana
-          window.close();
-          // Fallback: si no se cierra, redirigir a about:blank
-          setTimeout(() => {
-            window.location.href = 'about:blank';
-          }, 500);
-        }
+        // Primero intentamos cerrar la ventana
+        window.close();
+
+        // Después de 300 ms, si la ventana sigue abierta, redirigimos
+        setTimeout(() => {
+          // Si la ventana no se cerró (sigue existiendo), redirigimos
+          if (!window.closed) {
+            if (returnUrl && returnUrl.trim() !== '') {
+              redirectMsg.style.display = 'block';
+              closeBtn.disabled = true;
+              closeBtn.textContent = '⏳ Redirigiendo...';
+              window.location.replace(decodeURIComponent(returnUrl));
+            } else {
+              // Si no hay returnUrl, ir a about:blank
+              window.location.href = 'about:blank';
+            }
+          }
+        }, 300);
       }
 
       closeBtn.addEventListener('click', cerrar);
