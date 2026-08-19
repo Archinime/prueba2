@@ -40,6 +40,7 @@
 //             - En modo standalone (PWA instalada): usa navigator.share() para elegir navegador externo.
 //             - En ambos casos se muestra la página de instrucciones (ejem.html).
 // MODIFICADO: El botón "Abrir" ahora muestra una imagen (chrome.avif) en lugar de texto, con tamaño 1rem.
+// MODIFICADO: Al abrir ejem.html se pasa returnUrl para volver al reproductor al cerrar.
 
 class VideoPlayer {
   constructor() {
@@ -412,7 +413,6 @@ class VideoPlayer {
         display: none;
       `;
       const img = document.createElement('img');
-      // CAMBIO AQUÍ: nueva imagen chrome.avif
       img.src = 'https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/chrome.avif';
       img.alt = 'Abrir';
       img.style.cssText = 'height: 1rem; width: auto; vertical-align: middle;';
@@ -455,8 +455,9 @@ class VideoPlayer {
         if (!proxy) return;
         this.lastOpenedProxyUrl = proxy;
 
-        // Construir URL de instrucciones
-        const instruccionesUrl = `ejem.html?url=${encodeURIComponent(proxy)}`;
+        // Construir URL de instrucciones con returnUrl
+        const returnUrl = location.href;
+        const instruccionesUrl = `ejem.html?url=${encodeURIComponent(proxy)}&returnUrl=${encodeURIComponent(returnUrl)}`;
 
         // Función de fallback (se usa si el método principal falla)
         const fallbackOpen = (url) => {

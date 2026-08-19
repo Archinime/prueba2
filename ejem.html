@@ -166,6 +166,13 @@
       color: #4caf50;
     }
 
+    /* Mensaje de redirección */
+    .redirect-msg {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
     @media (max-width: 480px) {
       body { padding: 1rem; }
       .container { padding: 2rem 1.2rem; border-radius: 40px; }
@@ -212,27 +219,32 @@
       </button>
     </div>
 
-    <button class="btn-close" onclick="window.close()">
+    <button class="btn-close" id="closeBtn">
       ✖ Cerrar esta pestaña
     </button>
+    <div class="redirect-msg" id="redirectMsg" style="display:none;">
+      🔄 Redirigiendo al reproductor...
+    </div>
   </div>
 
   <script>
     (function() {
       const params = new URLSearchParams(location.search);
       const urlParam = params.get('url');
+      const returnUrl = params.get('returnUrl'); // URL a la que volver
 
       const urlSection = document.getElementById('urlSection');
       const urlDisplay = document.getElementById('urlDisplay');
       const copyBtn = document.getElementById('copyUrlBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const redirectMsg = document.getElementById('redirectMsg');
 
+      // Si hay URL, mostrarla
       if (urlParam && urlParam.trim() !== '') {
-        // Decodificar y mostrar la URL
         const decodedUrl = decodeURIComponent(urlParam);
         urlDisplay.textContent = decodedUrl;
         urlSection.classList.add('visible');
 
-        // Botón "Copiar enlace"
         copyBtn.addEventListener('click', function() {
           navigator.clipboard.writeText(decodedUrl)
             .then(() => {
@@ -264,14 +276,35 @@
               }, 2500);
             });
         });
-
-        // Cerrar con Escape
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') {
-            window.close();
-          }
-        });
       }
+
+      // Cerrar con Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          cerrar();
+        }
+      });
+
+      // Función de cierre
+      function cerrar() {
+        if (returnUrl && returnUrl.trim() !== '') {
+          // Mostrar mensaje de redirección
+          redirectMsg.style.display = 'block';
+          closeBtn.disabled = true;
+          closeBtn.textContent = '⏳ Redirigiendo...';
+          // Reemplazar la URL actual por la del reproductor
+          window.location.replace(decodeURIComponent(returnUrl));
+        } else {
+          // Si no hay returnUrl, intentar cerrar la ventana
+          window.close();
+          // Fallback: si no se cierra, redirigir a about:blank
+          setTimeout(() => {
+            window.location.href = 'about:blank';
+          }, 500);
+        }
+      }
+
+      closeBtn.addEventListener('click', cerrar);
     })();
   </script>
 </body>
