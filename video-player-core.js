@@ -39,6 +39,8 @@
 //             - En navegador web normal (no standalone): usa window.open con ejem.html (instrucciones).
 //             - En modo standalone (PWA instalada): usa navigator.share() para elegir navegador externo.
 //             - En ambos casos se muestra la página de instrucciones (ejem.html).
+// MODIFICADO: Además, en dispositivos móviles con PWA instalada, el botón muestra el icono de Google y el texto "Google".
+//             En navegador web normal (PC o móvil sin instalar) muestra "Abrir" (📄).
 
 class VideoPlayer {
   constructor() {
@@ -395,55 +397,52 @@ class VideoPlayer {
       copyBtn.addEventListener('mouseenter', () => { copyBtn.style.background = 'rgba(255,255,255,0.15)'; });
       copyBtn.addEventListener('mouseleave', () => { copyBtn.style.background = 'rgba(255,255,255,0.08)'; });
 
+      // ============================================================
+      // BOTÓN "ABRIR" / "Google" - MODIFICADO PARA MOSTRAR GOOGLE EN STANDALONE + MÓVIL
+      // ============================================================
       const openBtn = document.createElement('button');
-      openBtn.textContent = '📄 Abrir';
-      openBtn.style.cssText = `
-        padding: 3px 8px;
-        border: none;
-        border-radius: 16px;
-        font-size: 0.6rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-        background: rgba(255,215,0,0.15);
-        color: #ffd200;
-        border: 1px solid rgba(255,215,0,0.3);
-        display: none;
-      `;
-      openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
-      openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
+      const isStandalone = this.isStandalone();
+      const isMobile = this.isMobile();
+      
+      if (isStandalone && isMobile) {
+        // En PWA instalada en móvil: mostrar Google con ícono
+        openBtn.innerHTML = '<i class="fab fa-google"></i> Google';
+        openBtn.style.cssText = `
+          padding: 3px 8px;
+          border: none;
+          border-radius: 16px;
+          font-size: 0.6rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+          background: rgba(66, 133, 244, 0.2);
+          color: #4285f4;
+          border: 1px solid rgba(66, 133, 244, 0.4);
+          display: none;
+        `;
+        openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(66, 133, 244, 0.3)'; });
+        openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(66, 133, 244, 0.2)'; });
+      } else {
+        // En navegador web normal (PC o móvil sin instalar): mostrar "Abrir" con icono
+        openBtn.textContent = '📄 Abrir';
+        openBtn.style.cssText = `
+          padding: 3px 8px;
+          border: none;
+          border-radius: 16px;
+          font-size: 0.6rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+          background: rgba(255,215,0,0.15);
+          color: #ffd200;
+          border: 1px solid rgba(255,215,0,0.3);
+          display: none;
+        `;
+        openBtn.addEventListener('mouseenter', () => { openBtn.style.background = 'rgba(255,215,0,0.25)'; });
+        openBtn.addEventListener('mouseleave', () => { openBtn.style.background = 'rgba(255,215,0,0.15)'; });
+      }
 
-      copyBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const proxy = proxyUrl;
-        if (!proxy) return;
-        navigator.clipboard.writeText(proxy)
-          .then(() => {
-            alert('📋 Enlace copiado al portapapeles.');
-            copyBtn.style.display = 'none';
-            openBtn.style.display = 'inline-block';
-          })
-          .catch(() => {
-            const range = document.createRange();
-            const tempDiv = document.createElement('div');
-            tempDiv.textContent = proxy;
-            tempDiv.style.position = 'fixed';
-            tempDiv.style.opacity = '0';
-            document.body.appendChild(tempDiv);
-            range.selectNode(tempDiv);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            document.body.removeChild(tempDiv);
-            alert('📋 Enlace copiado (método manual).');
-            copyBtn.style.display = 'none';
-            openBtn.style.display = 'inline-block';
-          });
-      });
-
-      // ============================================================
-      // BOTÓN "ABRIR" - Comportamiento diferenciado según contexto
-      // ============================================================
+      // El evento click es el mismo para ambos casos (comportamiento diferenciado por contexto)
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const proxy = proxyUrl;
