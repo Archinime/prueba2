@@ -139,12 +139,12 @@
       border-radius: 8px;
       border: 1px dashed rgba(255,255,255,0.06);
     }
-    .btn-open-link {
+    .btn-copy-link {
       display: inline-block;
       padding: 0.8rem 2rem;
-      background: linear-gradient(135deg, #4285F4, #34A853);
-      color: #fff;
-      border: none;
+      background: rgba(255,215,0,0.15);
+      color: #ffd200;
+      border: 1px solid rgba(255,215,0,0.3);
       border-radius: 60px;
       font-size: 1.1rem;
       font-weight: 700;
@@ -152,14 +152,18 @@
       transition: 0.3s;
       font-family: inherit;
       text-decoration: none;
-      box-shadow: 0 4px 20px rgba(66,133,244,0.3);
     }
-    .btn-open-link:hover {
+    .btn-copy-link:hover {
+      background: rgba(255,215,0,0.25);
       transform: scale(1.03);
-      box-shadow: 0 6px 30px rgba(66,133,244,0.5);
     }
-    .btn-open-link:active {
+    .btn-copy-link:active {
       transform: scale(0.96);
+    }
+    .btn-copy-link.copied {
+      background: rgba(0,255,0,0.15);
+      border-color: #4caf50;
+      color: #4caf50;
     }
 
     @media (max-width: 480px) {
@@ -171,7 +175,7 @@
       .image-container { max-width: 90%; }
       .hint { font-size: 1rem; }
       .btn-close { font-size: 1rem; padding: 0.8rem 2rem; }
-      .btn-open-link { font-size: 1rem; padding: 0.7rem 1.6rem; }
+      .btn-copy-link { font-size: 1rem; padding: 0.7rem 1.6rem; }
     }
   </style>
 </head>
@@ -185,7 +189,7 @@
 
     <div class="image-container">
       <img
-        src="https://cdn.jsdelivr.net/gh/Archinime/Archivos-data@main/about.blank.avif"
+        src="ejem.PNG"
         alt="Ejemplo de dónde pegar el enlace"
         loading="lazy"
       />
@@ -203,8 +207,8 @@
         <span class="label">📎 ENLACE RECIBIDO</span>
         <div class="url-text" id="urlDisplay">Cargando...</div>
       </div>
-      <button class="btn-open-link" id="openUrlBtn">
-        🌐 Abrir enlace
+      <button class="btn-copy-link" id="copyUrlBtn">
+        📋 Copiar enlace
       </button>
     </div>
 
@@ -220,7 +224,7 @@
 
       const urlSection = document.getElementById('urlSection');
       const urlDisplay = document.getElementById('urlDisplay');
-      const openBtn = document.getElementById('openUrlBtn');
+      const copyBtn = document.getElementById('copyUrlBtn');
 
       if (urlParam && urlParam.trim() !== '') {
         // Decodificar y mostrar la URL
@@ -228,17 +232,41 @@
         urlDisplay.textContent = decodedUrl;
         urlSection.classList.add('visible');
 
-        // Botón "Abrir enlace"
-        openBtn.addEventListener('click', function() {
-          // Abrir la URL en la misma pestaña (ya tiene barra de direcciones)
-          window.location.href = decodedUrl;
+        // Botón "Copiar enlace"
+        copyBtn.addEventListener('click', function() {
+          navigator.clipboard.writeText(decodedUrl)
+            .then(() => {
+              copyBtn.textContent = '✅ ¡Copiado!';
+              copyBtn.classList.add('copied');
+              setTimeout(() => {
+                copyBtn.textContent = '📋 Copiar enlace';
+                copyBtn.classList.remove('copied');
+              }, 2500);
+            })
+            .catch(() => {
+              // Fallback manual
+              const range = document.createRange();
+              const tempDiv = document.createElement('div');
+              tempDiv.textContent = decodedUrl;
+              tempDiv.style.position = 'fixed';
+              tempDiv.style.opacity = '0';
+              document.body.appendChild(tempDiv);
+              range.selectNode(tempDiv);
+              window.getSelection().removeAllRanges();
+              window.getSelection().addRange(range);
+              document.execCommand('copy');
+              document.body.removeChild(tempDiv);
+              copyBtn.textContent = '✅ ¡Copiado!';
+              copyBtn.classList.add('copied');
+              setTimeout(() => {
+                copyBtn.textContent = '📋 Copiar enlace';
+                copyBtn.classList.remove('copied');
+              }, 2500);
+            });
         });
 
-        // También permitir abrir con Enter
+        // Cerrar con Escape
         document.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            openBtn.click();
-          }
           if (e.key === 'Escape') {
             window.close();
           }
