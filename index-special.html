@@ -38,14 +38,14 @@
       opacity: 1;
     }
 
-    /* ===== OVERLAY DE ACTIVACIÓN DE AUDIO ===== */
+    /* ===== OVERLAY DE ACTIVACIÓN DE AUDIO (MINIMALISTA) ===== */
     #audio-overlay {
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       display: none; /* se muestra si el autoplay falla */
       flex-direction: column;
       align-items: center;
@@ -59,32 +59,18 @@
       display: flex;
     }
 
-    #audio-overlay h1 {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      font-weight: 900;
-      font-size: clamp(2.5rem, 10vw, 5rem);
-      background: linear-gradient(135deg, #ff1a6b, #b114ff, #00f0ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 40px rgba(177, 20, 255, 0.3);
-      margin-bottom: 20px;
-      letter-spacing: 2px;
-    }
-
-    #audio-overlay .sub {
-      font-size: clamp(1rem, 3vw, 1.8rem);
-      color: #ccc;
-      font-weight: 300;
-      margin-bottom: 12px;
-    }
-
     #audio-overlay .icon {
       font-size: 4rem;
       animation: pulseIcon 1.8s infinite alternate;
-      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    #audio-overlay .sub {
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      color: #ccc;
+      font-weight: 300;
     }
 
+    /* ===== BOTÓN VOLVER ===== */
     .btn-volver {
       position: fixed;
       bottom: 30px;
@@ -149,11 +135,10 @@
     <source src="atrevete.mp4" type="video/mp4">
   </video>
 
-  <!-- ===== OVERLAY PARA ACTIVAR AUDIO ===== -->
+  <!-- ===== OVERLAY PARA ACTIVAR AUDIO (solo icono y mensaje breve) ===== -->
   <div id="audio-overlay" class="show">
-    <h1>🎵 MODO ESPECIAL</h1>
-    <div class="sub">Haz clic en cualquier lugar para activar el sonido</div>
-    <div class="icon">🎧</div>
+    <div class="icon">🔊</div>
+    <div class="sub">Toca para activar el sonido</div>
   </div>
 
   <!-- ===== BOTÓN VOLVER ===== -->
@@ -176,18 +161,15 @@
       video.play()
         .then(() => {
           video.classList.add('loaded');
-          // Si el autoplay con mute funciona, mostramos el overlay para activar audio
           overlay.classList.add('show');
         })
         .catch(() => {
-          // Si falla incluso con mute, mostramos el overlay igual
           overlay.classList.add('show');
-          // Intentamos de nuevo con muted (por si acaso)
           video.muted = true;
           video.play().catch(() => {});
         });
 
-      // 2. Cuando el usuario hace clic en el overlay, activamos el audio
+      // 2. Clic en overlay → activar audio
       overlay.addEventListener('click', function activarAudio() {
         video.muted = false;
         video.volume = 0.8;
@@ -196,16 +178,14 @@
             overlay.classList.remove('show');
             video.classList.add('loaded');
           })
-          .catch((err) => {
-            // Si falla, intentamos forzar con muted = false de nuevo
+          .catch(() => {
             video.muted = false;
             video.play().catch(() => {});
           });
-        // Eliminamos el listener para que no se ejecute varias veces
         overlay.removeEventListener('click', activarAudio);
       });
 
-      // 3. Si el usuario hace clic fuera del overlay (por si no se ve), también intentamos activar
+      // 3. Clic fuera del overlay (por si acaso)
       document.addEventListener('click', function() {
         if (video.paused && !overlay.classList.contains('show')) {
           video.muted = false;
@@ -213,12 +193,12 @@
         }
       });
 
-      // 4. Reproducción en bucle (por si el atributo loop falla)
+      // 4. Bucle
       video.addEventListener('ended', function() {
         video.play().catch(() => {});
       });
 
-      console.log('🎬 Modo Especial activado (solo video atrevete.mp4)');
+      console.log('🎬 Modo Especial (limpio)');
     })();
   </script>
 
