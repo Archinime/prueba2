@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>✨ Modo Especial · Archinime</title>
+  <style>
+    /* ===== RESET Y ESTILOS GLOBALES ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0b0b0f;
+      color: #fff;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ===== VIDEO DE FONDO ===== */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: brightness(0.75) saturate(1.1);
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    #bg-video.loaded {
+      opacity: 1;
+    }
+
+    /* ===== OVERLAY DE ACTIVACIÓN DE AUDIO ===== */
+    #audio-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none; /* se muestra si el autoplay falla */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-align: center;
+      padding: 30px;
+      animation: fadeInOverlay 0.8s ease;
+    }
+    #audio-overlay.show {
+      display: flex;
+    }
+
+    #audio-overlay h1 {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 10vw, 5rem);
+      background: linear-gradient(135deg, #ff1a6b, #b114ff, #00f0ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 40px rgba(177, 20, 255, 0.3);
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+
+    #audio-overlay .sub {
+      font-size: clamp(1rem, 3vw, 1.8rem);
+      color: #ccc;
+      font-weight: 300;
+      margin-bottom: 12px;
+    }
+
+    #audio-overlay .icon {
+      font-size: 4rem;
+      animation: pulseIcon 1.8s infinite alternate;
+      margin-top: 10px;
+    }
+
+    .btn-volver {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      letter-spacing: 0.3px;
+    }
+    .btn-volver:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #ff1a6b;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(255, 26, 107, 0.2);
+    }
+    .btn-volver i {
+      font-size: 1.1rem;
+    }
+
+    /* ===== ANIMACIONES ===== */
+    @keyframes fadeInOverlay {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulseIcon {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .btn-volver {
+        bottom: 20px;
+        left: 20px;
+        padding: 10px 18px;
+        font-size: 0.8rem;
+      }
+      #audio-overlay .icon {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== VIDEO DE FONDO ===== -->
+  <video id="bg-video" muted loop playsinline preload="auto">
+    <source src="atrevete.mp4" type="video/mp4">
+  </video>
+
+  <!-- ===== OVERLAY PARA ACTIVAR AUDIO ===== -->
+  <div id="audio-overlay" class="show">
+    <h1>🎵 MODO ESPECIAL</h1>
+    <div class="sub">Haz clic en cualquier lugar para activar el sonido</div>
+    <div class="icon">🎧</div>
+  </div>
+
+  <!-- ===== BOTÓN VOLVER ===== -->
+  <a href="index.html" class="btn-volver">
+    <i class="fas fa-arrow-left"></i> Volver al inicio
+  </a>
+
+  <!-- ===== FONT AWESOME (para el icono) ===== -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    (function() {
+      'use strict';
+
+      const video = document.getElementById('bg-video');
+      const overlay = document.getElementById('audio-overlay');
+
+      // 1. Intentar reproducir con mute primero (para que se vea el video)
+      video.muted = true;
+      video.play()
+        .then(() => {
+          video.classList.add('loaded');
+          // Si el autoplay con mute funciona, mostramos el overlay para activar audio
+          overlay.classList.add('show');
+        })
+        .catch(() => {
+          // Si falla incluso con mute, mostramos el overlay igual
+          overlay.classList.add('show');
+          // Intentamos de nuevo con muted (por si acaso)
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+
+      // 2. Cuando el usuario hace clic en el overlay, activamos el audio
+      overlay.addEventListener('click', function activarAudio() {
+        video.muted = false;
+        video.volume = 0.8;
+        video.play()
+          .then(() => {
+            overlay.classList.remove('show');
+            video.classList.add('loaded');
+          })
+          .catch((err) => {
+            // Si falla, intentamos forzar con muted = false de nuevo
+            video.muted = false;
+            video.play().catch(() => {});
+          });
+        // Eliminamos el listener para que no se ejecute varias veces
+        overlay.removeEventListener('click', activarAudio);
+      });
+
+      // 3. Si el usuario hace clic fuera del overlay (por si no se ve), también intentamos activar
+      document.addEventListener('click', function() {
+        if (video.paused && !overlay.classList.contains('show')) {
+          video.muted = false;
+          video.play().catch(() => {});
+        }
+      });
+
+      // 4. Reproducción en bucle (por si el atributo loop falla)
+      video.addEventListener('ended', function() {
+        video.play().catch(() => {});
+      });
+
+      console.log('🎬 Modo Especial activado (solo video atrevete.mp4)');
+    })();
+  </script>
+
+</body>
+</html>

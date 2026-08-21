@@ -313,7 +313,6 @@
       gap: 20px;
       border-bottom: 1px solid rgba(0, 240, 255, 0.05);
       box-shadow: 0 4px 30px rgba(0,0,0,0.6);
-      transition: border-color 0.5s ease, box-shadow 0.5s ease;
     }
 
     /* MÓVIL: dos filas */
@@ -712,7 +711,6 @@
       height: 280px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.7);
       border: 1px solid rgba(0, 240, 255, 0.05);
-      transition: border-color 0.5s ease;
     }
     .banner-slide {
       position: absolute;
@@ -735,7 +733,6 @@
       max-width: 60%;
       position: relative;
       z-index: 2;
-      transition: border-color 0.5s ease;
     }
     .banner-slide .banner-info h2 {
       font-family: 'Orbitron', sans-serif;
@@ -2260,90 +2257,20 @@
         padding: 4px 10px;
       }
     }
-
-    /* ===== ESTILOS PARA EL MODO ESPECIAL ===== */
-    .special-mode .cyber-nav {
-      border-bottom-color: #ff1a6b;
-      box-shadow: 0 4px 30px rgba(255, 26, 107, 0.3);
-    }
-    .special-mode .banner-carousel {
-      border-color: #ff1a6b;
-    }
-    .special-mode .banner-slide .banner-info {
-      border-left-color: #ffd700;
-    }
-    .special-mode .custom-select-trigger {
-      border-color: rgba(255, 26, 107, 0.4);
-    }
-    .special-mode .custom-select-trigger::after {
-      color: #ffd700;
-    }
-    #special-bg-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-      filter: brightness(0.5) contrast(1.1);
-      pointer-events: none;
-    }
-    #special-bg-video.loaded { opacity: 1; }
-    .special-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(255, 26, 107, 0.12), rgba(5,7,10,0.92));
-      z-index: -1;
-      pointer-events: none;
-    }
-    /* Botón de activación de audio (sobresale por si el autoplay falla) */
-    #specialAudioOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
-      z-index: 99999;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    #specialAudioOverlay.show {
-      display: flex;
-    }
-    #specialAudioOverlay h1 {
-      font-size: 3rem;
-      color: #ffd700;
-      text-shadow: 0 0 40px #ffd700;
-      animation: pulseGlow 2s infinite;
-      margin-bottom: 20px;
-    }
-    #specialAudioOverlay p {
-      font-size: 1.2rem;
-      color: #ccc;
-    }
-    @keyframes pulseGlow {
-      0% { text-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700; }
-      50% { text-shadow: 0 0 40px #ff1a6b, 0 0 80px #b114ff; }
-      100% { text-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700; }
-    }
   </style>
 </head>
 <body>
+
+<!-- ===== REDIRECCIÓN ALEATORIA AL MODO ESPECIAL (10%) ===== -->
+<script>
+  (function() {
+    // Solo redirigir si no estamos ya en la página especial (para evitar bucles)
+    // y no estamos en un entorno de desarrollo con parámetros para evitar
+    if (Math.random() < 0.10) {
+      window.location.href = 'index-special.html';
+    }
+  })();
+</script>
 
 <!-- ===== LOADER (NUEVO DISEÑO) ===== -->
 <div id="loadingScreen">
@@ -2366,23 +2293,11 @@
 <!-- ===== PARTÍCULAS ===== -->
 <canvas id="particlesCanvas"></canvas>
 
-<!-- ===== FONDO VIDEO (normal) ===== -->
+<!-- ===== FONDO VIDEO ===== -->
 <video id="bg-video" poster="galaxia-morado1.avif" autoplay muted loop playsinline preload="auto" style="position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; opacity:0; transition:opacity 1.2s; filter:brightness(0.5) contrast(1.1);">
   <source src="galaxia.mp4" type="video/mp4">
 </video>
 <div id="overlay" style="position:fixed; inset:0; z-index:-1; background:radial-gradient(ellipse at 30% 40%, rgba(177,20,255,0.08), rgba(5,7,10,0.9)); pointer-events:none;"></div>
-
-<!-- ===== MODO ESPECIAL (video atrevete.mp4) - solo se muestra si activado ===== -->
-<div id="specialModeContainer" style="display:none;">
-  <video id="special-bg-video" poster="galaxia-morado1.avif" muted loop playsinline preload="auto">
-    <source src="atrevete.mp4" type="video/mp4">
-  </video>
-  <div class="special-overlay"></div>
-  <div id="specialAudioOverlay" class="show">
-    <h1>🎵 MODO ESPECIAL</h1>
-    <p>Haz clic en cualquier lugar para activar el audio</p>
-  </div>
-</div>
 
 <!-- ===== NAVBAR ===== -->
 <nav class="cyber-nav" role="navigation">
@@ -2677,68 +2592,6 @@
 <script src="banner-carousel.js?v=2025-04-07-v21.0-chat-fixes"></script>
 
 <script>
-  // ============================================
-  // MODO ESPECIAL - PROBABILIDAD 10%
-  // ============================================
-  (function() {
-    const PROBABILITY = 0.10; // 10% de probabilidad
-    const isSpecial = Math.random() < PROBABILITY;
-    if (isSpecial) {
-      console.log('🎵 Modo Especial activado!');
-      const container = document.getElementById('specialModeContainer');
-      const video = document.getElementById('special-bg-video');
-      const overlay = document.getElementById('specialAudioOverlay');
-      const body = document.body;
-      
-      // Mostrar el contenedor y ocultar el fondo normal
-      container.style.display = 'block';
-      document.getElementById('bg-video').style.display = 'none';
-      document.getElementById('overlay').style.display = 'none';
-      
-      // Agregar clase especial al body para cambiar estilos
-      body.classList.add('special-mode');
-      
-      // Cargar el video
-      video.load();
-      video.play().then(() => {
-        video.classList.add('loaded');
-        // Ocultar overlay de audio si ya se reprodujo (con audio)
-        overlay.classList.remove('show');
-      }).catch(() => {
-        // Si el autoplay falla, mostrar el overlay para activar audio
-        overlay.classList.add('show');
-        // Intentar reproducir con muted primero
-        video.muted = true;
-        video.play().then(() => {
-          video.muted = false;
-          overlay.classList.remove('show');
-        }).catch(() => {});
-      });
-      
-      // Manejar clic en el overlay para activar audio
-      overlay.addEventListener('click', function() {
-        video.muted = false;
-        video.play().then(() => {
-          overlay.classList.remove('show');
-        }).catch(() => {});
-      });
-      
-      // También cualquier clic en la página puede activar el audio (si el overlay no está visible)
-      document.addEventListener('click', function() {
-        if (!overlay.classList.contains('show') && video.paused) {
-          video.play().catch(() => {});
-        }
-      });
-      
-      // Reproducción en bucle (el atributo loop ya está)
-      video.addEventListener('ended', function() {
-        video.play().catch(() => {});
-      });
-    } else {
-      console.log('Modo normal.');
-    }
-  })();
-
   // ============================================
   // SISTEMA DE STICKERS (CORREGIDO)
   // ============================================
