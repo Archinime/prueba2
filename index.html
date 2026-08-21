@@ -700,7 +700,7 @@
       max-width: 100%;
     }
 
-    /* ===== BANNER ===== */
+    /* ===== BANNER (se modificará dinámicamente) ===== */
     .banner-carousel {
       position: relative;
       width: 100%;
@@ -711,6 +711,7 @@
       height: 280px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.7);
       border: 1px solid rgba(0, 240, 255, 0.05);
+      transition: all 0.5s ease;
     }
     .banner-slide {
       position: absolute;
@@ -768,6 +769,79 @@
       .banner-slide .banner-info { max-width: 80%; padding: 12px 16px; }
       .banner-slide .banner-info h2 { font-size: 1.1rem; }
       .banner-slide .banner-info p { font-size: 0.75rem; }
+    }
+
+    /* ===== MODO ESPECIAL (video en el banner) ===== */
+    .banner-special {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+      margin: 10px auto 20px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      height: 280px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+      border: 2px solid var(--neon-pink);
+      background: #000;
+    }
+    .banner-special video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.7) saturate(1.2);
+    }
+    .banner-special .overlay-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: rgba(0,0,0,0.4);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .banner-special .overlay-text h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      color: var(--neon-gold);
+      text-shadow: 0 0 30px var(--neon-gold);
+      letter-spacing: 4px;
+    }
+    .banner-special .overlay-text p {
+      color: #fff;
+      font-size: 1rem;
+      margin-top: 8px;
+    }
+    .banner-special .audio-indicator {
+      position: absolute;
+      bottom: 16px;
+      right: 24px;
+      z-index: 2;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      border: 1px solid var(--neon-gold);
+      color: var(--neon-gold);
+      font-size: 0.8rem;
+      font-weight: 600;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .banner-special .audio-indicator i {
+      animation: pulseIcon 1.8s infinite alternate;
+    }
+    @keyframes pulseIcon {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      .banner-special { height: 180px; border-radius: var(--radius-md); }
+      .banner-special .overlay-text h2 { font-size: 1.4rem; }
+      .banner-special .overlay-text p { font-size: 0.8rem; }
     }
 
     /* ===== FILTROS ===== */
@@ -2261,17 +2335,6 @@
 </head>
 <body>
 
-<!-- ===== REDIRECCIÓN ALEATORIA AL MODO ESPECIAL (10%) ===== -->
-<script>
-  (function() {
-    // Solo redirigir si no estamos ya en la página especial (para evitar bucles)
-    // y no estamos en un entorno de desarrollo con parámetros para evitar
-    if (Math.random() < 0.10) {
-      window.location.href = 'index-special.html';
-    }
-  })();
-</script>
-
 <!-- ===== LOADER (NUEVO DISEÑO) ===== -->
 <div id="loadingScreen">
   <div class="loader-ring-outer">
@@ -2335,9 +2398,25 @@
   </div>
 </nav>
 
-<!-- ===== BANNER CARRUSEL ===== -->
-<div class="banner-carousel" id="bannerCarousel">
-  <div class="banner-dots" id="bannerDots"></div>
+<!-- ===== BANNER CARRUSEL (se reemplazará en modo especial) ===== -->
+<div id="bannerContainer">
+  <div class="banner-carousel" id="bannerCarousel">
+    <div class="banner-dots" id="bannerDots"></div>
+  </div>
+</div>
+
+<!-- ===== MODO ESPECIAL (se activa dinámicamente) ===== -->
+<div id="specialBanner" style="display:none;" class="banner-special">
+  <video id="specialVideo" muted loop playsinline>
+    <source src="atrevete.mp4" type="video/mp4">
+  </video>
+  <div class="overlay-text">
+    <h2>🌟 MODO ESPECIAL</h2>
+    <p>Disfruta de este tráiler exclusivo</p>
+  </div>
+  <div class="audio-indicator" id="specialAudioIndicator">
+    <i class="fas fa-volume-mute"></i> <span>Haz clic para activar sonido</span>
+  </div>
 </div>
 
 <!-- ===== FILTROS ===== -->
@@ -2592,6 +2671,65 @@
 <script src="banner-carousel.js?v=2025-04-07-v21.0-chat-fixes"></script>
 
 <script>
+  // ============================================
+  // MODO ESPECIAL - ACTIVACIÓN CON PROBABILIDAD
+  // ============================================
+  (function() {
+    const PROBABILITY = 0.10; // 10%
+    const isSpecial = Math.random() < PROBABILITY;
+
+    if (isSpecial) {
+      console.log('🎬 Modo Especial activado (banner con video)');
+
+      const carousel = document.getElementById('bannerCarousel');
+      const specialBanner = document.getElementById('specialBanner');
+      const specialVideo = document.getElementById('specialVideo');
+      const audioIndicator = document.getElementById('specialAudioIndicator');
+
+      // Ocultar el carrusel normal y mostrar el especial
+      carousel.style.display = 'none';
+      specialBanner.style.display = 'block';
+
+      // Intentar reproducir el video con mute primero
+      specialVideo.muted = true;
+      specialVideo.play()
+        .then(() => {
+          audioIndicator.innerHTML = '<i class="fas fa-volume-up"></i> <span>Sonido activado</span>';
+        })
+        .catch(() => {
+          // Si falla, mostrar indicador de clic
+          audioIndicator.innerHTML = '<i class="fas fa-volume-mute"></i> <span>Haz clic para activar sonido</span>';
+          // Intentar de nuevo con muted
+          specialVideo.muted = true;
+          specialVideo.play().catch(() => {});
+        });
+
+      // Al hacer clic en el banner, activar audio
+      specialBanner.addEventListener('click', function() {
+        specialVideo.muted = false;
+        specialVideo.volume = 0.8;
+        specialVideo.play()
+          .then(() => {
+            audioIndicator.innerHTML = '<i class="fas fa-volume-up"></i> <span>Sonido activado</span>';
+          })
+          .catch(() => {
+            // Si falla, mostrar mensaje
+            audioIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Error al activar audio</span>';
+          });
+      });
+
+      // Reproducción en bucle
+      specialVideo.addEventListener('ended', function() {
+        specialVideo.play().catch(() => {});
+      });
+
+      // Añadir clase especial al body para cambiar estilos (opcional)
+      document.body.classList.add('special-mode');
+    } else {
+      console.log('Modo normal.');
+    }
+  })();
+
   // ============================================
   // SISTEMA DE STICKERS (CORREGIDO)
   // ============================================
