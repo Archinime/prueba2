@@ -1,4 +1,6 @@
-// ============================================
+https://hubu.cloud/61547683da6cff725ab27ac677c02986/MAO_T1_Cap_1.mp4
+https://ww1.hubu.cloud/file/61547683da6cff725ab27ac677c02986/MAO_T1_Cap_1.mp4
+https://hubu.cloud/video/embed/61547683da6cff72// ============================================
 // CONFIGURACIÓN FIRESTORE
 // ============================================
 const firebaseConfig = {
@@ -435,10 +437,14 @@ function extractUrlFromIframe(value) {
     return null;
 }
 
+// ============================================================
+// FUNCIÓN SMARTLINKCONVERT ACTUALIZADA (con nuevas reglas)
+// ============================================================
 function smartLinkConvert(input) {
     let val = input.value.trim();
     let changed = false;
 
+    // 1. Convertir iframe a enlace directo
     const extractedUrl = extractUrlFromIframe(val);
     if (extractedUrl) {
         input.value = extractedUrl;
@@ -447,16 +453,21 @@ function smartLinkConvert(input) {
         showToast("✅ Iframe convertido a enlace directo", false);
     }
 
+    // 2. Convertir localhost a Render
     if (val.includes('http://10.22.7.119:8080')) {
         input.value = val.replace('http://10.22.7.119:8080', 'https://fsb-latest-gdv3.onrender.com');
         changed = true;
         showToast("Link local convertido a Render");
     }
+
+    // 3. Dropbox &raw=1
     if (val.includes('dropbox.com') && val.endsWith('&dl=0')) {
         input.value = val.replace('&dl=0', '&raw=1');
         changed = true;
         showToast("Link Dropbox convertido a &raw=1");
     }
+
+    // 4. Google Drive /preview
     const driveRegex = /(https:\/\/drive\.google\.com\/file\/d\/[^\/]+)\/(?:view|preview)(?:\?.*)?/;
     if (driveRegex.test(val) && !val.endsWith('/preview')) {
         const match = val.match(driveRegex);
@@ -466,22 +477,25 @@ function smartLinkConvert(input) {
             showToast("Link Drive convertido a /preview");
         }
     }
+
+    // 5. ok.ru a videoembed
     if (/ok\.ru\/video\//i.test(val)) {
         input.value = val.replace(/ok\.ru\/video\//i, 'ok.ru/videoembed/');
         changed = true;
         showToast("Link ok.ru convertido a /videoembed/");
     }
+
+    // 6. Odysee a embed
     if (val.includes('odysee.com/') && !val.includes('odysee.com/$/embed/')) {
         input.value = val.replace(/odysee\.com\//i, 'odysee.com/$/embed/');
         changed = true;
         showToast("Link Odysee convertido a Embed");
     }
 
-    // --- NUEVA CONVERSIÓN PARA MP4UPLOAD ---
+    // 7. mp4upload a embed
     if (val.includes('mp4upload.com') && !val.includes('embed')) {
-        // Extraer el código después del último '/'
         const parts = val.split('/');
-        const code = parts[parts.length - 1].split('?')[0]; // eliminar parámetros
+        const code = parts[parts.length - 1].split('?')[0];
         if (code && code.length > 0) {
             const newUrl = `https://www.mp4upload.com/embed-${code}.html`;
             input.value = newUrl;
@@ -490,6 +504,31 @@ function smartLinkConvert(input) {
         }
     }
 
+    // 8. NUEVA REGLA: Hubu.cloud → ww1.hubu.cloud/file/...
+    if (val.includes('hubu.cloud') && !val.includes('ww1.hubu.cloud')) {
+        const match = val.match(/https?:\/\/hubu\.cloud\/([^?]+)/);
+        if (match && match[1]) {
+            const path = match[1];
+            if (!path.startsWith('file/')) {
+                const newUrl = `https://ww1.hubu.cloud/file/${path}`;
+                input.value = newUrl;
+                changed = true;
+                showToast("Link Hubu.cloud convertido a enlace directo");
+            }
+        }
+    }
+
+    // 9. NUEVA REGLA: playmogo.com/d/ → playmogo.com/e/
+    if (val.includes('playmogo.com/d/')) {
+        const newUrl = val.replace(/playmogo\.com\/d\//, 'playmogo.com/e/');
+        if (newUrl !== val) {
+            input.value = newUrl;
+            changed = true;
+            showToast("Link Doodstream (playmogo) convertido a /e/");
+        }
+    }
+
+    // Si hubo cambios, disparar actualizaciones correspondientes
     if(changed) {
         if(input.id === 'portadaAnime') {
             checkCoverVisual(input);
@@ -1504,4 +1543,4 @@ async function subirAGithHub() {
 // Inicializar la inyección
 injectStateSelect();
 injectFinalBlock();
-injectAiringToggle();
+injectAiringToggle();5ab27ac677c02986/735x414/MAO_T1_Cap_1.mp4
